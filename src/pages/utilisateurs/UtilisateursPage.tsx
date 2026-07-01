@@ -4,56 +4,57 @@ import { getAdminUser } from '../../api/getAdminUser';
 import { patchAdminUser } from '../../api/patchAdminUser';
 import { deleteAdminUser } from '../../api/deleteAdminUser';
 
-type TabKey = 'tous' | 'detenteur' | 'client';
-
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'tous',      label: 'Tous' },
-  { key: 'detenteur', label: 'Propriétaires / Bailleurs' },
-  { key: 'client',    label: 'Clients' },
+const TABS = [
+  { key: '',             label: 'Tous'          },
+  { key: 'prospect',     label: 'Prospects'     },
+  { key: 'proprietaire', label: 'Propriétaires' },
+  { key: 'demarcheur',   label: 'Démarcheurs'   },
+  { key: 'locataire',    label: 'Locataires'    },
 ];
 
-const ROLE_LABELS: any = {
-  client:      'Client',
-  detenteur:   'Propriétaire / Bailleur',
-  super_admin: 'Super Admin',
+const ROLE_CONFIG: any = {
+  prospect:     { label: 'Prospect',     color: '#2563EB', bg: '#EFF6FF' },
+  proprietaire: { label: 'Propriétaire', color: '#16A34A', bg: '#F0FDF4' },
+  demarcheur:   { label: 'Démarcheur',   color: '#D97706', bg: '#FFFBEB' },
+  locataire:    { label: 'Locataire',    color: '#7C3AED', bg: '#F5F3FF' },
 };
 
-const AVATAR_COLORS = ['#2563EB', '#F97316', '#6366F1', '#16A34A', '#DC2626', '#7C3AED'];
+const AVATAR_COLORS = ['#2563EB', '#7C3AED', '#DB2777', '#D97706', '#16A34A', '#0891B2'];
 
 function initials(u: any) {
-  return `${u.nom[0] ?? ''}${u.prenom[0] ?? ''}`.toUpperCase();
+  return `${u.prenom?.[0] ?? ''}${u.nom?.[0] ?? ''}`.toUpperCase();
 }
-
 function avatarColor(id: number) {
-  return AVATAR_COLORS[id % AVATAR_COLORS.length];
+  return AVATAR_COLORS[Math.abs(id) % AVATAR_COLORS.length];
 }
-
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-const LIMIT = 10;
+const LIMIT = 12;
 
 export default function UtilisateursPage() {
-  const [activeTab, setActiveTab]         = useState('tous' as any);
+  const [activeTab, setActiveTab]         = useState('');
   const [users, setUsers]                 = useState([] as any[]);
   const [total, setTotal]                 = useState(0);
   const [page, setPage]                   = useState(1);
   const [search, setSearch]               = useState('');
   const [loading, setLoading]             = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null as any);
+  const [togglingId, setTogglingId]       = useState(null as any);
+  const [deletingId, setDeletingId]       = useState(null as any);
+  const [confirmId, setConfirmId]         = useState(null as any);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getAdminUser.list({
         page,
-        limit: LIMIT,
-        role:   activeTab === 'tous' ? undefined : activeTab,
+        limit:  LIMIT,
+        role:   activeTab || undefined,
         search: search || undefined,
       });
-      setUsers(res.data);
-      setTotal(res.total);
+      setUsers(res.data ?? []);
+      setTotal(res.total ?? 0);
     } finally {
       setLoading(false);
     }
@@ -64,18 +65,28 @@ export default function UtilisateursPage() {
   const totalPages = Math.ceil(total / LIMIT);
 
   async function toggleActif(u: any) {
-    await patchAdminUser.update(u.id, { actif: !u.actif });
-    load();
+    setTogglingId(u.id);
+    try {
+      await patchAdminUser.update(u.id, { actif: !u.actif });
+      await load();
+    } finally {
+      setTogglingId(null);
+    }
   }
 
   async function handleDelete(id: number) {
-    await deleteAdminUser.byId(id);
-    setConfirmDelete(null);
-    load();
+    setDeletingId(id);
+    try {
+      await deleteAdminUser.byId(id);
+      setConfirmId(null);
+      await load();
+    } finally {
+      setDeletingId(null);
+    }
   }
 
-  function handleTabChange(t: TabKey) {
-    setActiveTab(t);
+  function handleTabChange(key: string) {
+    setActiveTab(key);
     setPage(1);
   }
 
@@ -88,107 +99,201 @@ export default function UtilisateursPage() {
     <>
       <div className="immo-topbar">
         <div className="immo-topbar-title">
-          <h1 style={{ color: 'var(--c-text)' }}>Gestion des Utilisateurs</h1>
-          <p>{total} utilisateur{total > 1 ? 's' : ''} au total</p>
+          <h1>Gestion des Utilisateurs</h1>
+          <p>{total} utilisateur{total !== 1 ? 's' : ''} au total</p>
         </div>
         <div className="immo-spacer" />
+        <div className="immo-search-wrap">
+          <SearchIcon />
+          <input
+            placeholder="Rechercher par nom, email…"
+            value={search}
+            onChange={handleSearch}
+          />
+        </div>
       </div>
 
       <div className="immo-page">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div className="user-tabs">
-            {TABS.map((t) => (
+
+        {/* ── Onglets ── */}
+        <div className="ut-tabs">
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              className={`ut-tab${activeTab === t.key ? ' active' : ''}`}
+              onClick={() => handleTabChange(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Tableau ── */}
+        <div className="ut-table-wrap">
+          <table className="ut-table">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Rôle</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th>Inscription</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="ut-state-cell">Chargement…</td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="ut-state-cell">Aucun utilisateur trouvé.</td>
+                </tr>
+              ) : users.map((u: any) => {
+                const rc = ROLE_CONFIG[u.role];
+                const isToggling = togglingId === u.id;
+                const isDeleting = deletingId === u.id;
+                const isConfirm  = confirmId  === u.id;
+
+                return (
+                  <tr key={u.id} className="ut-row">
+                    {/* Utilisateur */}
+                    <td>
+                      <div className="ut-user-cell">
+                        <div className="ut-avatar" style={{ background: avatarColor(u.id) }}>
+                          {initials(u)}
+                        </div>
+                        <div className="ut-user-info">
+                          <div className="ut-user-name">{u.prenom} {u.nom}</div>
+                          <div className="ut-user-email">{u.email ?? '—'}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Rôle */}
+                    <td>
+                      {rc ? (
+                        <span
+                          className="ut-role-badge"
+                          style={{ color: rc.color, background: rc.bg }}
+                        >
+                          {rc.label}
+                        </span>
+                      ) : (
+                        <span className="ut-role-badge" style={{ color: '#64748B', background: '#F1F5F9' }}>
+                          {u.role}
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Téléphone */}
+                    <td className="ut-phone">{u.telephone ?? '—'}</td>
+
+                    {/* Statut */}
+                    <td>
+                      <button
+                        className={`ut-status-btn${u.actif ? ' actif' : ' bloque'}`}
+                        onClick={() => toggleActif(u)}
+                        disabled={isToggling}
+                        title="Cliquer pour basculer"
+                      >
+                        <span className="ut-status-dot" />
+                        {isToggling ? '…' : u.actif ? 'Actif' : 'Bloqué'}
+                      </button>
+                    </td>
+
+                    {/* Inscription */}
+                    <td className="ut-date">{formatDate(u.created_at)}</td>
+
+                    {/* Actions */}
+                    <td>
+                      <div className="ut-actions">
+                        {isConfirm ? (
+                          <>
+                            <button
+                              className="ut-action-btn ut-action-btn--confirm"
+                              onClick={() => handleDelete(u.id)}
+                              disabled={isDeleting}
+                              title="Confirmer la suppression"
+                            >
+                              {isDeleting ? '…' : 'Confirmer'}
+                            </button>
+                            <button
+                              className="ut-action-btn ut-action-btn--cancel"
+                              onClick={() => setConfirmId(null)}
+                            >
+                              Annuler
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="ut-action-btn ut-action-btn--delete"
+                            onClick={() => setConfirmId(u.id)}
+                            title="Supprimer cet utilisateur"
+                          >
+                            <TrashIcon size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ── Pagination ── */}
+        <div className="ut-footer">
+          <span className="ut-count">
+            {total === 0
+              ? 'Aucun résultat'
+              : `${(page - 1) * LIMIT + 1}–${Math.min(page * LIMIT, total)} sur ${total} utilisateurs`}
+          </span>
+          <div className="immo-pagination">
+            <button className="page-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+              <ChevronLeftIcon />
+            </button>
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(p => (
               <button
-                key={t.key}
-                className={`user-tab ${activeTab === t.key ? 'active' : 'inactive'}`}
-                onClick={() => handleTabChange(t.key)}
+                key={p}
+                className={`page-btn${page === p ? ' active' : ''}`}
+                onClick={() => setPage(p)}
               >
-                {t.label}
+                {p}
               </button>
             ))}
-          </div>
-          <div className="immo-spacer" />
-          <div className="immo-search-wrap">
-            <SearchIcon />
-            <input
-              placeholder="Rechercher par nom, email..."
-              value={search}
-              onChange={handleSearch}
-              style={{ width: 220 }}
-            />
+            <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+              <ChevronRightIcon />
+            </button>
           </div>
         </div>
 
-        <div className="user-table-wrap">
-          <div className="user-table-header">
-            <span className="user-table-col">Utilisateur</span>
-            <span className="user-table-col">Rôle</span>
-            <span className="user-table-col">Contact</span>
-            <span className="user-table-col">Statut</span>
-            <span className="user-table-col">Inscription</span>
-            <span className="user-table-col">Actions</span>
-          </div>
+      </div>
 
-          {loading ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--c-muted)' }}>Chargement…</div>
-          ) : users.length === 0 ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--c-muted)' }}>Aucun utilisateur trouvé.</div>
-          ) : (
-            users.map((u: any) => (
-              <div className="user-row" key={u.id}>
-                <div className="user-cell">
-                  <div className="user-av" style={{ background: avatarColor(u.id) }}>{initials(u)}</div>
-                  <div>
-                    <div className="user-name">{u.nom} {u.prenom}</div>
-                    <div className="user-phone" style={{ fontSize: 11, color: 'var(--c-muted)' }}>ID #{u.id}</div>
-                  </div>
-                </div>
-                <div><span className="user-role">{ROLE_LABELS[u.role] ?? u.role}</span></div>
-                <div>
-                  <div style={{ fontSize: 12, color: 'var(--c-text)' }}>{u.email ?? '—'}</div>
-                  <div className="user-phone">{u.telephone ?? '—'}</div>
-                </div>
-                <div>
-                  <button
-                    onClick={() => toggleActif(u)}
-                    className={`badge-verif ${u.actif ? 'verified' : 'pending'}`}
-                    style={{ cursor: 'pointer', border: 'none', background: 'transparent' }}
-                    title="Cliquer pour basculer"
-                  >
-                    {u.actif ? '✓ ACTIF' : '✗ BLOQUÉ'}
-                  </button>
-                </div>
-                <div className="user-date">{formatDate(u.created_at)}</div>
-                <div className="user-actions">
-                  {confirmDelete === u.id ? (
-                    <>
-                      <button className="btn-icon-sm danger" onClick={() => handleDelete(u.id)} title="Confirmer la suppression">✓</button>
-                      <button className="btn-icon-sm" onClick={() => setConfirmDelete(null)} title="Annuler">✗</button>
-                    </>
-                  ) : (
-                    <button className="btn-icon-sm danger" onClick={() => setConfirmDelete(u.id)} title="Supprimer">
-                      <TrashIcon />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-
-          <div className="user-table-footer">
-            <span>
-              {total === 0 ? '0 résultat' : `${(page - 1) * LIMIT + 1}–${Math.min(page * LIMIT, total)} sur ${total}`}
-            </span>
-            <div className="immo-pagination">
-              <button className="page-btn" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}><ChevronLeftIcon /></button>
-              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((p) => (
-                <button key={p} className={`page-btn ${page === p ? 'active' : ''}`} onClick={() => setPage(p)}>{p}</button>
-              ))}
-              <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}><ChevronRightIcon /></button>
+      {/* ── Backdrop confirmation suppression ── */}
+      {confirmId !== null && (
+        <div className="immo-modal-backdrop" onClick={() => setConfirmId(null)}>
+          <div className="ut-confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="ut-confirm-icon">🗑️</div>
+            <div className="ut-confirm-title">Supprimer l'utilisateur ?</div>
+            <div className="ut-confirm-sub">Cette action est irréversible. Toutes les données associées seront perdues.</div>
+            <div className="ut-confirm-actions">
+              <button className="ut-action-btn ut-action-btn--cancel" onClick={() => setConfirmId(null)}>
+                Annuler
+              </button>
+              <button
+                className="ut-action-btn ut-action-btn--confirm"
+                onClick={() => handleDelete(confirmId)}
+                disabled={deletingId !== null}
+              >
+                {deletingId !== null ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
