@@ -5,431 +5,395 @@ import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
 
-type Tab = 'stats' | 'biens' | 'reservations' | 'creneaux' | 'loyers'
+// ─── Icons ────────────────────────────────────────────────────────────────────
+const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+const IcHome    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+const IcCal     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+const IcClock   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+const IcMoney   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+const IcPerson  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+const IcPlus    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
+const IcStar    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+const IcShield  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+const IcWarn    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+const IcPin     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+const IcTrash   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+const IcChat    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
 
-const BIEN_STATUT: Record<string, { label: string; color: string }> = {
-  actif:      { label: 'Actif',        color: 'text-success bg-success/10' },
-  inactif:    { label: 'Inactif',      color: 'text-text-grey bg-surface-g' },
-  en_attente: { label: 'En attente',   color: 'text-warning bg-warning/10' },
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
+const BLUE      = '#2E86C1'
+const DARK_BLUE = '#0F3460'
 
-// SVG icons for tabs
-const StatsIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-)
-const HomeTabIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-  </svg>
-)
-const CalTabIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-)
-const ClockTabIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-)
-const MoneyTabIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-)
-const PersonIcon = () => (
-  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-  </svg>
-)
-const PlusIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-  </svg>
-)
-const CloseXIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-  </svg>
-)
-const CheckIcon = () => (
-  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-  </svg>
-)
-const WithdrawIcon = () => (
-  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-  </svg>
-)
+type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'loyers' | 'profil'
 
-type TabDef = { key: Tab; label: string; icon: React.ReactNode }
-const TABS: TabDef[] = [
-  { key: 'stats',        label: 'Stats',        icon: <StatsIcon /> },
-  { key: 'biens',        label: 'Biens',        icon: <HomeTabIcon /> },
-  { key: 'reservations', label: 'Reservations', icon: <CalTabIcon /> },
-  { key: 'creneaux',     label: 'Creneaux',     icon: <ClockTabIcon /> },
-  { key: 'loyers',       label: 'Loyers',       icon: <MoneyTabIcon /> },
+const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
+  { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
+  { key: 'biens',        label: 'Mes biens',    icon: <IcHome /> },
+  { key: 'reservations', label: 'Réservations', icon: <IcCal /> },
+  { key: 'creneaux',     label: 'Créneaux',     icon: <IcClock /> },
+  { key: 'loyers',       label: 'Loyers',       icon: <IcMoney /> },
+  { key: 'profil',       label: 'Profil',       icon: <IcPerson /> },
 ]
 
-export default function ProprietaireDashboard() {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const [tab, setTab] = useState<Tab>('stats')
+function typeLabel(t: string) {
+  const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse' }
+  return m[t] || t
+}
+function fmtPrix(p: any) {
+  const n = Number(p); return n >= 1000 ? `${Math.round(n / 1000)}K FCFA` : `${n} FCFA`
+}
+function statutBien(s: string) {
+  if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
+  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#FF9800' }
+  return { label: 'En attente', color: '#FF9800' }
+}
+function statutVisite(s: string) {
+  if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
+  if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
+  if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE }
+  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#E67E22' }
+  return { label: 'En attente', color: '#FF9800' }
+}
+
+// ─── QuickAction ──────────────────────────────────────────────────────────────
+function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex-1 bg-white rounded-2xl py-4 flex flex-col items-center gap-2 shadow-sm active:scale-95 transition-transform">
+      <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
+        <span style={{ color }}>{icon}</span>
+      </div>
+      <span className="text-[11px] font-semibold text-text-dark text-center leading-tight">{label}</span>
+    </button>
+  )
+}
+
+// ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
+function MesBiensTab() {
   const [biens, setBiens] = useState<any[]>([])
-  const [reservations, setReservations] = useState<any[]>([])
-  const [creneaux, setCreneaux] = useState<any[]>([])
-  const [loyers, setLoyers] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('Tous')
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [b, r, c, l] = await Promise.allSettled([
-          biensApi.mesBiens(),
-          visitesApi.reservationsRecues(),
-          visitesApi.mesCreneaux(),
-          userApi.loyersStats(),
-        ])
-        if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
-        if (r.status === 'fulfilled') setReservations(Array.isArray(r.value) ? r.value : r.value.data || [])
-        if (c.status === 'fulfilled') setCreneaux(Array.isArray(c.value) ? c.value : c.value.data || [])
-        if (l.status === 'fulfilled') setLoyers(l.value)
-      } catch (_) {}
-      setLoading(false)
-    }
-    load()
-  }, [])
+  const load = async () => {
+    setLoading(true)
+    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
 
-  const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const filtered = filter === 'Tous' ? biens
+    : filter === 'Publié' ? biens.filter(b => b.statut_moderation === 'approuve')
+    : filter === 'En attente' ? biens.filter(b => b.statut_moderation === 'en_attente')
+    : biens.filter(b => b.statut_moderation === 'rejete')
+
+  const del = async (id: number) => {
+    if (!confirm('Supprimer ce bien ?')) return
+    try { await biensApi.delete(id); load() } catch (_) {}
+  }
 
   return (
-    <div className="min-h-full bg-app-bg">
-      {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }} className="px-4 pt-12 pb-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            {user?.photo_profil ? (
-              <img
-                src={user.photo_profil}
-                alt=""
-                className="w-11 h-11 rounded-full object-cover"
-                style={{ border: '2px solid rgba(255,255,255,0.5)' }}
-              />
-            ) : (
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.5)' }}
-              >
-                <span className="text-white font-bold">{initials}</span>
-              </div>
-            )}
-            <div>
-              <p className="text-white/70 text-xs">Tableau de bord</p>
-              <p className="text-white font-bold">{user?.prenom} {user?.nom}</p>
-            </div>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white px-4 py-3 border-b border-divider flex-shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-bold text-text-dark">{biens.length} bien{biens.length > 1 ? 's' : ''}</p>
+          <div className="flex gap-2">
+            <button onClick={() => navigate('/nouveau-bien')} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: BLUE }}>
+              <IcPlus /> Ajouter
+            </button>
+            <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: BLUE + '15', color: BLUE }}>
+              <IcRefresh /> Actualiser
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/profil')}
-            className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center"
-          >
-            <PersonIcon />
-          </button>
         </div>
-
-        {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: 'Biens',        value: biens.length        },
-            { label: 'Reservations', value: reservations.length },
-            { label: 'Creneaux',     value: creneaux.length     },
-          ].map(s => (
-            <div key={s.label} className="bg-white/15 rounded-xl p-3 text-center">
-              <p className="text-white text-xl font-bold">{s.value}</p>
-              <p className="text-white/70 text-xs">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white border-b border-divider">
-        <div className="flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-xs font-bold flex-shrink-0 border-b-2 transition-colors ${
-                tab === t.key ? 'border-primary text-primary' : 'border-transparent text-text-grey'
-              }`}
-            >
-              {t.icon}
-              {t.label}
+        <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          {['Tous', 'Publié', 'En attente', 'Rejeté'].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border"
+              style={filter === f ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
+              {f}
             </button>
           ))}
         </div>
       </div>
-
-      <div className="px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4">
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(n => (
-              <div key={n} className="bg-white rounded-2xl h-24 animate-pulse" />
-            ))}
+          [1,2,3].map(n => <div key={n} className="h-48 bg-white rounded-2xl animate-pulse mb-3" />)
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-10 h-10"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            </div>
+            <p className="font-bold text-text-dark mb-1">Aucun bien trouvé</p>
+            <p className="text-sm text-text-grey mb-5">Publiez votre premier bien</p>
+            <button onClick={() => navigate('/nouveau-bien')} className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-bold text-sm" style={{ background: BLUE }}>
+              <IcPlus /> Ajouter un bien
+            </button>
           </div>
-        ) : (
-          <>
-            {tab === 'stats'        && <StatsTab biens={biens} reservations={reservations} loyers={loyers} />}
-            {tab === 'biens'        && <BiensTab biens={biens} navigate={navigate} setBiens={setBiens} />}
-            {tab === 'reservations' && <ReservationsTab reservations={reservations} setReservations={setReservations} />}
-            {tab === 'creneaux'     && <CreneauxTab creneaux={creneaux} setCreneaux={setCreneaux} biens={biens} />}
-            {tab === 'loyers'       && <LoyersTab loyers={loyers} />}
-          </>
-        )}
+        ) : filtered.map(b => {
+          const { label, color } = statutBien(b.statut_moderation || 'en_attente')
+          const loc = b.localisation
+          const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+          const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+          return (
+            <div key={b.id} className="bg-white rounded-2xl shadow-sm overflow-hidden mb-3">
+              <div className="relative h-32">
+                {cover?.url
+                  ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
+                  : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}cc, ${BLUE}aa)` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+                }
+                <div className="absolute inset-0 bg-black/20" />
+                <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
+                <button onClick={() => del(b.id)} className="absolute top-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
+              </div>
+              <div className="p-3.5">
+                <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
+                <div className="flex items-center gap-1 mt-0.5"><span className="text-text-grey"><IcPin /></span><span className="text-xs text-text-grey">{adresse}</span></div>
+                {b.statut_moderation === 'rejete' && b.motif_refus && (
+                  <div className="mt-2 p-2 rounded-lg bg-danger/5 border border-danger/20"><p className="text-danger text-xs">{b.motif_refus}</p></div>
+                )}
+                {b.statut_moderation === 'en_attente' && (
+                  <div className="mt-2 p-2 rounded-lg bg-warning/5 border border-warning/20"><p className="text-warning text-xs">En attente de validation par l'administrateur.</p></div>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-type StatCardProps = { label: string; value: string | number; colorClass: string }
-function StatCard({ label, value, colorClass }: StatCardProps) {
-  return (
-    <div className={`rounded-2xl p-4 ${colorClass}`}>
-      <p className="font-bold text-2xl mb-1">{value}</p>
-      <p className="text-xs opacity-80 font-medium">{label}</p>
-    </div>
-  )
-}
+// ─── Tab: Réservations ────────────────────────────────────────────────────────
+function ReservationsTab() {
+  const [visites, setVisites] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('Toutes')
+  const [cpId, setCpId] = useState<number | null>(null)
+  const [cpDate, setCpDate] = useState('')
+  const [cpTime, setCpTime] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-function StatsTab({ biens, reservations, loyers }: any) {
-  const actifs    = biens.filter((b: any) => b.statut === 'actif').length
-  const enAttente = reservations.filter((r: any) => r.statut === 'en_attente').length
-  const confirmes = reservations.filter((r: any) => r.statut === 'confirmee').length
-  const totalPercu = loyers?.total_percu
-    ? `${Number(loyers.total_percu).toLocaleString('fr-FR')} F`
-    : '—'
+  const load = async () => {
+    setLoading(true)
+    try { const d = await visitesApi.reservationsRecues(); setVisites(Array.isArray(d) ? d : d.data || []) } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
 
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Biens actifs"         value={actifs}    colorClass="bg-primary-l text-primary" />
-      <StatCard label="Demandes en attente"  value={enAttente} colorClass="bg-warning/10 text-warning" />
-      <StatCard label="Visites confirmees"   value={confirmes} colorClass="bg-success/10 text-success" />
-      <StatCard label="Loyers percus"        value={totalPercu} colorClass="bg-secondary-l text-secondary" />
-    </div>
-  )
-}
+  const filtered = filter === 'Toutes' ? visites
+    : filter === 'À traiter' ? visites.filter(v => v.statut === 'en_attente')
+    : visites.filter(v => v.statut === 'confirmee')
 
-function BiensTab({ biens, navigate, setBiens }: any) {
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Supprimer ce bien ?')) return
+  const confirmer = async (id: number) => {
+    try { await visitesApi.confirmerVisite(id); load() } catch (_) {}
+  }
+
+  const contreProposer = async () => {
+    if (!cpId || !cpDate || !cpTime) return
+    setSubmitting(true)
     try {
-      await biensApi.delete(id)
-      setBiens((prev: any[]) => prev.filter(b => b.id !== id))
+      const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
+      await fetch(`${BASE}/visites/${cpId}/contre-proposer`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` },
+        body: JSON.stringify({ date_proposee: `${cpDate}T${cpTime}:00` }),
+      })
+      setCpId(null); setCpDate(''); setCpTime('')
+      load()
     } catch (_) {}
+    setSubmitting(false)
   }
 
   return (
-    <div>
-      <button
-        onClick={() => navigate('/nouveau-bien')}
-        className="w-full mb-4 bg-primary text-white py-3 rounded-xl font-bold text-sm shadow-btn flex items-center justify-center gap-2"
-      >
-        <PlusIcon />
-        Ajouter un bien
-      </button>
-
-      {biens.length === 0 ? (
-        <div className="text-center py-10 text-text-grey text-sm">Aucun bien publie</div>
-      ) : (
-        <div className="space-y-3">
-          {biens.map((b: any) => {
-            const st = BIEN_STATUT[b.statut] || { label: b.statut, color: 'text-text-grey bg-surface-g' }
-            return (
-              <div key={b.id} className="bg-white rounded-2xl p-4 shadow-card">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p className="font-bold text-text-dark text-sm">{b.type}</p>
-                    <p className="text-xs text-text-grey">{b.localisation?.ville}</p>
-                    <p className="text-sm font-semibold text-primary mt-1">
-                      {Number(b.prix).toLocaleString('fr-FR')} FCFA
-                    </p>
-                  </div>
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${st.color}`}>
-                    {st.label}
-                  </span>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white border-b border-divider flex flex-shrink-0">
+        {['Toutes', 'À traiter', 'Confirmées'].map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
+            style={filter === f ? { borderColor: BLUE, color: BLUE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
+            {f}
+          </button>
+        ))}
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {loading ? (
+          [1,2].map(n => <div key={n} className="h-40 bg-white rounded-2xl animate-pulse mb-3" />)
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <p className="font-bold text-text-dark mb-1">Aucune réservation</p>
+            <p className="text-sm text-text-grey text-center">Les demandes de visite apparaîtront ici</p>
+          </div>
+        ) : filtered.map((v, i) => {
+          const { label, color } = statutVisite(v.statut)
+          const nom = `${v.prospect?.prenom || ''} ${v.prospect?.nom || ''}`.trim() || 'Client'
+          const init = nom.charAt(0).toUpperCase()
+          const bType = typeLabel(v.bien?.type || '')
+          const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
+          const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+          return (
+            <div key={v.id || i} className="bg-white rounded-2xl shadow-sm mb-3 p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>{init}</div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-text-dark text-sm">{nom}</p>
+                  <p className="text-xs text-text-grey">{v.prospect?.telephone || '—'}</p>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={() => navigate(`/biens/${b.id}`)}
-                    className="flex-1 bg-primary-l text-primary py-2 rounded-xl text-xs font-bold"
-                  >
-                    Voir
-                  </button>
-                  <button
-                    onClick={() => handleDelete(b.id)}
-                    className="w-9 py-2 flex items-center justify-center border border-danger text-danger rounded-xl"
-                  >
-                    <CloseXIcon />
-                  </button>
+                <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
+              </div>
+              <div className="bg-surface-g rounded-xl p-3 mb-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span style={{ color: BLUE }}><IcHome /></span>
+                  <p className="text-xs font-medium text-text-dark truncate">{bType} — {bLoc}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-text-grey"><IcCal /></span>
+                  <p className="text-xs text-text-grey">Demandé pour : {dateStr}</p>
                 </div>
               </div>
-            )
-          })}
+              {v.statut === 'contre_proposee' && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-medium" style={{ background: '#E67E2210', borderColor: '#E67E2240', color: '#E67E22' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Contre-proposition envoyée. En attente du client.
+                </div>
+              )}
+              {v.paiement_effectue && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#4CAF5010', borderColor: '#4CAF5030', color: '#4CAF50' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Frais de visite payés
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: BLUE + '50', color: BLUE, background: BLUE + '10' }}>
+                  <IcChat /> Chat
+                </button>
+                {v.statut === 'en_attente' && <>
+                  <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold text-center" style={{ borderColor: BLUE + '80', color: BLUE }}>Autre créneau</button>
+                  <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
+                </>}
+                {v.statut === 'confirmee' && (
+                  <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
+                )}
+              </div>
+              {cpId === v.id && (
+                <div className="mt-3 pt-3 border-t border-divider">
+                  <p className="text-sm font-bold text-text-dark mb-3">Proposer un autre créneau</p>
+                  <div className="space-y-2 mb-3">
+                    <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
+                      className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+                    <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
+                      className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setCpId(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
+                    <button onClick={contreProposer} disabled={!cpDate || !cpTime || submitting}
+                      className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
+                      {submitting ? 'Envoi…' : 'Envoyer'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Tab: Créneaux ────────────────────────────────────────────────────────────
+function CreneauxTab() {
+  const [creneaux, setCreneaux] = useState<any[]>([])
+  const [biens, setBiens] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ bien_id: '', date: '', heure: '' })
+  const [saving, setSaving] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const [c, b] = await Promise.allSettled([visitesApi.mesCreneaux(), biensApi.mesBiens()])
+      if (c.status === 'fulfilled') setCreneaux(Array.isArray(c.value) ? c.value : c.value.data || [])
+      if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
+    } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  const save = async () => {
+    if (!form.date || !form.heure || !form.bien_id) return
+    setSaving(true)
+    try {
+      await visitesApi.creerCreneau({ bien_id: Number(form.bien_id), debut: `${form.date}T${form.heure}:00`, duree_minutes: 60 })
+      setShowForm(false); setForm({ bien_id: '', date: '', heure: '' }); load()
+    } catch (_) {}
+    setSaving(false)
+  }
+
+  const del = async (id: number) => {
+    try { await visitesApi.supprimerCreneau(id); load() } catch (_) {}
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white px-4 py-3 border-b border-divider flex items-center justify-between flex-shrink-0">
+        <p className="font-bold text-text-dark">{creneaux.length} créneau{creneaux.length > 1 ? 'x' : ''}</p>
+        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: BLUE }}>
+          <IcPlus /> Ajouter
+        </button>
+      </div>
+      {showForm && (
+        <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
+          <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
+            className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
+            <option value="">Choisir un bien</option>
+            {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
+          </select>
+          <div className="flex gap-2">
+            <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+              className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider" />
+            <input type="time" value={form.heure} onChange={e => setForm({ ...form, heure: e.target.value })}
+              className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider" />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
+            <button onClick={save} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
+              {saving ? 'Enregistrement…' : 'Créer'}
+            </button>
+          </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function ReservationsTab({ reservations, setReservations }: any) {
-  const handleAction = async (id: number, action: 'confirmer' | 'refuser') => {
-    try {
-      if (action === 'confirmer') await visitesApi.confirmerVisite(id)
-      else await visitesApi.refuserVisite(id)
-      setReservations((prev: any[]) =>
-        prev.map(r =>
-          r.id === id ? { ...r, statut: action === 'confirmer' ? 'confirmee' : 'annulee' } : r
-        )
-      )
-    } catch (_) {}
-  }
-
-  return (
-    <div className="space-y-3">
-      {reservations.length === 0 ? (
-        <div className="text-center py-10 text-text-grey text-sm">Aucune reservation recue</div>
-      ) : reservations.map((r: any) => (
-        <div key={r.id} className="bg-white rounded-2xl p-4 shadow-card">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <p className="font-bold text-text-dark text-sm">
-                {r.prospect?.prenom} {r.prospect?.nom}
-              </p>
-              <p className="text-xs text-text-grey">{r.creneau?.bien?.localisation?.ville}</p>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {loading ? [1,2].map(n => <div key={n} className="h-20 bg-white rounded-xl animate-pulse mb-3" />) : creneaux.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-              r.statut === 'en_attente' ? 'text-warning bg-warning/10' :
-              r.statut === 'confirmee'  ? 'text-success bg-success/10' :
-              'text-danger bg-danger/10'
-            }`}>
-              {r.statut === 'en_attente' ? 'En attente' : r.statut === 'confirmee' ? 'Confirmee' : 'Annulee'}
-            </span>
+            <p className="font-bold text-text-dark mb-1">Aucun créneau</p>
+            <p className="text-sm text-text-grey">Créez des créneaux pour recevoir des visites</p>
           </div>
-          {r.statut === 'en_attente' && (
-            <div className="flex gap-2 mt-2">
-              <button
-                onClick={() => handleAction(r.id, 'confirmer')}
-                className="flex-1 bg-success text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1"
-              >
-                <CheckIcon /> Confirmer
-              </button>
-              <button
-                onClick={() => handleAction(r.id, 'refuser')}
-                className="flex-1 bg-danger text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1"
-              >
-                <CloseXIcon /> Refuser
-              </button>
+        ) : creneaux.map((c, i) => (
+          <div key={c.id || i} className="bg-white rounded-xl p-4 mb-3 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
+              <span style={{ color: BLUE }}><IcClock /></span>
             </div>
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function CreneauxTab({ creneaux, setCreneaux, biens }: any) {
-  const [bienId, setBienId] = useState('')
-  const [debut, setDebut] = useState('')
-  const [fin, setFin] = useState('')
-  const [adding, setAdding] = useState(false)
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!bienId || !debut || !fin) return
-    setAdding(true)
-    try {
-      const data = await visitesApi.creerCreneau({ bien_id: Number(bienId), debut, fin })
-      setCreneaux((prev: any[]) => [data, ...prev])
-      setBienId(''); setDebut(''); setFin('')
-    } catch (_) {}
-    setAdding(false)
-  }
-
-  const handleDelete = async (id: number) => {
-    try {
-      await visitesApi.supprimerCreneau(id)
-      setCreneaux((prev: any[]) => prev.filter(c => c.id !== id))
-    } catch (_) {}
-  }
-
-  return (
-    <div className="space-y-4">
-      <form onSubmit={handleAdd} className="bg-white rounded-2xl p-4 space-y-3 shadow-card">
-        <p className="font-bold text-text-dark text-sm">Nouveau creneau</p>
-        <select
-          value={bienId}
-          onChange={e => setBienId(e.target.value)}
-          required
-          className="w-full bg-surface-g rounded-xl px-4 py-2.5 text-sm outline-none"
-        >
-          <option value="">Choisir un bien</option>
-          {biens.map((b: any) => (
-            <option key={b.id} value={b.id}>{b.type} – {b.localisation?.ville}</option>
-          ))}
-        </select>
-        <div className="flex gap-2">
-          <input
-            type="datetime-local"
-            value={debut}
-            onChange={e => setDebut(e.target.value)}
-            required
-            className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none"
-          />
-          <input
-            type="datetime-local"
-            value={fin}
-            onChange={e => setFin(e.target.value)}
-            required
-            className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={adding}
-          className="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-        >
-          {adding ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              <span>Ajout…</span>
-            </>
-          ) : 'Ajouter'}
-        </button>
-      </form>
-
-      <div className="space-y-2">
-        {creneaux.map((c: any) => (
-          <div key={c.id} className="bg-white rounded-2xl p-4 flex items-center justify-between shadow-card">
-            <div>
-              <p className="text-sm font-semibold text-text-dark">
-                {new Date(c.debut).toLocaleDateString('fr-FR', {
-                  weekday: 'short', day: 'numeric', month: 'short',
-                })}
+            <div className="flex-1">
+              <p className="font-semibold text-text-dark text-sm">
+                {c.debut ? new Date(c.debut).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) : '—'}
               </p>
               <p className="text-xs text-text-grey">
-                {new Date(c.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                {' – '}
-                {new Date(c.fin).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                {c.debut ? new Date(c.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}{c.duree_minutes ? ` · ${c.duree_minutes} min` : ''}
               </p>
             </div>
-            <button
-              onClick={() => handleDelete(c.id)}
-              className="w-8 h-8 flex items-center justify-center text-danger"
-            >
-              <CloseXIcon />
-            </button>
+            <button onClick={() => del(c.id)} className="text-danger p-1"><IcTrash /></button>
           </div>
         ))}
       </div>
@@ -437,112 +401,263 @@ function CreneauxTab({ creneaux, setCreneaux, biens }: any) {
   )
 }
 
-function LoyersTab({ loyers }: any) {
-  const [retrait, setRetrait] = useState(false)
-  const [operator, setOperator] = useState('mtn')
-  const [phone, setPhone] = useState('')
-  const [montant, setMontant] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  const handleRetrait = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    try {
-      await userApi.retrait({ operateur: operator, telephone: phone, montant: Number(montant) })
-      setRetrait(false); setMontant(''); setPhone('')
-    } catch (_) {}
-    setSubmitting(false)
-  }
-
+// ─── Tab: Loyers ──────────────────────────────────────────────────────────────
+function LoyersTab() {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  useEffect(() => { userApi.loyersStats().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
+  if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+  const loyers: any[] = data?.loyers || []
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-primary-l rounded-2xl p-4">
-          <p className="text-xs text-text-grey mb-1">Total percu</p>
-          <p className="text-xl font-bold text-primary">
-            {loyers?.total_percu ? `${Number(loyers.total_percu).toLocaleString('fr-FR')} F` : '—'}
-          </p>
-        </div>
-        <div className="bg-success/10 rounded-2xl p-4">
-          <p className="text-xs text-text-grey mb-1">Solde disponible</p>
-          <p className="text-xl font-bold text-success">
-            {loyers?.solde ? `${Number(loyers.solde).toLocaleString('fr-FR')} F` : '—'}
-          </p>
+    <div className="flex-1 overflow-y-auto px-4 py-5">
+      <div className="rounded-2xl p-5 mb-5 text-white" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
+        <p className="text-white/70 text-sm mb-1">Total à percevoir</p>
+        <p className="text-2xl font-bold">{Number(data?.total_a_payer ?? 0).toLocaleString('fr-FR')} FCFA</p>
+        <div className="flex gap-4 mt-4">
+          <div><p className="text-white/60 text-xs">Perçu</p><p className="font-bold">{Number(data?.total_paye ?? 0).toLocaleString('fr-FR')} FCFA</p></div>
+          <div className="w-px bg-white/20" />
+          <div><p className="text-white/60 text-xs">En attente</p><p className="font-bold">{Number(data?.en_attente ?? 0).toLocaleString('fr-FR')} FCFA</p></div>
         </div>
       </div>
+      {loyers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <p className="font-bold text-text-dark mb-1">Aucun loyer</p>
+          <p className="text-sm text-text-grey">Les loyers apparaîtront ici</p>
+        </div>
+      ) : loyers.map((l: any, i: number) => (
+        <div key={i} className="bg-white rounded-xl p-4 mb-3 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="font-bold text-text-dark text-sm">{typeLabel(l.bien?.type || '')} — {l.bien?.localisation?.ville || '—'}</p>
+            <p className="text-xs text-text-grey mt-0.5">{l.locataire?.prenom} {l.locataire?.nom}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-bold text-text-dark text-sm">{Number(l.montant).toLocaleString('fr-FR')} FCFA</p>
+            <span className={`text-xs font-semibold ${l.statut === 'paye' ? 'text-success' : 'text-warning'}`}>{l.statut === 'paye' ? 'Payé' : 'En attente'}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
-      <button
-        onClick={() => setRetrait(true)}
-        className="w-full bg-secondary text-white py-3.5 rounded-xl font-bold shadow-btn-o flex items-center justify-center gap-2"
-      >
-        <WithdrawIcon />
-        Demander un retrait
-      </button>
+// ─── Tab: Profil ──────────────────────────────────────────────────────────────
+function ProfilTab({ user }: { user: any }) {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
+  const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const score = user?.score_credibilite ?? 100
+  return (
+    <div className="flex-1 overflow-y-auto pb-10">
+      <div className="p-5 text-center">
+        <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }}>{initials}</div>
+        <p className="font-bold text-text-dark text-lg">{user?.prenom} {user?.nom}</p>
+        <p className="text-sm text-text-grey">{user?.email || user?.telephone}</p>
+      </div>
+      <div className="px-4 mb-4">
+        <div className="rounded-2xl p-4" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }}>
+          <p className="text-white/70 text-xs mb-1">Score de crédibilité</p>
+          <p className="text-white text-2xl font-bold mb-3">{score} / 100</p>
+          <div className="h-1.5 rounded-full bg-white/20 mb-4"><div className="h-full rounded-full bg-white" style={{ width: `${score}%` }} /></div>
+          <div className="flex">
+            <div className="flex-1"><p className="text-white/60 text-[10px]">Étoiles</p><p className="text-white font-bold text-sm">{user?.nb_etoiles ?? 0}</p></div>
+            <div className="w-px bg-white/20 mx-3" />
+            <div className="flex-1"><p className="text-white/60 text-[10px]">Pénalité</p><p className="text-white font-bold text-sm">{user?.penalite_pourcentage ?? 0}%</p></div>
+          </div>
+        </div>
+      </div>
+      <div className="px-4 space-y-2">
+        {[{ label: 'Modifier le profil', to: '/profil/edit' }, { label: 'Changer le mot de passe', to: '/profil/password' }].map(item => (
+          <button key={item.label} onClick={() => navigate(item.to)} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+            <span className="text-sm font-semibold text-text-dark">{item.label}</span>
+            <IcChevron />
+          </button>
+        ))}
+        <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
+          Se déconnecter
+        </button>
+      </div>
+    </div>
+  )
+}
 
-      {loyers?.historique && loyers.historique.length > 0 && (
-        <div className="space-y-2">
-          <p className="font-bold text-text-dark text-sm">Historique</p>
-          {loyers.historique.map((l: any, i: number) => (
-            <div key={i} className="bg-white rounded-xl p-3 flex justify-between">
-              <p className="text-sm text-text-dark">{l.description || 'Loyer'}</p>
-              <p className="text-sm font-bold text-success">+{Number(l.montant).toLocaleString('fr-FR')} F</p>
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
+export default function ProprietaireDashboard() {
+  const { user: authUser } = useAuth()
+  const navigate = useNavigate()
+  const [tab, setTab] = useState<Tab>('tableau')
+  const [user, setUser] = useState<any>(null)
+  const [biens, setBiens] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const loadData = async () => {
+    try {
+      const [u, b] = await Promise.allSettled([userApi.me(), biensApi.mesBiens()])
+      if (u.status === 'fulfilled') setUser(u.value?.user || u.value)
+      if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
+    } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { loadData() }, [])
+
+  const me = user || authUser
+  const initials = `${me?.prenom?.[0] || ''}${me?.nom?.[0] || ''}`.toUpperCase()
+  const score = me?.score_credibilite ?? 100
+  const approuves = biens.filter(b => b.statut_moderation === 'approuve').length
+  const enAttente = biens.filter(b => b.statut_moderation === 'en_attente').length
+  const rejetes   = biens.filter(b => b.statut_moderation === 'rejete').length
+
+  return (
+    <div className="flex flex-col h-full bg-[#F4F6FA] relative">
+
+      {/* Header */}
+      <div className="flex-shrink-0 px-5 pt-12 pb-6" style={{ background: `linear-gradient(135deg, ${DARK_BLUE} 0%, #1A5276 50%, ${BLUE} 100%)` }}>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-11 h-11 rounded-[13px] flex items-center justify-center border flex-shrink-0"
+            style={{ background: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)' }}>
+            {loading
+              ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              : <span className="text-white font-bold text-sm">{initials}</span>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white/70 text-xs">Bonjour 👋</p>
+            <p className="text-white font-bold text-base truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0"
+            style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
+            <IcHome />
+            <span className="text-white text-[11px] font-semibold">Propriétaire</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { icon: <IcHome />,   value: `${biens.length}`,               label: 'Biens' },
+            { icon: <IcStar />,   value: `${me?.nb_etoiles ?? 0}`,        label: 'Étoiles' },
+            { icon: <IcShield />, value: `${score}`,                      label: 'Score' },
+            { icon: <IcWarn />,   value: `${me?.penalite_pourcentage ?? 0}%`, label: 'Pénalité' },
+          ].map(s => (
+            <div key={s.label} className="rounded-xl py-2.5 px-1 text-center border"
+              style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.15)' }}>
+              <span className="text-white flex justify-center mb-1">{s.icon}</span>
+              <p className="text-white font-bold text-base leading-none">{s.value}</p>
+              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
             </div>
           ))}
         </div>
-      )}
+      </div>
 
-      {retrait && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setRetrait(false)}>
-          <div className="bg-white rounded-t-3xl p-6 w-full" onClick={e => e.stopPropagation()}>
-            <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
-            <h3 className="font-bold text-text-dark mb-4">Demande de retrait</h3>
-            <form onSubmit={handleRetrait} className="space-y-3">
-              <div className="flex gap-2">
-                {['mtn', 'moov', 'celtiis'].map(op => (
-                  <button
-                    key={op}
-                    type="button"
-                    onClick={() => setOperator(op)}
-                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold ${
-                      operator === op ? 'border-primary text-primary bg-primary-l' : 'border-divider text-text-grey'
-                    }`}
-                  >
-                    {op.toUpperCase()}
-                  </button>
-                ))}
+      {/* Content */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {tab === 'tableau' && (
+          <div className="flex-1 overflow-y-auto">
+            <div className="px-5 py-5">
+              <p className="text-[17px] font-bold text-text-dark mb-3.5">Actions rapides</p>
+              <div className="flex gap-3 mb-7">
+                <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={BLUE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
+                <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
+                <QuickAction icon={<IcClock />} color="#FF6B35" label="Créneaux" onClick={() => setTab('creneaux')} />
               </div>
-              <input
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                required
-                placeholder="Numero Mobile Money"
-                className="w-full bg-surface-g rounded-xl px-4 py-3 text-sm outline-none"
-              />
-              <input
-                type="number"
-                value={montant}
-                onChange={e => setMontant(e.target.value)}
-                required
-                placeholder="Montant (FCFA)"
-                className="w-full bg-surface-g rounded-xl px-4 py-3 text-sm outline-none"
-              />
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-secondary text-white py-4 rounded-xl font-bold shadow-btn-o disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    <span>Envoi…</span>
-                  </>
-                ) : 'Valider'}
-              </button>
-            </form>
+
+              {/* Occupation card */}
+              <div className="rounded-2xl p-5 mb-6" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="px-2.5 py-1 rounded-xl text-white text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.15)' }}>Mes biens</span>
+                  <span className="text-white/70"><IcHome /></span>
+                </div>
+                <p className="text-white/70 text-sm">Tableau de bord occupation</p>
+                <p className="text-white text-[22px] font-bold mt-1 mb-4">{biens.length} bien{biens.length > 1 ? 's' : ''} au total</p>
+                <div className="flex items-center">
+                  {[
+                    { label: 'Total',      value: biens.length },
+                    { label: 'Publiés',    value: approuves },
+                    { label: 'En attente', value: enAttente },
+                    { label: 'Rejetés',    value: rejetes },
+                  ].map((s, i) => (
+                    <div key={s.label} className="flex items-center flex-1">
+                      {i > 0 && <div className="w-px h-8 mr-3" style={{ background: 'rgba(255,255,255,0.2)' }} />}
+                      <div>
+                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{s.label}</p>
+                        <p className="text-white font-bold text-base">{s.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Biens récents */}
+              <div className="flex items-center justify-between mb-3.5">
+                <p className="text-[17px] font-bold text-text-dark">Mes biens récents</p>
+                <button onClick={() => setTab('biens')} className="text-sm font-semibold" style={{ color: BLUE }}>Voir tout</button>
+              </div>
+              {loading ? (
+                [1,2].map(n => <div key={n} className="h-20 bg-white rounded-xl animate-pulse mb-2.5" />)
+              ) : biens.length === 0 ? (
+                <div className="bg-white rounded-xl p-5 text-center shadow-sm">
+                  <p className="text-text-grey text-sm">Aucun bien publié pour l'instant</p>
+                </div>
+              ) : biens.slice(0, 3).map(b => {
+                const { label, color } = statutBien(b.statut_moderation || 'en_attente')
+                const loc = b.localisation
+                const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+                return (
+                  <div key={b.id} className="bg-white rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
+                      <span style={{ color: BLUE }}><IcHome /></span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="text-text-grey"><IcPin /></span>
+                        <p className="text-xs text-text-grey truncate">{adresse}</p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-text-dark text-xs">{fmtPrix(b.prix)}</p>
+                      <span className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
+                    </div>
+                  </div>
+                )
+              })}
+              <div className="h-24" />
+            </div>
           </div>
+        )}
+        {tab === 'biens'        && <MesBiensTab />}
+        {tab === 'reservations' && <ReservationsTab />}
+        {tab === 'creneaux'     && <CreneauxTab />}
+        {tab === 'loyers'       && <LoyersTab />}
+        {tab === 'profil'       && <ProfilTab user={me} />}
+      </div>
+
+      {/* FAB */}
+      {(tab === 'tableau' || tab === 'biens') && (
+        <div className="absolute bottom-20 right-4 z-20">
+          <button onClick={() => navigate('/nouveau-bien')}
+            className="flex items-center gap-2 px-5 py-3.5 rounded-full text-white font-bold shadow-lg active:scale-95 transition-transform"
+            style={{ background: BLUE, boxShadow: `0 4px 15px ${BLUE}60` }}>
+            <IcPlus /> Nouveau bien
+          </button>
         </div>
       )}
+
+      {/* Bottom Nav */}
+      <div className="flex-shrink-0 bg-white border-t border-divider" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
+        <div className="flex items-center justify-around px-2 py-2">
+          {TABS.map(t => {
+            const active = tab === t.key
+            return (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className="flex items-center gap-1.5 px-2 py-2 rounded-[14px] transition-all"
+                style={active ? { background: BLUE + '18' } : {}}>
+                <span style={{ color: active ? BLUE : '#9E9E9E' }}>{t.icon}</span>
+                {active && <span className="text-xs font-bold" style={{ color: BLUE }}>{t.label}</span>}
+              </button>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

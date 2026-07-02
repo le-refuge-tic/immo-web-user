@@ -37,4 +37,13 @@ export const visitesApi = {
 
   refuserVisite: (id: number) =>
     axios.patch(`${BASE}/visites/${id}/refuser`, {}, auth()).then(r => r.data),
+
+  accepterContreProposition: (id: number) =>
+    axios.patch(`${BASE}/visites/${id}/accepter`, {}, auth()).then(r => r.data),
+
+  deciderIntegration: (id: number, integre: boolean) =>
+    axios.patch(`${BASE}/visites/${id}/integration`, { integre }, auth()).then(r => r.data),
+
+  reserverVisite: (bienId: number, dateSouhaitee: string) =>
+    axios.post(`${BASE}/visites`, { bien_id: bienId, date_souhaitee: dateSouhaitee }, auth()).then(r => r.data),
 }
