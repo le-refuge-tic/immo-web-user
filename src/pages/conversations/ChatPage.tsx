@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { chatApi } from '../../api/chatApi'
 import { io, Socket } from 'socket.io-client'
 
-const WS_URL = 'https://immo-backend-pw5z.onrender.com'
+const WS_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
 
 function timeLabel(dateStr: string) {
   const d = new Date(dateStr)

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { favoritesApi } from '../api/favoritesApi'
 
-const BACKEND = 'https://immo-backend-pw5z.onrender.com/'
+const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
 
 function resolveUrl(url: string) {
   if (!url) return '/placeholder.jpg'
