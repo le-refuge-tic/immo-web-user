@@ -58,14 +58,15 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
   return (
     <div
       onClick={() => navigate(`/biens/${bien.id}`)}
-      className="bg-white rounded-2xl shadow-card overflow-hidden cursor-pointer active:scale-95 transition-transform"
+      className="group bg-white rounded-2xl shadow-card overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
     >
-      <div className="relative h-48">
+      {/* Image */}
+      <div className="relative h-44 md:h-52 overflow-hidden">
         {coverUrl ? (
           <img
             src={coverUrl}
             alt={label}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
         ) : (
@@ -84,17 +85,20 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
           onClick={handleFav}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow"
         >
-          <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke={isFav ? '#FF6B35' : '#9E9E9E'} strokeWidth={2} className="w-4.5 h-4.5">
+          <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke={isFav ? '#FF6B35' : '#9E9E9E'} strokeWidth={2} className="w-4 h-4">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
       </div>
+
+      {/* Info */}
       <div className="p-3.5">
-        <p className="text-lg font-bold text-text-dark">
-          {Number(bien.prix).toLocaleString('fr-FR')} <span className="text-sm font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
+        <p className="text-base md:text-lg font-bold text-text-dark leading-tight">
+          {Number(bien.prix).toLocaleString('fr-FR')}{' '}
+          <span className="text-sm font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
         </p>
         <p className="text-sm font-medium text-text-dark mt-0.5">{label}</p>
-        <div className="flex items-center gap-1 mt-1">
+        <div className="flex items-center gap-1 mt-1.5">
           <svg className="w-3.5 h-3.5 text-text-grey flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -103,6 +107,12 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
             {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || '—'}
           </p>
         </div>
+        {/* Frais visite desktop (visible sur md+) */}
+        {bien.frais_visite && Number(bien.frais_visite) > 0 && (
+          <p className="hidden md:block text-xs text-text-grey mt-2 pt-2 border-t border-divider">
+            Frais visite : <span className="font-semibold text-secondary">{Number(bien.frais_visite).toLocaleString('fr-FR')} FCFA</span>
+          </p>
+        )}
       </div>
     </div>
   )
