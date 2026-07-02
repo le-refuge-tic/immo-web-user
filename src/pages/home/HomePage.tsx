@@ -126,11 +126,13 @@ export default function HomePage() {
 
   const firstName = user?.prenom || user?.nom || 'vous'
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const catLabel = CATEGORIES.find(c => c.key === category)?.label || 'Annonces'
 
   return (
     <div className="min-h-full bg-app-bg">
-      {/* Header gradient */}
-      <div className="bg-gradient-to-br from-[#1A1A2E] to-[#0F3460] px-4 pt-12 pb-6">
+
+      {/* ── MOBILE header (caché sur desktop) ── */}
+      <div className="md:hidden bg-gradient-to-br from-[#1A1A2E] to-[#0F3460] px-4 pt-12 pb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-white/60 text-sm">Bonjour,</p>
@@ -152,8 +154,6 @@ export default function HomePage() {
             )}
           </button>
         </div>
-
-        {/* Search bar */}
         <div className="bg-white rounded-2xl flex items-center px-4 py-3 gap-3 shadow-card">
           <SearchIcon />
           <input
@@ -163,9 +163,7 @@ export default function HomePage() {
             className="flex-1 bg-transparent text-sm text-text-dark placeholder-text-grey outline-none"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="text-text-grey">
-              <CloseIcon />
-            </button>
+            <button onClick={() => setSearch('')} className="text-text-grey"><CloseIcon /></button>
           )}
           <button
             onClick={() => navigate('/search')}
@@ -176,9 +174,80 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="px-4 py-4">
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      {/* ── DESKTOP hero (caché sur mobile) ── */}
+      <div
+        className="hidden md:block"
+        style={{ background: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 45%, #0F3460 100%)' }}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-20">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 mb-4">
+              <span
+                className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest"
+                style={{ background: 'rgba(75,107,255,0.2)', color: '#7B9BFF' }}
+              >
+                Bénin
+              </span>
+              <span className="text-white/40 text-xs">•</span>
+              <span className="text-white/50 text-xs">Des centaines d'annonces vérifiées</span>
+            </div>
+            <h1 className="text-white text-5xl font-bold leading-[1.1] tracking-tight mb-4">
+              Trouvez votre<br />
+              <span style={{ color: '#7B9BFF' }}>logement idéal</span><br />
+              au Bénin
+            </h1>
+            <p className="text-white/60 text-lg leading-relaxed mb-8">
+              Maisons, appartements, terrains — achetez ou louez en toute confiance à Cotonou, Abomey-Calavi et partout au Bénin.
+            </p>
+
+            {/* Search bar desktop */}
+            <div className="bg-white rounded-2xl flex items-center gap-3 p-2 shadow-2xl">
+              <div className="flex-1 flex items-center gap-3 px-3">
+                <SearchIcon />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Ville, quartier, type de bien…"
+                  className="flex-1 bg-transparent text-sm text-text-dark placeholder-text-grey outline-none py-2"
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} className="text-text-grey"><CloseIcon /></button>
+                )}
+              </div>
+              <button
+                onClick={() => navigate('/search')}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm"
+                style={{ background: '#4B6BFF' }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Rechercher
+              </button>
+            </div>
+
+            {/* Stats rapides */}
+            <div className="flex items-center gap-6 mt-6">
+              {[
+                { val: biens.length > 0 ? `${biens.length}+` : '---', label: 'Annonces' },
+                { val: '5', label: 'Villes' },
+                { val: '100%', label: 'Vérifiés' },
+              ].map(s => (
+                <div key={s.label} className="text-center">
+                  <p className="text-white font-bold text-xl">{s.val}</p>
+                  <p className="text-white/50 text-xs mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Contenu principal (catégories + grille) ── */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8">
+
+        {/* Categories */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6" style={{ scrollbarWidth: 'none' }}>
           {CATEGORIES.map(cat => (
             <button
               key={cat.key}
@@ -186,7 +255,7 @@ export default function HomePage() {
               className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                 category === cat.key
                   ? 'bg-primary text-white shadow-btn'
-                  : 'bg-white text-text-grey border border-divider'
+                  : 'bg-white text-text-grey border border-divider hover:border-primary/40'
               }`}
             >
               {CAT_ICONS[cat.key]}
@@ -194,13 +263,11 @@ export default function HomePage() {
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Section: Annonces */}
-      <div className="px-4 pb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-text-dark">
-            {category === 'Tous' ? 'Toutes les annonces' : CATEGORIES.find(c => c.key === category)?.label}
+        {/* Section title */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base md:text-lg font-bold text-text-dark">
+            {category === 'Tous' ? 'Toutes les annonces' : catLabel}
             {biens.length > 0 && (
               <span className="text-text-grey font-normal text-sm ml-2">({biens.length})</span>
             )}
@@ -210,21 +277,20 @@ export default function HomePage() {
           </button>
         </div>
 
+        {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map(n => (
-              <div key={n} className="bg-white rounded-2xl h-52 animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+              <div key={n} className="bg-white rounded-2xl h-52 md:h-64 animate-pulse" />
             ))}
           </div>
         ) : biens.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 text-center">
-            <div className="mb-4 opacity-30">
-              <EmptyIcon />
-            </div>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 opacity-30"><EmptyIcon /></div>
             <p className="text-text-grey text-sm font-medium">Aucun bien trouvé</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {biens.map(bien => (
               <BienCard
                 key={bien.id}
