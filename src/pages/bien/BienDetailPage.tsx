@@ -21,7 +21,7 @@ export default function BienDetailPage() {
   const [error, setError] = useState('')
   const [photoIdx, setPhotoIdx] = useState(0)
   const [isFav, setIsFav] = useState(false)
-  const [showReserve, setShowReserve] = useState(false)
+
 
   useEffect(() => {
     const load = async () => {
@@ -279,45 +279,13 @@ export default function BienDetailPage() {
       {/* CTA bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-divider px-4 py-3 safe-bottom">
         <button
-          onClick={() => { if (!isLoggedIn) { navigate('/login'); return } setShowReserve(true) }}
+          onClick={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
           className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-btn"
         >
           {isLocation ? 'Réserver une visite' : 'Demander une visite'}
         </button>
       </div>
 
-      {/* Modal réservation */}
-      {showReserve && (
-        <ReservationModal bien={bien} onClose={() => setShowReserve(false)} />
-      )}
-    </div>
-  )
-}
-
-function ReservationModal({ bien, onClose }: { bien: any; onClose: () => void }) {
-  const navigate = useNavigate()
-
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={onClose}>
-      <div
-        className="bg-white rounded-t-3xl p-6 w-full"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
-        <h3 className="text-base font-bold text-text-dark mb-2">Réserver une visite</h3>
-        <p className="text-sm text-text-grey mb-5">
-          {bien.frais_visite && Number(bien.frais_visite) > 0
-            ? `Frais de visite : ${Number(bien.frais_visite).toLocaleString('fr-FR')} FCFA`
-            : 'Visite gratuite'}
-        </p>
-        <button
-          onClick={() => { onClose(); navigate(`/mes-visites?bienId=${bien.id}`) }}
-          className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-btn"
-        >
-          Choisir un créneau
-        </button>
-        <button onClick={onClose} className="w-full mt-3 text-text-grey py-3 text-sm">Annuler</button>
-      </div>
     </div>
   )
 }

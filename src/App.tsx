@@ -19,6 +19,7 @@ import OnboardingPage from './pages/auth/OnboardingPage'
 import ProprietaireDashboard from './pages/proprietaire/ProprietaireDashboard'
 import DemarcheurDashboard from './pages/demarcheur/DemarcheurDashboard'
 import NouveauBienPage from './pages/bien/NouveauBienPage'
+import ReservationPage from './pages/reservation/ReservationPage'
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isLoggedIn } = useAuth()
@@ -53,6 +54,9 @@ function App() {
           } />
           <Route path="mes-visites" element={
             <PrivateRoute><MesVisitesPage /></PrivateRoute>
+          } />
+          <Route path="reservation/:bienId" element={
+            <PrivateRoute><ReservationPage /></PrivateRoute>
           } />
           <Route path="proprietaire" element={
             <PrivateRoute><ProprietaireDashboard /></PrivateRoute>
