@@ -51,9 +51,14 @@ export default function BienDetailPage() {
   )
   if (error || !bien) return (
     <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6">
-      <div className="text-5xl">😕</div>
+      <svg className="w-16 h-16 text-text-grey opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
       <p className="text-text-grey text-sm">{error || 'Bien introuvable'}</p>
-      <button onClick={() => navigate(-1)} className="text-primary font-semibold">← Retour</button>
+      <button onClick={() => navigate(-1)} className="text-primary font-semibold flex items-center gap-1">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        Retour
+      </button>
     </div>
   )
 
@@ -95,7 +100,9 @@ export default function BienDetailPage() {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/40 to-primary/20">
-            <span className="text-6xl">🏠</span>
+            <svg className="w-20 h-20 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
           </div>
         )}
 
@@ -169,7 +176,7 @@ export default function BienDetailPage() {
 
         {/* Localisation */}
         <div className="bg-white rounded-2xl p-4">
-          <h3 className="font-bold text-text-dark text-sm mb-2">📍 Localisation</h3>
+          <h3 className="font-bold text-text-dark text-sm mb-2">Localisation</h3>
           <p className="text-sm text-text-grey">
             {bien.localisation?.quartier && `${bien.localisation.quartier}, `}
             {bien.localisation?.ville}
@@ -182,7 +189,7 @@ export default function BienDetailPage() {
         {/* Description */}
         {bien.description && (
           <div className="bg-white rounded-2xl p-4">
-            <h3 className="font-bold text-text-dark text-sm mb-2">📝 Description</h3>
+            <h3 className="font-bold text-text-dark text-sm mb-2">Description</h3>
             <p className="text-sm text-text-grey leading-relaxed">{bien.description}</p>
           </div>
         )}
@@ -190,7 +197,7 @@ export default function BienDetailPage() {
         {/* Pièces */}
         {bien.pieces && bien.pieces.length > 0 && (
           <div className="bg-white rounded-2xl p-4">
-            <h3 className="font-bold text-text-dark text-sm mb-3">🛏 Pièces ({bien.pieces.length})</h3>
+            <h3 className="font-bold text-text-dark text-sm mb-3">Pieces ({bien.pieces.length})</h3>
             <div className="grid grid-cols-2 gap-2">
               {bien.pieces.map((p: any) => (
                 <div key={p.id} className="bg-surface-g rounded-xl p-3">
@@ -207,7 +214,7 @@ export default function BienDetailPage() {
         {/* Détails */}
         {(bien.details_maison || bien.details_terrain) && (
           <div className="bg-white rounded-2xl p-4">
-            <h3 className="font-bold text-text-dark text-sm mb-2">📐 Détails</h3>
+            <h3 className="font-bold text-text-dark text-sm mb-2">Details</h3>
             <div className="flex flex-wrap gap-3">
               {bien.details_maison?.superficie > 0 && (
                 <div className="bg-primary-l rounded-xl px-3 py-2 text-center">
@@ -222,15 +229,13 @@ export default function BienDetailPage() {
                 </div>
               )}
               {bien.details_maison?.cloture && (
-                <div className="bg-surface-g rounded-xl px-3 py-2 text-center">
-                  <p className="text-sm font-bold text-text-dark">✅</p>
-                  <p className="text-xs text-text-grey">Clôturé</p>
+                <div className="bg-success/10 text-success rounded-xl px-3 py-2 text-center">
+                  <p className="text-sm font-bold">Cloture</p>
                 </div>
               )}
               {bien.details_appart?.entree_personnelle && (
                 <div className="bg-surface-g rounded-xl px-3 py-2 text-center">
-                  <p className="text-sm font-bold text-text-dark">🚪</p>
-                  <p className="text-xs text-text-grey">Entrée perso.</p>
+                  <p className="text-sm font-bold text-text-dark">Entree perso.</p>
                 </div>
               )}
             </div>
@@ -240,7 +245,7 @@ export default function BienDetailPage() {
         {/* Aménités */}
         {ameniteLabels.length > 0 && (
           <div className="bg-white rounded-2xl p-4">
-            <h3 className="font-bold text-text-dark text-sm mb-3">✨ Aménités</h3>
+            <h3 className="font-bold text-text-dark text-sm mb-3">Amenites</h3>
             <div className="flex flex-wrap gap-2">
               {ameniteLabels.map((a, i) => (
                 <span key={i} className="bg-primary-l text-primary text-xs font-semibold px-3 py-1.5 rounded-full">
@@ -254,7 +259,7 @@ export default function BienDetailPage() {
         {/* Photos par pièce */}
         {bien.pieces?.some((p: any) => p.photos?.length > 0) && (
           <div className="bg-white rounded-2xl p-4">
-            <h3 className="font-bold text-text-dark text-sm mb-3">🖼 Photos par pièce</h3>
+            <h3 className="font-bold text-text-dark text-sm mb-3">Photos par piece</h3>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {bien.pieces.flatMap((p: any) =>
                 (p.photos || []).map((ph: any, i: number) => (

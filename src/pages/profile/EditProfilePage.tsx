@@ -91,7 +91,7 @@ export default function EditProfilePage() {
           )}
           {success && (
             <div className="bg-success/10 border border-success/30 rounded-xl px-4 py-3">
-              <p className="text-success text-sm font-semibold">Profil mis à jour ✓</p>
+              <p className="text-success text-sm font-semibold">Profil mis a jour</p>
             </div>
           )}
 

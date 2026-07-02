@@ -129,9 +129,12 @@ export default function SearchPage() {
 
           <button
             onClick={doSearch}
-            className="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm shadow-btn"
+            className="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm shadow-btn flex items-center justify-center gap-2"
           >
-            🔍 Rechercher
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Rechercher
           </button>
         </div>
       </div>
@@ -144,20 +147,28 @@ export default function SearchPage() {
           </div>
         ) : searched && biens.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">😕</div>
-            <p className="text-text-grey text-sm">Aucun résultat pour ces critères</p>
+            <div className="flex justify-center mb-4 opacity-30">
+              <svg className="w-16 h-16 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-text-grey text-sm">Aucun resultat pour ces criteres</p>
           </div>
         ) : biens.length > 0 ? (
           <>
-            <p className="text-sm text-text-grey mb-3">{biens.length} résultat{biens.length > 1 ? 's' : ''}</p>
+            <p className="text-sm text-text-grey mb-3">{biens.length} resultat{biens.length > 1 ? 's' : ''}</p>
             <div className="grid grid-cols-2 gap-3">
               {biens.map(b => <BienCard key={b.id} bien={b} />)}
             </div>
           </>
         ) : !searched ? (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">🔍</div>
-            <p className="text-text-grey text-sm">Définissez vos critères et lancez la recherche</p>
+            <div className="flex justify-center mb-4 opacity-30">
+              <svg className="w-16 h-16 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <p className="text-text-grey text-sm">Definissez vos criteres et lancez la recherche</p>
           </div>
         ) : null}
       </div>

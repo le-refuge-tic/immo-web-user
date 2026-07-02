@@ -134,8 +134,12 @@ export default function NouveauBienPage() {
   if (step === 6) {
     return (
       <div className="min-h-dvh bg-app-bg flex flex-col items-center justify-center px-6 text-center">
-        <div className="text-6xl mb-4">🎉</div>
-        <h2 className="text-xl font-bold text-text-dark mb-2">Bien publié !</h2>
+        <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mb-4">
+          <svg className="w-10 h-10 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-text-dark mb-2">Bien publie !</h2>
         <p className="text-text-grey text-sm mb-6">Votre annonce est en cours de modération</p>
         <button onClick={() => navigate(createdId ? `/biens/${createdId}` : '/')}
           className="bg-primary text-white px-8 py-4 rounded-xl font-bold shadow-btn">
@@ -196,7 +200,7 @@ export default function NouveauBienPage() {
             <div>
               <p className="font-bold text-text-dark mb-3">Transaction</p>
               <div className="grid grid-cols-2 gap-3">
-                {[{ key: 'location', label: '🏠 À louer' }, { key: 'vente', label: '💰 À vendre' }].map(t => (
+                {[{ key: 'location', label: 'A louer' }, { key: 'vente', label: 'A vendre' }].map(t => (
                   <button key={t.key} onClick={() => setTransaction(t.key)}
                     className={`p-3.5 rounded-xl border-2 text-sm font-bold transition-all ${
                       transaction === t.key ? 'border-primary bg-primary-l text-primary' : 'border-divider text-text-dark bg-white'
@@ -288,7 +292,9 @@ export default function NouveauBienPage() {
                       <input type="number" value={p.surface} onChange={e => updatePiece(i, 'surface', e.target.value)}
                         placeholder="m²"
                         className="w-20 bg-white border border-divider rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary" />
-                      <button onClick={() => removePiece(i)} className="text-danger font-bold px-1">✕</button>
+                      <button onClick={() => removePiece(i)} className="w-7 h-7 flex items-center justify-center text-danger">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -412,7 +418,11 @@ export default function NouveauBienPage() {
             <p className="text-xs text-text-grey">Ajoutez des photos pour attirer plus de visiteurs</p>
 
             <label className="block border-2 border-dashed border-divider rounded-2xl p-8 text-center cursor-pointer hover:border-primary transition-colors">
-              <div className="text-4xl mb-2">📸</div>
+              <div className="flex justify-center mb-2">
+                <svg className="w-10 h-10 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
               <p className="text-sm font-semibold text-text-dark">Choisir des photos</p>
               <p className="text-xs text-text-grey mt-1">JPG, PNG (max 10 photos)</p>
               <input type="file" multiple accept="image/*" className="hidden"
@@ -428,8 +438,8 @@ export default function NouveauBienPage() {
                   <div key={i} className="relative aspect-square">
                     <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover rounded-xl" />
                     <button onClick={() => setPhotos(p => p.filter((_, idx) => idx !== i))}
-                      className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full text-white text-xs flex items-center justify-center">
-                      ✕
+                      className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full text-white flex items-center justify-center">
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                     {i === 0 && (
                       <span className="absolute bottom-1 left-1 bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">

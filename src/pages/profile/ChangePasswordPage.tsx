@@ -47,7 +47,7 @@ export default function ChangePasswordPage() {
           )}
           {success && (
             <div className="bg-success/10 border border-success/30 rounded-xl px-4 py-3">
-              <p className="text-success text-sm font-semibold">Mot de passe mis à jour ✓</p>
+              <p className="text-success text-sm font-semibold">Mot de passe mis a jour</p>
             </div>
           )}
 
