@@ -105,7 +105,7 @@ export default function RegisterPage() {
           </h1>
           <div className="space-y-3">
             {[
-              'Accédez à des milliers d'annonces vérifiées',
+              "Accédez à des milliers d'annonces vérifiées",
               'Publiez et gérez vos biens facilement',
               'Connectez-vous avec acheteurs et locataires',
             ].map((text, i) => (
