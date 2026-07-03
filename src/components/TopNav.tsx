@@ -3,11 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const NAV_ITEMS = [
-  { path: '/',              label: 'Accueil',    authRequired: false },
-  { path: '/favoris',       label: 'Favoris',    authRequired: false },
-  { path: '/notifications', label: 'Alertes',    authRequired: false },
-  { path: '/conversations', label: 'Messages',   authRequired: true  },
-  { path: '/profil',        label: 'Profil',     authRequired: true  },
+  { path: '/',              label: 'Accueil',  authRequired: false },
+  { path: '/favoris',       label: 'Favoris',  authRequired: true  },
+  { path: '/notifications', label: 'Alertes',  authRequired: true  },
+  { path: '/conversations', label: 'Messages', authRequired: true  },
+  { path: '/profil',        label: 'Profil',   authRequired: true  },
 ]
 
 export default function TopNav() {
