@@ -158,14 +158,21 @@ export default function HomePage() {
             )}
           </button>
         </div>
-        <button
-          onClick={() => openSearch(search)}
-          className="w-full bg-white rounded-2xl flex items-center px-4 py-3 gap-3 shadow-card text-left"
-        >
-          <SearchIcon />
-          <span className="flex-1 text-sm text-text-grey">{search || 'Rechercher une ville, quartier…'}</span>
-          <span className="bg-primary text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex-shrink-0">Filtres</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => openSearch(search)}
+            className="flex-1 bg-white rounded-2xl flex items-center px-4 py-3 gap-3 shadow-card text-left"
+          >
+            <SearchIcon />
+            <span className="flex-1 text-sm text-text-grey">{search || 'Rechercher une ville, quartier…'}</span>
+          </button>
+          <button
+            onClick={() => openSearch(search)}
+            className="bg-primary text-white px-4 py-3 rounded-2xl text-sm font-semibold flex-shrink-0 shadow-btn"
+          >
+            Rechercher
+          </button>
+        </div>
       </div>
 
       {/* ── DESKTOP hero pleine largeur (caché sur mobile) ── */}
@@ -185,21 +192,25 @@ export default function HomePage() {
           <p className="text-white/60 text-base leading-relaxed mb-8 max-w-2xl">
             Maisons, appartements, terrains — achetez ou louez en toute confiance à Cotonou, Abomey-Calavi et partout au Bénin.
           </p>
-          <button
-            onClick={() => openSearch(search)}
-            className="bg-white rounded-2xl flex items-center gap-3 p-2 shadow-2xl text-left w-full max-w-2xl"
-          >
-            <div className="flex-1 flex items-center gap-3 px-3 py-2">
+          <div className="flex items-center gap-3 w-full max-w-2xl">
+            <button
+              onClick={() => openSearch(search)}
+              className="flex-1 bg-white rounded-2xl flex items-center gap-3 px-5 py-4 shadow-2xl text-left"
+            >
               <SearchIcon />
               <span className="text-sm text-text-grey">Ville, quartier, type de bien…</span>
-            </div>
-            <span className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm flex-shrink-0" style={{ background: '#4B6BFF' }}>
+            </button>
+            <button
+              onClick={() => openSearch(search)}
+              className="flex items-center gap-2 px-6 py-4 rounded-2xl text-white font-semibold text-sm flex-shrink-0 shadow-btn hover:opacity-90 transition-opacity"
+              style={{ background: '#4B6BFF' }}
+            >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               Rechercher
-            </span>
-          </button>
+            </button>
+          </div>
           <div className="flex items-center gap-8 mt-6">
             {[
               { val: biens.length > 0 ? `${biens.length}+` : '—', label: 'Annonces' },
