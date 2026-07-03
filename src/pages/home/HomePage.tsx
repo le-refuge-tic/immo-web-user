@@ -133,7 +133,7 @@ export default function HomePage() {
   const catLabel = CATEGORIES.find(c => c.key === category)?.label || 'Annonces'
 
   return (
-    <div className="min-h-full bg-app-bg">
+    <div className="min-h-dvh bg-app-bg overflow-x-hidden">
 
       {/* ── MOBILE header (caché sur desktop) ── */}
       <div className="md:hidden bg-gradient-to-br from-[#1A1A2E] to-[#0F3460] px-4 pt-12 pb-6">
@@ -168,60 +168,65 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* ── DESKTOP hero (caché sur mobile) ── */}
+      {/* ── DESKTOP hero 2 colonnes (caché sur mobile) ── */}
       <div
         className="hidden md:block"
         style={{ background: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 45%, #0F3460 100%)' }}
       >
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-2 mb-4">
-              <span
-                className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest"
-                style={{ background: 'rgba(75,107,255,0.2)', color: '#7B9BFF' }}
-              >
-                Bénin
-              </span>
-              <span className="text-white/40 text-xs">•</span>
-              <span className="text-white/50 text-xs">Des centaines d'annonces vérifiées</span>
-            </div>
-            <h1 className="text-white text-5xl font-bold leading-[1.1] tracking-tight mb-4">
-              Trouvez votre<br />
-              <span style={{ color: '#7B9BFF' }}>logement idéal</span><br />
-              au Bénin
-            </h1>
-            <p className="text-white/60 text-lg leading-relaxed mb-8">
-              Maisons, appartements, terrains — achetez ou louez en toute confiance à Cotonou, Abomey-Calavi et partout au Bénin.
-            </p>
+        <div className="max-w-7xl mx-auto px-6 py-14">
+          <div className="grid grid-cols-2 gap-12 items-center">
 
-            {/* Search bar desktop — ouvre le modal */}
-            <button
-              onClick={() => openSearch(search)}
-              className="w-full bg-white rounded-2xl flex items-center gap-3 p-2 shadow-2xl text-left"
-            >
-              <div className="flex-1 flex items-center gap-3 px-3 py-2">
-                <SearchIcon />
-                <span className="text-sm text-text-grey">{search || 'Ville, quartier, type de bien…'}</span>
+            {/* Colonne gauche — texte + recherche */}
+            <div>
+              <div className="flex items-center gap-2 mb-5">
+                <span className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest" style={{ background: 'rgba(75,107,255,0.2)', color: '#7B9BFF' }}>Bénin</span>
+                <span className="text-white/40 text-xs">•</span>
+                <span className="text-white/50 text-xs">Annonces vérifiées</span>
               </div>
-              <span className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm flex-shrink-0" style={{ background: '#4B6BFF' }}>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Rechercher
-              </span>
-            </button>
-
-            {/* Stats rapides */}
-            <div className="flex items-center gap-6 mt-6">
-              {[
-                { val: biens.length > 0 ? `${biens.length}+` : '---', label: 'Annonces' },
-                { val: '5', label: 'Villes' },
-                { val: '100%', label: 'Vérifiés' },
-              ].map(s => (
-                <div key={s.label} className="text-center">
-                  <p className="text-white font-bold text-xl">{s.val}</p>
-                  <p className="text-white/50 text-xs mt-0.5">{s.label}</p>
+              <h1 className="text-white text-5xl font-bold leading-[1.1] tracking-tight mb-4">
+                Trouvez votre<br />
+                <span style={{ color: '#7B9BFF' }}>logement idéal</span><br />
+                au Bénin
+              </h1>
+              <p className="text-white/60 text-base leading-relaxed mb-8">
+                Maisons, appartements, terrains — achetez ou louez en toute confiance à Cotonou, Abomey-Calavi et partout au Bénin.
+              </p>
+              <button
+                onClick={() => openSearch(search)}
+                className="w-full bg-white rounded-2xl flex items-center gap-3 p-2 shadow-2xl text-left"
+              >
+                <div className="flex-1 flex items-center gap-3 px-3 py-2">
+                  <SearchIcon />
+                  <span className="text-sm text-text-grey">Ville, quartier, type de bien…</span>
                 </div>
+                <span className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm flex-shrink-0" style={{ background: '#4B6BFF' }}>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Rechercher
+                </span>
+              </button>
+              <div className="flex items-center gap-8 mt-6">
+                {[
+                  { val: biens.length > 0 ? `${biens.length}+` : '—', label: 'Annonces' },
+                  { val: '5', label: 'Villes' },
+                  { val: '100%', label: 'Vérifiés' },
+                ].map(s => (
+                  <div key={s.label}>
+                    <p className="text-white font-bold text-2xl">{s.val}</p>
+                    <p className="text-white/50 text-xs mt-0.5">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Colonne droite — aperçu des biens */}
+            <div className="grid grid-cols-2 gap-3">
+              {biens.slice(0, 4).map((b, i) => (
+                <HeroBienCard key={b.id} bien={b} delay={i * 80} onClick={() => navigate(`/biens/${b.id}`)} />
+              ))}
+              {biens.length === 0 && [0,1,2,3].map(i => (
+                <div key={i} className="rounded-2xl h-44 animate-pulse" style={{ background: 'rgba(255,255,255,0.06)' }} />
               ))}
             </div>
           </div>
@@ -290,5 +295,43 @@ export default function HomePage() {
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} initialSearch={searchInitial} />
     </div>
+  )
+}
+
+const BACKEND_URL = (import.meta.env.VITE_API_URL ?? '').replace('/api/v1', '') + '/'
+function resolvePhoto(url: string) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return BACKEND_URL + url
+}
+
+function HeroBienCard({ bien, delay, onClick }: { bien: any; delay: number; onClick: () => void }) {
+  const photo = bien.photos?.[0]?.url ? resolvePhoto(bien.photos[0].url) : ''
+  const prix = Number(bien.prix).toLocaleString('fr-FR')
+  const isLocation = bien.transaction === 'location'
+  return (
+    <button
+      onClick={onClick}
+      className="relative rounded-2xl overflow-hidden text-left group"
+      style={{ height: 176, animationDelay: `${delay}ms` }}
+    >
+      {photo ? (
+        <img src={photo} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+      ) : (
+        <div className="w-full h-full" style={{ background: 'linear-gradient(135deg, rgba(75,107,255,0.3), rgba(123,75,255,0.3))' }} />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="text-white text-xs font-bold">{prix} FCFA{isLocation ? '/m' : ''}</p>
+        <p className="text-white/70 text-[10px] mt-0.5 truncate">
+          {bien.localisation?.ville || '—'}
+        </p>
+      </div>
+      <div className="absolute top-2 left-2">
+        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: isLocation ? '#4B6BFF' : '#FF6B35' }}>
+          {isLocation ? 'LOUER' : 'VENDRE'}
+        </span>
+      </div>
+    </button>
   )
 }
