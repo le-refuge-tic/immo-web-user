@@ -196,158 +196,180 @@ export default function ProfilePage() {
     } catch (_) {}
   }
 
+  const AvatarBlock = ({ size = 88 }: { size?: number }) => (
+    <div className="relative inline-block">
+      {user.photo_profil ? (
+        <img src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid #4B6BFF' }} />
+      ) : (
+        <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}>
+          <span className="text-white font-bold" style={{ fontSize: size * 0.36 }}>{initials}</span>
+        </div>
+      )}
+      <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white" style={{ backgroundColor: '#4CAF50' }} />
+    </div>
+  )
+
+  const StatsRow = () => (
+    <div className="flex gap-3">
+      <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="#4B6BFF" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
+      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="#4CAF50" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
+      <StatBadge icon={<WarningIcon />} value={penaliteStr} label="Pénalité" color={penalite > 0 ? '#F44336' : '#4CAF50'} bg={penalite > 0 ? 'rgba(244,67,54,0.08)' : 'rgba(76,175,80,0.08)'} border={penalite > 0 ? 'rgba(244,67,54,0.15)' : 'rgba(76,175,80,0.15)'} />
+    </div>
+  )
+
+  const MenuBlock = () => (
+    <div className="bg-white rounded-[16px] overflow-hidden">
+      <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => navigate('/profil/edit')} />
+      <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => navigate('/profil/password')} />
+      <MenuItem icon={<ReceiptMenuIcon />} label="Historique des transactions" onClick={() => {}} />
+      <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => {}} showDivider={false} />
+    </div>
+  )
+
+  const VisiteActiveBlock = () => (
+    visiteActive ? (
+      <div className="bg-white rounded-[14px] p-3.5 flex items-center gap-3" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        <div className="w-[42px] h-[42px] rounded-[11px] bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <EyeActiveIcon />
+        </div>
+        <div className="flex-1">
+          <p className="text-[13px] font-bold text-text-dark">{visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}</p>
+          <p className="text-[11px] text-text-grey mt-0.5">
+            {visiteActive.creneau?.bien?.type || visiteActive.bienType || 'Bien'}
+            {visiteActive.creneau?.debut ? ` · ${new Date(visiteActive.creneau.debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}` : visiteActive.dateVisite ? ` · ${visiteActive.dateVisite}` : ''}
+          </p>
+        </div>
+        <button onClick={handleAnnuler} className="text-[11px] font-bold text-danger px-2.5 py-1.5 rounded-[8px]" style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
+          Annuler
+        </button>
+      </div>
+    ) : null
+  )
+
   return (
-    <div className="min-h-full bg-app-bg">
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-4">
-        <h1 className="text-xl font-bold text-text-dark">Profil</h1>
-        <div className="w-[38px] h-[38px] bg-surface-g rounded-[10px] flex items-center justify-center">
-          <SettingsIcon />
+    <div className="min-h-dvh bg-app-bg">
+
+      {/* ── MOBILE layout ── */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between px-5 pt-12 pb-4">
+          <h1 className="text-xl font-bold text-text-dark">Profil</h1>
+          <div className="w-[38px] h-[38px] bg-surface-g rounded-[10px] flex items-center justify-center">
+            <SettingsIcon />
+          </div>
+        </div>
+        <div className="px-5 pb-28 space-y-5">
+          <div className="flex flex-col items-center gap-3">
+            <AvatarBlock size={88} />
+            <div className="text-center">
+              <p className="text-[18px] font-bold text-text-dark">{fullName}</p>
+              {(apiUser?.email || user.email) && <p className="text-[13px] text-text-grey mt-1">{apiUser?.email || user.email}</p>}
+              <div className="flex justify-center mt-1.5">
+                <span className="text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full">{roleLabel}</span>
+              </div>
+            </div>
+            <StatsRow />
+          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-4"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+          ) : <VisiteActiveBlock />}
+          <button onClick={() => navigate('/mes-visites')} className="w-full flex items-center gap-3.5 p-4 rounded-[16px]" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }}>
+            <div className="w-11 h-11 rounded-[12px] bg-white/15 flex items-center justify-center"><CalendarCardIcon /></div>
+            <div className="flex-1 text-left">
+              <p className="text-white text-[15px] font-bold">Mes visites</p>
+              <p className="text-white/70 text-[12px]">{visitCount} visite{visitCount > 1 ? 's' : ''} au total</p>
+            </div>
+            <ArrowRightSmIcon />
+          </button>
+          <MenuBlock />
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-full" style={{ backgroundColor: '#FF6B35' }}>
+            <LogoutIcon />
+            <span className="text-white text-[15px] font-bold">Se déconnecter</span>
+          </button>
         </div>
       </div>
 
-      <div className="overflow-y-auto px-5 pb-8">
-        {/* Avatar */}
-        <div className="flex justify-center mt-2.5">
-          <div className="relative">
-            {user.photo_profil ? (
-              <img
-                src={user.photo_profil}
-                alt=""
-                className="w-[88px] h-[88px] rounded-full object-cover"
-                style={{ border: '3px solid #4B6BFF' }}
-              />
-            ) : (
-              <div
-                className="w-[88px] h-[88px] rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
-              >
-                <span className="text-white text-[32px] font-bold">{initials}</span>
-              </div>
-            )}
-            {/* Online indicator */}
-            <div
-              className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white"
-              style={{ backgroundColor: '#4CAF50' }}
-            />
-          </div>
-        </div>
+      {/* ── DESKTOP layout ── */}
+      <div className="hidden md:block max-w-5xl mx-auto px-6 py-10">
+        <h1 className="text-2xl font-bold text-text-dark mb-8">Mon profil</h1>
+        <div className="grid grid-cols-[300px_1fr] gap-6 items-start">
 
-        {/* Name + email + role badge */}
-        <div className="text-center mt-3">
-          <p className="text-[18px] font-bold text-text-dark">{fullName}</p>
-          {(apiUser?.email || user.email) && (
-            <p className="text-[13px] text-text-grey mt-1">{apiUser?.email || user.email}</p>
-          )}
-          <div className="flex justify-center mt-1.5">
-            <span className="text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full">
-              {roleLabel}
-            </span>
-          </div>
-        </div>
-
-        {/* Stats badges */}
-        <div className="flex justify-center gap-3 mt-4">
-          <StatBadge
-            icon={<CalendarStatIcon />}
-            value={String(visitCount)}
-            label="Visites"
-            color="#4B6BFF"
-            bg="rgba(75,107,255,0.08)"
-            border="rgba(75,107,255,0.15)"
-          />
-          <StatBadge
-            icon={<ShieldIcon />}
-            value={String(score)}
-            label="Score"
-            color="#4CAF50"
-            bg="rgba(76,175,80,0.08)"
-            border="rgba(76,175,80,0.15)"
-          />
-          <StatBadge
-            icon={<WarningIcon />}
-            value={penaliteStr}
-            label="Pénalité"
-            color={penalite > 0 ? '#F44336' : '#4CAF50'}
-            bg={penalite > 0 ? 'rgba(244,67,54,0.08)' : 'rgba(76,175,80,0.08)'}
-            border={penalite > 0 ? 'rgba(244,67,54,0.15)' : 'rgba(76,175,80,0.15)'}
-          />
-        </div>
-
-        {/* Loading spinner or visite active */}
-        <div className="mt-5">
-          {isLoading ? (
-            <div className="flex justify-center py-6">
-              <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          {/* Left panel */}
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-card">
+              <AvatarBlock size={100} />
+              <h2 className="text-lg font-bold text-text-dark mt-4">{fullName}</h2>
+              {(apiUser?.email || user.email) && <p className="text-sm text-text-grey mt-1">{apiUser?.email || user.email}</p>}
+              <span className="text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
+              <div className="mt-4 w-full flex justify-center"><StatsRow /></div>
             </div>
-          ) : visiteActive ? (
-            <div
-              className="bg-white rounded-[14px] p-3.5 mb-3 flex items-center gap-3"
-              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-            >
-              <div className="w-[42px] h-[42px] rounded-[11px] bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <EyeActiveIcon />
+
+            <MenuBlock />
+
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white" style={{ background: '#FF6B35' }}>
+              <LogoutIcon />
+              <span>Se déconnecter</span>
+            </button>
+          </div>
+
+          {/* Right panel */}
+          <div className="space-y-4">
+            {/* Visite CTA */}
+            <button onClick={() => navigate('/mes-visites')} className="w-full flex items-center gap-4 p-5 rounded-2xl text-left" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.3)' }}>
+              <div className="w-14 h-14 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                <CalendarCardIcon />
               </div>
               <div className="flex-1">
-                <p className="text-[13px] font-bold text-text-dark">
-                  {visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}
-                </p>
-                <p className="text-[11px] text-text-grey mt-0.5">
-                  {visiteActive.creneau?.bien?.type || visiteActive.bienType || 'Bien'}
-                  {visiteActive.creneau?.debut
-                    ? ` · ${new Date(visiteActive.creneau.debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`
-                    : visiteActive.dateVisite ? ` · ${visiteActive.dateVisite}` : ''}
-                </p>
+                <p className="text-white text-base font-bold">Mes visites</p>
+                <p className="text-white/70 text-sm">{visitCount} visite{visitCount > 1 ? 's' : ''} au total — cliquez pour voir le détail</p>
               </div>
-              <button
-                onClick={handleAnnuler}
-                className="text-[11px] font-bold text-danger px-2.5 py-1.5 rounded-[8px]"
-                style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}
-              >
-                Annuler
+              <ArrowRightSmIcon />
+            </button>
+
+            {/* Visite active */}
+            {isLoading ? (
+              <div className="bg-white rounded-2xl p-6 flex justify-center"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            ) : visiteActive ? (
+              <div className="bg-white rounded-2xl p-5 shadow-card">
+                <h3 className="font-bold text-text-dark mb-3">Visite en cours</h3>
+                <VisiteActiveBlock />
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-6 text-center">
+                <div className="w-14 h-14 rounded-xl bg-surface-g flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-text-grey" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </div>
+                <p className="text-text-grey text-sm">Aucune visite en cours</p>
+              </div>
+            )}
+
+            {/* Compte info */}
+            <div className="bg-white rounded-2xl p-5 shadow-card">
+              <h3 className="font-bold text-text-dark mb-4">Informations du compte</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-text-grey mb-1">Prénom</p>
+                  <p className="text-sm font-semibold text-text-dark">{user.prenom || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-grey mb-1">Nom</p>
+                  <p className="text-sm font-semibold text-text-dark">{user.nom || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-grey mb-1">Email</p>
+                  <p className="text-sm font-semibold text-text-dark">{apiUser?.email || user.email || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-grey mb-1">Rôle</p>
+                  <p className="text-sm font-semibold text-text-dark capitalize">{roleLabel}</p>
+                </div>
+              </div>
+              <button onClick={() => navigate('/profil/edit')} className="mt-4 text-sm text-primary font-semibold flex items-center gap-1 hover:underline">
+                Modifier mes informations
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
-          ) : null}
-        </div>
-
-        {/* CTA Mes visites */}
-        <button
-          onClick={() => navigate('/mes-visites')}
-          className="w-full flex items-center gap-3.5 p-4 rounded-[16px] mb-6"
-          style={{
-            background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)',
-            boxShadow: '0 4px 12px rgba(75,107,255,0.3)',
-          }}
-        >
-          <div className="w-11 h-11 rounded-[12px] bg-white/15 flex items-center justify-center flex-shrink-0">
-            <CalendarCardIcon />
           </div>
-          <div className="flex-1 text-left">
-            <p className="text-white text-[15px] font-bold">Mes visites</p>
-            <p className="text-white/70 text-[12px]">
-              {visitCount} visite{visitCount > 1 ? 's' : ''} au total
-            </p>
-          </div>
-          <ArrowRightSmIcon />
-        </button>
-
-        {/* Menu items */}
-        <div className="bg-white rounded-[16px] overflow-hidden mb-6">
-          <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => navigate('/profil/edit')} />
-          <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => navigate('/profil/password')} />
-          <MenuItem icon={<ReceiptMenuIcon />} label="Historique des transactions" onClick={() => {}} />
-          <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => {}} showDivider={false} />
         </div>
-
-        {/* Déconnexion */}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 py-[14px] rounded-full"
-          style={{ backgroundColor: '#FF6B35' }}
-        >
-          <LogoutIcon />
-          <span className="text-white text-[15px] font-bold">Se déconnecter</span>
-        </button>
       </div>
     </div>
   )
