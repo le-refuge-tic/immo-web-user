@@ -52,7 +52,7 @@ export default function TopNav() {
   return (
     <header className="hidden md:flex sticky top-0 z-50 bg-white border-b border-divider h-16 items-center">
       {/* Layout 3 colonnes : logo | nav centré | auth */}
-      <div className="w-full max-w-7xl mx-auto px-6 grid grid-cols-[auto_1fr_auto] items-center gap-6">
+      <div className="w-full px-6 md:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-6">
 
         {/* Logo */}
         <button onClick={() => navigate('/')} className="flex items-center gap-2.5 flex-shrink-0">

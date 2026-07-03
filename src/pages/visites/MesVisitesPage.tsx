@@ -124,7 +124,7 @@ export default function MesVisitesPage() {
     <div className="min-h-dvh bg-app-bg">
       {/* Header */}
       <div className="bg-white border-b border-divider">
-        <div className="max-w-5xl mx-auto px-4 md:px-6">
+        <div className="w-full px-4 md:px-16">
           <div className="flex items-center gap-3 pt-12 md:pt-6 pb-3">
             <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-g">
               <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -148,7 +148,7 @@ export default function MesVisitesPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 md:px-6 py-4">
+      <div className="w-full px-4 md:px-16 py-4">
         {loading ? (
           <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
             {[1, 2, 3, 4].map(n => <div key={n} className="bg-white rounded-2xl h-28 animate-pulse" />)}

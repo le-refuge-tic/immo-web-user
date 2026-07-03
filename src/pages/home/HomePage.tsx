@@ -216,7 +216,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Contenu principal (catégories + grille) ── */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8">
+      <div className="w-full px-4 md:px-16 py-4 md:py-8">
 
         {/* Categories */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6" style={{ scrollbarWidth: 'none' }}>

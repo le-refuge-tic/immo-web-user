@@ -124,7 +124,7 @@ export default function BienDetailPage() {
       </div>
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block max-w-7xl mx-auto px-6 py-8">
+      <div className="hidden md:block w-full px-6 md:px-16 py-8">
         {/* Breadcrumb / back */}
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-text-grey hover:text-primary transition-colors mb-6 group text-sm font-medium">
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>

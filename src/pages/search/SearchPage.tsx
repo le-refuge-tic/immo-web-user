@@ -77,7 +77,7 @@ export default function SearchPage() {
       </div>
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block max-w-7xl mx-auto px-6 py-8">
+      <div className="hidden md:block w-full px-6 md:px-16 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-text-dark">Recherche avancée</h1>
           <p className="text-text-grey text-sm mt-1">Trouvez le bien qui correspond à vos critères</p>
