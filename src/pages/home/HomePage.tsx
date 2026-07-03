@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
+import SearchModal from '../../components/SearchModal'
 
 type Category = { key: string; label: string }
 const CATEGORIES: Category[] = [
@@ -124,6 +125,14 @@ export default function HomePage() {
     })
   }
 
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchInitial, setSearchInitial] = useState('')
+
+  const openSearch = (initial = '') => {
+    setSearchInitial(initial)
+    setSearchOpen(true)
+  }
+
   const firstName = user?.prenom || user?.nom || 'vous'
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const catLabel = CATEGORIES.find(c => c.key === category)?.label || 'Annonces'
@@ -154,24 +163,14 @@ export default function HomePage() {
             )}
           </button>
         </div>
-        <div className="bg-white rounded-2xl flex items-center px-4 py-3 gap-3 shadow-card">
+        <button
+          onClick={() => openSearch(search)}
+          className="w-full bg-white rounded-2xl flex items-center px-4 py-3 gap-3 shadow-card text-left"
+        >
           <SearchIcon />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher une ville, quartier…"
-            className="flex-1 bg-transparent text-sm text-text-dark placeholder-text-grey outline-none"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="text-text-grey"><CloseIcon /></button>
-          )}
-          <button
-            onClick={() => navigate('/search')}
-            className="bg-primary text-white px-3 py-1.5 rounded-xl text-xs font-semibold"
-          >
-            Filtres
-          </button>
-        </div>
+          <span className="flex-1 text-sm text-text-grey">{search || 'Rechercher une ville, quartier…'}</span>
+          <span className="bg-primary text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex-shrink-0">Filtres</span>
+        </button>
       </div>
 
       {/* ── DESKTOP hero (caché sur mobile) ── */}
@@ -200,31 +199,22 @@ export default function HomePage() {
               Maisons, appartements, terrains — achetez ou louez en toute confiance à Cotonou, Abomey-Calavi et partout au Bénin.
             </p>
 
-            {/* Search bar desktop */}
-            <div className="bg-white rounded-2xl flex items-center gap-3 p-2 shadow-2xl">
-              <div className="flex-1 flex items-center gap-3 px-3">
+            {/* Search bar desktop — ouvre le modal */}
+            <button
+              onClick={() => openSearch(search)}
+              className="w-full bg-white rounded-2xl flex items-center gap-3 p-2 shadow-2xl text-left"
+            >
+              <div className="flex-1 flex items-center gap-3 px-3 py-2">
                 <SearchIcon />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Ville, quartier, type de bien…"
-                  className="flex-1 bg-transparent text-sm text-text-dark placeholder-text-grey outline-none py-2"
-                />
-                {search && (
-                  <button onClick={() => setSearch('')} className="text-text-grey"><CloseIcon /></button>
-                )}
+                <span className="text-sm text-text-grey">{search || 'Ville, quartier, type de bien…'}</span>
               </div>
-              <button
-                onClick={() => navigate('/search')}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm"
-                style={{ background: '#4B6BFF' }}
-              >
+              <span className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm flex-shrink-0" style={{ background: '#4B6BFF' }}>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 Rechercher
-              </button>
-            </div>
+              </span>
+            </button>
 
             {/* Stats rapides */}
             <div className="flex items-center gap-6 mt-6">
@@ -302,6 +292,8 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} initialSearch={searchInitial} />
     </div>
   )
 }
