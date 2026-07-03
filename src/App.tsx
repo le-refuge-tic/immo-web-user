@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import MainLayout from './components/MainLayout'
 import HomePage from './pages/home/HomePage'
 import BienDetailPage from './pages/bien/BienDetailPage'
-import SearchPage from './pages/search/SearchPage'
 import FavoritesPage from './pages/favorites/FavoritesPage'
 import ConversationsPage from './pages/conversations/ConversationsPage'
 import ChatPage from './pages/conversations/ChatPage'
@@ -71,7 +70,6 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomeGuard />} />
           <Route path="biens/:id" element={<BienDetailPage />} />
-          <Route path="search" element={<SearchPage />} />
           <Route path="favoris" element={<FavoritesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="conversations" element={

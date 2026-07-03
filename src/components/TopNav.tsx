@@ -2,6 +2,14 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
+const NAV_ITEMS = [
+  { path: '/',              label: 'Accueil',    authRequired: false },
+  { path: '/favoris',       label: 'Favoris',    authRequired: false },
+  { path: '/notifications', label: 'Alertes',    authRequired: false },
+  { path: '/conversations', label: 'Messages',   authRequired: true  },
+  { path: '/profil',        label: 'Profil',     authRequired: true  },
+]
+
 export default function TopNav() {
   const { isLoggedIn, user, logout } = useAuth()
   const navigate = useNavigate()
@@ -24,9 +32,16 @@ export default function TopNav() {
     return location.pathname.startsWith(path)
   }
 
-  const initials = user
-    ? `${user.prenom?.[0] || ''}${user.nom?.[0] || ''}`.toUpperCase()
-    : ''
+  const handleNav = (item: typeof NAV_ITEMS[0]) => {
+    if (item.authRequired && !isLoggedIn) {
+      navigate('/login')
+    } else {
+      navigate(item.path)
+    }
+    setMenuOpen(false)
+  }
+
+  const initials = user ? `${user.prenom?.[0] || ''}${user.nom?.[0] || ''}`.toUpperCase() : ''
 
   const handleLogout = () => {
     logout()
@@ -37,47 +52,38 @@ export default function TopNav() {
   return (
     <header className="hidden md:flex sticky top-0 z-50 bg-white border-b border-divider h-16 items-center">
       <div className="w-full max-w-7xl mx-auto px-6 flex items-center gap-8">
+
         {/* Logo */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2.5 flex-shrink-0"
-        >
-          <div
-            className="w-9 h-9 rounded-[10px] flex items-center justify-center"
-            style={{ background: '#4B6BFF' }}
-          >
+        <button onClick={() => navigate('/')} className="flex items-center gap-2.5 flex-shrink-0">
+          <div className="w-9 h-9 rounded-[10px] flex items-center justify-center" style={{ background: '#4B6BFF' }}>
             <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
           </div>
           <span className="font-bold text-lg tracking-tight" style={{ color: '#4B6BFF' }}>REFUGE</span>
         </button>
 
-        {/* Nav links — mêmes menus que le BottomNav mobile */}
+        {/* Nav links — toujours tous les 5, sans filtre auth */}
         <nav className="flex items-center gap-1 flex-1">
-          {[
-            { path: '/',              label: 'Accueil',    icon: <NavHomeIcon /> },
-            { path: '/favoris',       label: 'Favoris',    icon: <NavHeartIcon /> },
-            { path: '/conversations', label: 'Messages',   icon: <NavChatIcon />,  auth: true },
-            { path: '/notifications', label: 'Alertes',    icon: <NavBellIcon /> },
-            { path: '/mes-visites',   label: 'Mes visites',icon: <NavCalIcon />,   auth: true },
-          ].filter(l => !l.auth || isLoggedIn).map(link => (
-            <button
-              key={link.path}
-              onClick={() => navigate(link.path)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                color:      isActive(link.path) ? '#4B6BFF' : '#6B7280',
-                background: isActive(link.path) ? 'rgba(75,107,255,0.08)' : 'transparent',
-              }}
-            >
-              <span style={{ color: isActive(link.path) ? '#4B6BFF' : '#9CA3AF' }}>{link.icon}</span>
-              {link.label}
-            </button>
-          ))}
+          {NAV_ITEMS.map(item => {
+            const active = isActive(item.path)
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleNav(item)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  color:      active ? '#4B6BFF' : '#6B7280',
+                  background: active ? 'rgba(75,107,255,0.08)' : 'transparent',
+                }}
+              >
+                {item.label}
+              </button>
+            )
+          })}
         </nav>
 
-        {/* Auth */}
+        {/* Auth : boutons si non connecté, avatar dropdown si connecté */}
         {!isLoggedIn ? (
           <div className="flex items-center gap-3 flex-shrink-0">
             <button
@@ -103,17 +109,12 @@ export default function TopNav() {
               {user?.photo_profil ? (
                 <img src={user.photo_profil} alt="" className="w-8 h-8 rounded-full object-cover" />
               ) : (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                  style={{ background: '#4B6BFF' }}
-                >
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: '#4B6BFF' }}>
                   {initials}
                 </div>
               )}
               <div className="text-left">
-                <p className="text-sm font-semibold text-text-dark leading-none">
-                  {user?.prenom} {user?.nom}
-                </p>
+                <p className="text-sm font-semibold text-text-dark leading-none">{user?.prenom} {user?.nom}</p>
                 <p className="text-[11px] text-text-grey mt-0.5 capitalize">{user?.role}</p>
               </div>
               <svg className="w-4 h-4 text-text-grey ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
@@ -124,29 +125,19 @@ export default function TopNav() {
             {menuOpen && (
               <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-lg border border-divider overflow-hidden z-50">
                 {[
-                  { label: 'Mon profil', path: '/profil', icon: 'person' },
-                  { label: 'Mes visites', path: '/mes-visites', icon: 'calendar' },
-                  { label: 'Messages', path: '/conversations', icon: 'chat' },
-                  { label: 'Favoris', path: '/favoris', icon: 'heart' },
+                  { label: 'Mon profil',     path: '/profil' },
+                  { label: 'Mes visites',    path: '/mes-visites' },
+                  { label: 'Messages',       path: '/conversations' },
+                  { label: 'Favoris',        path: '/favoris' },
+                  { label: 'Notifications',  path: '/notifications' },
                 ].map(item => (
-                  <button
-                    key={item.path}
-                    onClick={() => { navigate(item.path); setMenuOpen(false) }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-dark hover:bg-surface-g transition-colors text-left"
-                  >
-                    <DropdownIcon name={item.icon} />
+                  <button key={item.path} onClick={() => { navigate(item.path); setMenuOpen(false) }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-dark hover:bg-surface-g transition-colors text-left">
                     {item.label}
                   </button>
                 ))}
                 <div className="border-t border-divider" />
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left"
-                  style={{ color: '#EF4444' }}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
+                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left" style={{ color: '#EF4444' }}>
                   Se déconnecter
                 </button>
               </div>
@@ -156,20 +147,4 @@ export default function TopNav() {
       </div>
     </header>
   )
-}
-
-const NavHomeIcon = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-const NavHeartIcon = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-const NavChatIcon  = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-const NavBellIcon  = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-const NavCalIcon   = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-
-function DropdownIcon({ name }: { name: string }) {
-  const icons: Record<string, React.ReactElement> = {
-    person: <svg className="w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-    calendar: <svg className="w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-    chat: <svg className="w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
-    heart: <svg className="w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>,
-  }
-  return icons[name] || <div className="w-4 h-4" />
 }
