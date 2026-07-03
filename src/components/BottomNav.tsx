@@ -28,11 +28,11 @@ const PersonIcon = ({ active }: { active: boolean }) => (
 )
 
 const NAV_ITEMS = [
-  { path: '/',              label: 'Accueil',       icon: HomeIcon,   authRequired: false },
-  { path: '/favoris',       label: 'Favoris',       icon: HeartIcon,  authRequired: false },
-  { path: '/notifications', label: 'Alertes',       icon: BellIcon,   authRequired: false },
-  { path: '/conversations', label: 'Messages',      icon: ChatIcon,   authRequired: true  },
-  { path: '/profil',        label: 'Profil',        icon: PersonIcon, authRequired: true  },
+  { path: '/',              label: 'Accueil',  icon: HomeIcon,   authRequired: false },
+  { path: '/favoris',       label: 'Favoris',  icon: HeartIcon,  authRequired: true  },
+  { path: '/notifications', label: 'Alertes',  icon: BellIcon,   authRequired: true  },
+  { path: '/conversations', label: 'Messages', icon: ChatIcon,   authRequired: true  },
+  { path: '/profil',        label: 'Profil',   icon: PersonIcon, authRequired: true  },
 ]
 
 export default function BottomNav() {

@@ -119,7 +119,8 @@ export default function LoginPage() {
         </div>
 
         {/* Formulaire */}
-        <div className="flex-1 flex flex-col justify-center px-6 md:px-16 py-8 max-w-md md:max-w-none w-full md:w-full mx-auto">
+        <div className="flex-1 flex flex-col justify-center items-center px-6 py-8">
+          <div className="w-full max-w-sm">
 
           {/* Desktop heading */}
           <div className="hidden md:block mb-10">
@@ -127,7 +128,7 @@ export default function LoginPage() {
             <p className="text-text-grey mt-2">Connectez-vous pour accéder à votre espace personnalisé.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5 w-full max-w-sm md:max-w-none">
+          <form onSubmit={handleLogin} className="space-y-5">
             {error && (
               <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                 <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -229,6 +230,8 @@ export default function LoginPage() {
             </svg>
             Retour à l'accueil
           </button>
+
+          </div>{/* /max-w-sm */}
         </div>
       </div>
     </div>
