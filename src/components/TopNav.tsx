@@ -51,7 +51,8 @@ export default function TopNav() {
 
   return (
     <header className="hidden md:flex sticky top-0 z-50 bg-white border-b border-divider h-16 items-center">
-      <div className="w-full max-w-7xl mx-auto px-6 flex items-center gap-8">
+      {/* Layout 3 colonnes : logo | nav centré | auth */}
+      <div className="w-full max-w-7xl mx-auto px-6 grid grid-cols-[auto_1fr_auto] items-center gap-6">
 
         {/* Logo */}
         <button onClick={() => navigate('/')} className="flex items-center gap-2.5 flex-shrink-0">
@@ -63,8 +64,8 @@ export default function TopNav() {
           <span className="font-bold text-lg tracking-tight" style={{ color: '#4B6BFF' }}>REFUGE</span>
         </button>
 
-        {/* Nav links — toujours tous les 5, sans filtre auth */}
-        <nav className="flex items-center gap-1 flex-1">
+        {/* Nav centré */}
+        <nav className="flex items-center justify-center gap-1">
           {NAV_ITEMS.map(item => {
             const active = isActive(item.path)
             return (
