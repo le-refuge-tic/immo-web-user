@@ -121,43 +121,37 @@ export default function MesVisitesPage() {
   }
 
   return (
-    <div className="min-h-full bg-app-bg">
+    <div className="min-h-dvh bg-app-bg">
       {/* Header */}
-      <div className="bg-white px-4 pt-12 pb-0 border-b border-divider">
-        <div className="flex items-center gap-3 pb-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-g"
-          >
-            <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-lg font-bold text-text-dark">Mes visites</h1>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex">
-          {TABS.map((t, i) => (
-            <button
-              key={t}
-              onClick={() => setTab(i)}
-              className="flex-1 pb-3 text-[13px] font-semibold transition-all relative"
-              style={{ color: tab === i ? '#4B6BFF' : '#9CA3AF' }}
-            >
-              {t}
-              {tab === i && (
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full" style={{ background: '#4B6BFF' }} />
-              )}
+      <div className="bg-white border-b border-divider">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
+          <div className="flex items-center gap-3 pt-12 md:pt-6 pb-3">
+            <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-g">
+              <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
-          ))}
+            <div>
+              <h1 className="text-lg font-bold text-text-dark">Mes visites</h1>
+              {!loading && <p className="text-xs text-text-grey">{visites.length} visite{visites.length > 1 ? 's' : ''} au total</p>}
+            </div>
+          </div>
+          {/* Tabs */}
+          <div className="flex">
+            {TABS.map((t, i) => (
+              <button key={t} onClick={() => setTab(i)} className="flex-1 pb-3 text-[13px] font-semibold transition-all relative" style={{ color: tab === i ? '#4B6BFF' : '#9CA3AF' }}>
+                {t}
+                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full" style={{ background: '#4B6BFF' }} />}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="px-4 py-4">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 py-4">
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(n => <div key={n} className="bg-white rounded-2xl h-28 animate-pulse" />)}
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+            {[1, 2, 3, 4].map(n => <div key={n} className="bg-white rounded-2xl h-28 animate-pulse" />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
@@ -170,7 +164,7 @@ export default function MesVisitesPage() {
             <p className="text-text-grey text-sm">Vos demandes de visite apparaîtront ici</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 pb-24 md:pb-8">
             {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} />)}
           </div>
         )}
