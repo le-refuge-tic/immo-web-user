@@ -178,26 +178,15 @@ export default function HomePage() {
           <p className="text-white/60 text-base leading-relaxed mb-8 max-w-2xl">
             Maisons, appartements, terrains — achetez ou louez en toute confiance à Cotonou, Abomey-Calavi et partout au Bénin.
           </p>
-          <div className="flex items-center gap-3 w-full max-w-2xl">
-            <div className="bg-white rounded-2xl flex items-center gap-3 px-4 py-3.5 shadow-2xl flex-1">
-              <SearchIcon />
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Ville, quartier, type de bien…"
-                className="flex-1 text-sm text-text-dark bg-transparent outline-none placeholder:text-text-grey"
-              />
-            </div>
-            <button
-              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl text-white font-semibold text-sm flex-shrink-0 hover:opacity-90 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              Rechercher
-            </button>
+          <div className="bg-white rounded-2xl flex items-center gap-3 px-4 py-3.5 shadow-2xl w-full max-w-2xl">
+            <SearchIcon />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Ville, quartier, type de bien…"
+              className="flex-1 text-sm text-text-dark bg-transparent outline-none placeholder:text-text-grey"
+            />
           </div>
           <div className="flex items-center gap-8 mt-6">
             {[
