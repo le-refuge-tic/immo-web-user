@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
+import heroImg from '../../assets/hero.png'
 
 type Category = { key: string; label: string }
 const CATEGORIES: Category[] = [
@@ -127,58 +128,32 @@ export default function HomePage() {
     <div className="min-h-dvh bg-app-bg overflow-x-hidden">
 
       {/* ── MOBILE header (caché sur desktop) ── */}
-      <div className="md:hidden bg-gradient-to-br from-[#1A1A2E] to-[#0F3460] px-4 pt-12 pb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-white/60 text-sm">Bonjour,</p>
-            <h1 className="text-white text-xl font-bold">
-              {isLoggedIn ? firstName : 'Bienvenue'}
-            </h1>
+      <div className="md:hidden relative px-4 pt-12 pb-6 overflow-hidden" style={{ background: '#0a0a0a' }}>
+        <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))' }} />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-white/50 text-xs uppercase tracking-widest">REFUGE</p>
+              <h1 className="text-white text-2xl font-bold mt-1">
+                {isLoggedIn ? `Bonjour, ${firstName}` : 'Trouvez votre bien'}
+              </h1>
+            </div>
+            <button
+              onClick={() => navigate(isLoggedIn ? '/profil' : '/login')}
+              className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
+              style={{ background: '#4B6BFF' }}
+            >
+              {isLoggedIn && user?.photo_profil ? (
+                <img src={user.photo_profil} className="w-10 h-10 object-cover" alt="" />
+              ) : isLoggedIn ? (
+                <span className="text-white font-bold text-sm">{initials}</span>
+              ) : (
+                <PersonIcon />
+              )}
+            </button>
           </div>
-          <button
-            onClick={() => navigate(isLoggedIn ? '/profil' : '/login')}
-            className="w-10 h-10 rounded-[13px] flex items-center justify-center overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
-          >
-            {isLoggedIn && user?.photo_profil ? (
-              <img src={user.photo_profil} className="w-10 h-10 object-cover" alt="" />
-            ) : isLoggedIn ? (
-              <span className="text-white font-bold text-sm">{initials}</span>
-            ) : (
-              <PersonIcon />
-            )}
-          </button>
-        </div>
-        <div className="w-full bg-white rounded-2xl flex items-center px-4 py-3 gap-3 shadow-card">
-          <SearchIcon />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher une ville, quartier…"
-            className="flex-1 text-sm text-text-dark bg-transparent outline-none placeholder:text-text-grey"
-          />
-        </div>
-      </div>
-
-      {/* ── DESKTOP hero pleine largeur (caché sur mobile) ── */}
-      <div
-        className="hidden md:block w-full"
-        style={{ background: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 45%, #0F3460 100%)' }}
-      >
-        <div className="w-full px-16 py-16">
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest" style={{ background: 'rgba(75,107,255,0.2)', color: '#7B9BFF' }}>Bénin</span>
-            <span className="text-white/40 text-xs">•</span>
-            <span className="text-white/50 text-xs">Annonces vérifiées</span>
-          </div>
-          <h1 className="text-white text-5xl font-bold leading-[1.1] tracking-tight mb-4">
-            Trouvez votre <span style={{ color: '#7B9BFF' }}>logement idéal</span> au Bénin
-          </h1>
-          <p className="text-white/60 text-base leading-relaxed mb-8 max-w-2xl">
-            Maisons, appartements, terrains — achetez ou louez en toute confiance à Cotonou, Abomey-Calavi et partout au Bénin.
-          </p>
-          <div className="bg-white rounded-2xl flex items-center gap-3 px-4 py-3.5 shadow-2xl w-full max-w-2xl">
+          <div className="w-full rounded-xl flex items-center px-4 py-3.5 gap-3" style={{ background: 'rgba(255,255,255,0.95)' }}>
             <SearchIcon />
             <input
               type="text"
@@ -188,15 +163,53 @@ export default function HomePage() {
               className="flex-1 text-sm text-text-dark bg-transparent outline-none placeholder:text-text-grey"
             />
           </div>
-          <div className="flex items-center gap-8 mt-6">
+        </div>
+      </div>
+
+      {/* ── DESKTOP hero image pleine largeur ── */}
+      <div className="hidden md:flex relative w-full flex-col justify-end" style={{ minHeight: '88vh' }}>
+        {/* Image de fond */}
+        <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        {/* Overlay sombre */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.25) 100%)' }} />
+
+        {/* Contenu */}
+        <div className="relative z-10 w-full px-16 pb-16">
+          <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4">
+            Immobilier au Bénin — Annonces vérifiées
+          </p>
+          <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-5" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
+            Trouvez votre logement idéal.<br />Habitez en confiance.
+          </h1>
+          <p className="text-white/60 text-lg leading-relaxed mb-8 max-w-xl">
+            Maisons, appartements, terrains — à Cotonou, Abomey-Calavi et partout au Bénin.
+          </p>
+
+          {/* Barre de recherche */}
+          <div className="flex items-center gap-0 w-full max-w-2xl rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.97)' }}>
+            <div className="flex items-center gap-3 px-5 py-4 flex-1">
+              <SearchIcon />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Ville, quartier, type de bien…"
+                className="flex-1 text-sm text-text-dark bg-transparent outline-none placeholder:text-text-grey"
+              />
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center gap-12 mt-10 pt-10" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
             {[
-              { val: biens.length > 0 ? `${biens.length}+` : '—', label: 'Annonces' },
-              { val: '5', label: 'Villes' },
-              { val: '100%', label: 'Vérifiés' },
+              { val: biens.length > 0 ? `${biens.length}+` : '500+', label: 'Annonces disponibles' },
+              { val: '5',    label: 'Villes couvertes' },
+              { val: '100%', label: 'Biens vérifiés' },
+              { val: '24h',  label: 'Réponse garantie' },
             ].map(s => (
               <div key={s.label}>
-                <p className="text-white font-bold text-2xl">{s.val}</p>
-                <p className="text-white/50 text-xs mt-0.5">{s.label}</p>
+                <p className="text-white font-bold text-3xl tracking-tight">{s.val}</p>
+                <p className="text-white/50 text-sm mt-1">{s.label}</p>
               </div>
             ))}
           </div>

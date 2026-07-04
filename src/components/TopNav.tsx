@@ -17,6 +17,8 @@ export default function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  const isHome = location.pathname === '/'
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -33,11 +35,8 @@ export default function TopNav() {
   }
 
   const handleNav = (item: typeof NAV_ITEMS[0]) => {
-    if (item.authRequired && !isLoggedIn) {
-      navigate('/login')
-    } else {
-      navigate(item.path)
-    }
+    if (item.authRequired && !isLoggedIn) navigate('/login')
+    else navigate(item.path)
     setMenuOpen(false)
   }
 
@@ -50,8 +49,15 @@ export default function TopNav() {
   }
 
   return (
-    <header className="hidden md:flex sticky top-0 z-50 bg-white border-b border-divider h-16 items-center">
-      {/* Layout 3 colonnes : logo | nav centré | auth */}
+    <header
+      className="hidden md:flex sticky top-0 z-50 h-16 items-center border-b"
+      style={{
+        background: isHome ? 'rgba(0,0,0,0.75)' : '#0a0a0a',
+        borderColor: 'rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      }}
+    >
       <div className="w-full px-6 md:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-6">
 
         {/* Logo */}
@@ -61,7 +67,7 @@ export default function TopNav() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
           </div>
-          <span className="font-bold text-lg tracking-tight" style={{ color: '#4B6BFF' }}>REFUGE</span>
+          <span className="font-bold text-lg tracking-tight text-white">REFUGE</span>
         </button>
 
         {/* Nav centré */}
@@ -72,10 +78,10 @@ export default function TopNav() {
               <button
                 key={item.path}
                 onClick={() => handleNav(item)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
                 style={{
-                  color:      active ? '#4B6BFF' : '#6B7280',
-                  background: active ? 'rgba(75,107,255,0.08)' : 'transparent',
+                  color:      active ? '#ffffff' : 'rgba(255,255,255,0.55)',
+                  background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
                 }}
               >
                 {item.label}
@@ -84,19 +90,19 @@ export default function TopNav() {
           })}
         </nav>
 
-        {/* Auth : boutons si non connecté, avatar dropdown si connecté */}
+        {/* Auth */}
         {!isLoggedIn ? (
           <div className="flex items-center gap-3 flex-shrink-0">
             <button
               onClick={() => navigate('/login')}
-              className="px-4 py-2 text-sm font-semibold rounded-lg border border-divider text-text-dark hover:border-primary hover:text-primary transition-colors"
+              className="px-4 py-2 text-sm font-semibold rounded-lg border text-white transition-all hover:bg-white/10"
+              style={{ borderColor: 'rgba(255,255,255,0.3)' }}
             >
               Se connecter
             </button>
             <button
               onClick={() => navigate('/register')}
-              className="px-4 py-2 text-sm font-semibold rounded-lg text-white"
-              style={{ background: '#4B6BFF' }}
+              className="px-4 py-2 text-sm font-semibold rounded-lg text-black bg-white hover:bg-white/90 transition-all"
             >
               S'inscrire
             </button>
@@ -105,7 +111,8 @@ export default function TopNav() {
           <div className="relative flex-shrink-0" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border border-divider hover:border-primary/40 transition-colors"
+              className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border transition-all hover:border-white/30"
+              style={{ borderColor: 'rgba(255,255,255,0.15)' }}
             >
               {user?.photo_profil ? (
                 <img src={user.photo_profil} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -115,29 +122,30 @@ export default function TopNav() {
                 </div>
               )}
               <div className="text-left">
-                <p className="text-sm font-semibold text-text-dark leading-none">{user?.prenom} {user?.nom}</p>
-                <p className="text-[11px] text-text-grey mt-0.5 capitalize">{user?.role}</p>
+                <p className="text-sm font-semibold text-white leading-none">{user?.prenom} {user?.nom}</p>
+                <p className="text-[11px] mt-0.5 capitalize" style={{ color: 'rgba(255,255,255,0.45)' }}>{user?.role}</p>
               </div>
-              <svg className="w-4 h-4 text-text-grey ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-4 h-4 ml-1" style={{ color: 'rgba(255,255,255,0.4)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-lg border border-divider overflow-hidden z-50">
+              <div className="absolute right-0 top-full mt-2 w-52 rounded-2xl shadow-2xl overflow-hidden z-50 border" style={{ background: '#111', borderColor: 'rgba(255,255,255,0.1)' }}>
                 {[
-                  { label: 'Mon profil',     path: '/profil' },
-                  { label: 'Mes visites',    path: '/mes-visites' },
-                  { label: 'Messages',       path: '/conversations' },
-                  { label: 'Favoris',        path: '/favoris' },
-                  { label: 'Notifications',  path: '/notifications' },
+                  { label: 'Mon profil',    path: '/profil' },
+                  { label: 'Mes visites',   path: '/mes-visites' },
+                  { label: 'Messages',      path: '/conversations' },
+                  { label: 'Favoris',       path: '/favoris' },
+                  { label: 'Notifications', path: '/notifications' },
                 ].map(item => (
                   <button key={item.path} onClick={() => { navigate(item.path); setMenuOpen(false) }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-dark hover:bg-surface-g transition-colors text-left">
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors hover:bg-white/5"
+                    style={{ color: 'rgba(255,255,255,0.8)' }}>
                     {item.label}
                   </button>
                 ))}
-                <div className="border-t border-divider" />
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
                 <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left" style={{ color: '#EF4444' }}>
                   Se déconnecter
                 </button>
