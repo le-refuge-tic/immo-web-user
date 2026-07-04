@@ -76,7 +76,7 @@ export default function TopNav() {
               <button
                 key={item.path}
                 onClick={() => handleNav(item)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${!active ? 'nav-link' : ''}`}
                 style={{
                   color:      active ? '#ffffff' : 'rgba(255,255,255,0.55)',
                   background: active ? 'rgba(255,255,255,0.12)' : 'transparent',

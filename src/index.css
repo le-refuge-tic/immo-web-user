@@ -151,6 +151,77 @@
     opacity: 0.88;
   }
 
+  /* ─── Hover : image zoom ─── */
+  .img-zoom { overflow: hidden; }
+  .img-zoom img {
+    transition: transform 0.5s cubic-bezier(0.22,0.61,0.36,1);
+    will-change: transform;
+  }
+  .img-zoom:hover img { transform: scale(1.08); }
+
+  /* ─── Hover : card lift amélioré ─── */
+  .card-lift {
+    transition: transform 0.25s cubic-bezier(0.22,0.61,0.36,1),
+                box-shadow 0.25s cubic-bezier(0.22,0.61,0.36,1);
+    will-change: transform;
+  }
+  .card-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 48px rgba(0,0,0,0.15);
+  }
+
+  /* ─── Hover : bouton glow bleu ─── */
+  .btn-glow {
+    transition: box-shadow 0.22s ease, opacity 0.15s ease, transform 0.15s ease;
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 0 3px rgba(75,107,255,0.22), 0 6px 24px rgba(75,107,255,0.45);
+    transform: translateY(-1px);
+  }
+
+  /* ─── Hover : lien nav avec underline animée ─── */
+  .nav-link {
+    position: relative;
+    transition: color 0.18s ease;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: white;
+    border-radius: 1px;
+    transform: translateX(-50%);
+    transition: width 0.25s cubic-bezier(0.22,0.61,0.36,1);
+  }
+  .nav-link:hover::after { width: 70%; }
+
+  /* ─── Favori : pop au clic ─── */
+  @keyframes fav-pop {
+    0%   { transform: scale(1);    }
+    35%  { transform: scale(1.45); }
+    65%  { transform: scale(0.85); }
+    100% { transform: scale(1);    }
+  }
+  .fav-pop { animation: fav-pop 0.38s cubic-bezier(0.34,1.56,0.64,1); }
+
+  /* ─── Hover : pill catégorie ─── */
+  .pill-hover {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .pill-hover:hover { transform: scale(1.06); }
+
+  /* ─── Hover : input focus glow ─── */
+  .input-glow {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .input-glow:focus-within {
+    box-shadow: 0 0 0 3px rgba(75,107,255,0.18);
+    border-color: #4B6BFF !important;
+  }
+
   /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .anim-fade-up, .anim-blur-up, .anim-slide-down,

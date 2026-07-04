@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
+import Reveal from '../../components/Reveal'
 import HERO_IMG from '../../assets/hero-interior.jpg'
 
 type Category = { key: string; label: string }
@@ -220,12 +221,12 @@ export default function HomePage() {
       <div className="w-full px-4 md:px-16 py-4 md:py-8">
 
         {/* Categories */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6" style={{ scrollbarWidth: 'none' }}>
+        <Reveal animation="anim-slide-left" className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
           {CATEGORIES.map(cat => (
             <button
               key={cat.key}
               onClick={() => setCategory(cat.key)}
-              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover ${
                 category === cat.key
                   ? 'bg-primary text-white shadow-btn'
                   : 'bg-white text-text-grey border border-divider hover:border-primary/40'
@@ -235,10 +236,10 @@ export default function HomePage() {
               <span>{cat.label}</span>
             </button>
           ))}
-        </div>
+        </Reveal>
 
         {/* Section title */}
-        <div className="flex items-center justify-between mb-4">
+        <Reveal animation="anim-fade-up" className="flex items-center justify-between mb-4">
           <h2 className="text-base md:text-lg font-bold text-text-dark">
             {category === 'Tous' ? 'Toutes les annonces' : catLabel}
             {biens.length > 0 && (
@@ -248,7 +249,7 @@ export default function HomePage() {
           <button onClick={() => navigate('/search')} className="text-primary text-sm font-semibold">
             Voir tout
           </button>
-        </div>
+        </Reveal>
 
         {/* Grid */}
         {loading ? (
@@ -258,24 +259,25 @@ export default function HomePage() {
             ))}
           </div>
         ) : biens.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center anim-fade-in">
+          <Reveal animation="anim-fade-in" className="flex flex-col items-center justify-center py-20 text-center">
             <div className="mb-4 opacity-30"><EmptyIcon /></div>
             <p className="text-text-grey text-sm font-medium">Aucun bien trouvé</p>
-          </div>
+          </Reveal>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {biens.map((bien, idx) => (
-              <div
+              <Reveal
                 key={bien.id}
-                className="anim-scale-in card-lift"
-                style={{ animationDelay: `${Math.min(idx * 60, 360)}ms` }}
+                animation="anim-scale-in"
+                delay={Math.min(idx * 60, 360)}
+                className="card-lift"
               >
                 <BienCard
                   bien={bien}
                   favoriteIds={favIds}
                   onFavoriteToggle={handleFavToggle}
                 />
-              </div>
+              </Reveal>
             ))}
           </div>
         )}

@@ -22,6 +22,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
   const { isLoggedIn } = useAuth()
   const [isFav, setIsFav] = useState(favoriteIds?.has(bien.id) ?? false)
   const [toggling, setToggling] = useState(false)
+  const [favPopped, setFavPopped] = useState(false)
 
   useEffect(() => {
     setIsFav(favoriteIds?.has(bien.id) ?? false)
@@ -45,6 +46,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
     if (!isLoggedIn) { navigate('/login'); return }
     if (toggling) return
     setToggling(true)
+    setFavPopped(true)
+    setTimeout(() => setFavPopped(false), 400)
     try {
       if (isFav) {
         await favoritesApi.remove(bien.id)
@@ -62,15 +65,15 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
   return (
     <div
       onClick={() => navigate(`/biens/${bien.id}`)}
-      className="group bg-white rounded-2xl shadow-card overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+      className="bg-white rounded-2xl shadow-card overflow-hidden cursor-pointer"
     >
       {/* Image */}
-      <div className="relative h-44 md:h-52 overflow-hidden">
+      <div className="relative h-44 md:h-52 img-zoom">
         {coverUrl ? (
           <img
             src={coverUrl}
             alt={label}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover"
             loading="lazy"
           />
         ) : (
@@ -87,9 +90,9 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
         </div>
         <button
           onClick={handleFav}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow"
+          className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
         >
-          <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke={isFav ? '#FF6B35' : '#9E9E9E'} strokeWidth={2} className="w-4 h-4">
+          <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke={isFav ? '#FF6B35' : '#9E9E9E'} strokeWidth={2} className="w-4 h-4 transition-colors duration-200">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
