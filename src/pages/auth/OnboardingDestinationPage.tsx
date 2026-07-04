@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
+const SIDE_IMG = 'https://images.unsplash.com/photo-1600121848594-d8644e57abcd?auto=format&fit=crop&w=1920&q=80'
+
 const VILLES = ['Cotonou', 'Abomey-Calavi', 'Porto-Novo', 'Parakou', 'Bohicon']
 
 const QUARTIERS: Record<string, string[]> = {
@@ -29,10 +31,7 @@ export default function OnboardingDestinationPage() {
 
   const dep = VILLE_DEP[ville] || ''
 
-  const handleVilleChange = (v: string) => {
-    setVille(v)
-    setQuartier('')
-  }
+  const handleVilleChange = (v: string) => { setVille(v); setQuartier('') }
 
   const handleNext = () => {
     if (ville) localStorage.setItem('rg_ville', ville)
@@ -51,103 +50,122 @@ export default function OnboardingDestinationPage() {
   const verb = objectif === 'acheter' ? 'acheter' : 'louer'
 
   return (
-    <div className="min-h-dvh bg-white flex flex-col">
-      <div className="flex-1 px-7 md:px-0 pt-16 flex flex-col w-full md:max-w-lg md:mx-auto">
-        {/* Progress bar */}
-        <div className="flex gap-1.5 mb-12">
-          <div className="flex-1 h-[5px] rounded-full" style={{ background: '#4B6BFF' }} />
-          <div className="flex-1 h-[5px] rounded-full" style={{ background: '#4B6BFF' }} />
+    <div className="min-h-dvh flex">
+
+      {/* ── Colonne gauche IMAGE (desktop) ── */}
+      <div className="hidden md:flex w-1/2 relative flex-shrink-0 flex-col justify-end overflow-hidden">
+        <img src={SIDE_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.65) 100%)' }} />
+        <div className="absolute top-10 left-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#4B6BFF' }}>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </div>
+          <span className="text-white font-bold text-lg tracking-tight">REFUGE</span>
         </div>
-
-        <h1 className="text-[28px] font-bold italic text-text-dark leading-[1.3] mb-3">
-          Où souhaitez-vous<br />{verb} ?
-        </h1>
-        <p className="text-sm text-text-grey leading-relaxed mb-8">
-          Sélectionnez votre zone de préférence pour affiner les résultats.
-        </p>
-
-        {/* Ville */}
-        <div className="space-y-4">
-          <SelectField
-            label="Ville"
-            placeholder="Sélectionnez une ville"
-            value={ville}
-            options={VILLES}
-            onChange={handleVilleChange}
-          />
-          <SelectField
-            label="Quartier"
-            placeholder={ville ? 'Sélectionnez un quartier' : 'Choisissez une ville d\'abord'}
-            value={quartier}
-            options={ville ? QUARTIERS[ville] || [] : []}
-            onChange={setQuartier}
-            disabled={!ville}
-          />
-          {dep && (
-            <div>
-              <label className="text-[13px] font-semibold text-text-dark block mb-2">Département</label>
-              <div className="w-full px-4 py-3.5 rounded-[12px] border border-divider bg-surface-g text-sm text-text-grey">
-                {dep}
-              </div>
-            </div>
-          )}
+        <div className="relative z-10 p-10">
+          <p className="text-white/50 text-sm uppercase tracking-widest mb-3">Étape 2 sur 2</p>
+          <h2 className="text-white text-3xl font-bold leading-tight mb-3">
+            Où souhaitez-vous<br />{verb} ?
+          </h2>
+          <p className="text-white/60 text-sm leading-relaxed">
+            Sélectionnez votre zone de préférence pour voir les annonces les plus pertinentes.
+          </p>
         </div>
       </div>
 
-      {/* Bottom buttons */}
-      <div className="px-7 md:px-0 pb-12 space-y-3 w-full md:max-w-lg md:mx-auto">
-        <button
-          onClick={handleNext}
-          disabled={!ville}
-          className="w-full py-[18px] rounded-[14px] font-bold text-base text-white disabled:opacity-40 transition-opacity"
-          style={{ background: '#4B6BFF' }}
-        >
-          Suivant
-        </button>
-        <button
-          onClick={handleSkip}
-          className="w-full py-3 text-sm text-text-grey font-medium"
-        >
-          Passer cette étape
-        </button>
+      {/* ── Colonne droite FORMULAIRE ── */}
+      <div className="flex-1 flex flex-col bg-white">
+
+        {/* Mobile header */}
+        <div className="md:hidden px-6 pt-14 pb-8" style={{ background: 'linear-gradient(135deg,#0D1B2A,#0F3460)' }}>
+          <div className="flex gap-1.5 mb-6">
+            <div className="flex-1 h-[4px] rounded-full" style={{ background: '#4B6BFF' }} />
+            <div className="flex-1 h-[4px] rounded-full" style={{ background: '#4B6BFF' }} />
+          </div>
+          <h1 className="text-white text-2xl font-bold">Où souhaitez-vous {verb} ?</h1>
+          <p className="text-white/60 text-sm mt-2">Affinez vos résultats par zone</p>
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center px-6 md:px-16 py-8">
+          <div className="w-full md:max-w-md">
+
+            {/* Desktop title */}
+            <div className="hidden md:block mb-10">
+              <div className="flex gap-1.5 mb-8">
+                <div className="flex-1 h-1 rounded-full" style={{ background: '#4B6BFF' }} />
+                <div className="flex-1 h-1 rounded-full" style={{ background: '#4B6BFF' }} />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Où souhaitez-vous {verb} ?</h2>
+              <p className="text-gray-500">Sélectionnez votre zone de préférence.</p>
+            </div>
+
+            <div className="space-y-5">
+              <SelectField label="Ville" placeholder="Sélectionnez une ville" value={ville} options={VILLES} onChange={handleVilleChange} />
+              <SelectField
+                label="Quartier"
+                placeholder={ville ? 'Sélectionnez un quartier' : "Choisissez d'abord une ville"}
+                value={quartier}
+                options={ville ? QUARTIERS[ville] || [] : []}
+                onChange={setQuartier}
+                disabled={!ville}
+              />
+              {dep && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Département</label>
+                  <div className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500">{dep}</div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleNext}
+              disabled={!ville}
+              className="w-full mt-8 py-4 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40"
+              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}
+            >
+              Terminer
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </button>
+
+            <button onClick={handleSkip} className="w-full mt-3 py-3 text-sm text-gray-400 font-medium hover:text-gray-600 transition-colors">
+              Passer cette étape
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-function SelectField({
-  label, placeholder, value, options, onChange, disabled
-}: {
-  label: string
-  placeholder: string
-  value: string
-  options: string[]
-  onChange: (v: string) => void
-  disabled?: boolean
+function SelectField({ label, placeholder, value, options, onChange, disabled }: {
+  label: string; placeholder: string; value: string
+  options: string[]; onChange: (v: string) => void; disabled?: boolean
 }) {
   return (
     <div>
-      <label className="text-[13px] font-semibold text-text-dark block mb-2">{label}</label>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
       <div className="relative">
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
           disabled={disabled}
-          className="w-full appearance-none px-4 py-3.5 rounded-[12px] border text-sm outline-none transition-colors"
+          className="w-full appearance-none px-4 py-3.5 rounded-xl border text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20"
           style={{
             borderColor: value ? '#4B6BFF' : '#E5E7EB',
+            borderWidth: value ? 1.5 : 1,
             background: disabled ? '#F9FAFB' : '#fff',
             color: value ? '#1A1A2E' : '#9CA3AF',
-            borderWidth: value ? 1.5 : 1,
           }}
         >
           <option value="" disabled>{placeholder}</option>
-          {options.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
+          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-          <svg className="w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </div>
