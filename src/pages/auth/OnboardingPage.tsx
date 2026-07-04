@@ -95,7 +95,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 pt-14 pb-4 relative z-10">
+      <div className="flex items-center justify-between px-6 md:px-16 pt-14 pb-4 relative z-10">
         {/* Back */}
         {current > 0 ? (
           <button
@@ -132,7 +132,7 @@ export default function OnboardingPage() {
       {/* Content (poussé en bas) */}
       <div className="flex-1" />
 
-      <div className="px-7 pb-10 relative z-10">
+      <div className="px-7 md:px-16 pb-10 relative z-10 w-full md:max-w-2xl md:mx-auto">
         {/* Icon + dots */}
         <div className="flex items-center gap-3 mb-5">
           <div

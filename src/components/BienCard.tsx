@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { favoritesApi } from '../api/favoritesApi'
@@ -22,6 +22,10 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
   const { isLoggedIn } = useAuth()
   const [isFav, setIsFav] = useState(favoriteIds?.has(bien.id) ?? false)
   const [toggling, setToggling] = useState(false)
+
+  useEffect(() => {
+    setIsFav(favoriteIds?.has(bien.id) ?? false)
+  }, [favoriteIds, bien.id])
 
   const cover = bien.photos?.find((p: any) => p.is_cover) || bien.photos?.[0]
   const coverUrl = cover ? resolveUrl(cover.url) : null

@@ -11,7 +11,7 @@ export default function OnboardingProjetPage() {
 
   return (
     <div className="min-h-dvh bg-white flex flex-col">
-      <div className="flex-1 px-7 pt-16 flex flex-col">
+      <div className="flex-1 px-7 md:px-0 pt-16 flex flex-col w-full md:max-w-lg md:mx-auto">
         {/* Progress bar */}
         <div className="flex gap-1.5 mb-12">
           <div className="flex-1 h-[5px] rounded-full" style={{ background: '#4B6BFF' }} />
@@ -53,7 +53,7 @@ export default function OnboardingProjetPage() {
       </div>
 
       {/* Bottom button */}
-      <div className="px-7 pb-12">
+      <div className="px-7 md:px-0 pb-12 w-full md:max-w-lg md:mx-auto">
         <button
           onClick={handleNext}
           className="w-full py-[18px] rounded-[14px] bg-primary text-white font-bold text-base"

@@ -52,7 +52,7 @@ export default function OnboardingDestinationPage() {
 
   return (
     <div className="min-h-dvh bg-white flex flex-col">
-      <div className="flex-1 px-7 pt-16 flex flex-col">
+      <div className="flex-1 px-7 md:px-0 pt-16 flex flex-col w-full md:max-w-lg md:mx-auto">
         {/* Progress bar */}
         <div className="flex gap-1.5 mb-12">
           <div className="flex-1 h-[5px] rounded-full" style={{ background: '#4B6BFF' }} />
@@ -95,7 +95,7 @@ export default function OnboardingDestinationPage() {
       </div>
 
       {/* Bottom buttons */}
-      <div className="px-7 pb-12 space-y-3">
+      <div className="px-7 md:px-0 pb-12 space-y-3 w-full md:max-w-lg md:mx-auto">
         <button
           onClick={handleNext}
           disabled={!ville}

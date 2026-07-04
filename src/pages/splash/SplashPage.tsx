@@ -33,18 +33,13 @@ export default function SplashPage() {
       className="min-h-dvh flex flex-col relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #0D1B2A 0%, #1B2838 40%, #0F3460 100%)' }}
     >
-      {/* Cercles décoratifs (pulsent visuellement via CSS) */}
-      <div
-        className="absolute top-[8%] right-[-60px] w-[200px] h-[200px] rounded-full pointer-events-none"
-        style={{ background: 'rgba(75,107,255,0.12)' }}
-      />
-      <div
-        className="absolute top-[18%] left-[-80px] w-[180px] h-[180px] rounded-full pointer-events-none"
-        style={{ background: 'rgba(255,107,53,0.10)' }}
-      />
+      {/* Cercles décoratifs */}
+      <div className="absolute top-[8%] right-[-60px] w-[200px] h-[200px] rounded-full pointer-events-none" style={{ background: 'rgba(75,107,255,0.12)' }} />
+      <div className="absolute top-[18%] left-[-80px] w-[180px] h-[180px] rounded-full pointer-events-none" style={{ background: 'rgba(255,107,53,0.10)' }} />
+      <div className="absolute bottom-[20%] right-[-40px] w-[150px] h-[150px] rounded-full pointer-events-none" style={{ background: 'rgba(75,107,255,0.08)' }} />
 
       {/* Bouton Passer */}
-      <div className="absolute top-0 left-0 right-0 flex justify-end px-5 pt-14 z-10">
+      <div className="flex justify-end px-5 md:px-16 pt-14 z-10">
         <button
           onClick={skip}
           className="flex items-center gap-1 px-4 py-2 rounded-full text-white text-[13px] font-medium"
@@ -62,10 +57,7 @@ export default function SplashPage() {
         <div className="flex flex-col items-center gap-5">
           <div
             className="w-[90px] h-[90px] rounded-[26px] flex items-center justify-center"
-            style={{
-              background: '#4B6BFF',
-              boxShadow: '0 0 40px rgba(75,107,255,0.5)',
-            }}
+            style={{ background: '#4B6BFF', boxShadow: '0 0 40px rgba(75,107,255,0.5)' }}
           >
             <svg className="w-11 h-11 text-white" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
@@ -79,38 +71,34 @@ export default function SplashPage() {
       </div>
 
       {/* Texte bas + CTA */}
-      <div className="px-7 pb-14 space-y-6">
+      <div className="px-7 md:px-16 pb-14 space-y-6 w-full md:max-w-2xl md:mx-auto">
         <div>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-[3px] rounded-full" style={{ background: '#FF6B35' }} />
             <div className="w-2 h-[3px] rounded-full" style={{ background: 'rgba(255,107,53,0.45)' }} />
           </div>
-          <h1 className="text-white text-[36px] font-bold leading-[1.15] tracking-tight">
+          <h1 className="text-white text-[36px] md:text-5xl font-bold leading-[1.15] tracking-tight">
             Trouvez votre<br />logement idéal
           </h1>
-          <p className="text-white/60 text-sm leading-relaxed mt-3">
-            Des centaines de logements vérifiés<br />à Cotonou et Abomey-Calavi.
+          <p className="text-white/60 text-sm md:text-base leading-relaxed mt-3">
+            Des centaines de logements vérifiés à Cotonou et Abomey-Calavi.
           </p>
         </div>
 
         <div className="space-y-3">
           <button
             onClick={start}
-            className="w-full h-14 rounded-[18px] flex items-center justify-center gap-3 font-bold text-white text-base"
+            className="w-full h-14 rounded-[18px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity"
             style={{ background: '#4B6BFF', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
           >
             <span>Commencer</span>
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.2)' }}
-            >
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.2)' }}>
               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </div>
           </button>
 
-          {/* Trust badges */}
           <div className="flex items-center justify-center gap-5 pt-1">
             <TrustBadge icon="verified" label="Vérifié" color="#22C55E" />
             <TrustBadge icon="lock" label="Sécurisé" color="#4B6BFF" />
