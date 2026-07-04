@@ -54,11 +54,11 @@ export default function BottomNav() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
       style={{
-        background: 'rgba(7,7,26,0.75)',
-        backdropFilter: 'blur(32px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+        background: 'rgba(245,245,247,0.82)',
+        backdropFilter: 'blur(40px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+        borderTop: '1px solid rgba(0,0,0,0.07)',
+        boxShadow: '0 -2px 20px rgba(0,0,0,0.06)',
       }}
     >
       <div className="flex items-center justify-around px-2 py-2 md:hidden">
@@ -71,12 +71,12 @@ export default function BottomNav() {
               onClick={() => handleNav(item)}
               className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 btn-press"
               style={{
-                background: active ? 'rgba(75,107,255,0.2)' : 'transparent',
-                border: active ? '1px solid rgba(75,107,255,0.35)' : '1px solid transparent',
-                boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.1)' : 'none',
+                background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
+                border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',
+                boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.8)' : 'none',
               }}
             >
-              <span style={{ color: active ? '#4B6BFF' : 'rgba(255,255,255,0.45)' }}>
+              <span style={{ color: active ? '#4B6BFF' : 'rgba(0,0,0,0.40)' }}>
                 <Icon active={active} />
               </span>
               {active && (
