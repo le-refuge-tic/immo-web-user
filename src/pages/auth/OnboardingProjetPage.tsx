@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const SIDE_IMG = 'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1920'
+import sideImg from '../../assets/onboarding-side.jpg'
+const SIDE_IMG = sideImg
 
 export default function OnboardingProjetPage() {
   const navigate = useNavigate()
