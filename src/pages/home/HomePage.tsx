@@ -175,18 +175,18 @@ export default function HomePage() {
 
         {/* Contenu */}
         <div className="relative z-10 w-full px-16 pb-16">
-          <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4">
+          <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4 anim-fade-up">
             Immobilier au Bénin — Annonces vérifiées
           </p>
-          <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-5" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
+          <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-5 anim-blur-up d-100" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
             Trouvez votre logement idéal.<br />Habitez en confiance.
           </h1>
-          <p className="text-white/60 text-lg leading-relaxed mb-8 max-w-xl">
+          <p className="text-white/60 text-lg leading-relaxed mb-8 max-w-xl anim-fade-up d-300">
             Maisons, appartements, terrains — à Cotonou, Abomey-Calavi et partout au Bénin.
           </p>
 
           {/* Barre de recherche */}
-          <div className="flex items-center gap-0 w-full max-w-2xl rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.97)' }}>
+          <div className="flex items-center gap-0 w-full max-w-2xl rounded-xl overflow-hidden anim-scale-in d-400" style={{ background: 'rgba(255,255,255,0.97)' }}>
             <div className="flex items-center gap-3 px-5 py-4 flex-1">
               <SearchIcon />
               <input
@@ -200,14 +200,14 @@ export default function HomePage() {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-12 mt-10 pt-10" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+          <div className="flex items-center gap-12 mt-10 pt-10 anim-fade-in d-600" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
             {[
               { val: biens.length > 0 ? `${biens.length}+` : '500+', label: 'Annonces disponibles' },
               { val: '5',    label: 'Villes couvertes' },
               { val: '100%', label: 'Biens vérifiés' },
               { val: '24h',  label: 'Réponse garantie' },
-            ].map(s => (
-              <div key={s.label}>
+            ].map((s, i) => (
+              <div key={s.label} className="anim-fade-up" style={{ animationDelay: `${600 + i * 80}ms` }}>
                 <p className="text-white font-bold text-3xl tracking-tight">{s.val}</p>
                 <p className="text-white/50 text-sm mt-1">{s.label}</p>
               </div>
@@ -254,23 +254,28 @@ export default function HomePage() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-              <div key={n} className="bg-white rounded-2xl h-52 md:h-64 animate-pulse" />
+              <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />
             ))}
           </div>
         ) : biens.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="flex flex-col items-center justify-center py-20 text-center anim-fade-in">
             <div className="mb-4 opacity-30"><EmptyIcon /></div>
             <p className="text-text-grey text-sm font-medium">Aucun bien trouvé</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {biens.map(bien => (
-              <BienCard
+            {biens.map((bien, idx) => (
+              <div
                 key={bien.id}
-                bien={bien}
-                favoriteIds={favIds}
-                onFavoriteToggle={handleFavToggle}
-              />
+                className="anim-scale-in card-lift"
+                style={{ animationDelay: `${Math.min(idx * 60, 360)}ms` }}
+              >
+                <BienCard
+                  bien={bien}
+                  favoriteIds={favIds}
+                  onFavoriteToggle={handleFavToggle}
+                />
+              </div>
             ))}
           </div>
         )}

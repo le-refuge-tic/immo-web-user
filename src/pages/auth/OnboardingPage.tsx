@@ -135,12 +135,12 @@ export default function OnboardingPage() {
 
         <div className="flex-1" />
 
-        {/* Contenu bas, aligné à gauche */}
-        <div className="px-7 md:px-16 pb-10 md:pb-16">
+        {/* Contenu bas — key=current force le re-render et rejoue l'animation */}
+        <div key={current} className="px-7 md:px-16 pb-10 md:pb-16">
 
           {/* Icone + dots */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: slide.accent, boxShadow: `0 4px 12px ${slide.accent}66` }}>
+          <div className="flex items-center gap-3 mb-5 anim-fade-up">
+            <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0 anim-bounce-in" style={{ background: slide.accent, boxShadow: `0 4px 12px ${slide.accent}66` }}>
               {slide.icon}
             </div>
             <div className="flex items-center gap-1.5">
@@ -156,21 +156,25 @@ export default function OnboardingPage() {
           </div>
 
           <h1
-            className="text-white font-bold leading-[1.1] tracking-tight mb-3"
+            className="text-white font-bold leading-[1.1] tracking-tight mb-3 anim-blur-up d-100"
             style={{ fontSize: 'clamp(2rem, 4vw, 3.8rem)', whiteSpace: 'pre-line' }}
           >
             {slide.title}
           </h1>
-          <p className="text-white/65 leading-relaxed mb-6" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
+          <p className="text-white/65 leading-relaxed mb-6 anim-fade-up d-200" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
             {slide.subtitle}
           </p>
 
-          <div className="flex flex-wrap gap-2 mb-7">
+          <div className="flex flex-wrap gap-2 mb-7 anim-fade-up d-300">
             {slide.features.map((f, i) => (
               <div
                 key={i}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium text-white/90"
-                style={{ background: `${slide.accent}33`, border: `1px solid ${slide.accent}55` }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium text-white/90 anim-scale-in"
+                style={{
+                  background: `${slide.accent}33`,
+                  border: `1px solid ${slide.accent}55`,
+                  animationDelay: `${300 + i * 60}ms`,
+                }}
               >
                 <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={slide.accent} strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -182,7 +186,7 @@ export default function OnboardingPage() {
 
           <button
             onClick={next}
-            className="w-full md:w-auto md:px-12 h-[54px] rounded-[16px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity"
+            className="w-full md:w-auto md:px-12 h-[54px] rounded-[16px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity anim-scale-in d-500 btn-press"
             style={{ background: slide.accent, boxShadow: `0 4px 16px ${slide.accent}55` }}
           >
             <span>{slide.btnLabel}</span>

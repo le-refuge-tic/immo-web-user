@@ -35,8 +35,8 @@ export default function SplashPage() {
 
         {/* Top bar : logo gauche + passer droite */}
         <div className="flex items-center justify-between px-7 md:px-16 pt-14">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: '#4B6BFF', boxShadow: '0 0 24px rgba(75,107,255,0.5)' }}>
+          <div className="flex items-center gap-3 anim-slide-down">
+            <div className="w-11 h-11 rounded-[13px] flex items-center justify-center anim-bounce-in" style={{ background: '#4B6BFF', boxShadow: '0 0 24px rgba(75,107,255,0.5)' }}>
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
               </svg>
@@ -45,7 +45,7 @@ export default function SplashPage() {
           </div>
           <button
             onClick={skip}
-            className="flex items-center gap-1 px-4 py-2 rounded-full text-white text-[13px] font-medium"
+            className="flex items-center gap-1 px-4 py-2 rounded-full text-white text-[13px] font-medium anim-fade-in d-300 btn-press"
             style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
             Passer
@@ -59,22 +59,22 @@ export default function SplashPage() {
 
         {/* Contenu bas, aligné à gauche */}
         <div className="px-7 md:px-16 pb-14">
-          <p className="text-white/45 text-xs uppercase tracking-[2px] mb-4">L'immobilier au Bénin</p>
-          <div className="flex items-center gap-2 mb-5">
+          <p className="text-white/45 text-xs uppercase tracking-[2px] mb-4 anim-fade-up d-100">L'immobilier au Bénin</p>
+          <div className="flex items-center gap-2 mb-5 anim-fade-up d-150">
             <div className="w-8 h-[3px] rounded-full" style={{ background: '#FF6B35' }} />
             <div className="w-2 h-[3px] rounded-full" style={{ background: 'rgba(255,107,53,0.45)' }} />
           </div>
-          <h1 className="text-white font-bold leading-[1.1] tracking-tight mb-3" style={{ fontSize: 'clamp(2.2rem, 4.5vw, 4.5rem)' }}>
+          <h1 className="text-white font-bold leading-[1.1] tracking-tight mb-3 anim-blur-up d-200" style={{ fontSize: 'clamp(2.2rem, 4.5vw, 4.5rem)' }}>
             Trouvez votre<br />logement idéal
           </h1>
-          <p className="text-white/55 leading-relaxed mb-8" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
+          <p className="text-white/55 leading-relaxed mb-8 anim-fade-up d-400" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
             Des centaines de logements vérifiés à Cotonou et Abomey-Calavi.
           </p>
 
           <div className="space-y-4 md:max-w-xs">
             <button
               onClick={start}
-              className="w-full h-14 rounded-[18px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity"
+              className="w-full h-14 rounded-[18px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity anim-scale-in d-500 btn-press"
               style={{ background: '#4B6BFF', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
             >
               <span>Commencer</span>
@@ -85,7 +85,7 @@ export default function SplashPage() {
               </div>
             </button>
 
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-5 anim-fade-in d-700">
               <TrustBadge icon="verified" label="Vérifié" color="#22C55E" />
               <TrustBadge icon="lock" label="Sécurisé" color="#4B6BFF" />
               <TrustBadge icon="star" label="Fiable" color="#FF6B35" />

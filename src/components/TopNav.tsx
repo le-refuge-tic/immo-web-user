@@ -48,7 +48,7 @@ export default function TopNav() {
 
   return (
     <header
-      className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center border-b"
+      className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center border-b anim-slide-down"
       style={{
         background: 'rgba(10,10,10,0.45)',
         borderColor: 'rgba(255,255,255,0.08)',
