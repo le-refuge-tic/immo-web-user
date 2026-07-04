@@ -230,14 +230,16 @@ export default function HomePage() {
               onClick={() => setCategory(cat.key)}
               className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover`}
               style={category === cat.key ? {
-                background: 'rgba(75,107,255,0.25)',
-                border: '1px solid rgba(75,107,255,0.5)',
+                background: 'rgba(75,107,255,0.3)',
+                border: '1px solid rgba(75,107,255,0.6)',
                 color: '#fff',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 16px rgba(75,107,255,0.3)',
+                boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.25), 0 4px 20px rgba(75,107,255,0.35)',
               } : {
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'rgba(255,255,255,0.55)',
+                background: 'rgba(255,255,255,0.10)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                color: 'rgba(255,255,255,0.7)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
               }}
             >
               {CAT_ICONS[cat.key]}
