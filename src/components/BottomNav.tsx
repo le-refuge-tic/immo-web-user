@@ -46,30 +46,41 @@ export default function BottomNav() {
   }
 
   const handleNav = (item: typeof NAV_ITEMS[0]) => {
-    if (item.authRequired && !isLoggedIn) {
-      navigate('/login')
-    } else {
-      navigate(item.path)
-    }
+    if (item.authRequired && !isLoggedIn) navigate('/login')
+    else navigate(item.path)
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-nav z-50 safe-bottom md:hidden">
-      <div className="flex items-center justify-around px-2 py-2">
-        {NAV_ITEMS.map((item) => {
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
+      style={{
+        background: 'rgba(7,7,26,0.75)',
+        backdropFilter: 'blur(32px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+      }}
+    >
+      <div className="flex items-center justify-around px-2 py-2 md:hidden">
+        {NAV_ITEMS.map(item => {
           const active = isActive(item.path)
           const Icon = item.icon
           return (
             <button
               key={item.path}
               onClick={() => handleNav(item)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 ${
-                active ? 'bg-primary/10 text-primary' : 'text-text-grey'
-              }`}
+              className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 btn-press"
+              style={{
+                background: active ? 'rgba(75,107,255,0.2)' : 'transparent',
+                border: active ? '1px solid rgba(75,107,255,0.35)' : '1px solid transparent',
+                boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.1)' : 'none',
+              }}
             >
-              <Icon active={active} />
+              <span style={{ color: active ? '#4B6BFF' : 'rgba(255,255,255,0.45)' }}>
+                <Icon active={active} />
+              </span>
               {active && (
-                <span className="text-xs font-bold whitespace-nowrap">{item.label}</span>
+                <span className="text-[10px] font-bold" style={{ color: '#4B6BFF' }}>{item.label}</span>
               )}
             </button>
           )

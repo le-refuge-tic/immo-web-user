@@ -154,14 +154,15 @@ export default function HomePage() {
               )}
             </button>
           </div>
-          <div className="w-full rounded-xl flex items-center px-4 py-3.5 gap-3" style={{ background: 'rgba(255,255,255,0.95)' }}>
+          <div className="w-full rounded-xl flex items-center px-4 py-3.5 gap-3 glass">
             <SearchIcon />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Ville, quartier, type de bien…"
-              className="flex-1 text-sm text-text-dark bg-transparent outline-none placeholder:text-text-grey"
+              className="flex-1 text-sm bg-transparent outline-none"
+              style={{ color: '#EEEEF8' }}
             />
           </div>
         </div>
@@ -187,7 +188,7 @@ export default function HomePage() {
           </p>
 
           {/* Barre de recherche */}
-          <div className="flex items-center gap-0 w-full max-w-2xl rounded-xl overflow-hidden anim-scale-in d-400" style={{ background: 'rgba(255,255,255,0.97)' }}>
+          <div className="flex items-center gap-0 w-full max-w-2xl rounded-xl overflow-hidden glass anim-scale-in d-400">
             <div className="flex items-center gap-3 px-5 py-4 flex-1">
               <SearchIcon />
               <input
@@ -195,7 +196,8 @@ export default function HomePage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Ville, quartier, type de bien…"
-                className="flex-1 text-sm text-text-dark bg-transparent outline-none placeholder:text-text-grey"
+                className="flex-1 text-sm bg-transparent outline-none"
+                style={{ color: '#EEEEF8' }}
               />
             </div>
           </div>
@@ -218,7 +220,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Contenu principal (catégories + grille) ── */}
-      <div className="w-full px-4 md:px-16 py-4 md:py-8">
+      <div className="w-full px-4 md:px-16 py-4 md:py-8" style={{ background: 'transparent' }}>
 
         {/* Categories */}
         <Reveal animation="anim-slide-left" className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
@@ -226,11 +228,17 @@ export default function HomePage() {
             <button
               key={cat.key}
               onClick={() => setCategory(cat.key)}
-              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover ${
-                category === cat.key
-                  ? 'bg-primary text-white shadow-btn'
-                  : 'bg-white text-text-grey border border-divider hover:border-primary/40'
-              }`}
+              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover`}
+              style={category === cat.key ? {
+                background: 'rgba(75,107,255,0.25)',
+                border: '1px solid rgba(75,107,255,0.5)',
+                color: '#fff',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 16px rgba(75,107,255,0.3)',
+              } : {
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.55)',
+              }}
             >
               {CAT_ICONS[cat.key]}
               <span>{cat.label}</span>
@@ -240,13 +248,13 @@ export default function HomePage() {
 
         {/* Section title */}
         <Reveal animation="anim-fade-up" className="flex items-center justify-between mb-4">
-          <h2 className="text-base md:text-lg font-bold text-text-dark">
+          <h2 className="text-base md:text-lg font-bold" style={{ color: '#EEEEF8' }}>
             {category === 'Tous' ? 'Toutes les annonces' : catLabel}
             {biens.length > 0 && (
-              <span className="text-text-grey font-normal text-sm ml-2">({biens.length})</span>
+              <span className="font-normal text-sm ml-2" style={{ color: 'rgba(255,255,255,0.4)' }}>({biens.length})</span>
             )}
           </h2>
-          <button onClick={() => navigate('/search')} className="text-primary text-sm font-semibold">
+          <button onClick={() => navigate('/search')} className="text-sm font-semibold" style={{ color: '#4B6BFF' }}>
             Voir tout
           </button>
         </Reveal>
