@@ -27,20 +27,22 @@ export default function SplashPage() {
   }
 
   return (
-    <div className="min-h-dvh flex relative overflow-hidden">
-
-      {/* Image de fond plein écran */}
+    <div className="min-h-dvh relative overflow-hidden flex flex-col">
       <img src={bgImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.28) 100%)' }}
-      />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.2) 100%)' }} />
 
-      {/* Contenu */}
-      <div className="relative z-10 w-full flex flex-col">
+      <div className="relative z-10 flex flex-col flex-1 min-h-dvh">
 
-        {/* Bouton Passer */}
-        <div className="flex justify-end px-5 md:px-16 pt-14">
+        {/* Top bar : logo gauche + passer droite */}
+        <div className="flex items-center justify-between px-7 md:px-16 pt-14">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: '#4B6BFF', boxShadow: '0 0 24px rgba(75,107,255,0.5)' }}>
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            </div>
+            <span className="text-white font-bold text-xl tracking-tight">REFUGE</span>
+          </div>
           <button
             onClick={skip}
             className="flex items-center gap-1 px-4 py-2 rounded-full text-white text-[13px] font-medium"
@@ -53,40 +55,23 @@ export default function SplashPage() {
           </button>
         </div>
 
-        {/* Logo centré */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-5">
-            <div
-              className="w-[90px] h-[90px] rounded-[26px] flex items-center justify-center"
-              style={{ background: '#4B6BFF', boxShadow: '0 0 40px rgba(75,107,255,0.5)' }}
-            >
-              <svg className="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-              </svg>
-            </div>
-            <div className="text-center">
-              <p className="text-white text-[32px] font-bold tracking-tight leading-none">REFUGE</p>
-              <p className="text-white/50 text-sm tracking-[1.5px] mt-1.5 uppercase">L'immobilier au Bénin</p>
-            </div>
-          </div>
-        </div>
+        <div className="flex-1" />
 
-        {/* Texte bas + CTA */}
-        <div className="px-7 md:px-16 pb-14 space-y-6 w-full md:max-w-2xl md:mx-auto">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-[3px] rounded-full" style={{ background: '#FF6B35' }} />
-              <div className="w-2 h-[3px] rounded-full" style={{ background: 'rgba(255,107,53,0.45)' }} />
-            </div>
-            <h1 className="text-white text-[36px] md:text-5xl font-bold leading-[1.15] tracking-tight">
-              Trouvez votre<br />logement idéal
-            </h1>
-            <p className="text-white/60 text-sm md:text-base leading-relaxed mt-3">
-              Des centaines de logements vérifiés à Cotonou et Abomey-Calavi.
-            </p>
+        {/* Contenu bas, aligné à gauche */}
+        <div className="px-7 md:px-16 pb-14">
+          <p className="text-white/45 text-xs uppercase tracking-[2px] mb-4">L'immobilier au Bénin</p>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-[3px] rounded-full" style={{ background: '#FF6B35' }} />
+            <div className="w-2 h-[3px] rounded-full" style={{ background: 'rgba(255,107,53,0.45)' }} />
           </div>
+          <h1 className="text-white font-bold leading-[1.1] tracking-tight mb-3" style={{ fontSize: 'clamp(2.2rem, 4.5vw, 4.5rem)' }}>
+            Trouvez votre<br />logement idéal
+          </h1>
+          <p className="text-white/55 leading-relaxed mb-8" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
+            Des centaines de logements vérifiés à Cotonou et Abomey-Calavi.
+          </p>
 
-          <div className="space-y-3">
+          <div className="space-y-4 md:max-w-xs">
             <button
               onClick={start}
               className="w-full h-14 rounded-[18px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity"
@@ -100,7 +85,7 @@ export default function SplashPage() {
               </div>
             </button>
 
-            <div className="flex items-center justify-center gap-5 pt-1">
+            <div className="flex items-center gap-5">
               <TrustBadge icon="verified" label="Vérifié" color="#22C55E" />
               <TrustBadge icon="lock" label="Sécurisé" color="#4B6BFF" />
               <TrustBadge icon="star" label="Fiable" color="#FF6B35" />
