@@ -41,18 +41,14 @@ const VillaIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M3 7l9-4 9 4M4 11h16v10H4V11zM9 11v10M15 11v10M9 7h6" />
   </svg>
 )
-const SearchIcon = () => (
-  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
-)
+
 const PersonIcon = () => (
   <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 )
 const EmptyIcon = () => (
-  <svg className="w-16 h-16 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+  <svg className="w-16 h-16" style={{ color: 'rgba(0,0,0,0.2)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
   </svg>
 )
@@ -129,9 +125,9 @@ export default function HomePage() {
     <div className="min-h-dvh bg-app-bg overflow-x-hidden">
 
       {/* ── MOBILE header (caché sur desktop) ── */}
-      <div className="md:hidden relative px-4 pt-12 pb-6 overflow-hidden" style={{ background: '#0a0a0a' }}>
-        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))' }} />
+      <div className="md:hidden relative px-4 pt-12 pb-6 overflow-hidden rounded-b-3xl" style={{ background: '#0a0a0a' }}>
+        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.65))' }} />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -143,7 +139,7 @@ export default function HomePage() {
             <button
               onClick={() => navigate(isLoggedIn ? '/profil' : '/login')}
               className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
-              style={{ background: '#4B6BFF' }}
+              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.4)' }}
             >
               {isLoggedIn && user?.photo_profil ? (
                 <img src={user.photo_profil} className="w-10 h-10 object-cover" alt="" />
@@ -154,15 +150,24 @@ export default function HomePage() {
               )}
             </button>
           </div>
-          <div className="w-full rounded-xl flex items-center px-4 py-3.5 gap-3 glass">
-            <SearchIcon />
+          {/* Barre recherche mobile — glass sur image sombre */}
+          <div className="w-full rounded-xl flex items-center px-4 py-3.5 gap-3"
+            style={{
+              background: 'rgba(255,255,255,0.16)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
+            }}
+          >
+            <svg className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.6)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Ville, quartier, type de bien…"
-              className="flex-1 text-sm bg-transparent outline-none"
-              style={{ color: '#EEEEF8' }}
+              className="flex-1 text-sm bg-transparent outline-none text-white placeholder-white/50"
             />
           </div>
         </div>
@@ -170,12 +175,9 @@ export default function HomePage() {
 
       {/* ── DESKTOP hero image pleine largeur ── */}
       <div className="hidden md:flex relative w-full flex-col justify-end -mt-16" style={{ minHeight: '88vh' }}>
-        {/* Image de fond */}
         <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
-        {/* Overlay sombre */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.25) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.40) 50%, rgba(0,0,0,0.20) 100%)' }} />
 
-        {/* Contenu */}
         <div className="relative z-10 w-full px-16 pb-16">
           <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4 anim-fade-up">
             Immobilier au Bénin — Annonces vérifiées
@@ -187,17 +189,25 @@ export default function HomePage() {
             Maisons, appartements, terrains — à Cotonou, Abomey-Calavi et partout au Bénin.
           </p>
 
-          {/* Barre de recherche */}
-          <div className="flex items-center gap-0 w-full max-w-2xl rounded-xl overflow-hidden glass anim-scale-in d-400">
+          {/* Barre de recherche — glass clair sur fond sombre de l'image */}
+          <div className="flex items-center w-full max-w-2xl rounded-2xl overflow-hidden anim-scale-in d-400"
+            style={{
+              background: 'rgba(255,255,255,0.16)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255,255,255,0.28)',
+              boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.35), 0 8px 32px rgba(0,0,0,0.2)',
+            }}
+          >
             <div className="flex items-center gap-3 px-5 py-4 flex-1">
-              <SearchIcon />
+              <svg className="w-5 h-5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Ville, quartier, type de bien…"
-                className="flex-1 text-sm bg-transparent outline-none"
-                style={{ color: '#EEEEF8' }}
+                className="flex-1 text-sm bg-transparent outline-none text-white placeholder-white/50"
               />
             </div>
           </div>
@@ -220,26 +230,27 @@ export default function HomePage() {
       </div>
 
       {/* ── Contenu principal (catégories + grille) ── */}
-      <div className="w-full px-4 md:px-16 py-4 md:py-8" style={{ background: 'transparent' }}>
+      <div className="w-full px-4 md:px-16 py-4 md:py-8">
 
         {/* Categories */}
-        <Reveal animation="anim-slide-left" className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
+        <Reveal animation="anim-slide-left" className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6 scrollbar-hide">
           {CATEGORIES.map(cat => (
             <button
               key={cat.key}
               onClick={() => setCategory(cat.key)}
-              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover`}
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
               style={category === cat.key ? {
-                background: 'rgba(75,107,255,0.3)',
-                border: '1px solid rgba(75,107,255,0.6)',
-                color: '#fff',
-                boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.25), 0 4px 20px rgba(75,107,255,0.35)',
-              } : {
-                background: 'rgba(255,255,255,0.10)',
+                background: 'rgba(75,107,255,0.14)',
+                border: '1px solid rgba(75,107,255,0.35)',
+                color: '#4B6BFF',
+                boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.9), 0 2px 12px rgba(75,107,255,0.15)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.18)',
-                color: 'rgba(255,255,255,0.7)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+              } : {
+                background: 'rgba(255,255,255,0.70)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.88)',
+                color: 'rgba(0,0,0,0.55)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.05)',
               }}
             >
               {CAT_ICONS[cat.key]}
@@ -250,13 +261,13 @@ export default function HomePage() {
 
         {/* Section title */}
         <Reveal animation="anim-fade-up" className="flex items-center justify-between mb-4">
-          <h2 className="text-base md:text-lg font-bold" style={{ color: '#EEEEF8' }}>
+          <h2 className="text-base md:text-lg font-bold text-text-dark">
             {category === 'Tous' ? 'Toutes les annonces' : catLabel}
             {biens.length > 0 && (
-              <span className="font-normal text-sm ml-2" style={{ color: 'rgba(255,255,255,0.4)' }}>({biens.length})</span>
+              <span className="font-normal text-sm ml-2 text-text-grey">({biens.length})</span>
             )}
           </h2>
-          <button onClick={() => navigate('/search')} className="text-sm font-semibold" style={{ color: '#4B6BFF' }}>
+          <button onClick={() => navigate('/search')} className="text-sm font-semibold text-primary">
             Voir tout
           </button>
         </Reveal>
@@ -270,7 +281,7 @@ export default function HomePage() {
           </div>
         ) : biens.length === 0 ? (
           <Reveal animation="anim-fade-in" className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="mb-4 opacity-30"><EmptyIcon /></div>
+            <div className="mb-4 opacity-50"><EmptyIcon /></div>
             <p className="text-text-grey text-sm font-medium">Aucun bien trouvé</p>
           </Reveal>
         ) : (
@@ -296,4 +307,3 @@ export default function HomePage() {
     </div>
   )
 }
-

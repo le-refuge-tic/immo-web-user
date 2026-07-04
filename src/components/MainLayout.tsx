@@ -4,20 +4,20 @@ import BottomNav from './BottomNav'
 
 export default function MainLayout() {
   return (
-    <div className="flex flex-col min-h-dvh" style={{ background: '#07071A' }}>
+    <div className="flex flex-col min-h-dvh" style={{ background: '#F5F5F7' }}>
 
-      {/* Orbes de fond Liquid Glass — plus vifs pour traverser le verre */}
+      {/* Orbes pastel Liquid Glass — sur fond clair, couleurs vives traversent le verre */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="orb absolute top-[-15%] right-[-10%] w-[800px] h-[800px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(75,107,255,0.28) 0%, rgba(75,107,255,0.08) 50%, transparent 70%)', filter: 'blur(32px)' }} />
-        <div className="orb-2 absolute top-[5%] left-[-15%] w-[700px] h-[700px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(140,80,255,0.22) 0%, rgba(140,80,255,0.06) 50%, transparent 70%)', filter: 'blur(40px)' }} />
-        <div className="orb-3 absolute bottom-[-10%] left-[25%] w-[600px] h-[600px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(255,107,53,0.18) 0%, rgba(255,107,53,0.05) 50%, transparent 70%)', filter: 'blur(48px)' }} />
-        <div className="orb absolute bottom-[20%] right-[-5%] w-[450px] h-[450px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.14) 0%, rgba(34,197,94,0.04) 50%, transparent 70%)', filter: 'blur(40px)', animationDelay: '8s' }} />
-        <div className="orb-2 absolute top-[40%] left-[35%] w-[300px] h-[300px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(255,200,50,0.10) 0%, transparent 70%)', filter: 'blur(40px)', animationDelay: '12s' }} />
+        <div className="orb absolute top-[-20%] right-[-10%] w-[900px] h-[900px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(100,130,255,0.22) 0%, rgba(100,130,255,0.06) 50%, transparent 70%)' }} />
+        <div className="orb-2 absolute top-[5%] left-[-20%] w-[750px] h-[750px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(160,100,255,0.18) 0%, rgba(160,100,255,0.05) 50%, transparent 70%)' }} />
+        <div className="orb-3 absolute bottom-[-15%] left-[20%] w-[700px] h-[700px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(255,120,80,0.14) 0%, rgba(255,120,80,0.04) 50%, transparent 70%)' }} />
+        <div className="orb absolute bottom-[15%] right-[-8%] w-[500px] h-[500px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(50,210,140,0.12) 0%, rgba(50,210,140,0.04) 50%, transparent 70%)', animationDelay: '8s' }} />
+        <div className="orb-2 absolute top-[40%] left-[35%] w-[350px] h-[350px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(255,190,60,0.10) 0%, transparent 70%)', animationDelay: '12s' }} />
       </div>
 
       {/* Header desktop */}
