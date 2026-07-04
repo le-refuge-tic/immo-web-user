@@ -17,8 +17,6 @@ export default function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const isHome = location.pathname === '/'
-
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -52,10 +50,10 @@ export default function TopNav() {
     <header
       className="hidden md:flex sticky top-0 z-50 h-16 items-center border-b"
       style={{
-        background: isHome ? 'rgba(0,0,0,0.75)' : '#0a0a0a',
+        background: 'rgba(10,10,10,0.45)',
         borderColor: 'rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
       }}
     >
       <div className="w-full px-6 md:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-6">

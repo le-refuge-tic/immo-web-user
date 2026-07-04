@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
-import heroImg from '../../assets/hero.png'
+const HERO_IMG = 'https://images.unsplash.com/photo-1600121848594-d8644e57abcd?auto=format&fit=crop&w=1920&q=80'
 
 type Category = { key: string; label: string }
 const CATEGORIES: Category[] = [
@@ -129,7 +129,7 @@ export default function HomePage() {
 
       {/* ── MOBILE header (caché sur desktop) ── */}
       <div className="md:hidden relative px-4 pt-12 pb-6 overflow-hidden" style={{ background: '#0a0a0a' }}>
-        <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))' }} />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-5">
@@ -169,7 +169,7 @@ export default function HomePage() {
       {/* ── DESKTOP hero image pleine largeur ── */}
       <div className="hidden md:flex relative w-full flex-col justify-end" style={{ minHeight: '88vh' }}>
         {/* Image de fond */}
-        <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         {/* Overlay sombre */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.25) 100%)' }} />
 
