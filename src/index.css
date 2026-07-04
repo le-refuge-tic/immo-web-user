@@ -49,54 +49,82 @@
   .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .line-clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 
-  /* ── Liquid Glass levels ─────────────── */
+  /* ── Liquid Glass — vrai style Apple ─── */
+
+  /* Panneau standard : blanc translucide avec reflet spéculaire haut */
   .glass {
-    background: rgba(255,255,255,0.07);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.11);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 24px rgba(0,0,0,0.3);
-  }
-  .glass-strong {
-    background: rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.13);
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border: 1px solid rgba(255,255,255,0.18);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 40px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,0.45),
+      inset 0 -0.5px 0 rgba(0,0,0,0.08),
+      0 8px 32px rgba(0,0,0,0.3);
   }
+
+  /* Panneau fort : modales, drawers */
+  .glass-strong {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(60px) saturate(220%);
+    -webkit-backdrop-filter: blur(60px) saturate(220%);
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.6),
+      inset 0 -1px 0 rgba(0,0,0,0.1),
+      0 16px 48px rgba(0,0,0,0.4);
+  }
+
+  /* Card : même niveau qu'un tableau blanc dépoli */
   .glass-card {
-    background: rgba(255,255,255,0.055);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255,255,255,0.09);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 16px rgba(0,0,0,0.25);
-  }
-  .glass-btn {
     background: rgba(255,255,255,0.10);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(36px) saturate(180%);
+    -webkit-backdrop-filter: blur(36px) saturate(180%);
     border: 1px solid rgba(255,255,255,0.18);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,0.4),
+      inset 0 -0.5px 0 rgba(0,0,0,0.06),
+      0 4px 24px rgba(0,0,0,0.25);
+  }
+
+  /* Bouton interactif glass */
+  .glass-btn {
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.28);
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,0.5),
+      inset 0 -0.5px 0 rgba(0,0,0,0.08),
+      0 4px 16px rgba(0,0,0,0.2);
     transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
   }
   .glass-btn:hover {
-    background: rgba(255,255,255,0.16);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 4px 20px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.22);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.65),
+      inset 0 -0.5px 0 rgba(0,0,0,0.1),
+      0 8px 28px rgba(0,0,0,0.25);
     transform: translateY(-1px);
   }
+
+  /* Input glass */
   .glass-input {
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
     color: #EEEEF8;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  .glass-input::placeholder { color: rgba(255,255,255,0.35); }
+  .glass-input::placeholder { color: rgba(255,255,255,0.38); }
   .glass-input:focus {
     outline: none;
-    border-color: rgba(75,107,255,0.6);
-    box-shadow: 0 0 0 3px rgba(75,107,255,0.18), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-color: rgba(75,107,255,0.7);
+    box-shadow:
+      0 0 0 3px rgba(75,107,255,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.3);
   }
 
   /* ── Animations ──────────────────────── */
