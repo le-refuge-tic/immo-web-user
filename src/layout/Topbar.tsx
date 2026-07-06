@@ -1,4 +1,5 @@
 import { useAuth } from '../context/AuthContext';
+import logoUrl from '../assets/logo.png';
 
 export default function Topbar({
   minimized,
@@ -43,13 +44,7 @@ export default function Topbar({
       {/* Logo + toggle desktop */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div className="immo-logo" style={{ padding: 0, border: 'none', gap: 8 }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <path d="M2 15C1 9 5 2 12 2C19 2 23 8 23 13" stroke="#2563EB" strokeWidth="1.6" strokeLinecap="round"/>
-            <path d="M1.5 11C2 17 6 22 12 22C18 22 22 18 21.5 13" stroke="#2563EB" strokeWidth="1.6" strokeLinecap="round"/>
-            <rect x="6" y="9" width="2.5" height="11" fill="#2563EB"/>
-            <rect x="10.5" y="5" width="3" height="15" fill="#2563EB"/>
-            <rect x="15" y="7" width="2.5" height="13" fill="#2563EB"/>
-          </svg>
+          <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
           <span className="immo-logo-text" style={{ fontSize: 16 }}>REFUGE</span>
         </div>
 
