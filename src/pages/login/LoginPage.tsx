@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import villaImg       from '../../assets/login/villa.jpg';
 import appartementImg from '../../assets/login/appartement.jpg';
@@ -7,7 +7,6 @@ import terrainImg     from '../../assets/login/terrain.jpg';
 
 export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
 
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +24,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({ email, password });
-      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message;
       setError(msg || 'Email ou mot de passe incorrect.');
