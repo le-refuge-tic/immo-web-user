@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getAdminBien } from '../../api/getAdminBien';
 import { patchAdminBien } from '../../api/patchAdminBien';
 import { deleteAdminBien } from '../../api/deleteAdminBien';
-import { ChevronLeftIcon, PinIcon, TrashIcon } from '../../components/Icons';
+import { ChevronLeftIcon, PinIcon, TrashIcon, EditIcon, XIcon } from '../../components/Icons';
 
 const TYPE_LABELS: any = {
   maison:        'Maison',
@@ -54,6 +54,8 @@ export default function AnnonceDetailPage() {
   const [action, setAction]     = useState(null as any);
   const [motif, setMotif]       = useState('');
   const [conditions, setConditions] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState(null as any);
 
   useEffect(() => {
     if (!id) return;
@@ -121,6 +123,54 @@ export default function AnnonceDetailPage() {
   const mod   = bien.statut_moderation ?? 'en_attente';
   const badge = MOD_BADGE[mod] ?? MOD_BADGE.en_attente;
 
+  const hasChanges = editMode && editData && (
+    editData.description  !== (bien.description ?? '')              ||
+    Number(editData.prix) !== Number(bien.prix)                     ||
+    Number(editData.frais_visite) !== Number(bien.frais_visite)     ||
+    editData.adresse  !== (bien.localisation?.adresse  ?? '')       ||
+    editData.ville    !== (bien.localisation?.ville    ?? '')       ||
+    editData.quartier !== (bien.localisation?.quartier ?? '')
+  );
+
+  function startEdit() {
+    setEditData({
+      description:  bien.description ?? '',
+      prix:         String(bien.prix),
+      frais_visite: String(bien.frais_visite),
+      adresse:      bien.localisation?.adresse  ?? '',
+      ville:        bien.localisation?.ville    ?? '',
+      quartier:     bien.localisation?.quartier ?? '',
+    });
+    setEditMode(true);
+  }
+
+  function cancelEdit() {
+    setEditMode(false);
+    setEditData(null);
+  }
+
+  async function handleSaveAndApprove() {
+    setSaving(true);
+    try {
+      await patchAdminBien.update(bien.id, {
+        description:  editData.description,
+        prix:         Number(editData.prix),
+        frais_visite: Number(editData.frais_visite),
+        adresse:      editData.adresse,
+        ville:        editData.ville,
+        quartier:     editData.quartier,
+      });
+      await patchAdminBien.moderate(bien.id, { statut_moderation: 'approuve' });
+      const updated = await getAdminBien.byId(bien.id);
+      setBien(updated);
+      setEditMode(false);
+      setEditData(null);
+      setAction(null);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <>
       {/* ── Topbar ── */}
@@ -133,6 +183,17 @@ export default function AnnonceDetailPage() {
         <span className={`badge-statut badge-verif ${badge.cls}`} style={{ fontSize: 11 }}>
           {badge.label}
         </span>
+        {!editMode ? (
+          <button className="detail-edit-btn" onClick={startEdit}>
+            <EditIcon size={14} />
+            Modifier
+          </button>
+        ) : (
+          <button className="detail-edit-btn detail-edit-btn--active" onClick={cancelEdit}>
+            <XIcon size={14} />
+            Annuler
+          </button>
+        )}
       </div>
 
       <div className="immo-page detail-page-layout">
@@ -178,10 +239,20 @@ export default function AnnonceDetailPage() {
           )}
 
           {/* Description */}
-          {bien.description && (
+          {(bien.description || editMode) && (
             <div className="detail-section">
               <div className="detail-section-title">Description</div>
-              <p className="detail-description">{bien.description}</p>
+              {editMode ? (
+                <textarea
+                  className="detail-form-textarea"
+                  style={{ marginTop: 0, resize: 'vertical', minHeight: 110 }}
+                  value={editData.description}
+                  onChange={e => setEditData({ ...editData, description: e.target.value })}
+                  placeholder="Description du bien…"
+                />
+              ) : (
+                <p className="detail-description">{bien.description}</p>
+              )}
             </div>
           )}
 
@@ -233,7 +304,16 @@ export default function AnnonceDetailPage() {
           <div className="detail-card">
             <div className="detail-bien-type">{TYPE_LABELS[bien.type] ?? bien.type}</div>
             <div className="detail-bien-price">
-              {formatPrice(bien.prix)} <span>FCFA</span>
+              {editMode ? (
+                <input
+                  className="detail-edit-input"
+                  type="number"
+                  min="0"
+                  value={editData.prix}
+                  onChange={e => setEditData({ ...editData, prix: e.target.value })}
+                />
+              ) : formatPrice(bien.prix)}
+              {' '}<span>FCFA</span>
             </div>
             <div className="detail-bien-price-type">
               {bien.transaction === 'vente' ? 'Prix de vente' : 'Loyer mensuel'}
@@ -257,7 +337,17 @@ export default function AnnonceDetailPage() {
               </div>
               <div className="detail-info-row">
                 <span>Frais de visite</span>
-                <strong>{formatPrice(bien.frais_visite)} FCFA</strong>
+                {editMode ? (
+                  <input
+                    className="detail-edit-input detail-edit-input--sm"
+                    type="number"
+                    min="0"
+                    value={editData.frais_visite}
+                    onChange={e => setEditData({ ...editData, frais_visite: e.target.value })}
+                  />
+                ) : (
+                  <strong>{formatPrice(bien.frais_visite)} FCFA</strong>
+                )}
               </div>
               {bien.details_maison && (
                 <>
@@ -311,18 +401,46 @@ export default function AnnonceDetailPage() {
               <div className="detail-info-rows">
                 <div className="detail-info-row">
                   <span>Adresse</span>
-                  <strong>{bien.localisation.adresse}</strong>
+                  {editMode ? (
+                    <input
+                      className="detail-edit-input detail-edit-input--sm"
+                      type="text"
+                      value={editData.adresse}
+                      onChange={e => setEditData({ ...editData, adresse: e.target.value })}
+                    />
+                  ) : (
+                    <strong>{bien.localisation.adresse}</strong>
+                  )}
                 </div>
                 <div className="detail-info-row">
                   <span>Ville</span>
-                  <strong>{bien.localisation.ville}</strong>
+                  {editMode ? (
+                    <input
+                      className="detail-edit-input detail-edit-input--sm"
+                      type="text"
+                      value={editData.ville}
+                      onChange={e => setEditData({ ...editData, ville: e.target.value })}
+                    />
+                  ) : (
+                    <strong>{bien.localisation.ville}</strong>
+                  )}
                 </div>
-                {bien.localisation.quartier && (
-                  <div className="detail-info-row">
-                    <span>Quartier</span>
-                    <strong>{bien.localisation.quartier}</strong>
-                  </div>
-                )}
+                <div className="detail-info-row">
+                  <span>Quartier</span>
+                  {editMode ? (
+                    <input
+                      className="detail-edit-input detail-edit-input--sm"
+                      type="text"
+                      value={editData.quartier}
+                      onChange={e => setEditData({ ...editData, quartier: e.target.value })}
+                      placeholder="Optionnel"
+                    />
+                  ) : (
+                    bien.localisation.quartier
+                      ? <strong>{bien.localisation.quartier}</strong>
+                      : <strong style={{ color: 'var(--c-muted)' }}>—</strong>
+                  )}
+                </div>
                 <div className="detail-info-row">
                   <span>GPS</span>
                   <strong>{Number(bien.localisation.latitude).toFixed(5)}, {Number(bien.localisation.longitude).toFixed(5)}</strong>
@@ -376,10 +494,10 @@ export default function AnnonceDetailPage() {
                 {mod !== 'approuve' && (
                   <button
                     className="detail-btn detail-btn--approve"
-                    onClick={() => handleModerate('approuve')}
+                    onClick={hasChanges ? handleSaveAndApprove : () => handleModerate('approuve')}
                     disabled={saving}
                   >
-                    ✓ Approuver
+                    {hasChanges ? '✓ Modifier & approuver' : '✓ Approuver'}
                   </button>
                 )}
                 {mod !== 'rejete' && (
