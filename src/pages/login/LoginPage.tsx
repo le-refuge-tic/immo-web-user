@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import villaImg       from '../../assets/login/villa.jpg';
 import appartementImg from '../../assets/login/appartement.jpg';
@@ -16,8 +16,7 @@ export default function LoginPage() {
   const [loading,  setLoading]  = useState(false);
 
   if (isAuthenticated) {
-    navigate('/dashboard', { replace: true });
-    return null;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: any) => {
