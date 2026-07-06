@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children }: { children: any }) {
   }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user && !ADMIN_ROLES.includes(user.role)) return <Navigate to="/login" replace />;
+  if (user && !ADMIN_ROLES.includes(user.role_principal)) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 }

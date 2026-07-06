@@ -342,7 +342,7 @@ export default function AnnonceDetailPage() {
                 <div>
                   <div className="detail-author-name">{bien.user.prenom} {bien.user.nom}</div>
                   <div className="detail-author-email">{bien.user.email}</div>
-                  <div className="detail-author-role">{ROLE_LABELS[bien.user.role] ?? bien.user.role}</div>
+                  <div className="detail-author-role">{ROLE_LABELS[bien.user.role_principal] ?? bien.user.role_principal}</div>
                 </div>
               </div>
             </div>

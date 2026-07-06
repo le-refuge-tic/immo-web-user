@@ -35,7 +35,7 @@ export default function ProfilPage() {
 
   const initials    = `${user.nom[0] ?? ''}${user.prenom[0] ?? ''}`.toUpperCase();
   const avatarColor = getAvatarColor(user.nom + user.prenom);
-  const roleLabel   = ROLE_LABELS[user.role] ?? user.role;
+  const roleLabel   = ROLE_LABELS[user.role_principal] ?? user.role_principal;
 
   const editInitial = {
     nom:       user.nom,
