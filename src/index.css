@@ -1058,6 +1058,57 @@ body {
 
 .detail-delete-zone { margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid #E2E8F0; }
 
+/* ─── MODE ÉDITION ───────────────────────────────────────── */
+.detail-edit-toggle {
+  display: flex; align-items: center; gap: 0.375rem;
+  font-size: 0.8125rem; font-weight: 600;
+  padding: 0.375rem 0.875rem; border-radius: 0.5rem;
+  border: 1.5px solid #CBD5E1; background: #fff;
+  color: var(--c-text); cursor: pointer;
+  transition: all 0.15s;
+}
+.detail-edit-toggle:hover { border-color: var(--c-blue); color: var(--c-blue); }
+.detail-edit-toggle.active { border-color: var(--c-blue); background: #EFF6FF; color: var(--c-blue); }
+
+.detail-edit-badge {
+  font-size: 0.6875rem; font-weight: 700;
+  color: #92400E; background: #FEF3C7;
+  border: 1px solid #FDE68A; border-radius: 0.375rem;
+  padding: 0.25rem 0.625rem; letter-spacing: 0.02em;
+}
+
+.detail-edit-field-badge {
+  font-size: 0.625rem; font-weight: 700;
+  color: var(--c-blue); background: #EFF6FF;
+  border: 1px solid #BFDBFE; border-radius: 0.3rem;
+  padding: 0.125rem 0.4rem; letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.detail-field-label {
+  font-size: 0.6875rem; font-weight: 600; color: var(--c-muted);
+  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem;
+}
+
+.detail-field-input {
+  width: 100%; font-size: 0.875rem; font-weight: 600; color: var(--c-text);
+  background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 0.5rem;
+  padding: 0.4rem 0.625rem; outline: none;
+  transition: border-color 0.15s;
+}
+.detail-field-input:focus { border-color: var(--c-blue); background: #fff; }
+
+.detail-field-textarea {
+  width: 100%; font-size: 0.875rem; color: var(--c-text); line-height: 1.6;
+  background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem; outline: none; resize: vertical;
+  font-family: inherit; transition: border-color 0.15s;
+}
+.detail-field-textarea:focus { border-color: var(--c-blue); background: #fff; }
+
+.detail-btn--save-edit  { background: #0EA5E9; color: #fff; display: flex; align-items: center; justify-content: center; gap: 0.375rem; }
+.detail-btn--edit-approve { background: linear-gradient(135deg, #0EA5E9 0%, #16A34A 100%); color: #fff; display: flex; align-items: center; justify-content: center; gap: 0.375rem; }
+
 /* ─── MODÉRATION ─────────────────────────────────────────── */
 .mod-stat-cards {
   display: grid;
