@@ -45,14 +45,14 @@ export default function LoginPage() {
         <div className="lp-brand">
           <div className="lp-brand-icon">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-                fill="#DBEAFE" stroke="#fff" strokeWidth="1.5"
-              />
-              <path d="M9 21v-7h6v7" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M2 15C1 9 5 2 12 2C19 2 23 8 23 13" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M1.5 11C2 17 6 22 12 22C18 22 22 18 21.5 13" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+              <rect x="6" y="9" width="2.5" height="11" fill="#fff"/>
+              <rect x="10.5" y="5" width="3" height="15" fill="#fff"/>
+              <rect x="15" y="7" width="2.5" height="13" fill="#fff"/>
             </svg>
           </div>
-          <span className="lp-brand-name">HOUÉTCHÉ</span>
+          <span className="lp-brand-name">REFUGE</span>
         </div>
 
         {/* ── Collage de propriétés superposées ── */}
@@ -114,7 +114,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@houetche.com"
+                placeholder="admin@refuge-immo.com"
                 required
                 autoFocus
                 className="lp-input"
@@ -169,7 +169,7 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="lp-divider"/>
           <div className="lp-footer">
-            HOUÉTCHÉ Immobilier · Interface administrateur
+            REFUGE Immobilier · Interface administrateur
           </div>
 
         </div>

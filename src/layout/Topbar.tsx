@@ -44,11 +44,13 @@ export default function Topbar({
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div className="immo-logo" style={{ padding: 0, border: 'none', gap: 8 }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-              fill="#EFF6FF" stroke="#2563EB" strokeWidth="1.5"/>
-            <path d="M9 21v-7h6v7" stroke="#2563EB" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M2 15C1 9 5 2 12 2C19 2 23 8 23 13" stroke="#2563EB" strokeWidth="1.6" strokeLinecap="round"/>
+            <path d="M1.5 11C2 17 6 22 12 22C18 22 22 18 21.5 13" stroke="#2563EB" strokeWidth="1.6" strokeLinecap="round"/>
+            <rect x="6" y="9" width="2.5" height="11" fill="#2563EB"/>
+            <rect x="10.5" y="5" width="3" height="15" fill="#2563EB"/>
+            <rect x="15" y="7" width="2.5" height="13" fill="#2563EB"/>
           </svg>
-          <span className="immo-logo-text" style={{ fontSize: 16 }}>HOUÉTCHÉ</span>
+          <span className="immo-logo-text" style={{ fontSize: 16 }}>REFUGE</span>
         </div>
 
         <button

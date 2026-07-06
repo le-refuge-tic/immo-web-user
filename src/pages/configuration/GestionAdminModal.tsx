@@ -58,7 +58,7 @@ export default function GestionAdminModal({ onClose, onCreated }: {
           </div>
           <div className="immo-form-field">
             <label className="immo-form-label">Adresse email</label>
-            <input className="immo-form-input" type="email" value={form.email} onChange={set('email')} required placeholder="admin@houetche.com" />
+            <input className="immo-form-input" type="email" value={form.email} onChange={set('email')} required placeholder="admin@refuge-immo.com" />
           </div>
           <div className="immo-form-field">
             <label className="immo-form-label">Mot de passe temporaire</label>
