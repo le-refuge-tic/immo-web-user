@@ -6,7 +6,4 @@ const auth = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('
 export const patchAdminBien = {
   moderate: (id: number, payload: any) =>
     axios.patch(`${BASE}/admin/biens/${id}/moderation`, payload, auth()).then(r => r.data),
-
-  update: (id: number, payload: any) =>
-    axios.patch(`${BASE}/admin/biens/${id}`, payload, auth()).then(r => r.data),
 };
