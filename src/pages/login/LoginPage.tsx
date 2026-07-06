@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import villaImg       from '../../assets/login/villa.jpg';
@@ -15,11 +15,10 @@ export default function LoginPage() {
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [isAuthenticated]);
+  if (isAuthenticated) {
+    navigate('/dashboard', { replace: true });
+    return null;
+  }
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -27,6 +26,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({ email, password });
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message;
       setError(msg || 'Email ou mot de passe incorrect.');
