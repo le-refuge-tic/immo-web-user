@@ -44,8 +44,8 @@ export default function Topbar({
       {/* Logo + toggle desktop */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div className="immo-logo" style={{ padding: 0, border: 'none', gap: 8 }}>
-          <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
-          <span className="immo-logo-text" style={{ fontSize: 16 }}>REFUGE</span>
+          <img src={logoUrl} alt="REFUGE" style={{ width: 42, height: 42, objectFit: 'contain' }} />
+          <span className="immo-logo-text" style={{ fontSize: 20, color: '#00AEEF' }}>REFUGE</span>
         </div>
 
         <button

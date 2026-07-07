@@ -15,7 +15,7 @@ export default function AdminFooter() {
           background: '#22C55E', flexShrink: 0,
         }} />
         <span>
-          Plateforme <strong style={{ color: 'var(--c-text)' }}>REFUGE</strong> — opérationnelle
+          Plateforme <strong style={{ color: '#00AEEF' }}>REFUGE</strong> — opérationnelle
         </span>
       </div>
 
