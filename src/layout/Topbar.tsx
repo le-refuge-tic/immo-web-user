@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import logoUrl from '../assets/logo.png';
+import logoUrl from '../assets/REFUGE-LOGO.png';
 
 export default function Topbar({
   minimized,
