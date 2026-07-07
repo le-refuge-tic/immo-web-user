@@ -385,10 +385,8 @@ export default function BienDetailPage() {
             </div>
           </div>
         )}
-      </div>
 
-      {/* CTA mobile fixe */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 px-4 py-3 safe-bottom" style={{ background: 'rgba(245,245,247,0.90)', backdropFilter: 'blur(32px)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+        {/* CTA inline — au-dessus du BottomNav dans le scroll */}
         <button
           onClick={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
           className="w-full py-4 rounded-xl font-bold text-white shadow-btn"
