@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import villaImg       from '../../assets/login/villa.jpg';
 import appartementImg from '../../assets/login/appartement.jpg';
 import terrainImg     from '../../assets/login/terrain.jpg';
-import logoUrl        from '../../assets/logo.png';
+import logoUrl        from '../../assets/REFUGE-LOGO.png';
 
 export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
