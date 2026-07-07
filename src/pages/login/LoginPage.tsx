@@ -44,7 +44,7 @@ export default function LoginPage() {
 
         {/* Logo / marque */}
         <div className="lp-brand">
-          <img src={logoUrl} alt="REFUGE" style={{ width: 38, height: 38, objectFit: 'contain' }} />
+          <img src={logoUrl} alt="REFUGE" style={{ width: 58, height: 58, objectFit: 'contain' }} />
           <span className="lp-brand-name" style={{ color: '#00AEEF', fontSize: 22 }}>REFUGE</span>
         </div>
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
 
           {/* Logo centré */}
           <div className="lp-form-logo">
-            <img src={logoUrl} alt="REFUGE" style={{ width: 48, height: 48, objectFit: 'contain' }} />
+            <img src={logoUrl} alt="REFUGE" style={{ width: 58, height: 58, objectFit: 'contain' }} />
           </div>
 
           {/* Titre + sous-titre */}
