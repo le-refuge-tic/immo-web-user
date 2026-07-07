@@ -9,8 +9,6 @@ import ConversationsPage from './pages/conversations/ConversationsPage'
 import ChatPage from './pages/conversations/ChatPage'
 import NotificationsPage from './pages/notifications/NotificationsPage'
 import ProfilePage from './pages/profile/ProfilePage'
-import EditProfilePage from './pages/profile/EditProfilePage'
-import ChangePasswordPage from './pages/profile/ChangePasswordPage'
 import MesVisitesPage from './pages/visites/MesVisitesPage'
 import SplashPage from './pages/splash/SplashPage'
 import LoginPage from './pages/auth/LoginPage'
@@ -79,12 +77,6 @@ function App() {
           </Route>
           <Route path="profil" element={
             <PrivateRoute><ProfilePage /></PrivateRoute>
-          } />
-          <Route path="profil/edit" element={
-            <PrivateRoute><EditProfilePage /></PrivateRoute>
-          } />
-          <Route path="profil/password" element={
-            <PrivateRoute><ChangePasswordPage /></PrivateRoute>
           } />
           <Route path="mes-visites" element={
             <PrivateRoute><MesVisitesPage /></PrivateRoute>

@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import { userApi } from '../../api/userApi'
 import { visitesApi } from '../../api/visitesApi'
+import EditProfileModal from './EditProfileModal'
+import ChangePasswordModal from './ChangePasswordModal'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -142,6 +144,8 @@ export default function ProfilePage() {
   const [apiUser, setApiUser] = useState<any>(null)
   const [visites, setVisites] = useState<Visite[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [editOpen, setEditOpen] = useState(false)
+  const [passwordOpen, setPasswordOpen] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -219,8 +223,8 @@ export default function ProfilePage() {
 
   const MenuBlock = () => (
     <div className="glass-card rounded-[16px] overflow-hidden">
-      <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => navigate('/profil/edit')} />
-      <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => navigate('/profil/password')} />
+      <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => setEditOpen(true)} />
+      <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => setPasswordOpen(true)} />
       <MenuItem icon={<ReceiptMenuIcon />} label="Historique des transactions" onClick={() => {}} />
       <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => {}} showDivider={false} />
     </div>
@@ -363,7 +367,7 @@ export default function ProfilePage() {
                   <p className="text-sm font-semibold text-text-dark capitalize">{roleLabel}</p>
                 </div>
               </div>
-              <button onClick={() => navigate('/profil/edit')} className="mt-4 text-sm text-primary font-semibold flex items-center gap-1 hover:underline">
+              <button onClick={() => setEditOpen(true)} className="mt-4 text-sm text-primary font-semibold flex items-center gap-1 hover:underline">
                 Modifier mes informations
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
               </button>
@@ -371,6 +375,9 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
+      <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
     </div>
   )
 }
