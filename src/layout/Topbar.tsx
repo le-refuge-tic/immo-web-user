@@ -45,7 +45,7 @@ export default function Topbar({
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div className="immo-logo" style={{ padding: 0, border: 'none', gap: 8 }}>
           <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
-          <span className="immo-logo-text" style={{ fontSize: 16 }}>REFUGE</span>
+          <span className="immo-logo-text" style={{ fontSize: 20, color: '#00AEEF' }}>REFUGE</span>
         </div>
 
         <button
