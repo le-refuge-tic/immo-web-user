@@ -65,6 +65,7 @@ export default function HomePage() {
   const { isLoggedIn, user } = useAuth()
   const navigate = useNavigate()
   const [category, setCategory] = useState('Tous')
+  const [transaction, setTransaction] = useState<'location' | 'vente' | null>(null)
   const [search, setSearch] = useState('')
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -102,11 +103,12 @@ export default function HomePage() {
         if (category === 'appartement') params.type = 'appart_vide'
         else params.type = category
       }
+      if (transaction !== null) params.transaction = transaction
       if (search.trim()) params.ville = search.trim()
       loadBiens(params)
     }, 400)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [category, search])
+  }, [category, transaction, search])
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -231,6 +233,33 @@ export default function HomePage() {
 
       {/* ── Contenu principal (catégories + grille) ── */}
       <div className="w-full px-4 md:px-16 py-4 md:py-8">
+
+        {/* Filtre transaction */}
+        <div className="flex items-center gap-2 mb-3">
+          {([
+            { key: null,       label: 'Tout' },
+            { key: 'location', label: 'À louer' },
+            { key: 'vente',    label: 'À vendre' },
+          ] as const).map(t => (
+            <button
+              key={String(t.key)}
+              onClick={() => setTransaction(t.key)}
+              className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all"
+              style={transaction === t.key ? {
+                background: '#4B6BFF',
+                color: '#fff',
+                boxShadow: '0 2px 10px rgba(75,107,255,0.35)',
+              } : {
+                background: 'rgba(255,255,255,0.70)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.88)',
+                color: 'rgba(0,0,0,0.55)',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
         {/* Categories */}
         <Reveal animation="anim-slide-left" className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 md:mb-6 scrollbar-hide">
