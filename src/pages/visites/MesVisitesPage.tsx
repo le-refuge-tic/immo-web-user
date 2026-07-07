@@ -122,24 +122,28 @@ export default function MesVisitesPage() {
 
   return (
     <div className="min-h-dvh bg-app-bg">
-      {/* Header */}
-      <div style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-        <div className="w-full px-4 md:px-16">
-          <div className="flex items-center gap-3 pt-12 md:pt-6 pb-3">
-            <button onClick={() => navigate(-1)} className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl">
+
+      {/* ── Header (mobile sticky + desktop glass bar) ── */}
+      <div style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+        <div className="max-w-5xl mx-auto px-4 md:px-8">
+          <div className="flex items-center gap-3 pt-12 md:pt-5 pb-3">
+            <button onClick={() => navigate(-1)}
+              className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0">
               <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <div>
-              <h1 className="text-lg font-bold text-text-dark">Mes visites</h1>
+              <h1 className="text-lg md:text-xl font-bold text-text-dark">Mes visites</h1>
               {!loading && <p className="text-xs text-text-grey">{visites.length} visite{visites.length > 1 ? 's' : ''} au total</p>}
             </div>
           </div>
           {/* Tabs */}
-          <div className="flex">
+          <div className="flex md:gap-2">
             {TABS.map((t, i) => (
-              <button key={t} onClick={() => setTab(i)} className="flex-1 pb-3 text-[13px] font-semibold transition-all relative" style={{ color: tab === i ? '#4B6BFF' : '#9CA3AF' }}>
+              <button key={t} onClick={() => setTab(i)}
+                className="flex-1 md:flex-none md:px-6 pb-3 text-[13px] font-semibold transition-all relative"
+                style={{ color: tab === i ? '#4B6BFF' : '#9CA3AF' }}>
                 {t}
                 {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full" style={{ background: '#4B6BFF' }} />}
               </button>
@@ -148,14 +152,15 @@ export default function MesVisitesPage() {
         </div>
       </div>
 
-      <div className="w-full px-4 md:px-16 py-4">
+      <div className="max-w-5xl mx-auto px-4 md:px-8 py-6">
         {loading ? (
-          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(n => <div key={n} className="skeleton rounded-2xl h-28" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 rounded-[20px] flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(75,107,255,0.1)' }}>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 rounded-[20px] flex items-center justify-center mx-auto mb-4"
+              style={{ background: 'rgba(75,107,255,0.1)' }}>
               <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -164,7 +169,7 @@ export default function MesVisitesPage() {
             <p className="text-text-grey text-sm">Vos demandes de visite apparaîtront ici</p>
           </div>
         ) : (
-          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 pb-24 md:pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
             {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} />)}
           </div>
         )}
