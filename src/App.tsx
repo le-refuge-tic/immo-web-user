@@ -74,10 +74,9 @@ function App() {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="conversations" element={
             <PrivateRoute><ConversationsPage /></PrivateRoute>
-          } />
-          <Route path="conversations/:id" element={
-            <PrivateRoute><ChatPage /></PrivateRoute>
-          } />
+          }>
+            <Route path=":id" element={<ChatPage />} />
+          </Route>
           <Route path="profil" element={
             <PrivateRoute><ProfilePage /></PrivateRoute>
           } />

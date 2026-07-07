@@ -93,10 +93,10 @@ export default function ChatPage() {
   const otherName = other ? `${other.prenom || ''} ${other.nom || ''}`.trim() : 'Conversation'
 
   return (
-    <div className="h-dvh flex flex-col">
+    <div className="h-dvh md:h-full flex flex-col">
       {/* Header */}
-      <div className="px-4 pt-12 pb-3 flex items-center gap-3 border-b flex-shrink-0" style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-        <button onClick={() => navigate('/conversations')} className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl">
+      <div className="px-4 pt-12 md:pt-4 pb-3 flex items-center gap-3 flex-shrink-0" style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+        <button onClick={() => navigate('/conversations')} className="md:hidden glass-btn w-9 h-9 flex items-center justify-center rounded-xl">
           <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
