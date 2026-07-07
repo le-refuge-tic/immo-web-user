@@ -247,7 +247,7 @@ export default function ProfilePage() {
   )
 
   return (
-    <div className="min-h-dvh bg-app-bg">
+    <div className="min-h-full">
 
       {/* ── MOBILE layout ── */}
       <div className="md:hidden">

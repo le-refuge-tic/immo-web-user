@@ -97,7 +97,7 @@ export default function ReservationPage() {
   const frais = Number(bien?.frais_visite || 0)
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ background: '#F4F6FA' }}>
+    <div className="min-h-full flex flex-col">
       {/* Header dark gradient */}
       <div
         className="flex-shrink-0 px-5 pb-6"

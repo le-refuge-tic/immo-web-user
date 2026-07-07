@@ -31,7 +31,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-app-bg">
+    <div className="min-h-full">
       <div className="w-full px-4 md:px-16">
 
         {/* Header */}

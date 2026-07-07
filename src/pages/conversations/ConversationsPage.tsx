@@ -143,7 +143,7 @@ export default function ConversationsPage() {
     <div className="min-h-full">
 
       {/* ── MOBILE ── */}
-      <div className="md:hidden bg-app-bg">
+      <div className="md:hidden">
         <div className="px-4 pt-12 pb-3"
           style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
           <h1 className="text-lg font-bold text-text-dark">Messages</h1>

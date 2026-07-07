@@ -44,12 +44,12 @@ export default function BienDetailPage() {
   }
 
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center bg-app-bg">
+    <div className="min-h-full flex items-center justify-center">
       <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   )
   if (error || !bien) return (
-    <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6 bg-app-bg">
+    <div className="min-h-full flex flex-col items-center justify-center gap-4 px-6">
       <div className="w-20 h-20 rounded-full flex items-center justify-center mb-2" style={{ background: 'rgba(75,107,255,0.10)' }}>
         <svg className="w-10 h-10 text-text-grey" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -87,7 +87,7 @@ export default function BienDetailPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-app-bg pb-28 md:pb-0">
+    <div className="min-h-full pb-28 md:pb-0">
 
       {/* ── MOBILE header / galerie ── */}
       <div className="md:hidden relative h-72" style={{ background: 'rgba(0,0,0,0.04)' }}>

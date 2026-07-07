@@ -121,7 +121,7 @@ export default function MesVisitesPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-app-bg">
+    <div className="min-h-full">
 
       {/* ── Header (mobile sticky + desktop glass bar) ── */}
       <div style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
