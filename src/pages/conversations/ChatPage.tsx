@@ -93,7 +93,7 @@ export default function ChatPage() {
   const otherName = other ? `${other.prenom || ''} ${other.nom || ''}`.trim() : 'Conversation'
 
   return (
-    <div className="h-dvh flex flex-col bg-app-bg">
+    <div className="h-dvh flex flex-col">
       {/* Header */}
       <div className="px-4 pt-12 pb-3 flex items-center gap-3 border-b flex-shrink-0" style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
         <button onClick={() => navigate('/conversations')} className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl">

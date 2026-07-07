@@ -183,7 +183,7 @@ export default function SearchPage() {
 
   /* ────────────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-dvh bg-app-bg">
+    <div className="min-h-full">
 
       {/* ══════════════════════ MOBILE ══════════════════════════ */}
       <div className="md:hidden">
@@ -290,7 +290,7 @@ export default function SearchPage() {
       </div>
 
       {/* ══════════════════════ DESKTOP ═════════════════════════ */}
-      <div className="hidden md:flex min-h-dvh">
+      <div className="hidden md:flex min-h-full">
 
         {/* Sidebar filtres — collant */}
         <aside className="w-80 flex-shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto p-6"

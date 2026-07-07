@@ -122,7 +122,7 @@ export default function HomePage() {
   const catLabel = CATEGORIES.find(c => c.key === category)?.label || 'Annonces'
 
   return (
-    <div className="min-h-dvh bg-app-bg overflow-x-hidden">
+    <div className="min-h-full overflow-x-hidden">
 
       {/* ── MOBILE header (caché sur desktop) ── */}
       <div className="md:hidden relative px-4 pt-12 pb-6 overflow-hidden rounded-b-3xl" style={{ background: '#0a0a0a' }}>

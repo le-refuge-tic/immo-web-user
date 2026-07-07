@@ -121,7 +121,7 @@ export default function EditProfilePage() {
     <div className="min-h-full">
 
       {/* ── MOBILE ── */}
-      <div className="md:hidden bg-app-bg">
+      <div className="md:hidden">
         <div className="px-4 pt-12 pb-4 flex items-center gap-3"
           style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
           <button onClick={() => navigate(-1)} className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl">

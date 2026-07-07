@@ -133,7 +133,7 @@ export default function NouveauBienPage() {
 
   if (step === 6) {
     return (
-      <div className="min-h-dvh bg-app-bg flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-full flex flex-col items-center justify-center px-6 text-center">
         <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mb-4">
           <svg className="w-10 h-10 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -150,7 +150,7 @@ export default function NouveauBienPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-app-bg flex flex-col">
+    <div className="min-h-full flex flex-col">
       {/* Header */}
       <div className="bg-white px-4 pt-12 pb-4 border-b border-divider">
         <div className="flex items-center gap-3 mb-4">
