@@ -448,7 +448,6 @@ function LoyersTab() {
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function PortefeuilleTab() {
-  const navigate = useNavigate()
   const [wallet, setWallet] = useState<any>(null)
   const [transactions, setTrans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

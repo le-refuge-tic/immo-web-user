@@ -107,10 +107,9 @@ export default function MesVisitesPage() {
     setPaying(true)
     setPayError('')
     try {
-      await paiementApi.payerVisite(showPay.id, {
-        operateur: operator,
+      await paiementApi.initierVisite({
+        visite_id: showPay.id,
         telephone: phoneOp,
-        montant: Number(showPay.frais_visite || 0),
       })
       setShowPay(null)
       loadVisites()

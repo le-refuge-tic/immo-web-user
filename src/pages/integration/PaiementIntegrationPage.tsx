@@ -13,7 +13,6 @@ export default function PaiementIntegrationPage() {
   const [tel, setTel]           = useState('')
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [errMsg, setErrMsg]     = useState('')
-  const [recuData, setRecuData] = useState<any>(null)
   const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -39,7 +38,6 @@ export default function PaiementIntegrationPage() {
           if (status.statut === 'reussi' || status.statut === 'success') {
             clearInterval(pollRef.current!)
             setState('success')
-            setRecuData({ ...status, referenceId: refId })
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
             clearInterval(pollRef.current!)
             setState('error'); setErrMsg('Paiement refusé. Vérifiez votre solde MoMo.')
