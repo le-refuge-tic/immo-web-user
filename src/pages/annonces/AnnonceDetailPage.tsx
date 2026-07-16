@@ -4,6 +4,7 @@ import { getAdminBien } from '../../api/getAdminBien';
 import { patchAdminBien } from '../../api/patchAdminBien';
 import { deleteAdminBien } from '../../api/deleteAdminBien';
 import { ChevronLeftIcon, PinIcon, TrashIcon, EditIcon, XIcon } from '../../components/Icons';
+import { infosLogementRows, infosTerrainRows, actifLabels } from '../../utils/amenites';
 
 const TYPE_LABELS: any = {
   maison:        'Maison',
@@ -274,24 +275,62 @@ export default function AnnonceDetailPage() {
             </div>
           )}
 
-          {/* Aménités */}
-          {bien.amenites && Object.keys(bien.amenites).length > 0 && (
+          {/* Informations logement */}
+          {bien.amenites && infosLogementRows(bien.amenites).length > 0 && (
             <div className="detail-section">
-              <div className="detail-section-title">Aménités &amp; équipements</div>
+              <div className="detail-section-title">Informations logement</div>
+              <div className="detail-info-rows">
+                {infosLogementRows(bien.amenites).map(row => (
+                  <div className="detail-info-row" key={row.label}>
+                    <span>{row.label}</span>
+                    <strong>{row.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Informations terrain */}
+          {bien.amenites && infosTerrainRows(bien.amenites).length > 0 && (
+            <div className="detail-section">
+              <div className="detail-section-title">Informations terrain</div>
+              <div className="detail-info-rows">
+                {infosTerrainRows(bien.amenites).map(row => (
+                  <div className="detail-info-row" key={row.label}>
+                    <span>{row.label}</span>
+                    <strong>{row.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Équipements & atouts */}
+          {bien.amenites && actifLabels(bien.amenites).length > 0 && (
+            <div className="detail-section">
+              <div className="detail-section-title">Équipements &amp; atouts</div>
               <div className="detail-amenites-grid">
-                {Object.entries(bien.amenites).map(([key, val]: any) => {
-                  if (val === false || val === null || val === undefined || val === 0 || val === '') return null;
-                  const label = key.replace(/_/g, ' ');
-                  return (
-                    <div className="detail-amenite-item" key={key}>
-                      <span className="detail-amenite-dot" />
-                      <span className="detail-amenite-label">
-                        {label.charAt(0).toUpperCase() + label.slice(1)}
-                        {typeof val !== 'boolean' && val !== true && ` : ${val}`}
-                      </span>
-                    </div>
-                  );
-                })}
+                {actifLabels(bien.amenites).map((label: string) => (
+                  <div className="detail-amenite-item" key={label}>
+                    <span className="detail-amenite-dot" />
+                    <span className="detail-amenite-label">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Voisinage */}
+          {bien.amenites?.voisinage?.length > 0 && (
+            <div className="detail-section">
+              <div className="detail-section-title">Voisinage &amp; environnement</div>
+              <div className="detail-amenites-grid">
+                {bien.amenites.voisinage.map((tag: string) => (
+                  <div className="detail-amenite-item" key={tag}>
+                    <span className="detail-amenite-dot" />
+                    <span className="detail-amenite-label">{tag}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -393,6 +432,63 @@ export default function AnnonceDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Frais d'intégration (location uniquement) */}
+          {bien.transaction === 'location' && bien.amenites && (
+            <div className="detail-card">
+              <div className="detail-section-title">Conditions à l'entrée</div>
+              <div className="detail-info-rows">
+                <div className="detail-info-row">
+                  <span>Avance</span>
+                  <strong>{bien.amenites.avance_mois ?? 2} mois</strong>
+                </div>
+                {bien.amenites.loyer_prepaye_mois > 0 && (
+                  <div className="detail-info-row">
+                    <span>Loyer prépayé</span>
+                    <strong>{bien.amenites.loyer_prepaye_mois} mois</strong>
+                  </div>
+                )}
+                {bien.amenites.caution_eau > 0 && (
+                  <div className="detail-info-row">
+                    <span>Caution eau</span>
+                    <strong>{formatPrice(bien.amenites.caution_eau)} FCFA</strong>
+                  </div>
+                )}
+                {bien.amenites.caution_elec > 0 && (
+                  <div className="detail-info-row">
+                    <span>Caution électricité</span>
+                    <strong>{formatPrice(bien.amenites.caution_elec)} FCFA</strong>
+                  </div>
+                )}
+                {bien.amenites.commission_agence > 0 && (
+                  <div className="detail-info-row">
+                    <span>Commission agence</span>
+                    <strong style={{ color: 'var(--c-orange, #D97706)' }}>
+                      {formatPrice(bien.amenites.commission_agence)} FCFA
+                    </strong>
+                  </div>
+                )}
+                {(bien.amenites.autres_frais ?? []).map((f: any, i: number) => (
+                  <div className="detail-info-row" key={i}>
+                    <span>{f.label}</span>
+                    <strong>{formatPrice(f.montant)} FCFA</strong>
+                  </div>
+                ))}
+                <div className="detail-info-row">
+                  <span>Total à l'intégration</span>
+                  <strong>
+                    {formatPrice(
+                      (1 + (bien.amenites.avance_mois ?? 2) + (bien.amenites.loyer_prepaye_mois ?? 0)) * Number(bien.prix)
+                      + Number(bien.amenites.caution_eau ?? 0)
+                      + Number(bien.amenites.caution_elec ?? 0)
+                      + Number(bien.amenites.commission_agence ?? 0)
+                      + (bien.amenites.autres_frais ?? []).reduce((s: number, f: any) => s + Number(f.montant ?? 0), 0)
+                    )} FCFA
+                  </strong>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Localisation */}
           {bien.localisation && (

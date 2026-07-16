@@ -48,6 +48,11 @@ export type Piece = {
   surface: number | null;
 };
 
+// Amenites : shape libre retournée par le backend (colonne JSON), consommée
+// via les helpers de src/utils/amenites.ts — voir lib/models/bien.dart côté mobile
+// pour la liste de référence des champs.
+export type Amenites = Record<string, any>;
+
 export type Bien = {
   id: number;
   user_id: number;
@@ -68,6 +73,10 @@ export type Bien = {
   updated_at: string;
   pieces: Piece[];
   photos: Photo[];
+  amenites?: Amenites;
+  details_maison?: { superficie: number; cloture: boolean };
+  details_appart?: { entree_personnelle: boolean };
+  details_terrain?: { superficie: number; cloture: boolean };
 };
 
 export type StatutContrat = 'actif' | 'resilie' | 'expire';
