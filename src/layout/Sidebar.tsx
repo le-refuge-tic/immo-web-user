@@ -3,13 +3,15 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   GridIcon, HomeIcon, UsersIcon, SettingsIcon, ShieldIcon,
   ChevronDownIcon, UserIcon, BuildingIcon, KeyIcon, FileTextIcon, TrendingUpIcon, StarIcon,
-  MessageIcon,
+  MessageIcon, CalendarIcon, FileCheckIcon,
 } from '../components/Icons';
 import { useAuth } from '../context/AuthContext';
 
 const TOP_NAV = [
   { to: '/dashboard',    label: 'Tableau de bord', Icon: GridIcon        },
   { to: '/annonces',     label: 'Annonces Immo',   Icon: HomeIcon        },
+  { to: '/visites',      label: 'Visites',         Icon: CalendarIcon    },
+  { to: '/contrats',     label: 'Contrats',        Icon: FileCheckIcon   },
   { to: '/messages',     label: 'Messages',        Icon: MessageIcon     },
   { to: '/utilisateurs', label: 'Utilisateurs',    Icon: UsersIcon       },
   { to: '/loyers',       label: 'Loyers',          Icon: FileTextIcon    },
@@ -18,10 +20,11 @@ const TOP_NAV = [
 ];
 
 const CONFIG_SUBS_BASE = [
-  { to: '/configuration/profil',        label: 'Mon profil',    Icon: UserIcon     },
-  { to: '/configuration/proprietaires', label: 'Propriétaires', Icon: BuildingIcon },
-  { to: '/configuration/prospects',     label: 'Prospects',     Icon: UsersIcon    },
-  { to: '/configuration/locataires',    label: 'Locataires',    Icon: KeyIcon      },
+  { to: '/configuration/profil',        label: 'Mon profil',      Icon: UserIcon     },
+  { to: '/configuration/proprietaires', label: 'Propriétaires',   Icon: BuildingIcon },
+  { to: '/configuration/prospects',     label: 'Prospects',       Icon: UsersIcon    },
+  { to: '/configuration/locataires',    label: 'Locataires',      Icon: KeyIcon      },
+  { to: '/configuration/delegations',   label: 'Délégations',     Icon: FileCheckIcon },
 ];
 
 const CONFIG_SUB_ADMINS = {

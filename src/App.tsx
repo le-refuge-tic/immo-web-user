@@ -13,9 +13,12 @@ import GestionProprietairePage from './pages/configuration/GestionProprietairePa
 import GestionProspectPage from './pages/configuration/GestionProspectPage';
 import GestionLocatairePage from './pages/configuration/GestionLocatairePage';
 import GestionAdminPage from './pages/configuration/GestionAdminPage';
+import DelegationsPage from './pages/configuration/DelegationsPage';
 import LoyersPage    from './pages/loyers/LoyersPage';
 import FinancesPage  from './pages/finances/FinancesPage';
 import FeedbacksPage from './pages/feedbacks/FeedbacksPage';
+import VisitesPage    from './pages/visites/VisitesPage';
+import ContratsPage   from './pages/contrats/ContratsPage';
 
 export default function App() {
   return (
@@ -37,6 +40,8 @@ export default function App() {
             <Route path="annonces/:id"   element={<AnnonceDetailPage />} />
             <Route path="messages"     element={<MessagesPage />} />
             <Route path="utilisateurs" element={<UtilisateursPage />} />
+            <Route path="visites"      element={<VisitesPage />} />
+            <Route path="contrats"     element={<ContratsPage />} />
             <Route path="loyers"       element={<LoyersPage />} />
             <Route path="finances"     element={<FinancesPage />} />
             <Route path="feedbacks"    element={<FeedbacksPage />} />
@@ -48,6 +53,7 @@ export default function App() {
               <Route path="proprietaires"   element={<GestionProprietairePage />} />
               <Route path="prospects"       element={<GestionProspectPage />} />
               <Route path="locataires"      element={<GestionLocatairePage />} />
+              <Route path="delegations"     element={<DelegationsPage />} />
               <Route path="administrateurs" element={<GestionAdminPage />} />
             </Route>
           </Route>
