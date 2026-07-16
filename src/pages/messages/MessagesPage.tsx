@@ -3,6 +3,9 @@ import { getMessages } from '../../api/getMessages';
 import { postMessage } from '../../api/postMessage';
 import { SearchIcon, SendIcon, PlusIcon } from '../../components/Icons';
 import NewConversationModal from './NewConversationModal';
+import { socketService } from '../../services/socketService';
+
+const CONV_POLL_MS = 15_000;
 
 const COLORS = ['#2563EB', '#7C3AED', '#DB2777', '#D97706', '#16A34A', '#0891B2'];
 function avatarColor(id: number) { return COLORS[Math.abs(id) % COLORS.length]; }
@@ -47,21 +50,62 @@ export default function MessagesPage() {
   const [loadingConvs, setLoadingConvs] = useState(true);
   const [loadingMsgs, setLoadingMsgs]   = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [connected, setConnected]       = useState(false);
   const bottomRef                       = useRef(null as any);
 
-  const loadConvs = useCallback(async () => {
-    setLoadingConvs(true);
+  const loadConvs = useCallback(async (silent = false) => {
+    if (!silent) setLoadingConvs(true);
     try {
       const res = await getMessages.conversations();
       setConvs(res.data ?? res);
     } catch {
-      setConvs([]);
+      if (!silent) setConvs([]);
     } finally {
-      setLoadingConvs(false);
+      if (!silent) setLoadingConvs(false);
     }
   }, []);
 
   useEffect(() => { loadConvs(); }, [loadConvs]);
+
+  // Rafraîchissement périodique de la liste (aperçu + compteurs non-lus)
+  useEffect(() => {
+    const interval = setInterval(() => loadConvs(true), CONV_POLL_MS);
+    return () => clearInterval(interval);
+  }, [loadConvs]);
+
+  // Connexion socket temps réel (namespace /chat, même gateway que l'app mobile)
+  useEffect(() => {
+    const socket = socketService.connect();
+    if (!socket) return;
+    const onConnect    = () => setConnected(true);
+    const onDisconnect = () => setConnected(false);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    setConnected(socket.connected);
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socketService.disconnect();
+    };
+  }, []);
+
+  // Rejoint la room de la conversation active et reçoit ses messages en temps réel
+  useEffect(() => {
+    if (activeId == null) return;
+    socketService.joinConversation(activeId);
+
+    const handleIncoming = (msg: any) => {
+      setMessages(prev => (prev.some((m: any) => m.id === msg.id) ? prev : [...prev, msg]));
+      setConvs(prev => prev.map((c: any) =>
+        c.id === activeId
+          ? { ...c, last_message: msg.contenu, last_message_at: msg.created_at }
+          : c
+      ));
+    };
+
+    socketService.onMessage(handleIncoming);
+    return () => socketService.offMessage(handleIncoming);
+  }, [activeId]);
 
   const loadThread = useCallback(async (id: number) => {
     setLoadingMsgs(true);
@@ -77,7 +121,10 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
-    if (activeId != null) loadThread(activeId);
+    if (activeId == null) return;
+    loadThread(activeId);
+    // Retire localement le badge non-lus (le backend admin ne marque pas encore les messages lus)
+    setConvs(prev => prev.map((c: any) => (c.id === activeId ? { ...c, unread_count: 0 } : c)));
   }, [activeId, loadThread]);
 
   useEffect(() => {
@@ -218,7 +265,11 @@ export default function MessagesPage() {
                 {activeConv.user?.email ? ` · ${activeConv.user.email}` : ''}
               </div>
             </div>
-            <div className="msg-online-dot" title="En ligne" />
+            <div
+              className="msg-online-dot"
+              style={{ background: connected ? undefined : 'var(--c-muted)' }}
+              title={connected ? 'Temps réel actif' : 'Hors ligne'}
+            />
           </div>
 
           {/* Zone de messages */}
