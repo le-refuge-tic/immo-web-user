@@ -13,6 +13,7 @@ export default function PaiementIntegrationPage() {
   const [tel, setTel]           = useState('')
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [errMsg, setErrMsg]     = useState('')
+  const [refId, setRefId]       = useState('')
   const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -29,12 +30,13 @@ export default function PaiementIntegrationPage() {
     setState('waiting')
     try {
       const res = await paiementApi.initierIntegration({ bien_id: Number(bienId), telephone: tel })
-      const refId = res.referenceId || res.reference_id
+      const ref = res.referenceId || res.reference_id
+      setRefId(ref)
       let attempts = 0
       pollRef.current = setInterval(async () => {
         attempts++
         try {
-          const status = await paiementApi.statutIntegration(refId)
+          const status = await paiementApi.statutIntegration(ref)
           if (status.statut === 'reussi' || status.statut === 'success') {
             clearInterval(pollRef.current!)
             setState('success')
@@ -69,6 +71,11 @@ export default function PaiementIntegrationPage() {
         style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
         Continuer
       </button>
+      {refId && (
+        <button onClick={() => navigate(`/recu/integration/${refId}`)} className="text-sm font-semibold text-primary mb-2">
+          Voir mon reçu
+        </button>
+      )}
       <button onClick={() => navigate('/locataire')} className="text-sm font-semibold text-text-grey">Aller à mon logement</button>
     </div>
   )

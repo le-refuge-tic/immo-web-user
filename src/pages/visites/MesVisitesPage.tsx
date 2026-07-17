@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
+import { feedbackApi } from '../../api/feedbackApi'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
@@ -46,7 +47,18 @@ export default function MesVisitesPage() {
   const [phoneOp, setPhoneOp] = useState('')
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
+  const [payState, setPayState] = useState<'idle' | 'waiting' | 'success'>('idle')
+  const [payRefId, setPayRefId] = useState('')
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; body: string; onConfirm: () => void } | null>(null)
+  const [showFeedback, setShowFeedback] = useState<any>(null)
+  const [feedbackNote, setFeedbackNote] = useState(5)
+  const [feedbackComment, setFeedbackComment] = useState('')
+  const [feedbackSaving, setFeedbackSaving] = useState(false)
+  const [feedbackError, setFeedbackError] = useState('')
+  const [feedbackDone, setFeedbackDone] = useState(false)
+
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   useEffect(() => { loadVisites() }, [])
 
@@ -107,16 +119,69 @@ export default function MesVisitesPage() {
     setPaying(true)
     setPayError('')
     try {
-      await paiementApi.initierVisite({
+      const res = await paiementApi.initierVisite({
         visite_id: showPay.id,
         telephone: phoneOp,
       })
-      setShowPay(null)
-      loadVisites()
+      const ref = res.referenceId || res.reference_id
+      setPayRefId(ref)
+      setPayState('waiting')
+      let attempts = 0
+      pollRef.current = setInterval(async () => {
+        attempts++
+        try {
+          const status = await paiementApi.statutVisite(ref)
+          if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
+            clearInterval(pollRef.current!)
+            setPayState('success')
+            loadVisites()
+          } else if (status.statut === 'echoue' || status.statut === 'failed') {
+            clearInterval(pollRef.current!)
+            setPayError('Paiement refusé. Vérifiez votre solde Mobile Money.')
+            setPayState('idle')
+          }
+        } catch (_) {}
+        if (attempts >= 20) { clearInterval(pollRef.current!); setPayError('Délai de confirmation expiré.'); setPayState('idle') }
+      }, 3000)
     } catch (err: any) {
       setPayError(err?.response?.data?.message || 'Erreur de paiement')
+      setPayState('idle')
     }
     setPaying(false)
+  }
+
+  const closePayModal = () => {
+    if (pollRef.current) clearInterval(pollRef.current)
+    setShowPay(null)
+    setPayState('idle')
+    setPhoneOp('')
+    setPayError('')
+  }
+
+  const openFeedback = (v: any) => {
+    setShowFeedback(v)
+    setFeedbackNote(5)
+    setFeedbackComment('')
+    setFeedbackError('')
+    setFeedbackDone(false)
+  }
+
+  const handleSubmitFeedback = async () => {
+    if (!showFeedback) return
+    setFeedbackSaving(true)
+    setFeedbackError('')
+    try {
+      await feedbackApi.soumettreVisite({
+        visite_id: showFeedback.id,
+        bien_id: showFeedback.bien?.id,
+        note: feedbackNote,
+        commentaire: feedbackComment.trim() || undefined,
+      })
+      setFeedbackDone(true)
+    } catch (err: any) {
+      setFeedbackError(err?.response?.data?.message || "Impossible d'envoyer l'avis")
+    }
+    setFeedbackSaving(false)
   }
 
   return (
@@ -169,52 +234,123 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} />)}
+            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} />)}
           </div>
         )}
       </div>
 
       {/* Payment modal */}
       {showPay && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setShowPay(null)}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={payState === 'idle' ? closePayModal : undefined}>
           <div className="glass-strong rounded-t-3xl p-6 w-full" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
-            <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
-            <p className="text-sm text-text-grey mb-4">
-              Montant : <span className="font-bold text-text-dark">{Number(showPay.frais_visite || 0).toLocaleString('fr-FR')} FCFA</span>
-            </p>
-            {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
-            <div className="flex gap-2 mb-4">
-              {OPERATORS.map(op => (
-                <button
-                  key={op.key}
-                  onClick={() => setOperator(op.key)}
-                  className="flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
-                  style={{
-                    borderColor: operator === op.key ? '#4B6BFF' : '#E5E7EB',
-                    color: operator === op.key ? '#4B6BFF' : '#9CA3AF',
-                    background: operator === op.key ? 'rgba(75,107,255,0.06)' : 'transparent',
-                  }}
-                >
-                  {op.label}
+
+            {payState === 'success' ? (
+              <div className="flex flex-col items-center text-center py-4">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
+                  <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <p className="font-bold text-text-dark mb-1">Paiement confirmé !</p>
+                <p className="text-sm text-text-grey mb-5">Les frais de visite ont bien été réglés.</p>
+                <button onClick={() => { navigate(`/recu/visite/${payRefId}`) }} className="w-full py-3.5 rounded-xl font-bold text-white mb-2" style={{ background: '#4B6BFF' }}>
+                  Voir mon reçu
                 </button>
-              ))}
-            </div>
-            <input
-              type="tel"
-              value={phoneOp}
-              onChange={e => setPhoneOp(e.target.value)}
-              placeholder="Numéro Mobile Money"
-              className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4"
-            />
-            <button
-              onClick={handlePayer}
-              disabled={!phoneOp || paying}
-              className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
-              style={{ background: '#FF6B35' }}
-            >
-              {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Confirmer le paiement'}
-            </button>
+                <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
+              </div>
+            ) : payState === 'waiting' ? (
+              <div className="flex flex-col items-center text-center py-6">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="font-bold text-text-dark mb-1">Confirmation en cours…</p>
+                <p className="text-sm text-text-grey">Validez la demande sur votre téléphone {phoneOp}</p>
+              </div>
+            ) : (
+              <>
+                <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
+                <p className="text-sm text-text-grey mb-4">
+                  Montant : <span className="font-bold text-text-dark">{Number(showPay.frais_visite || 0).toLocaleString('fr-FR')} FCFA</span>
+                </p>
+                {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
+                <div className="flex gap-2 mb-4">
+                  {OPERATORS.map(op => (
+                    <button
+                      key={op.key}
+                      onClick={() => setOperator(op.key)}
+                      className="flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
+                      style={{
+                        borderColor: operator === op.key ? '#4B6BFF' : '#E5E7EB',
+                        color: operator === op.key ? '#4B6BFF' : '#9CA3AF',
+                        background: operator === op.key ? 'rgba(75,107,255,0.06)' : 'transparent',
+                      }}
+                    >
+                      {op.label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="tel"
+                  value={phoneOp}
+                  onChange={e => setPhoneOp(e.target.value)}
+                  placeholder="Numéro Mobile Money"
+                  className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4"
+                />
+                <button
+                  onClick={handlePayer}
+                  disabled={!phoneOp || paying}
+                  className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
+                  style={{ background: '#FF6B35' }}
+                >
+                  {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Confirmer le paiement'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Feedback modal */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setShowFeedback(null)}>
+          <div className="glass-strong rounded-t-3xl p-6 w-full" onClick={e => e.stopPropagation()}>
+            <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
+            {feedbackDone ? (
+              <div className="flex flex-col items-center text-center py-4">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
+                  <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <p className="font-bold text-text-dark mb-1">Merci pour votre avis !</p>
+                <button onClick={() => setShowFeedback(null)} className="mt-3 text-sm font-semibold text-text-grey">Fermer</button>
+              </div>
+            ) : (
+              <>
+                <h3 className="font-bold text-text-dark mb-1">Comment s'est passée la visite ?</h3>
+                <p className="text-sm text-text-grey mb-4">Votre avis aide les futurs visiteurs.</p>
+                {feedbackError && <p className="text-danger text-sm mb-3">{feedbackError}</p>}
+                <div className="flex justify-center gap-2 mb-5">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={n} onClick={() => setFeedbackNote(n)} aria-label={`${n} étoiles`}>
+                      <svg className="w-9 h-9" viewBox="0 0 24 24" fill={n <= feedbackNote ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={feedbackComment}
+                  onChange={e => setFeedbackComment(e.target.value)}
+                  placeholder="Un commentaire (optionnel)…"
+                  rows={3}
+                  className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none resize-none mb-4"
+                />
+                <button
+                  onClick={handleSubmitFeedback}
+                  disabled={feedbackSaving}
+                  className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
+                  style={{ background: '#4B6BFF' }}
+                >
+                  {feedbackSaving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Envoyer mon avis'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -248,9 +384,10 @@ type VisiteCardProps = {
   onIntegration: (id: number, integre: boolean) => void
   onPay: (v: any) => void
   onMessage: (id: number) => void
+  onFeedback: (v: any) => void
 }
 
-function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegration, onPay, onMessage }: VisiteCardProps) {
+function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegration, onPay, onMessage, onFeedback }: VisiteCardProps) {
   const meta = STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' }
   const bien = v.bien
   const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
@@ -394,6 +531,17 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
             style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#EF4444' }}
           >
             Annuler
+          </button>
+        )}
+
+        {v.statut === 'effectuee' && (
+          <button
+            onClick={() => onFeedback(v)}
+            className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+            style={{ background: 'rgba(245,158,11,0.1)', color: '#F59E0B' }}
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+            Donner mon avis
           </button>
         )}
       </div>

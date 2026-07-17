@@ -226,7 +226,7 @@ export default function ProfilePage() {
       <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => setEditOpen(true)} />
       <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => setPasswordOpen(true)} />
       <MenuItem icon={<ReceiptMenuIcon />} label="Historique des transactions" onClick={() => {}} />
-      <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => {}} showDivider={false} />
+      <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />
     </div>
   )
 

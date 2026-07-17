@@ -11,6 +11,9 @@ export const paiementApi = {
   statutVisite: (refId: string) =>
     axios.get(`${BASE}/paiements/visite/${refId}/statut`, auth()).then(r => r.data),
 
+  recuVisite: (refId: string) =>
+    axios.get(`${BASE}/paiements/visite/${refId}/recu`, auth()).then(r => r.data),
+
   // Paiement intégration (avance + caution)
   initierIntegration: (body: { bien_id: number; telephone: string }) =>
     axios.post(`${BASE}/paiements/integration`, body, auth()).then(r => r.data),

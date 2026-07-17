@@ -26,6 +26,7 @@ import PaiementIntegrationPage from './pages/integration/PaiementIntegrationPage
 import GestionViaAppPage from './pages/integration/GestionViaAppPage'
 import PortefeuillePage from './pages/wallet/PortefeuillePage'
 import ManageRolesPage from './pages/profile/ManageRolesPage'
+import RecuPage from './pages/recu/RecuPage'
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isLoggedIn } = useAuth()
@@ -83,6 +84,9 @@ function App() {
         } />
         <Route path="/gestion-via-app/:contratId?" element={
           <PrivateRoute><GestionViaAppPage /></PrivateRoute>
+        } />
+        <Route path="/recu/:type/:refId" element={
+          <PrivateRoute><RecuPage /></PrivateRoute>
         } />
 
         {/* Pages client avec MainLayout + BottomNav */}

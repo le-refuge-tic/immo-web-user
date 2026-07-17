@@ -5,6 +5,7 @@ import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
 import { walletApi } from '../../api/walletApi'
+import { delegationApi } from '../../api/delegationApi'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -29,7 +30,15 @@ const PURPLE      = '#9B59B6'
 const DARK_PURPLE = '#4A0E8F'
 const MID_PURPLE  = '#7B2FBE'
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'portefeuille' | 'profil'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'portefeuille' | 'profil' | 'delegations'
+
+const DELEG_STATUT: Record<string, { label: string; color: string }> = {
+  en_attente: { label: 'En attente',  color: '#F59E0B' },
+  active:     { label: 'Active',      color: '#22C55E' },
+  revoquee:   { label: 'Révoquée',    color: '#EF4444' },
+  expiree:    { label: 'Expirée',     color: '#9CA3AF' },
+  refusee:    { label: 'Refusée',     color: '#EF4444' },
+}
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
@@ -421,7 +430,77 @@ function PortefeuilleTab() {
 }
 
 // ─── Tab: Profil ──────────────────────────────────────────────────────────────
-function ProfilTab({ user }: { user: any }) {
+function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
+  const [delegations, setDelegations] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [actingId, setActingId] = useState<number | null>(null)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const d = await delegationApi.recues()
+      setDelegations(Array.isArray(d) ? d : d.data || [])
+    } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  const repondre = async (id: number, accepter: boolean) => {
+    setActingId(id)
+    try { await delegationApi.repondre(id, accepter); load() } catch (_) {}
+    setActingId(null)
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white px-4 py-3 border-b border-divider flex items-center flex-shrink-0">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-text-grey text-sm font-semibold">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          Délégations reçues
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {loading ? [1, 2].map(n => <div key={n} className="h-24 bg-white rounded-xl animate-pulse mb-3" />) : delegations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
+              <IcPerson />
+            </div>
+            <p className="font-bold text-text-dark mb-1">Aucune délégation</p>
+            <p className="text-sm text-text-grey text-center px-6">Les propositions de gestion des propriétaires apparaîtront ici.</p>
+          </div>
+        ) : delegations.map(d => {
+          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#9CA3AF' }
+          return (
+            <div key={d.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm">
+              <div className="flex items-center justify-between mb-1">
+                <p className="font-semibold text-text-dark text-sm">{d.proprietaire?.prenom} {d.proprietaire?.nom}</p>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
+              </div>
+              <p className="text-xs text-text-grey mb-3">
+                {d.bien ? `${typeLabel(d.bien.type)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'} · {d.taux_commission_demarcheur}% commission
+              </p>
+              {d.statut === 'en_attente' && (
+                <div className="flex gap-2">
+                  <button onClick={() => repondre(d.id, true)} disabled={actingId === d.id}
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}>
+                    Accepter
+                  </button>
+                  <button onClick={() => repondre(d.id, false)} disabled={actingId === d.id}
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>
+                    Refuser
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: () => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [cipFile, setCipFile] = useState<File | null>(null)
@@ -507,6 +586,10 @@ function ProfilTab({ user }: { user: any }) {
             <IcChevron />
           </button>
         ))}
+        <button onClick={onOpenDelegations} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <span className="text-sm font-semibold text-text-dark">Délégations reçues</span>
+          <IcChevron />
+        </button>
         <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
           Se déconnecter
         </button>
@@ -658,7 +741,8 @@ export default function DemarcheurDashboard() {
         {tab === 'biens'        && <MesBiensTab />}
         {tab === 'reservations' && <ReservationsTab />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
-        {tab === 'profil'       && <ProfilTab user={me} />}
+        {tab === 'delegations'  && <DelegationsRecuesTab onBack={() => setTab('profil')} />}
+        {tab === 'profil'       && <ProfilTab user={me} onOpenDelegations={() => setTab('delegations')} />}
       </div>
 
       {/* FAB */}
