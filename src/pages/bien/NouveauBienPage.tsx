@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { BENIN_VILLES, VOISINAGE_OPTIONS, EQUIPEMENTS_OPTIONS } from '../../data/beninLocations'
+import QuartierPicker from '../../components/QuartierPicker'
+import { VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 
 const TYPES = [
   { key: 'maison', label: 'Maison / Villa' },
@@ -36,6 +38,7 @@ export default function NouveauBienPage() {
   // Step 2
   const [ville, setVille] = useState('')
   const [quartier, setQuartier] = useState('')
+  const [arrondissement, setArrondissement] = useState('')
   const [adresse, setAdresse] = useState('')
   const [latitude, setLatitude] = useState('6.3654')
   const [longitude, setLongitude] = useState('2.4183')
@@ -226,8 +229,21 @@ export default function NouveauBienPage() {
             </div>
             <div>
               <label className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
-              <input value={quartier} onChange={e => setQuartier(e.target.value)} placeholder="Ex: Cadjèhoun"
-                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary" />
+              <QuartierPicker
+                value={quartier}
+                onChange={setQuartier}
+                ville={VILLES_AVEC_QUARTIERS.includes(ville as any) ? (ville as 'Cotonou' | 'Abomey-Calavi') : undefined}
+                onSelect={q => { setVille(q.ville); setArrondissement(q.arrondissement) }}
+                placeholder="Ex: Cadjèhoun, Godomey…"
+              />
+              {arrondissement && (
+                <p className="text-[11px] text-text-grey mt-1.5 pl-1">{arrondissement}, {ville}</p>
+              )}
+              {!VILLES_AVEC_QUARTIERS.includes(ville as any) && (
+                <p className="text-[11px] text-text-grey mt-1.5 pl-1">
+                  Liste de quartiers disponible pour Cotonou et Abomey-Calavi — sinon, écrivez directement le nom.
+                </p>
+              )}
             </div>
             <div>
               <label className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse</label>

@@ -5,6 +5,7 @@ import { favoritesApi } from '../../api/favoritesApi'
 import { useAuth } from '../../context/AuthContext'
 import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
+import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
 
 /* ── Normalisation accent-insensible ─────────────────────────────
    "adovié" → "adovie"  /  "Cotonou" → "cotonou"
@@ -111,7 +112,11 @@ export default function SearchPage() {
   const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
   const [loading,     setLoading]     = useState(false)
   const [mobileOpen,  setMobileOpen]  = useState(false)
+  const [showSuggest, setShowSuggest] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const suggestions: Quartier[] = query.trim().length >= 1 ? rechercherQuartiers(query) : []
+  const pickSuggestion = (q: Quartier) => { setQuery(q.nom); setShowSuggest(false) }
 
   /* ── Chargement des favs ─────────────────────────────────────── */
   useEffect(() => {
@@ -201,20 +206,35 @@ export default function SearchPage() {
               <BackIcon />
             </button>
             {/* Barre de recherche localisation */}
-            <div className="flex-1 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl glass-input"
-              style={{ border: '1px solid rgba(0,0,0,0.10)' }}
-            >
-              <span style={{ color: 'rgba(0,0,0,0.3)' }}><PinIcon /></span>
-              <input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Ville ou quartier…"
-                className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
-              />
-              {query && (
-                <button onClick={() => setQuery('')} style={{ color: 'rgba(0,0,0,0.3)' }}>
-                  <ClearIcon />
-                </button>
+            <div className="flex-1 relative">
+              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl glass-input"
+                style={{ border: '1px solid rgba(0,0,0,0.10)' }}
+              >
+                <span style={{ color: 'rgba(0,0,0,0.3)' }}><PinIcon /></span>
+                <input
+                  value={query}
+                  onChange={e => { setQuery(e.target.value); setShowSuggest(true) }}
+                  onFocus={() => setShowSuggest(true)}
+                  onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+                  placeholder="Ville ou quartier…"
+                  className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+                />
+                {query && (
+                  <button onClick={() => setQuery('')} style={{ color: 'rgba(0,0,0,0.3)' }}>
+                    <ClearIcon />
+                  </button>
+                )}
+              </div>
+              {showSuggest && suggestions.length > 0 && (
+                <div className="absolute z-30 mt-1 w-full bg-white rounded-xl border border-divider shadow-lg max-h-56 overflow-y-auto">
+                  {suggestions.map((q, i) => (
+                    <button key={`${q.nom}-${i}`} type="button" onClick={() => pickSuggestion(q)}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2">
+                      <span className="text-text-dark font-medium">{q.nom}</span>
+                      <span className="text-text-grey text-xs flex-shrink-0">{q.ville}</span>
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
             {/* Bouton filtres */}
@@ -325,24 +345,39 @@ export default function SearchPage() {
             <label className="block text-xs font-bold text-text-grey uppercase tracking-wider mb-2.5">
               Ville ou quartier
             </label>
-            <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.80)',
-                border: '1px solid rgba(0,0,0,0.10)',
-                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
-              }}
-            >
-              <span style={{ color: 'rgba(0,0,0,0.3)' }}><PinIcon /></span>
-              <input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Ex: Cotonou, Adovié, Akpakpa…"
-                className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
-              />
-              {query && (
-                <button onClick={() => setQuery('')} style={{ color: 'rgba(0,0,0,0.3)' }}>
-                  <ClearIcon />
-                </button>
+            <div className="relative">
+              <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.80)',
+                  border: '1px solid rgba(0,0,0,0.10)',
+                  boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
+                }}
+              >
+                <span style={{ color: 'rgba(0,0,0,0.3)' }}><PinIcon /></span>
+                <input
+                  value={query}
+                  onChange={e => { setQuery(e.target.value); setShowSuggest(true) }}
+                  onFocus={() => setShowSuggest(true)}
+                  onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+                  placeholder="Ex: Cotonou, Adovié, Akpakpa…"
+                  className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+                />
+                {query && (
+                  <button onClick={() => setQuery('')} style={{ color: 'rgba(0,0,0,0.3)' }}>
+                    <ClearIcon />
+                  </button>
+                )}
+              </div>
+              {showSuggest && suggestions.length > 0 && (
+                <div className="absolute z-30 mt-1 w-full bg-white rounded-xl border border-divider shadow-lg max-h-56 overflow-y-auto">
+                  {suggestions.map((q, i) => (
+                    <button key={`${q.nom}-${i}`} type="button" onClick={() => pickSuggestion(q)}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2">
+                      <span className="text-text-dark font-medium">{q.nom}</span>
+                      <span className="text-text-grey text-xs flex-shrink-0">{q.ville}</span>
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
             <p className="text-[11px] text-text-grey mt-1.5 pl-1">
