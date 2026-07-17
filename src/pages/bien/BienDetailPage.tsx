@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
+import { infosLogementRows, infosTerrainRows, actifLabels, type InfoRow } from '../../utils/amenites'
 
 const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
 
@@ -69,22 +70,12 @@ export default function BienDetailPage() {
   const typeLabel = TYPE_LABELS[bien.type] || bien.type
   const prix = Number(bien.prix).toLocaleString('fr-FR')
 
-  const ameniteLabels: string[] = []
   const am = bien.amenites
-  if (am) {
-    if (am.cour) ameniteLabels.push('Cour')
-    if (am.arriere_cour) ameniteLabels.push('Arrière-cour')
-    if (am.parking) ameniteLabels.push(am.parking_capacite ? `Parking (${am.parking_capacite} véh.)` : 'Parking')
-    if (am.boyerie) ameniteLabels.push(am.boyerie_type ? `Boyerie (${am.boyerie_type})` : 'Boyerie')
-    if (am.boutique) ameniteLabels.push(am.boutique_position ? `Boutique (${am.boutique_position})` : 'Boutique')
-    if (am.armoires_chambre) ameniteLabels.push('Armoires chambre')
-    if (am.compteur_eau === 'soneb') ameniteLabels.push('Eau SONEB')
-    else if (am.compteur_eau === 'forage') ameniteLabels.push('Forage')
-    if (am.compteur_elec === 'personnel') ameniteLabels.push('Compteur personnel')
-    else if (am.compteur_elec === 'decompte') ameniteLabels.push('Élec. décomptée')
-    if (Array.isArray(am.equipements)) ameniteLabels.push(...am.equipements)
-    if (Array.isArray(am.voisinage)) ameniteLabels.push(...am.voisinage)
-  }
+  const ameniteLabels: string[] = am ? actifLabels(am) : []
+  const voisinageLabels: string[] = am?.voisinage && Array.isArray(am.voisinage) ? am.voisinage : []
+  const logementRows: InfoRow[] = am ? infosLogementRows(am) : []
+  const terrainRows: InfoRow[] = am ? infosTerrainRows(am) : []
+  const hasAmenitesInfo = ameniteLabels.length > 0 || voisinageLabels.length > 0 || logementRows.length > 0 || terrainRows.length > 0
 
   return (
     <div className="min-h-full pb-28 md:pb-0">
@@ -236,17 +227,38 @@ export default function BienDetailPage() {
               )}
 
               {tab === 'amenites' && (
-                <div>
-                  {ameniteLabels.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {ameniteLabels.map((a, i) => (
-                        <span key={i} className="bg-primary/8 text-primary text-sm font-medium px-4 py-2 rounded-full border border-primary/15">
-                          {a}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
+                <div className="space-y-6">
+                  {!hasAmenitesInfo ? (
                     <p className="text-text-grey text-sm italic">Aucune aménité renseignée.</p>
+                  ) : (
+                    <>
+                      <InfoRowsSection title="Informations logement" rows={logementRows} />
+                      <InfoRowsSection title="Informations terrain" rows={terrainRows} />
+                      {ameniteLabels.length > 0 && (
+                        <div>
+                          <h3 className="font-bold text-text-dark text-sm mb-3">Équipements &amp; atouts</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {ameniteLabels.map((a, i) => (
+                              <span key={i} className="bg-primary/8 text-primary text-sm font-medium px-4 py-2 rounded-full border border-primary/15">
+                                {a}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {voisinageLabels.length > 0 && (
+                        <div>
+                          <h3 className="font-bold text-text-dark text-sm mb-3">Voisinage &amp; environnement</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {voisinageLabels.map((a, i) => (
+                              <span key={i} className="bg-secondary/8 text-secondary text-sm font-medium px-4 py-2 rounded-full border border-secondary/15">
+                                {a}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -375,12 +387,30 @@ export default function BienDetailPage() {
           </div>
         )}
 
+        {(logementRows.length > 0 || terrainRows.length > 0) && (
+          <div className="glass-card rounded-2xl p-4 space-y-4">
+            <InfoRowsSection title="Informations logement" rows={logementRows} compact />
+            <InfoRowsSection title="Informations terrain" rows={terrainRows} compact />
+          </div>
+        )}
+
         {ameniteLabels.length > 0 && (
           <div className="glass-card rounded-2xl p-4">
             <h3 className="font-bold text-text-dark text-sm mb-3">Aménités</h3>
             <div className="flex flex-wrap gap-2">
               {ameniteLabels.map((a, i) => (
                 <span key={i} className="bg-primary/8 text-primary text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/15">{a}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {voisinageLabels.length > 0 && (
+          <div className="glass-card rounded-2xl p-4">
+            <h3 className="font-bold text-text-dark text-sm mb-3">Voisinage &amp; environnement</h3>
+            <div className="flex flex-wrap gap-2">
+              {voisinageLabels.map((a, i) => (
+                <span key={i} className="bg-secondary/8 text-secondary text-xs font-semibold px-3 py-1.5 rounded-full border border-secondary/15">{a}</span>
               ))}
             </div>
           </div>
@@ -404,6 +434,23 @@ function Chip({ label, sub, color }: { label: string; sub?: string; color: strin
     <div className="rounded-xl px-4 py-2.5 text-center" style={{ background: color + '15', border: `1px solid ${color}30` }}>
       <p className="text-sm font-bold" style={{ color }}>{label}</p>
       {sub && <p className="text-xs text-text-grey mt-0.5">{sub}</p>}
+    </div>
+  )
+}
+
+function InfoRowsSection({ title, rows, compact }: { title: string; rows: InfoRow[]; compact?: boolean }) {
+  if (rows.length === 0) return null
+  return (
+    <div>
+      <h3 className={`font-bold text-text-dark mb-3 ${compact ? 'text-sm' : 'text-sm'}`}>{title}</h3>
+      <div className="divide-y divide-divider">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center justify-between py-2.5 text-sm">
+            <span className="text-text-grey">{r.label}</span>
+            <span className="font-semibold text-text-dark text-right ml-4">{r.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
