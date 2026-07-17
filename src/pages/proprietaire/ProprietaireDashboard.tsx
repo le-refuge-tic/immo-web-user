@@ -5,6 +5,10 @@ import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
 import { walletApi } from '../../api/walletApi'
+import { delegationApi } from '../../api/delegationApi'
+import { loyersApi } from '../../api/loyersApi'
+import EditProfileModal from '../profile/EditProfileModal'
+import ChangePasswordModal from '../profile/ChangePasswordModal'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -28,7 +32,15 @@ const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const BLUE      = '#2E86C1'
 const DARK_BLUE = '#0F3460'
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'loyers' | 'portefeuille' | 'profil'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'loyers' | 'portefeuille' | 'profil' | 'delegations'
+
+const DELEG_STATUT: Record<string, { label: string; color: string }> = {
+  en_attente: { label: 'En attente',  color: '#F59E0B' },
+  active:     { label: 'Active',      color: '#22C55E' },
+  revoquee:   { label: 'Révoquée',    color: '#EF4444' },
+  expiree:    { label: 'Expirée',     color: '#9CA3AF' },
+  refusee:    { label: 'Refusée',     color: '#EF4444' },
+}
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',       label: 'Tableau',       icon: <IcDash /> },
@@ -404,25 +416,188 @@ function CreneauxTab() {
   )
 }
 
+// ─── Tab: Délégations ─────────────────────────────────────────────────────────
+function DelegationsTab({ onBack }: { onBack: () => void }) {
+  const [delegations, setDelegations] = useState<any[]>([])
+  const [biens, setBiens] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [search, setSearch] = useState('')
+  const [results, setResults] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
+  const [demarcheur, setDemarcheur] = useState<any>(null)
+  const [bienId, setBienId] = useState('')
+  const [commission, setCommission] = useState('50')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const [d, b] = await Promise.allSettled([delegationApi.emises(), biensApi.mesBiens()])
+      if (d.status === 'fulfilled') setDelegations(Array.isArray(d.value) ? d.value : d.value.data || [])
+      if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
+    } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (search.trim().length < 2) { setResults([]); return }
+    setSearching(true)
+    const t = setTimeout(() => {
+      delegationApi.rechercherDemarcheur(search.trim())
+        .then(d => setResults(Array.isArray(d) ? d : d.data || []))
+        .catch(() => setResults([]))
+        .finally(() => setSearching(false))
+    }, 350)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const proposer = async () => {
+    if (!demarcheur) return
+    setSaving(true)
+    setError('')
+    try {
+      await delegationApi.proposer({
+        demarcheur_id: demarcheur.id,
+        bien_id: bienId ? Number(bienId) : undefined,
+        taux_commission_demarcheur: Number(commission) || 0,
+      })
+      setShowForm(false); setDemarcheur(null); setSearch(''); setBienId(''); setCommission('50')
+      load()
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Impossible de créer la délégation')
+    }
+    setSaving(false)
+  }
+
+  const revoquer = async (id: number) => {
+    try { await delegationApi.revoquer(id); load() } catch (_) {}
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white px-4 py-3 border-b border-divider flex items-center justify-between flex-shrink-0">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-text-grey text-sm font-semibold">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          Délégations
+        </button>
+        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: BLUE }}>
+          <IcPlus /> Déléguer
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
+          {error && <p className="text-danger text-xs">{error}</p>}
+          {demarcheur ? (
+            <div className="flex items-center justify-between bg-surface-g rounded-xl px-3 py-2.5 border border-divider">
+              <span className="text-sm font-semibold text-text-dark">{demarcheur.prenom} {demarcheur.nom}</span>
+              <button onClick={() => { setDemarcheur(null); setSearch('') }} className="text-danger text-xs font-bold">Changer</button>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un démarcheur (nom, téléphone)…"
+                className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider"
+              />
+              {search.trim().length >= 2 && (
+                <div className="mt-1 bg-white rounded-xl border border-divider shadow-sm max-h-40 overflow-y-auto">
+                  {searching ? (
+                    <p className="px-3 py-2.5 text-xs text-text-grey">Recherche…</p>
+                  ) : results.length === 0 ? (
+                    <p className="px-3 py-2.5 text-xs text-text-grey">Aucun démarcheur trouvé.</p>
+                  ) : results.map(r => (
+                    <button key={r.id} onClick={() => { setDemarcheur(r); setResults([]) }}
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0">
+                      {r.prenom} {r.nom} <span className="text-text-grey text-xs">{r.telephone}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <select value={bienId} onChange={e => setBienId(e.target.value)}
+            className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
+            <option value="">Tous mes biens</option>
+            {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
+          </select>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-grey flex-shrink-0">Commission démarcheur</span>
+            <input type="number" min={0} max={100} value={commission} onChange={e => setCommission(e.target.value)}
+              className="flex-1 bg-surface-g rounded-xl px-3 py-2 text-sm outline-none border border-divider" />
+            <span className="text-xs text-text-grey">%</span>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
+            <button onClick={proposer} disabled={!demarcheur || saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
+              {saving ? 'Envoi…' : 'Envoyer la proposition'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {loading ? [1, 2].map(n => <div key={n} className="h-20 bg-white rounded-xl animate-pulse mb-3" />) : delegations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
+              <IcPerson />
+            </div>
+            <p className="font-bold text-text-dark mb-1">Aucune délégation</p>
+            <p className="text-sm text-text-grey text-center px-6">Confiez la gestion d'un bien à un démarcheur de confiance.</p>
+          </div>
+        ) : delegations.map(d => {
+          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#9CA3AF' }
+          return (
+            <div key={d.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm">
+              <div className="flex items-center justify-between mb-1">
+                <p className="font-semibold text-text-dark text-sm">{d.demarcheur?.prenom} {d.demarcheur?.nom}</p>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
+              </div>
+              <p className="text-xs text-text-grey mb-2">
+                {d.bien ? `${typeLabel(d.bien.type)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'} · {d.taux_commission_demarcheur}% commission
+              </p>
+              {d.statut === 'active' && (
+                <button onClick={() => revoquer(d.id)} className="text-xs font-bold text-danger">Révoquer</button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
 function LoyersTab() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  useEffect(() => { userApi.loyersStats().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
+  useEffect(() => { loyersApi.dashboard().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
   if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-  const loyers: any[] = data?.loyers || []
+
+  const stats = data?.stats || {}
+  const contrats: any[] = data?.contrats || []
+  const loyers: any[] = contrats.flatMap((c: any) => (c.loyers || []).map((l: any) => ({ ...l, bien: c.bien, locataire: c.locataire })))
+  const enAttenteMontant = loyers.filter(l => l.statut === 'en_attente' || l.statut === 'en_retard').reduce((s, l) => s + Number(l.montant || 0), 0)
+  const sorted = [...loyers].sort((a, b) => new Date(b.date_echeance || 0).getTime() - new Date(a.date_echeance || 0).getTime())
+
   return (
     <div className="flex-1 overflow-y-auto px-4 py-5">
       <div className="rounded-2xl p-5 mb-5 text-white" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
-        <p className="text-white/70 text-sm mb-1">Total à percevoir</p>
-        <p className="text-2xl font-bold">{Number(data?.total_a_payer ?? 0).toLocaleString('fr-FR')} FCFA</p>
+        <p className="text-white/70 text-sm mb-1">Revenus totaux perçus</p>
+        <p className="text-2xl font-bold">{Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} FCFA</p>
         <div className="flex gap-4 mt-4">
-          <div><p className="text-white/60 text-xs">Perçu</p><p className="font-bold">{Number(data?.total_paye ?? 0).toLocaleString('fr-FR')} FCFA</p></div>
+          <div><p className="text-white/60 text-xs">Ce mois-ci</p><p className="font-bold">{Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} FCFA</p></div>
           <div className="w-px bg-white/20" />
-          <div><p className="text-white/60 text-xs">En attente</p><p className="font-bold">{Number(data?.en_attente ?? 0).toLocaleString('fr-FR')} FCFA</p></div>
+          <div><p className="text-white/60 text-xs">En attente</p><p className="font-bold">{Number(enAttenteMontant).toLocaleString('fr-FR')} FCFA</p></div>
+          <div className="w-px bg-white/20" />
+          <div><p className="text-white/60 text-xs">En retard</p><p className="font-bold">{stats.loyers_en_retard ?? 0}</p></div>
         </div>
       </div>
-      {loyers.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -430,15 +605,17 @@ function LoyersTab() {
           <p className="font-bold text-text-dark mb-1">Aucun loyer</p>
           <p className="text-sm text-text-grey">Les loyers apparaîtront ici</p>
         </div>
-      ) : loyers.map((l: any, i: number) => (
-        <div key={i} className="bg-white rounded-xl p-4 mb-3 shadow-sm flex items-center justify-between">
+      ) : sorted.map((l: any, i: number) => (
+        <div key={l.id || i} className="bg-white rounded-xl p-4 mb-3 shadow-sm flex items-center justify-between">
           <div>
             <p className="font-bold text-text-dark text-sm">{typeLabel(l.bien?.type || '')} — {l.bien?.localisation?.ville || '—'}</p>
             <p className="text-xs text-text-grey mt-0.5">{l.locataire?.prenom} {l.locataire?.nom}</p>
           </div>
           <div className="text-right">
             <p className="font-bold text-text-dark text-sm">{Number(l.montant).toLocaleString('fr-FR')} FCFA</p>
-            <span className={`text-xs font-semibold ${l.statut === 'paye' ? 'text-success' : 'text-warning'}`}>{l.statut === 'paye' ? 'Payé' : 'En attente'}</span>
+            <span className={`text-xs font-semibold ${l.statut === 'paye' ? 'text-success' : l.statut === 'en_retard' ? 'text-danger' : 'text-warning'}`}>
+              {l.statut === 'paye' ? 'Payé' : l.statut === 'en_retard' ? 'En retard' : 'En attente'}
+            </span>
           </div>
         </div>
       ))}
@@ -533,9 +710,11 @@ function PortefeuilleTab() {
 }
 
 // ─── Tab: Profil ──────────────────────────────────────────────────────────────
-function ProfilTab({ user }: { user: any }) {
+function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: () => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
+  const [editOpen, setEditOpen] = useState(false)
+  const [passwordOpen, setPasswordOpen] = useState(false)
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
   return (
@@ -558,16 +737,24 @@ function ProfilTab({ user }: { user: any }) {
         </div>
       </div>
       <div className="px-4 space-y-2">
-        {[{ label: 'Modifier le profil', to: '/profil/edit' }, { label: 'Changer le mot de passe', to: '/profil/password' }].map(item => (
-          <button key={item.label} onClick={() => navigate(item.to)} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
-            <span className="text-sm font-semibold text-text-dark">{item.label}</span>
-            <IcChevron />
-          </button>
-        ))}
+        <button onClick={() => setEditOpen(true)} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <span className="text-sm font-semibold text-text-dark">Modifier le profil</span>
+          <IcChevron />
+        </button>
+        <button onClick={() => setPasswordOpen(true)} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <span className="text-sm font-semibold text-text-dark">Changer le mot de passe</span>
+          <IcChevron />
+        </button>
+        <button onClick={onOpenDelegations} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <span className="text-sm font-semibold text-text-dark">Délégations de gestion</span>
+          <IcChevron />
+        </button>
         <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
           Se déconnecter
         </button>
       </div>
+      <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
+      <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
     </div>
   )
 }
@@ -718,7 +905,8 @@ export default function ProprietaireDashboard() {
         {tab === 'creneaux'     && <CreneauxTab />}
         {tab === 'loyers'       && <LoyersTab />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
-        {tab === 'profil'       && <ProfilTab user={me} />}
+        {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
+        {tab === 'profil'       && <ProfilTab user={me} onOpenDelegations={() => setTab('delegations')} />}
       </div>
 
       {/* FAB */}
