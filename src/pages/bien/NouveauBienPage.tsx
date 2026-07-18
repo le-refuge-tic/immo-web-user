@@ -39,9 +39,11 @@ export default function NouveauBienPage() {
   const [ville, setVille] = useState('')
   const [quartier, setQuartier] = useState('')
   const [arrondissement, setArrondissement] = useState('')
-  const [adresse, setAdresse] = useState('')
-  const [latitude, setLatitude] = useState('6.3654')
-  const [longitude, setLongitude] = useState('2.4183')
+  // Pas de champ dédié dans le formulaire : l'adresse retombe sur quartier/ville,
+  // les coordonnées par défaut pointent le centre de Cotonou.
+  const adresse = ''
+  const latitude = '6.3654'
+  const longitude = '2.4183'
 
   // Step 3
   const [description, setDescription] = useState('')
@@ -220,14 +222,6 @@ export default function NouveauBienPage() {
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Ville *</label>
-              <select value={ville} onChange={e => setVille(e.target.value)} required
-                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary">
-                <option value="">Choisir une ville</option>
-                {BENIN_VILLES.map(v => <option key={v} value={v}>{v}</option>)}
-              </select>
-            </div>
-            <div>
               <label className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
               <QuartierPicker
                 value={quartier}
@@ -236,31 +230,24 @@ export default function NouveauBienPage() {
                 onSelect={q => { setVille(q.ville); setArrondissement(q.arrondissement) }}
                 placeholder="Ex: Cadjèhoun, Godomey…"
               />
-              {arrondissement && (
-                <p className="text-[11px] text-text-grey mt-1.5 pl-1">{arrondissement}, {ville}</p>
-              )}
               {!VILLES_AVEC_QUARTIERS.includes(ville as any) && (
                 <p className="text-[11px] text-text-grey mt-1.5 pl-1">
-                  Liste de quartiers disponible pour Cotonou et Abomey-Calavi — sinon, écrivez directement le nom.
+                  Choisissez un quartier dans la liste, ou écrivez-le directement s'il n'y figure pas.
                 </p>
               )}
             </div>
             <div>
-              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse</label>
-              <input value={adresse} onChange={e => setAdresse(e.target.value)} placeholder="Rue, repère…"
-                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary" />
+              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Ville *</label>
+              <select value={ville} onChange={e => { setVille(e.target.value); setArrondissement('') }} required
+                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary">
+                <option value="">Choisir une ville</option>
+                {BENIN_VILLES.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-text-dark mb-1.5 block">Latitude</label>
-                <input type="number" step="any" value={latitude} onChange={e => setLatitude(e.target.value)}
-                  className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-text-dark mb-1.5 block">Longitude</label>
-                <input type="number" step="any" value={longitude} onChange={e => setLongitude(e.target.value)}
-                  className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary" />
-              </div>
+            <div>
+              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Arrondissement</label>
+              <input value={arrondissement} readOnly placeholder="Se remplit avec le quartier choisi"
+                className="w-full bg-surface-g border border-divider rounded-xl px-4 py-3 text-sm outline-none text-text-grey" />
             </div>
           </div>
         )}
