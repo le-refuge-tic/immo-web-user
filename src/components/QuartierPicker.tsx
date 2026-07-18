@@ -20,6 +20,7 @@ export default function QuartierPicker({ value, onChange, onSelect, onBlur, vill
   const [open, setOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<Quartier[]>([])
   const boxRef = useRef<HTMLDivElement>(null)
+  const justPickedRef = useRef(false)
 
   useEffect(() => {
     setSuggestions(value.trim().length >= 1 ? rechercherQuartiers(value, ville) : [])
@@ -34,6 +35,7 @@ export default function QuartierPicker({ value, onChange, onSelect, onBlur, vill
   }, [])
 
   const pick = (q: Quartier) => {
+    justPickedRef.current = true
     onChange(q.nom)
     onSelect?.(q)
     setOpen(false)
@@ -45,7 +47,13 @@ export default function QuartierPicker({ value, onChange, onSelect, onBlur, vill
         value={value}
         onChange={e => { onChange(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
-        onBlur={() => { setTimeout(() => { setOpen(false); onBlur?.() }, 150) }}
+        onBlur={() => {
+          setTimeout(() => {
+            setOpen(false)
+            if (justPickedRef.current) { justPickedRef.current = false; return }
+            onBlur?.()
+          }, 150)
+        }}
         placeholder={placeholder ?? 'Ex: Cadjèhoun, Godomey…'}
         className={className ?? 'w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary'}
       />
