@@ -461,7 +461,7 @@ function DelegationsTab({ onBack }: { onBack: () => void }) {
     try {
       await delegationApi.proposer({
         demarcheur_id: demarcheur.id,
-        bien_id: bienId ? Number(bienId) : undefined,
+        bien_id: bienId === 'tous' ? undefined : Number(bienId),
         taux_commission_demarcheur: Number(commission) || 0,
       })
       setShowForm(false); setDemarcheur(null); setSearch(''); setBienId(''); setCommission('50')
@@ -522,7 +522,8 @@ function DelegationsTab({ onBack }: { onBack: () => void }) {
           )}
           <select value={bienId} onChange={e => setBienId(e.target.value)}
             className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
-            <option value="">Tous mes biens</option>
+            <option value="" disabled>-- Choisir un bien --</option>
+            <option value="tous">Tous mes biens</option>
             {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
           </select>
           <div className="flex items-center gap-2">
@@ -533,7 +534,7 @@ function DelegationsTab({ onBack }: { onBack: () => void }) {
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-            <button onClick={proposer} disabled={!demarcheur || saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
+            <button onClick={proposer} disabled={!demarcheur || !bienId || saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
               {saving ? 'Envoi…' : 'Envoyer la proposition'}
             </button>
           </div>
