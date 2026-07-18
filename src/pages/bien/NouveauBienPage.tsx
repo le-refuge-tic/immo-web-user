@@ -238,7 +238,7 @@ export default function NouveauBienPage() {
               />
               {quartierInconnu && (
                 <p className="text-[11px] mt-1.5 pl-1" style={{ color: '#D97706' }}>
-                  Ce quartier n'est pas reconnu, mais vous pouvez continuer.
+                  Ce quartier n'est pas dans Cotonou ou Abomey-Calavi, mais vous pouvez continuer.
                 </p>
               )}
             </div>

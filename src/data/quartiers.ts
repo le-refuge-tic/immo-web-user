@@ -73,7 +73,7 @@ export const QUARTIERS: Quartier[] = [
 
   // ── Abomey-Calavi ────────────────────────────────────────────────────────
   ...calavi('Godomey', [
-    'Togbin-Daho', 'Togbin-Kpèvi', 'Togbin-Fandji', 'Djèkpota', 'Ganganzounmè',
+    'Togbin-Daho', 'Togbin-Kpèvi', 'Togbin-Fandji', 'Djèkpota', 'Aklakou', 'Ganganzounmè',
     'Ningboto', "Godomey-N'Gbèho", 'Dèkoungbé-Église', 'Gninkindji', 'Hêdomè',
     'Abikouholi', 'Fignonhou', 'Amahoun', 'Dèkoungbé', 'Agbo Codji Sèdégbé',
     'Logbozounkpa', 'Cococodji', 'Plateau', 'Zounga', 'Dénou', 'Cocotomey',
@@ -102,26 +102,26 @@ export const QUARTIERS: Quartier[] = [
   ]),
   ...calavi('Ouèdo', [
     'Ahouato', 'Alansankomè', 'Dessato', 'Adjagbo-Aïdjèdo', 'Adjagbo', 'Kpossidja',
-    'Dassèkomey', 'Kpossidja 2', 'Ouèdo',
+    'Dassèkomey', 'Kpossidja 2', 'Dodja', 'Ouèdo',
   ]),
   ...calavi('Akassato', [
     'Zogbadjè', 'Zopah-Akassato', 'Houèkè-Gbo', 'Houèkè-Honou', 'Akassato',
     'Misséssinto', 'Adjagbo', 'Glo-Tokpa', 'Zèkanmey-Domè', 'Agassa-Godomey',
-    'Gbétagbo', 'Agonmé', 'Zèkanmey', 'Zayiéra', 'Agonsoudja', 'Kolètin',
+    'Gbétagbo', 'Agonmé', 'Zayiéra', 'Agonsoudja', 'Kolètin',
     'Kpodji-Les-Monts',
   ]),
   ...calavi('Glo-Djigbé', [
-    'Golo-Djigbé', 'Azonsa', 'Domey-Gbo', 'Agonkèssa', 'Adjamè', 'Yêkon-Aga',
-    'Yèkon-Do', 'Espace-Saint', 'Djissoukpa', 'Lohoussa', 'Golo-Fanto', 'Adjogansa',
-    'Gbodjoko', 'Alladacomè',
+    'Golo-Djigbé', 'Azonsa', 'Domey-Gbo', 'Agonkèssa', 'Zèkanmey', 'Adjamè', 'Yêkon-Aga',
+    'Yèkon-Do', 'Espace-Saint', 'Djissoukpa', 'Lohoussa', 'Golo-Fanto',
+    'Alladacomè', 'Agongbé',
   ]),
   ...calavi('Zinvié', [
-    'Dokomè', 'Gbodjè', 'Yèvié', 'Sokan', 'Zinvié-Agolèdji', 'Yèvié-Nougo', 'Zinvié',
+    'Dokomè', 'Adjogansa', 'Gbodjoko', 'Gbodjè', 'Yèvié', 'Sokan', 'Zinvié-Agolèdji', 'Yèvié-Nougo', 'Zinvié',
     'Zinvié-Fandji', 'Dangbodji', 'Tanmè', 'Zinvié-Zounmè', 'Wawata', 'Kpotomey',
     'Wawata-Todja',
   ]),
   ...calavi('Kpanroun', [
-    'Houégoudo', 'Avadjètomè', 'Kpé', 'Dèdo', 'Kplassouhoué', 'Avagbé', 'Kpaviédja',
+    'Houégoudo', 'Avadjètomè', 'Kpé', 'Fandji', 'Dèdo', 'Kplassouhoué', 'Avagbé', 'Kpaviédja',
     'Hadjanaho', 'Kpanroun', 'Bozoun', 'Lokogbé-Kpèvi', 'Djigbo', 'Anagbo', 'Ahowégodo',
   ]),
 ]
