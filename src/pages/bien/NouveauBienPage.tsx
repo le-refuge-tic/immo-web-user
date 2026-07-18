@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
-import { BENIN_VILLES, VOISINAGE_OPTIONS, EQUIPEMENTS_OPTIONS } from '../../data/beninLocations'
+import { VOISINAGE_OPTIONS, EQUIPEMENTS_OPTIONS } from '../../data/beninLocations'
 import QuartierPicker from '../../components/QuartierPicker'
-import { VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
+import { trouverQuartierExact } from '../../data/quartiers'
 
 const TYPES = [
   { key: 'maison', label: 'Maison / Villa' },
@@ -39,6 +39,7 @@ export default function NouveauBienPage() {
   const [ville, setVille] = useState('')
   const [quartier, setQuartier] = useState('')
   const [arrondissement, setArrondissement] = useState('')
+  const [quartierInconnu, setQuartierInconnu] = useState(false)
   // Pas de champ dédié dans le formulaire : l'adresse retombe sur quartier/ville,
   // les coordonnées par défaut pointent le centre de Cotonou.
   const adresse = ''
@@ -89,7 +90,7 @@ export default function NouveauBienPage() {
         description: description || undefined,
         localisation: {
           adresse: adresse || quartier || ville,
-          ville,
+          ville: ville || quartier,
           quartier: quartier || undefined,
           latitude: Number(latitude),
           longitude: Number(longitude),
@@ -225,28 +226,30 @@ export default function NouveauBienPage() {
               <label className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
               <QuartierPicker
                 value={quartier}
-                onChange={setQuartier}
-                ville={VILLES_AVEC_QUARTIERS.includes(ville as any) ? (ville as 'Cotonou' | 'Abomey-Calavi') : undefined}
-                onSelect={q => { setVille(q.ville); setArrondissement(q.arrondissement) }}
+                onChange={v => { setQuartier(v); setQuartierInconnu(false) }}
+                onSelect={q => { setVille(q.ville); setArrondissement(q.arrondissement); setQuartierInconnu(false) }}
+                onBlur={() => {
+                  if (!quartier.trim()) { setQuartierInconnu(false); return }
+                  const trouve = trouverQuartierExact(quartier)
+                  if (trouve) { setVille(trouve.ville); setArrondissement(trouve.arrondissement); setQuartierInconnu(false) }
+                  else { setVille(''); setArrondissement(''); setQuartierInconnu(true) }
+                }}
                 placeholder="Ex: Cadjèhoun, Godomey…"
               />
-              {!VILLES_AVEC_QUARTIERS.includes(ville as any) && (
-                <p className="text-[11px] text-text-grey mt-1.5 pl-1">
-                  Choisissez un quartier dans la liste, ou écrivez-le directement s'il n'y figure pas.
+              {quartierInconnu && (
+                <p className="text-[11px] mt-1.5 pl-1" style={{ color: '#D97706' }}>
+                  Ce quartier n'est pas reconnu, mais vous pouvez continuer.
                 </p>
               )}
             </div>
             <div>
-              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Ville *</label>
-              <select value={ville} onChange={e => { setVille(e.target.value); setArrondissement('') }} required
-                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary">
-                <option value="">Choisir une ville</option>
-                {BENIN_VILLES.map(v => <option key={v} value={v}>{v}</option>)}
-              </select>
+              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Arrondissement</label>
+              <input value={arrondissement} readOnly disabled placeholder="Se remplit avec le quartier"
+                className="w-full bg-surface-g border border-divider rounded-xl px-4 py-3 text-sm outline-none text-text-grey" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Arrondissement</label>
-              <input value={arrondissement} readOnly placeholder="Se remplit avec le quartier choisi"
+              <label className="text-xs font-semibold text-text-dark mb-1.5 block">Ville</label>
+              <input value={ville} readOnly disabled placeholder="Se remplit avec le quartier"
                 className="w-full bg-surface-g border border-divider rounded-xl px-4 py-3 text-sm outline-none text-text-grey" />
             </div>
           </div>
@@ -474,7 +477,7 @@ export default function NouveauBienPage() {
         {step < 5 ? (
           <button
             onClick={() => {
-              if (step === 1 && !ville) { setError('Choisissez une ville'); return }
+              if (step === 1 && !quartier) { setError('Indiquez le quartier'); return }
               if (step === 4 && !prix) { setError('Saisissez un prix'); return }
               setError('')
               setStep(s => s + 1)

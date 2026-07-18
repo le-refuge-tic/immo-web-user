@@ -140,3 +140,10 @@ export function rechercherQuartiers(query: string, ville?: 'Cotonou' | 'Abomey-C
 
 /** Les deux villes couvertes par cette base (pour distinguer d'une saisie libre). */
 export const VILLES_AVEC_QUARTIERS: Array<'Cotonou' | 'Abomey-Calavi'> = ['Cotonou', 'Abomey-Calavi']
+
+/** Correspondance exacte (accent/casse insensible) — utilisé pour savoir si un quartier tapé est reconnu. */
+export function trouverQuartierExact(nom: string): Quartier | undefined {
+  const q = norm(nom)
+  if (!q) return undefined
+  return QUARTIERS.find(x => norm(x.nom) === q)
+}

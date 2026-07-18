@@ -5,6 +5,7 @@ type Props = {
   value: string
   onChange: (quartier: string) => void
   onSelect?: (q: Quartier) => void
+  onBlur?: () => void
   ville?: 'Cotonou' | 'Abomey-Calavi'
   placeholder?: string
   className?: string
@@ -15,7 +16,7 @@ type Props = {
  * La saisie reste libre : si le quartier tapé n'est pas dans la liste,
  * la valeur est quand même acceptée (pas de blocage).
  */
-export default function QuartierPicker({ value, onChange, onSelect, ville, placeholder, className }: Props) {
+export default function QuartierPicker({ value, onChange, onSelect, onBlur, ville, placeholder, className }: Props) {
   const [open, setOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<Quartier[]>([])
   const boxRef = useRef<HTMLDivElement>(null)
@@ -44,6 +45,7 @@ export default function QuartierPicker({ value, onChange, onSelect, ville, place
         value={value}
         onChange={e => { onChange(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
+        onBlur={() => { setTimeout(() => { setOpen(false); onBlur?.() }, 150) }}
         placeholder={placeholder ?? 'Ex: Cadjèhoun, Godomey…'}
         className={className ?? 'w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary'}
       />
