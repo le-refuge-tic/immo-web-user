@@ -8,7 +8,7 @@ const auth = () => ({
 
 export const visitesApi = {
   mesVisites: () =>
-    axios.get(`${BASE}/visites/mes-visites`, auth()).then(r => r.data),
+    axios.get(`${BASE}/visites`, auth()).then(r => r.data),
 
   creneaux: (bienId: number) =>
     axios.get(`${BASE}/visites/creneaux/${bienId}`, auth()).then(r => r.data),
@@ -30,7 +30,7 @@ export const visitesApi = {
     axios.delete(`${BASE}/visites/creneaux/${id}`, auth()).then(r => r.data),
 
   reservationsRecues: () =>
-    axios.get(`${BASE}/visites/reservations`, auth()).then(r => r.data),
+    axios.get(`${BASE}/visites`, auth()).then(r => r.data),
 
   confirmerVisite: (id: number) =>
     axios.patch(`${BASE}/visites/${id}/confirmer`, {}, auth()).then(r => r.data),
@@ -42,7 +42,7 @@ export const visitesApi = {
     axios.patch(`${BASE}/visites/${id}/accepter`, {}, auth()).then(r => r.data),
 
   marquerEffectuee: (id: number) =>
-    axios.patch(`${BASE}/visites/${id}/marquer-effectuee`, {}, auth()).then(r => r.data),
+    axios.patch(`${BASE}/visites/${id}/effectuee`, {}, auth()).then(r => r.data),
 
   deciderIntegration: (id: number, integre: boolean) =>
     axios.patch(`${BASE}/visites/${id}/integration`, { integre }, auth()).then(r => r.data),
