@@ -225,7 +225,8 @@ export default function ProfilePage() {
     <div className="glass-card rounded-[16px] overflow-hidden">
       <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => setEditOpen(true)} />
       <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => setPasswordOpen(true)} />
-      <MenuItem icon={<ReceiptMenuIcon />} label="Historique des transactions" onClick={() => {}} />
+      <MenuItem icon={<ReceiptMenuIcon />} label="Historique des transactions" onClick={() => navigate('/portefeuille')} />
+      <MenuItem icon={<PersonMenuIcon />} label="Gérer mes rôles" onClick={() => navigate('/mes-roles')} />
       <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />
     </div>
   )

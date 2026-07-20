@@ -19,6 +19,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const [nom, setNom] = useState(user?.nom || '')
   const [prenom, setPrenom] = useState(user?.prenom || '')
   const [email, setEmail] = useState(user?.email || '')
+  const [telephone, setTelephone] = useState((user as any)?.telephone || '')
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -29,6 +30,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       setNom(user?.nom || '')
       setPrenom(user?.prenom || '')
       setEmail(user?.email || '')
+      setTelephone((user as any)?.telephone || '')
       setError('')
       setSuccess(false)
     }
@@ -43,8 +45,8 @@ export default function EditProfileModal({ open, onClose }: Props) {
     setLoading(true)
     setError('')
     try {
-      const data = await userApi.updateProfil({ nom, prenom, email: email || undefined })
-      updateUser(data.user || { nom, prenom, email })
+      const data = await userApi.updateProfil({ nom, prenom, email: email || undefined, telephone: telephone || undefined })
+      updateUser(data.user || { nom, prenom, email, telephone })
       setSuccess(true)
       setTimeout(onClose, 1000)
     } catch (err: any) {
@@ -141,6 +143,11 @@ export default function EditProfileModal({ open, onClose }: Props) {
           <div>
             <label className="text-sm font-semibold text-text-dark mb-1.5 block">Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com"
+              className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</label>
+            <input type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="+229 00 00 00 00"
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div className="flex gap-3 pt-1">

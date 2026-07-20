@@ -6,6 +6,7 @@ import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
 import { walletApi } from '../../api/walletApi'
 import { delegationApi } from '../../api/delegationApi'
+import { chatApi } from '../../api/chatApi'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 
@@ -150,7 +151,8 @@ function MesBiensTab() {
           const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
           const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
           return (
-            <div key={b.id} className="bg-white rounded-2xl shadow-sm overflow-hidden mb-3">
+            <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} role="button" tabIndex={0}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden mb-3 cursor-pointer transition-transform hover:-translate-y-0.5">
               <div className="relative h-32">
                 {cover?.url
                   ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
@@ -158,7 +160,7 @@ function MesBiensTab() {
                 }
                 <div className="absolute inset-0 bg-black/20" />
                 <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
-                <button onClick={() => del(b.id)} className="absolute top-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="absolute top-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
                 <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
               </div>
               <div className="p-3.5">
@@ -178,6 +180,7 @@ function MesBiensTab() {
 
 // ─── Tab: Réservations ────────────────────────────────────────────────────────
 function ReservationsTab() {
+  const navigate = useNavigate()
   const [visites, setVisites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('Toutes')
@@ -185,6 +188,7 @@ function ReservationsTab() {
   const [cpDate, setCpDate] = useState('')
   const [cpTime, setCpTime] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -195,10 +199,26 @@ function ReservationsTab() {
 
   const filtered = filter === 'Toutes' ? visites
     : filter === 'À traiter' ? visites.filter(v => v.statut === 'en_attente')
-    : visites.filter(v => v.statut === 'confirmee')
+    : filter === 'Confirmées' ? visites.filter(v => v.statut === 'confirmee')
+    : visites.filter(v => v.statut === 'annulee')
 
   const confirmer = async (id: number) => {
     try { await visitesApi.confirmerVisite(id); load() } catch (_) {}
+  }
+
+  const ouvrirChat = async (v: any) => {
+    const clientId = v.prospect?.id || v.client?.id
+    const bienId = v.bien?.id
+    if (!clientId || !bienId) return
+    setChatLoadingId(v.id)
+    try {
+      const convs = await chatApi.conversations()
+      const list = Array.isArray(convs) ? convs : convs.data || []
+      const match = list.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === clientId))
+      if (match) navigate(`/conversations/${match.id}`)
+      else alert('Ce client n\'a pas encore démarré de conversation pour ce bien.')
+    } catch (_) {}
+    setChatLoadingId(null)
   }
 
   const contreProposer = async () => {
@@ -219,7 +239,7 @@ function ReservationsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="bg-white border-b border-divider flex flex-shrink-0">
-        {['Toutes', 'À traiter', 'Confirmées'].map(f => (
+        {['Toutes', 'À traiter', 'Confirmées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
             style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
@@ -273,8 +293,9 @@ function ReservationsTab() {
                 </div>
               )}
               <div className="flex gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: PURPLE + '50', color: PURPLE, background: PURPLE + '10' }}>
-                  <IcChat /> Chat
+                <button onClick={() => ouvrirChat(v)} disabled={chatLoadingId === v.id}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: PURPLE + '50', color: PURPLE, background: PURPLE + '10' }}>
+                  <IcChat /> {chatLoadingId === v.id ? '…' : 'Chat'}
                 </button>
                 {v.statut === 'en_attente' && <>
                   <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: PURPLE + '80', color: PURPLE }}>Autre créneau</button>
