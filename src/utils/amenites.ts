@@ -82,13 +82,18 @@ export function disponibiliteLabel(a: any): string | null {
 }
 
 const DOCUMENT_TERRAIN_LABELS: Record<string, string> = {
+  permis_construire: 'Permis de construire',
   titre_foncier: 'Titre foncier',
+  attestation_recasement: 'Attestation de recasement',
+  convention_vente: 'Convention de vente',
   lettre_attribution: "Lettre d'attribution",
   plan: 'Plan cadastral',
   autre: 'Autre document',
 }
 
 const POSITION_TERRAIN_LABELS: Record<string, string> = {
+  bord_goudron: 'Au bord du goudron',
+  ruelle: 'Dans la ruelle',
   bordure_route: 'Bordure de route',
   quartier: 'Dans le quartier',
   retrait: 'En retrait',
