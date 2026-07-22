@@ -37,7 +37,7 @@ export default function ManageRolesPage() {
   const activerRole = async (role: string) => {
     setLoading(role); setError('')
     try {
-      await rolesApi.activer(role, justif || undefined)
+      await rolesApi.activer(role)
       const newRoles = [...actifs, role]
       updateUser({ roles_actifs: newRoles })
       setActivating(null); setJustif('')

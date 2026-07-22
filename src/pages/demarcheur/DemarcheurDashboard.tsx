@@ -653,6 +653,14 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
           <span className="text-sm font-semibold text-text-dark">Délégations reçues</span>
           <IcChevron />
         </button>
+        <button onClick={() => navigate('/mes-roles')} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <span className="text-sm font-semibold text-text-dark">Gérer mes rôles</span>
+          <IcChevron />
+        </button>
+        <button onClick={() => navigate('/portefeuille')} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
+          <IcChevron />
+        </button>
         <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
           Se déconnecter
         </button>
