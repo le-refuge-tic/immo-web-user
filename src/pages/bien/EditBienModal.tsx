@@ -34,7 +34,6 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
         description: description.trim() || undefined,
         localisation: {
           ville: ville || undefined,
-          arrondissement: arrondissement || undefined,
           quartier: quartier || undefined,
           adresse: adresse.trim() || undefined,
         },
