@@ -36,6 +36,16 @@ export default function BienDetailPage() {
       .finally(() => setLoading(false))
   }, [id])
 
+  useEffect(() => {
+    if (!isLoggedIn) return
+    favoritesApi.list()
+      .then(data => {
+        const list = Array.isArray(data) ? data : data.data || []
+        setIsFav(list.some((f: any) => (f.bien_id || f.id) === Number(id)))
+      })
+      .catch(() => {})
+  }, [id, isLoggedIn])
+
   const toggleFav = async () => {
     if (!isLoggedIn) { navigate('/login'); return }
     try {

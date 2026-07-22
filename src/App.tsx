@@ -27,6 +27,7 @@ import GestionViaAppPage from './pages/integration/GestionViaAppPage'
 import PortefeuillePage from './pages/wallet/PortefeuillePage'
 import ManageRolesPage from './pages/profile/ManageRolesPage'
 import RecuPage from './pages/recu/RecuPage'
+import SearchPage from './pages/search/SearchPage'
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isLoggedIn } = useAuth()
@@ -92,6 +93,7 @@ function App() {
         {/* Pages client avec MainLayout + BottomNav */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomeGuard />} />
+          <Route path="search" element={<SearchPage />} />
           <Route path="biens/:id" element={<BienDetailPage />} />
           <Route path="favoris" element={<FavoritesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />

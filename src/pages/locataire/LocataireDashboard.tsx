@@ -25,12 +25,36 @@ const ORANGE = '#F59E0B'
 
 type Tab = 'logement' | 'activite' | 'messages' | 'alertes' | 'profil'
 
+const OPERATEURS: { id: 'momo' | 'flooz' | 'celtiis' | 'fedapay'; label: string; accent: string }[] = [
+  { id: 'momo', label: 'MTN MoMo', accent: '#FFCC00' },
+  { id: 'flooz', label: 'Moov Flooz', accent: '#0066CC' },
+  { id: 'celtiis', label: 'Celtiis', accent: '#D32F2F' },
+  { id: 'fedapay', label: 'FedaPay', accent: '#00B4D8' },
+]
+
+function OperateurChips({ value, onChange }: { value: string; onChange: (v: any) => void }) {
+  return (
+    <div className="flex gap-2 mb-3 flex-wrap">
+      {OPERATEURS.map(o => (
+        <button key={o.id} onClick={() => onChange(o.id)}
+          className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all"
+          style={value === o.id
+            ? { borderColor: o.accent, background: `${o.accent}20`, color: '#1A1A2E' }
+            : { borderColor: '#E5E7EB', color: '#6B7280', background: '#fff' }}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ─── Mon Logement ─────────────────────────────────────────────────────────────
 function MonLogementTab() {
   const [data, setData]         = useState<any>(null)
   const [loading, setLoading]   = useState(true)
   const [selected, setSelected] = useState<number[]>([])
   const [tel, setTel]           = useState('')
+  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay'>('momo')
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [payMsg, setPayMsg]     = useState('')
@@ -60,7 +84,7 @@ function MonLogementTab() {
     setPaying(true)
     setPayState('waiting')
     try {
-      const res = await paiementApi.initierLoyer({ contrat_id: contrat.id, mois_ids: selected, telephone: tel })
+      const res = await paiementApi.initierLoyer({ loyer_id: selected[0], methode_paiement: operateur, telephone_paiement: tel })
       const refId = res.referenceId || res.reference_id
       let attempts = 0
       pollRef.current = setInterval(async () => {
@@ -196,6 +220,7 @@ function MonLogementTab() {
                         <p className="text-sm text-text-grey">{selected.length} loyer{selected.length > 1 ? 's' : ''}</p>
                         <p className="font-bold text-text-dark">{totalSelected.toLocaleString('fr-FR')} FCFA</p>
                       </div>
+                      <OperateurChips value={operateur} onChange={setOperateur} />
                       <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
                         <span className="text-text-grey text-sm font-semibold">+229</span>
                         <div className="w-px h-4 bg-divider" />
@@ -206,7 +231,7 @@ function MonLogementTab() {
                       <button onClick={payer} disabled={!tel || paying}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
                         style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
-                        Payer via MTN MoMo
+                        Payer via {OPERATEURS.find(o => o.id === operateur)?.label}
                       </button>
                     </>
                   )}
@@ -271,6 +296,7 @@ function ActiviteTab() {
   const [data, setData]         = useState<any>(null)
   const [loading, setLoading]   = useState(true)
   const [tel, setTel]           = useState('')
+  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay'>('momo')
   const [showPay, setShowPay]   = useState(false)
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
@@ -302,7 +328,7 @@ function ActiviteTab() {
     if (!tel || !prochainLoyer) return
     setPaying(true); setPayState('waiting')
     try {
-      const res = await paiementApi.initierLoyer({ contrat_id: data.contrat.id, mois_ids: [prochainLoyer.id], telephone: tel })
+      const res = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
       const refId = res.referenceId || res.reference_id
       let attempts = 0
       pollRef.current = setInterval(async () => {
@@ -368,7 +394,8 @@ function ActiviteTab() {
             </div>
           ) : (
             <>
-              <p className="font-semibold text-text-dark text-sm mb-3">Numéro MTN MoMo</p>
+              <p className="font-semibold text-text-dark text-sm mb-2">Numéro de téléphone</p>
+              <OperateurChips value={operateur} onChange={setOperateur} />
               <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
                 <span className="text-text-grey text-sm font-semibold">+229</span>
                 <div className="w-px h-4 bg-divider" />

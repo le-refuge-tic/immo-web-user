@@ -14,9 +14,10 @@ const STATUT_META: Record<string, { label: string; color: string; bg: string }> 
 }
 
 const OPERATORS = [
-  { key: 'mtn',     label: 'MTN MoMo'     },
-  { key: 'moov',    label: 'Moov Money'   },
+  { key: 'momo',    label: 'MTN MoMo'     },
+  { key: 'flooz',   label: 'Moov Flooz'   },
   { key: 'celtiis', label: 'Celtiis Cash' },
+  { key: 'fedapay', label: 'FedaPay'      },
 ]
 
 const TYPE_LABELS: Record<string, string> = {
@@ -43,7 +44,7 @@ export default function MesVisitesPage() {
   const [visites, setVisites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showPay, setShowPay] = useState<any>(null)
-  const [operator, setOperator] = useState('mtn')
+  const [operator, setOperator] = useState('momo')
   const [phoneOp, setPhoneOp] = useState('')
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
@@ -121,7 +122,8 @@ export default function MesVisitesPage() {
     try {
       const res = await paiementApi.initierVisite({
         visite_id: showPay.id,
-        telephone: phoneOp,
+        phone: phoneOp,
+        methode_paiement: operator as any,
       })
       const ref = res.referenceId || res.reference_id
       setPayRefId(ref)

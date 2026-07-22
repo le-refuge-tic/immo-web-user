@@ -9,6 +9,7 @@ import { delegationApi } from '../../api/delegationApi'
 import { chatApi } from '../../api/chatApi'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
+import EditBienModal from '../bien/EditBienModal'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -22,6 +23,7 @@ const IcEye     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcStar    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
 const IcPin     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
 const IcTrash   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+const IcEdit    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
 const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
 const IcChat    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcUpload  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
@@ -107,8 +109,14 @@ function MesBiensTab() {
     try { await biensApi.delete(id); load() } catch (_) {}
   }
 
+  const [editingBien, setEditingBien] = useState<any>(null)
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      {editingBien && (
+        <EditBienModal bien={editingBien} onClose={() => setEditingBien(null)}
+          onSaved={updated => { setBiens(prev => prev.map(b => b.id === updated.id ? updated : b)); setEditingBien(null) }} />
+      )}
       <div className="bg-white px-4 py-3 border-b border-divider flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <p className="font-bold text-text-dark">{biens.length} bien{biens.length > 1 ? 's' : ''}</p>
@@ -160,7 +168,10 @@ function MesBiensTab() {
                 }
                 <div className="absolute inset-0 bg-black/20" />
                 <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
-                <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="absolute top-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                <div className="absolute top-3 right-3 flex gap-1.5">
+                  <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
+                  <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                </div>
                 <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
               </div>
               <div className="p-3.5">
@@ -179,6 +190,13 @@ function MesBiensTab() {
 }
 
 // ─── Tab: Réservations ────────────────────────────────────────────────────────
+function isEchouee(v: any): boolean {
+  if (v.statut === 'effectuee' || v.statut === 'annulee') return false
+  const raw = v.date_contre_proposee || v.date_souhaitee
+  if (!raw) return false
+  return new Date(raw).getTime() < Date.now()
+}
+
 function ReservationsTab() {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<any[]>([])
@@ -198,8 +216,9 @@ function ReservationsTab() {
   useEffect(() => { load() }, [])
 
   const filtered = filter === 'Toutes' ? visites
-    : filter === 'À traiter' ? visites.filter(v => v.statut === 'en_attente')
-    : filter === 'Confirmées' ? visites.filter(v => v.statut === 'confirmee')
+    : filter === 'À traiter' ? visites.filter(v => !isEchouee(v) && v.statut === 'en_attente')
+    : filter === 'Confirmées' ? visites.filter(v => !isEchouee(v) && v.statut === 'confirmee')
+    : filter === 'Échouées' ? visites.filter(v => isEchouee(v))
     : visites.filter(v => v.statut === 'annulee')
 
   const confirmer = async (id: number) => {
@@ -207,7 +226,7 @@ function ReservationsTab() {
   }
 
   const ouvrirChat = async (v: any) => {
-    const clientId = v.prospect?.id || v.client?.id
+    const clientId = v.client?.id
     const bienId = v.bien?.id
     if (!clientId || !bienId) return
     setChatLoadingId(v.id)
@@ -239,7 +258,7 @@ function ReservationsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="bg-white border-b border-divider flex flex-shrink-0">
-        {['Toutes', 'À traiter', 'Confirmées', 'Annulées'].map(f => (
+        {['Toutes', 'À traiter', 'Confirmées', 'Échouées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
             style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
@@ -259,12 +278,14 @@ function ReservationsTab() {
             <p className="text-sm text-text-grey text-center">Les demandes de visite apparaîtront ici</p>
           </div>
         ) : filtered.map((v, i) => {
-          const { label, color } = statutVisite(v.statut)
-          const nom = `${v.prospect?.prenom || ''} ${v.prospect?.nom || ''}`.trim() || 'Client'
+          const echouee = isEchouee(v)
+          const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+          const nom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
           const init = nom.charAt(0).toUpperCase()
           const bType = typeLabel(v.bien?.type || '')
           const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
           const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+          const contactNumero = v.client?.numero_whatsapp || v.client?.telephone
           return (
             <div key={v.id || i} className="bg-white rounded-2xl shadow-sm mb-3 p-4">
               <div className="flex items-center gap-3 mb-3">
@@ -272,7 +293,7 @@ function ReservationsTab() {
                   style={{ background: `linear-gradient(135deg, ${PURPLE}, ${DARK_PURPLE})` }}>{init}</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-text-dark text-sm">{nom}</p>
-                  <p className="text-xs text-text-grey">{v.prospect?.telephone || '—'}</p>
+                  <p className="text-xs text-text-grey">{v.client?.telephone || '—'}</p>
                 </div>
                 <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
               </div>
@@ -290,6 +311,21 @@ function ReservationsTab() {
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#4CAF5010', borderColor: '#4CAF5030', color: '#4CAF50' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   Frais de visite payés
+                </div>
+              )}
+              {!echouee && v.statut === 'confirmee' && v.numeros_partages && contactNumero && (
+                <div className="flex items-center gap-3 p-3 rounded-xl mb-3" style={{ background: '#25D36614', border: '1px solid #25D36650' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#25D36626' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
+                    <p className="text-sm font-bold text-text-dark">{contactNumero}</p>
+                  </div>
+                  <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#25D366' }}>
+                    WhatsApp
+                  </a>
                 </div>
               )}
               <div className="flex gap-2">

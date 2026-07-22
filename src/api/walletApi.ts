@@ -11,5 +11,5 @@ export const walletApi = {
     axios.get(`${BASE}/wallets/me/transactions`, auth()).then(r => r.data),
 
   demandeRetrait: (montant: number) =>
-    axios.post(`${BASE}/wallets/me/demandes-retrait`, { montant }, auth()).then(r => r.data),
+    axios.post(`${BASE}/wallets/me/retrait`, { montant }, auth()).then(r => r.data),
 }

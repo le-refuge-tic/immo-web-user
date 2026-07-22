@@ -19,6 +19,9 @@ export const biensApi = {
   create: (body: any) =>
     axios.post(`${BASE}/biens`, body, auth()).then(r => r.data),
 
+  update: (id: number, body: any) =>
+    axios.patch(`${BASE}/biens/${id}`, body, auth()).then(r => r.data),
+
   updateStatut: (id: number, statut: string) =>
     axios.patch(`${BASE}/biens/${id}/statut`, { statut }, auth()).then(r => r.data),
 

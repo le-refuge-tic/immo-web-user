@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
+import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 
 const TEAL = '#0EA5E9'
@@ -10,6 +11,7 @@ export default function PaiementIntegrationPage() {
   const navigate = useNavigate()
 
   const [bien, setBien]         = useState<any>(null)
+  const [visiteId, setVisiteId] = useState<number | null>(null)
   const [tel, setTel]           = useState('')
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [errMsg, setErrMsg]     = useState('')
@@ -21,15 +23,22 @@ export default function PaiementIntegrationPage() {
     biensApi.byId(Number(bienId))
       .then(d => setBien(d.bien || d))
       .catch(() => {})
+    visitesApi.mesVisites()
+      .then(data => {
+        const list = Array.isArray(data) ? data : data.data || []
+        const visite = list.find((v: any) => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
+        if (visite) setVisiteId(visite.id)
+      })
+      .catch(() => {})
   }, [bienId])
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   const payer = async () => {
-    if (!tel || !bienId) return
+    if (!tel || !visiteId) return
     setState('waiting')
     try {
-      const res = await paiementApi.initierIntegration({ bien_id: Number(bienId), telephone: tel })
+      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: tel })
       const ref = res.referenceId || res.reference_id
       setRefId(ref)
       let attempts = 0
@@ -159,11 +168,14 @@ export default function PaiementIntegrationPage() {
                 <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>Une demande de paiement sera envoyée à votre téléphone. Validez-la dans les 3 minutes.</span>
               </div>
-              <button onClick={payer} disabled={tel.length < 8}
+              <button onClick={payer} disabled={tel.length < 8 || !visiteId}
                 className="w-full py-4 rounded-xl font-bold text-white disabled:opacity-40"
                 style={{ background: `linear-gradient(135deg, #0F3460, ${TEAL})`, boxShadow: '0 4px 14px rgba(14,165,233,0.35)' }}>
                 Payer {total.toLocaleString('fr-FR')} FCFA
               </button>
+              {!visiteId && (
+                <p className="text-xs text-danger mt-2 text-center">Aucune visite avec intégration validée trouvée pour ce bien.</p>
+              )}
             </div>
           ) : (
             <div className="rounded-2xl p-8 flex flex-col items-center" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>

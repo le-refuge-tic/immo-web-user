@@ -71,7 +71,7 @@ export default function ManageRolesPage() {
     else navigate('/')
   }
 
-  const disponibles = ROLES.filter(r => !actifs.includes(r.key) && r.key !== rolePrincipal)
+  const disponibles = ROLES.filter(r => !actifs.includes(r.key) && r.key !== rolePrincipal && r.key !== 'locataire')
   const actifsList  = ROLES.filter(r => actifs.includes(r.key))
 
   return (
@@ -159,7 +159,7 @@ export default function ManageRolesPage() {
           {disponibles.length > 0 && (
             <div>
               <p className="text-xs font-bold text-text-grey uppercase tracking-wide mb-2">Rôles disponibles</p>
-              <p className="text-xs text-text-grey mb-3">Activez un rôle supplémentaire (max 2 rôles actifs)</p>
+              <p className="text-xs text-text-grey mb-3">Activez un rôle supplémentaire (max 3 rôles actifs)</p>
               <div className="space-y-2">
                 {disponibles.map(r => (
                   <div key={r.key}>
@@ -171,7 +171,7 @@ export default function ManageRolesPage() {
                         <p className="font-bold text-text-dark text-sm">{r.label}</p>
                         <p className="text-xs text-text-grey mt-0.5">{r.desc}</p>
                       </div>
-                      <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 2}
+                      <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
                         className="px-3 py-1.5 rounded-lg text-xs font-bold disabled:opacity-40"
                         style={{ background: r.color, color: 'white' }}>
                         Activer
