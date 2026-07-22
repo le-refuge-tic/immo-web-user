@@ -48,9 +48,8 @@ export default function ConversationsPage() {
   }, [])
 
   const getOther = (conv: any) => {
-    if (!user) return null
-    if (conv.prospect?.id !== user.id) return conv.prospect
-    return conv.proprietaire || conv.demarcheur
+    if (!user || !Array.isArray(conv.participants)) return null
+    return conv.participants.find((p: any) => p.id !== user.id) || conv.participants[0] || null
   }
 
   const ConvList = () => {
@@ -89,12 +88,12 @@ export default function ConversationsPage() {
       <div>
         {convs.map((conv, idx) => {
           const other = getOther(conv)
-          const name = other ? `${other.prenom || ''} ${other.nom || ''}`.trim() || 'Contact' : 'Contact'
-          const lastMsg = conv.last_message
-          const lastContenu = lastMsg?.contenu || conv.lastContenu || (conv.bienType ? "À propos d'un bien" : 'Nouvelle conversation')
-          const unread = conv.unread_count || conv.unreadCount || 0
+          const name = other?.pseudonyme || 'Contact'
+          const lastMsg = conv.dernierMessage
+          const lastContenu = lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : 'Nouvelle conversation')
+          const unread = conv.nonLus || 0
           const hasUnread = unread > 0
-          const timeStr = formatTime(lastMsg?.created_at || conv.last_message_at || conv.created_at || '')
+          const timeStr = formatTime(lastMsg?.created_at || '')
           const isActive = conv.id === activeId
 
           return (
@@ -107,14 +106,10 @@ export default function ConversationsPage() {
                   borderLeft: isActive ? '3px solid #4B6BFF' : '3px solid transparent',
                 }}
               >
-                {other?.photo_profil ? (
-                  <img src={other.photo_profil} alt="" className="w-[46px] h-[46px] rounded-[14px] object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-[46px] h-[46px] rounded-[14px] flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
-                    <span className="text-white font-bold">{getInitiale(name)}</span>
-                  </div>
-                )}
+                <div className="w-[46px] h-[46px] rounded-[14px] flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                  <span className="text-white font-bold">{getInitiale(name)}</span>
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-0.5">
                     <p className={`text-[13px] truncate ${hasUnread ? 'font-bold text-text-dark' : 'font-semibold text-text-dark'}`}>{name}</p>

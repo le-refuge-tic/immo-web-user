@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
+import { chatApi } from '../../api/chatApi'
 
 const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
@@ -78,6 +79,11 @@ export default function ReservationPage() {
       const [h, m] = selectedTime.split(':').map(Number)
       const dt = new Date(selectedDate); dt.setHours(h, m, 0, 0)
       await visitesApi.reserverVisite(Number(bienId), dt.toISOString())
+      try {
+        const convData = await chatApi.creerConversation(Number(bienId))
+        navigate(`/conversations/${convData.conversationId}`, { replace: true })
+        return
+      } catch (_) {}
       navigate('/mes-visites', { replace: true })
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Erreur lors de la réservation')
