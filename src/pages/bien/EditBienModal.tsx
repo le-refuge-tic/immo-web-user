@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
@@ -16,9 +16,15 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   const [adresse, setAdresse] = useState(loc.adresse || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const submit = async () => {
-    if (!prix.trim()) { setError('Le prix est obligatoire'); return }
+    if (!prix.trim()) {
+      setError('Le prix est obligatoire')
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
     setSaving(true)
     setError('')
     try {
@@ -34,22 +40,31 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
         },
       }
       const updated = await biensApi.update(bien.id, body)
-      onSaved(updated.data || updated.bien || updated)
+      const saved = updated.data || updated.bien || updated
+      setSuccess(true)
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      setTimeout(() => onSaved(saved), 900)
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Erreur lors de la mise à jour')
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
     setSaving(false)
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div ref={scrollRef} className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Modifier le bien</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
         </div>
 
         <div className="p-5 space-y-4">
+          {success && (
+            <div className="bg-success/10 border border-success/30 rounded-xl px-4 py-2.5">
+              <p className="text-success text-sm font-semibold">Bien mis à jour avec succès</p>
+            </div>
+          )}
           {error && (
             <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
               <p className="text-danger text-sm">{error}</p>
@@ -104,10 +119,10 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
         </div>
 
         <div className="p-5 pt-0">
-          <button onClick={submit} disabled={saving}
+          <button onClick={submit} disabled={saving || success}
             className="w-full py-3.5 rounded-xl font-bold text-white disabled:opacity-60"
             style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
-            {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+            {success ? 'Enregistré ✓' : saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
           </button>
         </div>
       </div>
