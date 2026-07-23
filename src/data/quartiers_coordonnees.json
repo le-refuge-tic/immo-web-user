@@ -1,0 +1,1213 @@
+[
+  {
+    "nom": "Togbin-Daho",
+    "nom_normalise": "togbin daho",
+    "arrondissement": "Godomey",
+    "lat": 6.353236,
+    "lng": 2.304585
+  },
+  {
+    "nom": "Togbin-Kpèvi",
+    "nom_normalise": "togbin kpevi",
+    "arrondissement": "Godomey",
+    "lat": 6.357717,
+    "lng": 2.313955
+  },
+  {
+    "nom": "Togbin-Fandji",
+    "nom_normalise": "togbin fandji",
+    "arrondissement": "Godomey",
+    "lat": 6.359064,
+    "lng": 2.326394
+  },
+  {
+    "nom": "Djèkpota",
+    "nom_normalise": "djekpota",
+    "arrondissement": "Godomey",
+    "lat": 6.369408,
+    "lng": 2.283099
+  },
+  {
+    "nom": "Aklakou",
+    "nom_normalise": "aklakou",
+    "arrondissement": "Godomey",
+    "lat": 6.370183,
+    "lng": 2.274807
+  },
+  {
+    "nom": "Ganganzounmè",
+    "nom_normalise": "ganganzounme",
+    "arrondissement": "Godomey",
+    "lat": 6.370871,
+    "lng": 2.301777
+  },
+  {
+    "nom": "Ningboto",
+    "nom_normalise": "ningboto",
+    "arrondissement": "Godomey",
+    "lat": 6.371393,
+    "lng": 2.333548
+  },
+  {
+    "nom": "Godomey-N'Gbèho",
+    "nom_normalise": "godomey n gbeho",
+    "arrondissement": "Godomey",
+    "lat": 6.371865,
+    "lng": 2.342327
+  },
+  {
+    "nom": "Dèkoungbé-Église",
+    "nom_normalise": "dekoungbe eglise",
+    "arrondissement": "Godomey",
+    "lat": 6.373962,
+    "lng": 2.319549
+  },
+  {
+    "nom": "Gninkindji",
+    "nom_normalise": "gninkindji",
+    "arrondissement": "Godomey",
+    "lat": 6.374815,
+    "lng": 2.315361
+  },
+  {
+    "nom": "Hêdomè",
+    "nom_normalise": "hedome",
+    "arrondissement": "Godomey",
+    "lat": 6.374909,
+    "lng": 2.310578
+  },
+  {
+    "nom": "Abikouholi",
+    "nom_normalise": "abikouholi",
+    "arrondissement": "Godomey",
+    "lat": 6.375879,
+    "lng": 2.326273
+  },
+  {
+    "nom": "Fignonhou",
+    "nom_normalise": "fignonhou",
+    "arrondissement": "Godomey",
+    "lat": 6.377143,
+    "lng": 2.338514
+  },
+  {
+    "nom": "Amahoun",
+    "nom_normalise": "amahoun",
+    "arrondissement": "Godomey",
+    "lat": 6.379659,
+    "lng": 2.285092
+  },
+  {
+    "nom": "Dèkoungbé",
+    "nom_normalise": "dekoungbe",
+    "arrondissement": "Godomey",
+    "lat": 6.380389,
+    "lng": 2.330472
+  },
+  {
+    "nom": "Agbo Codji Sèdégbé",
+    "nom_normalise": "agbo codji sedegbe",
+    "arrondissement": "Godomey",
+    "lat": 6.381423,
+    "lng": 2.318318
+  },
+  {
+    "nom": "Logbozounkpa",
+    "nom_normalise": "logbozounkpa",
+    "arrondissement": "Godomey",
+    "lat": 6.382375,
+    "lng": 2.313262
+  },
+  {
+    "nom": "Cococodji",
+    "nom_normalise": "cococodji",
+    "arrondissement": "Godomey",
+    "lat": 6.382361,
+    "lng": 2.270061
+  },
+  {
+    "nom": "Plateau",
+    "nom_normalise": "plateau",
+    "arrondissement": "Godomey",
+    "lat": 6.383857,
+    "lng": 2.347312
+  },
+  {
+    "nom": "Zounga",
+    "nom_normalise": "zounga",
+    "arrondissement": "Godomey",
+    "lat": 6.384165,
+    "lng": 2.292934
+  },
+  {
+    "nom": "Dénou",
+    "nom_normalise": "denou",
+    "arrondissement": "Godomey",
+    "lat": 6.384233,
+    "lng": 2.343867
+  },
+  {
+    "nom": "Cocotomey",
+    "nom_normalise": "cocotomey",
+    "arrondissement": "Godomey",
+    "lat": 6.384219,
+    "lng": 2.299191
+  },
+  {
+    "nom": "Ounvènoumèdé",
+    "nom_normalise": "ounvenoumede",
+    "arrondissement": "Godomey",
+    "lat": 6.386708,
+    "lng": 2.334198
+  },
+  {
+    "nom": "Godomey",
+    "nom_normalise": "godomey",
+    "arrondissement": "Godomey",
+    "lat": 6.387681,
+    "lng": 2.345644
+  },
+  {
+    "nom": "Sèdjannako",
+    "nom_normalise": "sedjannako",
+    "arrondissement": "Godomey",
+    "lat": 6.388835,
+    "lng": 2.349223
+  },
+  {
+    "nom": "Aïmèvo",
+    "nom_normalise": "aimevo",
+    "arrondissement": "Godomey",
+    "lat": 6.388922,
+    "lng": 2.339267
+  },
+  {
+    "nom": "Gbodjè-Womey",
+    "nom_normalise": "gbodje womey",
+    "arrondissement": "Godomey",
+    "lat": 6.389133,
+    "lng": 2.287475
+  },
+  {
+    "nom": "Atrokpo-Codji",
+    "nom_normalise": "atrokpo codji",
+    "arrondissement": "Godomey",
+    "lat": 6.389381,
+    "lng": 2.323959
+  },
+  {
+    "nom": "Fandji",
+    "nom_normalise": "fandji",
+    "arrondissement": "Godomey",
+    "lat": 6.389822,
+    "lng": 2.295033
+  },
+  {
+    "nom": "Tokpa",
+    "nom_normalise": "tokpa",
+    "arrondissement": "Godomey",
+    "lat": 6.390114,
+    "lng": 2.303451
+  },
+  {
+    "nom": "La-Paix",
+    "nom_normalise": "la paix",
+    "arrondissement": "Godomey",
+    "lat": 6.390996,
+    "lng": 2.314264
+  },
+  {
+    "nom": "Yolomahouto",
+    "nom_normalise": "yolomahouto",
+    "arrondissement": "Godomey",
+    "lat": 6.39142,
+    "lng": 2.347845
+  },
+  {
+    "nom": "Salamey",
+    "nom_normalise": "salamey",
+    "arrondissement": "Godomey",
+    "lat": 6.391425,
+    "lng": 2.344825
+  },
+  {
+    "nom": "Finafa",
+    "nom_normalise": "finafa",
+    "arrondissement": "Godomey",
+    "lat": 6.391997,
+    "lng": 2.353143
+  },
+  {
+    "nom": "Hlouacomey",
+    "nom_normalise": "hlouacomey",
+    "arrondissement": "Godomey",
+    "lat": 6.394245,
+    "lng": 2.34993
+  },
+  {
+    "nom": "Nonhouénou",
+    "nom_normalise": "nonhouenou",
+    "arrondissement": "Godomey",
+    "lat": 6.397064,
+    "lng": 2.347675
+  },
+  {
+    "nom": "Akossavié",
+    "nom_normalise": "akossavie",
+    "arrondissement": "Hêvié",
+    "lat": 6.400171,
+    "lng": 2.251057
+  },
+  {
+    "nom": "Hounsa-Agbodokpa",
+    "nom_normalise": "hounsa agbodokpa",
+    "arrondissement": "Godomey",
+    "lat": 6.400679,
+    "lng": 2.331024
+  },
+  {
+    "nom": "Sogan",
+    "nom_normalise": "sogan",
+    "arrondissement": "Hêvié",
+    "lat": 6.401562,
+    "lng": 2.262276
+  },
+  {
+    "nom": "Godomey-Togoudo",
+    "nom_normalise": "godomey togoudo",
+    "arrondissement": "Godomey",
+    "lat": 6.402,
+    "lng": 2.337777
+  },
+  {
+    "nom": "Sodo",
+    "nom_normalise": "sodo",
+    "arrondissement": "Godomey",
+    "lat": 6.402641,
+    "lng": 2.28978
+  },
+  {
+    "nom": "Sèdomey",
+    "nom_normalise": "sedomey",
+    "arrondissement": "Godomey",
+    "lat": 6.404141,
+    "lng": 2.343172
+  },
+  {
+    "nom": "Djoukpa-Togoudo",
+    "nom_normalise": "djoukpa togoudo",
+    "arrondissement": "Godomey",
+    "lat": 6.404329,
+    "lng": 2.334084
+  },
+  {
+    "nom": "Gbègnigan-Midokpo",
+    "nom_normalise": "gbegnigan midokpo",
+    "arrondissement": "Godomey",
+    "lat": 6.404688,
+    "lng": 2.318486
+  },
+  {
+    "nom": "Assrossa",
+    "nom_normalise": "assrossa",
+    "arrondissement": "Godomey",
+    "lat": 6.40518,
+    "lng": 2.327672
+  },
+  {
+    "nom": "Womey-Centre",
+    "nom_normalise": "womey centre",
+    "arrondissement": "Godomey",
+    "lat": 6.406201,
+    "lng": 2.306422
+  },
+  {
+    "nom": "Agonkanmey",
+    "nom_normalise": "agonkanmey",
+    "arrondissement": "Godomey",
+    "lat": 6.406629,
+    "lng": 2.336179
+  },
+  {
+    "nom": "Houinmè-Daho",
+    "nom_normalise": "houinme daho",
+    "arrondissement": "Hêvié",
+    "lat": 6.406711,
+    "lng": 2.233117
+  },
+  {
+    "nom": "Womey-Yénawa",
+    "nom_normalise": "womey yenawa",
+    "arrondissement": "Godomey",
+    "lat": 6.408386,
+    "lng": 2.290441
+  },
+  {
+    "nom": "Yénandjro",
+    "nom_normalise": "yenandjro",
+    "arrondissement": "Godomey",
+    "lat": 6.408793,
+    "lng": 2.310442
+  },
+  {
+    "nom": "Alègléta",
+    "nom_normalise": "alegleta",
+    "arrondissement": "Godomey",
+    "lat": 6.410734,
+    "lng": 2.320965
+  },
+  {
+    "nom": "Cité-la-Victoire",
+    "nom_normalise": "cite la victoire",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.413493,
+    "lng": 2.335239
+  },
+  {
+    "nom": "Handomè",
+    "nom_normalise": "handome",
+    "arrondissement": "Hêvié",
+    "lat": 6.41547,
+    "lng": 2.217289
+  },
+  {
+    "nom": "Maria-Gléta",
+    "nom_normalise": "maria gleta",
+    "arrondissement": "Togba",
+    "lat": 6.416064,
+    "lng": 2.302566
+  },
+  {
+    "nom": "Houinmè",
+    "nom_normalise": "houinme",
+    "arrondissement": "Hêvié",
+    "lat": 6.417686,
+    "lng": 2.228832
+  },
+  {
+    "nom": "Tankpè-Togoudo",
+    "nom_normalise": "tankpe togoudo",
+    "arrondissement": "Godomey",
+    "lat": 6.417893,
+    "lng": 2.317221
+  },
+  {
+    "nom": "Ahouato",
+    "nom_normalise": "ahouato",
+    "arrondissement": "Ouèdo",
+    "lat": 6.418223,
+    "lng": 2.274332
+  },
+  {
+    "nom": "Hounzévié",
+    "nom_normalise": "hounzevie",
+    "arrondissement": "Hêvié",
+    "lat": 6.421387,
+    "lng": 2.241839
+  },
+  {
+    "nom": "Adovié",
+    "nom_normalise": "adovie",
+    "arrondissement": "Hêvié",
+    "lat": 6.421633,
+    "lng": 2.255492
+  },
+  {
+    "nom": "Tokpa-Zoungo-Sud",
+    "nom_normalise": "tokpa zoungo sud",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.42209,
+    "lng": 2.351875
+  },
+  {
+    "nom": "Zogbadjè",
+    "nom_normalise": "zogbadje",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.42362,
+    "lng": 2.332269
+  },
+  {
+    "nom": "Tankpè-Tanmè",
+    "nom_normalise": "tankpe tanme",
+    "arrondissement": "Togba",
+    "lat": 6.424878,
+    "lng": 2.311759
+  },
+  {
+    "nom": "Tankpê-Yoho",
+    "nom_normalise": "tankpe yoho",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.428459,
+    "lng": 2.317677
+  },
+  {
+    "nom": "Tokpa-Zoungo-Nord",
+    "nom_normalise": "tokpa zoungo nord",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.431021,
+    "lng": 2.354758
+  },
+  {
+    "nom": "Alansankomè",
+    "nom_normalise": "alansankome",
+    "arrondissement": "Ouèdo",
+    "lat": 6.432585,
+    "lng": 2.266554
+  },
+  {
+    "nom": "Hounzounmé",
+    "nom_normalise": "hounzounme",
+    "arrondissement": "Hêvié",
+    "lat": 6.434491,
+    "lng": 2.227704
+  },
+  {
+    "nom": "Tchinangbégbo",
+    "nom_normalise": "tchinangbegbo",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.434702,
+    "lng": 2.346831
+  },
+  {
+    "nom": "Sakomè",
+    "nom_normalise": "sakome",
+    "arrondissement": "Togba",
+    "lat": 6.437504,
+    "lng": 2.291188
+  },
+  {
+    "nom": "Houèto",
+    "nom_normalise": "houeto",
+    "arrondissement": "Togba",
+    "lat": 6.438182,
+    "lng": 2.304145
+  },
+  {
+    "nom": "Finafa",
+    "nom_normalise": "finafa",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.438326,
+    "lng": 2.33754
+  },
+  {
+    "nom": "Togba",
+    "nom_normalise": "togba",
+    "arrondissement": "Togba",
+    "lat": 6.465415,
+    "lng": 2.301585
+  },
+  {
+    "nom": "Fifonsi",
+    "nom_normalise": "fifonsi",
+    "arrondissement": "Togba",
+    "lat": 6.440688,
+    "lng": 2.317462
+  },
+  {
+    "nom": "Kissovié",
+    "nom_normalise": "kissovie",
+    "arrondissement": "Hêvié",
+    "lat": 6.442164,
+    "lng": 2.235351
+  },
+  {
+    "nom": "Abomey-Calavi",
+    "nom_normalise": "abomey calavi",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.443415,
+    "lng": 2.355908
+  },
+  {
+    "nom": "Fonkomè",
+    "nom_normalise": "fonkome",
+    "arrondissement": "Hêvié",
+    "lat": 6.44527,
+    "lng": 2.249842
+  },
+  {
+    "nom": "Alédjo",
+    "nom_normalise": "aledjo",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.445633,
+    "lng": 2.33602
+  },
+  {
+    "nom": "Agori",
+    "nom_normalise": "agori",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.448037,
+    "lng": 2.347954
+  },
+  {
+    "nom": "Ouèdo",
+    "nom_normalise": "ouedo",
+    "arrondissement": "Ouèdo",
+    "lat": 6.448118,
+    "lng": 2.261675
+  },
+  {
+    "nom": "Hêvié",
+    "nom_normalise": "hevie",
+    "arrondissement": "Hêvié",
+    "lat": 6.448508,
+    "lng": 2.237548
+  },
+  {
+    "nom": "Doga",
+    "nom_normalise": "doga",
+    "arrondissement": "Togba",
+    "lat": 6.449085,
+    "lng": 2.29922
+  },
+  {
+    "nom": "Aïdégnon",
+    "nom_normalise": "aidegnon",
+    "arrondissement": "Togba",
+    "lat": 6.45065,
+    "lng": 2.326256
+  },
+  {
+    "nom": "Tokan",
+    "nom_normalise": "tokan",
+    "arrondissement": "Togba",
+    "lat": 6.451319,
+    "lng": 2.312682
+  },
+  {
+    "nom": "Zoungo",
+    "nom_normalise": "zoungo",
+    "arrondissement": "Hêvié",
+    "lat": 6.452182,
+    "lng": 2.250899
+  },
+  {
+    "nom": "Sèmè",
+    "nom_normalise": "seme",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.455316,
+    "lng": 2.345819
+  },
+  {
+    "nom": "Aïtchédji",
+    "nom_normalise": "aitchedji",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.455585,
+    "lng": 2.337454
+  },
+  {
+    "nom": "Agamandin",
+    "nom_normalise": "agamandin",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.456492,
+    "lng": 2.360197
+  },
+  {
+    "nom": "Dessato",
+    "nom_normalise": "dessato",
+    "arrondissement": "Ouèdo",
+    "lat": 6.458266,
+    "lng": 2.261308
+  },
+  {
+    "nom": "Somè",
+    "nom_normalise": "some",
+    "arrondissement": "Togba",
+    "lat": 6.458678,
+    "lng": 2.302779
+  },
+  {
+    "nom": "Ahossougbéta",
+    "nom_normalise": "ahossougbeta",
+    "arrondissement": "Togba",
+    "lat": 6.463291,
+    "lng": 2.3165
+  },
+  {
+    "nom": "Fandji",
+    "nom_normalise": "fandji",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.46636,
+    "lng": 2.345679
+  },
+  {
+    "nom": "Dossounou",
+    "nom_normalise": "dossounou",
+    "arrondissement": "Hêvié",
+    "lat": 6.467889,
+    "lng": 2.229652
+  },
+  {
+    "nom": "Aïfa-Calavi",
+    "nom_normalise": "aifa calavi",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.468132,
+    "lng": 2.33099
+  },
+  {
+    "nom": "Gbodjo",
+    "nom_normalise": "gbodjo",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.470938,
+    "lng": 2.360386
+  },
+  {
+    "nom": "Ouéga-Tokpa",
+    "nom_normalise": "ouega tokpa",
+    "arrondissement": "Togba",
+    "lat": 6.471202,
+    "lng": 2.300365
+  },
+  {
+    "nom": "Adjagbo-Aïdjèdo",
+    "nom_normalise": "adjagbo aidjedo",
+    "arrondissement": "Ouèdo",
+    "lat": 6.472182,
+    "lng": 2.282919
+  },
+  {
+    "nom": "Salédja",
+    "nom_normalise": "saledja",
+    "arrondissement": "Hêvié",
+    "lat": 6.474959,
+    "lng": 2.251761
+  },
+  {
+    "nom": "Zopah-Kokpo",
+    "nom_normalise": "zopah kokpo",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.476196,
+    "lng": 2.348668
+  },
+  {
+    "nom": "Cité-les-Palmiers",
+    "nom_normalise": "cite les palmiers",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.479172,
+    "lng": 2.341493
+  },
+  {
+    "nom": "Adjagbo",
+    "nom_normalise": "adjagbo",
+    "arrondissement": "Ouèdo",
+    "lat": 6.481172,
+    "lng": 2.275473
+  },
+  {
+    "nom": "Gbécomè",
+    "nom_normalise": "gbecome",
+    "arrondissement": "Hêvié",
+    "lat": 6.483314,
+    "lng": 2.219844
+  },
+  {
+    "nom": "Ouéga-Agué",
+    "nom_normalise": "ouega ague",
+    "arrondissement": "Togba",
+    "lat": 6.483938,
+    "lng": 2.299977
+  },
+  {
+    "nom": "Kpossidja",
+    "nom_normalise": "kpossidja",
+    "arrondissement": "Ouèdo",
+    "lat": 6.484131,
+    "lng": 2.263992
+  },
+  {
+    "nom": "Zopah-Akassato",
+    "nom_normalise": "zopah akassato",
+    "arrondissement": "Akassato",
+    "lat": 6.488256,
+    "lng": 2.349801
+  },
+  {
+    "nom": "Dassèkomey",
+    "nom_normalise": "dassekomey",
+    "arrondissement": "Ouèdo",
+    "lat": 6.488207,
+    "lng": 2.249336
+  },
+  {
+    "nom": "Houèkè-Gbo",
+    "nom_normalise": "houeke gbo",
+    "arrondissement": "Akassato",
+    "lat": 6.488861,
+    "lng": 2.363158
+  },
+  {
+    "nom": "Akokponawa",
+    "nom_normalise": "akokponawa",
+    "arrondissement": "Hêvié",
+    "lat": 6.489714,
+    "lng": 2.222547
+  },
+  {
+    "nom": "Zoundja",
+    "nom_normalise": "zoundja",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.490142,
+    "lng": 2.325679
+  },
+  {
+    "nom": "Houèkè-Honou",
+    "nom_normalise": "houeke honou",
+    "arrondissement": "Akassato",
+    "lat": 6.498012,
+    "lng": 2.353488
+  },
+  {
+    "nom": "Drabo",
+    "nom_normalise": "drabo",
+    "arrondissement": "Togba",
+    "lat": 6.498781,
+    "lng": 2.29945
+  },
+  {
+    "nom": "Kpossidja 2",
+    "nom_normalise": "kpossidja 2",
+    "arrondissement": "Ouèdo",
+    "lat": 6.503438,
+    "lng": 2.248129
+  },
+  {
+    "nom": "Akassato",
+    "nom_normalise": "akassato",
+    "arrondissement": "Akassato",
+    "lat": 6.504911,
+    "lng": 2.358906
+  },
+  {
+    "nom": "Kansounkpa",
+    "nom_normalise": "kansounkpa",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.507108,
+    "lng": 2.322962
+  },
+  {
+    "nom": "Fanto",
+    "nom_normalise": "fanto",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.507808,
+    "lng": 2.299374
+  },
+  {
+    "nom": "Houédakomè",
+    "nom_normalise": "houedakome",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.508855,
+    "lng": 2.317461
+  },
+  {
+    "nom": "Dodja",
+    "nom_normalise": "dodja",
+    "arrondissement": "Ouèdo",
+    "lat": 6.513755,
+    "lng": 2.276475
+  },
+  {
+    "nom": "Atadjè",
+    "nom_normalise": "atadje",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.515626,
+    "lng": 2.314494
+  },
+  {
+    "nom": "Misséssinto",
+    "nom_normalise": "missessinto",
+    "arrondissement": "Akassato",
+    "lat": 6.516226,
+    "lng": 2.35815
+  },
+  {
+    "nom": "Dodja",
+    "nom_normalise": "dodja",
+    "arrondissement": "Abomey-Calavi",
+    "lat": 6.517794,
+    "lng": 2.292523
+  },
+  {
+    "nom": "Adjagbo",
+    "nom_normalise": "adjagbo",
+    "arrondissement": "Akassato",
+    "lat": 6.524884,
+    "lng": 2.345314
+  },
+  {
+    "nom": "Glo-Tokpa",
+    "nom_normalise": "glo tokpa",
+    "arrondissement": "Akassato",
+    "lat": 6.529593,
+    "lng": 2.362989
+  },
+  {
+    "nom": "Agongbé",
+    "nom_normalise": "agongbe",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.531936,
+    "lng": 2.308475
+  },
+  {
+    "nom": "Zèkanmey-Domè",
+    "nom_normalise": "zekanmey dome",
+    "arrondissement": "Akassato",
+    "lat": 6.535266,
+    "lng": 2.336581
+  },
+  {
+    "nom": "Azonsa",
+    "nom_normalise": "azonsa",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.540423,
+    "lng": 2.330017
+  },
+  {
+    "nom": "Domey-Gbo",
+    "nom_normalise": "domey gbo",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.541001,
+    "lng": 2.322464
+  },
+  {
+    "nom": "Agassa-Godomey",
+    "nom_normalise": "agassa godomey",
+    "arrondissement": "Akassato",
+    "lat": 6.542309,
+    "lng": 2.361309
+  },
+  {
+    "nom": "Gbétagbo",
+    "nom_normalise": "gbetagbo",
+    "arrondissement": "Akassato",
+    "lat": 6.543189,
+    "lng": 2.34964
+  },
+  {
+    "nom": "Agonkèssa",
+    "nom_normalise": "agonkessa",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.550284,
+    "lng": 2.318047
+  },
+  {
+    "nom": "Agonmé",
+    "nom_normalise": "agonme",
+    "arrondissement": "Akassato",
+    "lat": 6.550365,
+    "lng": 2.337828
+  },
+  {
+    "nom": "Zèkanmey",
+    "nom_normalise": "zekanmey",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.553154,
+    "lng": 2.306872
+  },
+  {
+    "nom": "Zayiéra",
+    "nom_normalise": "zayiera",
+    "arrondissement": "Akassato",
+    "lat": 6.553375,
+    "lng": 2.363909
+  },
+  {
+    "nom": "Golo-Djigbé",
+    "nom_normalise": "golo djigbe",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.556924,
+    "lng": 2.298528
+  },
+  {
+    "nom": "Adjamè",
+    "nom_normalise": "adjame",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.559034,
+    "lng": 2.29403
+  },
+  {
+    "nom": "Yêkon-Aga",
+    "nom_normalise": "yekon aga",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.559375,
+    "lng": 2.311296
+  },
+  {
+    "nom": "Yèkon-Do",
+    "nom_normalise": "yekon do",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.56324,
+    "lng": 2.320146
+  },
+  {
+    "nom": "Agonsoudja",
+    "nom_normalise": "agonsoudja",
+    "arrondissement": "Akassato",
+    "lat": 6.563573,
+    "lng": 2.346122
+  },
+  {
+    "nom": "Espace-Saint",
+    "nom_normalise": "espace saint",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.56432,
+    "lng": 2.302561
+  },
+  {
+    "nom": "Djissoukpa",
+    "nom_normalise": "djissoukpa",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.565282,
+    "lng": 2.2856
+  },
+  {
+    "nom": "Lohoussa",
+    "nom_normalise": "lohoussa",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.565481,
+    "lng": 2.331657
+  },
+  {
+    "nom": "Kolètin",
+    "nom_normalise": "koletin",
+    "arrondissement": "Akassato",
+    "lat": 6.566045,
+    "lng": 2.354504
+  },
+  {
+    "nom": "Kpodji-Les-Monts",
+    "nom_normalise": "kpodji les monts",
+    "arrondissement": "Akassato",
+    "lat": 6.566701,
+    "lng": 2.36543
+  },
+  {
+    "nom": "Dokomè",
+    "nom_normalise": "dokome",
+    "arrondissement": "Zinvié",
+    "lat": 6.57501,
+    "lng": 2.362905
+  },
+  {
+    "nom": "Golo-Fanto",
+    "nom_normalise": "golo fanto",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.575019,
+    "lng": 2.314458
+  },
+  {
+    "nom": "Adjogansa",
+    "nom_normalise": "adjogansa",
+    "arrondissement": "Zinvié",
+    "lat": 6.577591,
+    "lng": 2.330203
+  },
+  {
+    "nom": "Gbodjoko",
+    "nom_normalise": "gbodjoko",
+    "arrondissement": "Zinvié",
+    "lat": 6.588292,
+    "lng": 2.323965
+  },
+  {
+    "nom": "Alladacomè",
+    "nom_normalise": "alladacome",
+    "arrondissement": "Golo-Djigbé",
+    "lat": 6.593202,
+    "lng": 2.31551
+  },
+  {
+    "nom": "Gbodjè",
+    "nom_normalise": "gbodje",
+    "arrondissement": "Zinvié",
+    "lat": 6.59469,
+    "lng": 2.388542
+  },
+  {
+    "nom": "Yèvié",
+    "nom_normalise": "yevie",
+    "arrondissement": "Zinvié",
+    "lat": 6.595057,
+    "lng": 2.371138
+  },
+  {
+    "nom": "Sokan",
+    "nom_normalise": "sokan",
+    "arrondissement": "Zinvié",
+    "lat": 6.601113,
+    "lng": 2.353934
+  },
+  {
+    "nom": "Zinvié-Agolèdji",
+    "nom_normalise": "zinvie agoledji",
+    "arrondissement": "Zinvié",
+    "lat": 6.604897,
+    "lng": 2.335277
+  },
+  {
+    "nom": "Yèvié-Nougo",
+    "nom_normalise": "yevie nougo",
+    "arrondissement": "Zinvié",
+    "lat": 6.607785,
+    "lng": 2.365088
+  },
+  {
+    "nom": "Zinvié",
+    "nom_normalise": "zinvie",
+    "arrondissement": "Zinvié",
+    "lat": 6.613276,
+    "lng": 2.358134
+  },
+  {
+    "nom": "Zinvié-Fandji",
+    "nom_normalise": "zinvie fandji",
+    "arrondissement": "Zinvié",
+    "lat": 6.615525,
+    "lng": 2.355091
+  },
+  {
+    "nom": "Dangbodji",
+    "nom_normalise": "dangbodji",
+    "arrondissement": "Zinvié",
+    "lat": 6.615787,
+    "lng": 2.321024
+  },
+  {
+    "nom": "Tanmè",
+    "nom_normalise": "tanme",
+    "arrondissement": "Zinvié",
+    "lat": 6.616604,
+    "lng": 2.364136
+  },
+  {
+    "nom": "Zinvié-Zounmè",
+    "nom_normalise": "zinvie zounme",
+    "arrondissement": "Zinvié",
+    "lat": 6.624944,
+    "lng": 2.34398
+  },
+  {
+    "nom": "Wawata",
+    "nom_normalise": "wawata",
+    "arrondissement": "Zinvié",
+    "lat": 6.625737,
+    "lng": 2.321137
+  },
+  {
+    "nom": "Kpotomey",
+    "nom_normalise": "kpotomey",
+    "arrondissement": "Zinvié",
+    "lat": 6.629409,
+    "lng": 2.354739
+  },
+  {
+    "nom": "Wawata-Todja",
+    "nom_normalise": "wawata todja",
+    "arrondissement": "Zinvié",
+    "lat": 6.63155,
+    "lng": 2.312399
+  },
+  {
+    "nom": "Houégoudo",
+    "nom_normalise": "houegoudo",
+    "arrondissement": "Zinvié",
+    "lat": 6.633194,
+    "lng": 2.34377
+  },
+  {
+    "nom": "Avadjètomè",
+    "nom_normalise": "avadjetome",
+    "arrondissement": "Kpanroun",
+    "lat": 6.645611,
+    "lng": 2.391573
+  },
+  {
+    "nom": "Kpé",
+    "nom_normalise": "kpe",
+    "arrondissement": "Kpanroun",
+    "lat": 6.648653,
+    "lng": 2.358224
+  },
+  {
+    "nom": "Fandji",
+    "nom_normalise": "fandji",
+    "arrondissement": "Kpanroun",
+    "lat": 6.654288,
+    "lng": 2.38589
+  },
+  {
+    "nom": "Dèdo",
+    "nom_normalise": "dedo",
+    "arrondissement": "Kpanroun",
+    "lat": 6.655275,
+    "lng": 2.372808
+  },
+  {
+    "nom": "Kplassouhoué",
+    "nom_normalise": "kplassouhoue",
+    "arrondissement": "Kpanroun",
+    "lat": 6.659515,
+    "lng": 2.392018
+  },
+  {
+    "nom": "Avagbé",
+    "nom_normalise": "avagbe",
+    "arrondissement": "Kpanroun",
+    "lat": 6.663802,
+    "lng": 2.377501
+  },
+  {
+    "nom": "Kpaviédja",
+    "nom_normalise": "kpaviedja",
+    "arrondissement": "Kpanroun",
+    "lat": 6.670164,
+    "lng": 2.338238
+  },
+  {
+    "nom": "Hadjanaho",
+    "nom_normalise": "hadjanaho",
+    "arrondissement": "Kpanroun",
+    "lat": 6.671624,
+    "lng": 2.382739
+  },
+  {
+    "nom": "Kpanroun",
+    "nom_normalise": "kpanroun",
+    "arrondissement": "Kpanroun",
+    "lat": 6.676472,
+    "lng": 2.368266
+  },
+  {
+    "nom": "Bozoun",
+    "nom_normalise": "bozoun",
+    "arrondissement": "Kpanroun",
+    "lat": 6.684636,
+    "lng": 2.393172
+  },
+  {
+    "nom": "Lokogbé-Kpèvi",
+    "nom_normalise": "lokogbe kpevi",
+    "arrondissement": "Kpanroun",
+    "lat": 6.685159,
+    "lng": 2.407186
+  },
+  {
+    "nom": "Djigbo",
+    "nom_normalise": "djigbo",
+    "arrondissement": "Kpanroun",
+    "lat": 6.68675,
+    "lng": 2.377228
+  },
+  {
+    "nom": "Anagbo",
+    "nom_normalise": "anagbo",
+    "arrondissement": "Kpanroun",
+    "lat": 6.687952,
+    "lng": 2.341444
+  },
+  {
+    "nom": "Ahowégodo",
+    "nom_normalise": "ahowegodo",
+    "arrondissement": "Kpanroun",
+    "lat": 6.701201,
+    "lng": 2.352763
+  }
+]

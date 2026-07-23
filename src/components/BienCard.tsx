@@ -15,9 +15,10 @@ type Props = {
   bien: any
   favoriteIds?: Set<number>
   onFavoriteToggle?: (id: number, added: boolean) => void
+  distanceKm?: number | null
 }
 
-export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props) {
+export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distanceKm }: Props) {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
   const [isFav, setIsFav] = useState(favoriteIds?.has(bien.id) ?? false)
@@ -140,6 +141,9 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle }: Props)
           </svg>
           <p className="text-xs truncate" style={{ color: 'rgba(0,0,0,0.42)' }}>
             {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || '—'}
+            {distanceKm != null && (
+              <span style={{ color: '#4B6BFF', fontWeight: 600 }}> · à {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}</span>
+            )}
           </p>
         </div>
         {bien.frais_visite && Number(bien.frais_visite) > 0 && (

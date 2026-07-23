@@ -5,7 +5,8 @@ import { favoritesApi } from '../../api/favoritesApi'
 import { useAuth } from '../../context/AuthContext'
 import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
-import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
+import { rechercherQuartiers, type Quartier, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
+import { getQuartierCoords, haversineKm } from '../../data/quartierProximite'
 
 /* ── Normalisation accent-insensible ─────────────────────────────
    "adovié" → "adovie"  /  "Cotonou" → "cotonou"
@@ -129,10 +130,33 @@ export default function SearchPage() {
       .catch(() => {})
   }, [isLoggedIn])
 
-  /* ── Filtrage client-side ───────────────────────────────────── */
+  /* ── Filtrage + tri par pertinence client-side ──────────────────
+     Quartier correspondant en tête, puis ville, puis adresse. */
   const applyClientFilter = useCallback((biens: any[], q: string) => {
-    return biens.filter(b => matchLoc(b, q))
+    const filtered = biens.filter(b => matchLoc(b, q))
+    if (!q) return filtered
+    const nq = norm(q)
+    const score = (b: any) => {
+      const quartier = b.localisation?.quartier
+      if (quartier && norm(quartier).includes(nq)) return 2
+      if (b.localisation?.ville && norm(b.localisation.ville).includes(nq)) return 1
+      return 0
+    }
+    return [...filtered].sort((a, b) => score(b) - score(a))
   }, [])
+
+  /* ── Distance GPS depuis le quartier recherché ──────────────────
+     Disponible uniquement pour les quartiers d'Abomey-Calavi (données
+     de coordonnées actuellement limitées à cette ville, comme sur mobile). */
+  const refCoords = query.trim().length >= 2 ? getQuartierCoords(query.trim()) : null
+  const distanceFor = (bien: any): number | null => {
+    if (!refCoords) return null
+    const q = bien.localisation?.quartier
+    if (!q) return null
+    const c = getQuartierCoords(q)
+    if (!c) return null
+    return haversineKm(refCoords.lat, refCoords.lng, c.lat, c.lng)
+  }
 
   /* ── Appel API avec debounce ────────────────────────────────── */
   const fetchBiens = useCallback(async (params: any, clientQuery: string) => {
@@ -152,14 +176,19 @@ export default function SearchPage() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      const params: any = {}
+      const params: any = { limit: 100 }
       if (transaction) params.transaction = transaction
       if (type)        params.type        = type
       if (prixMin)     params.prix_min    = Number(prixMin)
       if (prixMax)     params.prix_max    = Number(prixMax)
-      /* On envoie la ville normalisée si c'est probablement une ville (> 3 chars)
-         La recherche quartier fine se fait côté client après */
-      if (query.trim().length >= 2) params.ville = norm(query.trim())
+      /* On n'envoie "ville" au serveur que si le texte tapé est vraiment le nom
+         d'une ville connue — sinon (un quartier, ex: "Godomey") le serveur ne
+         trouverait aucune correspondance puisque le champ ville du bien ne
+         contient jamais le nom du quartier. La recherche fine (quartier, ville,
+         adresse) se fait donc toujours côté client sur l'ensemble des biens. */
+      const nq = norm(query.trim())
+      const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
+      if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
       fetchBiens(params, query.trim())
     }, 420)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
@@ -302,7 +331,7 @@ export default function SearchPage() {
         {/* Résultats */}
         <div className="px-4 py-4">
           <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} />
-          <ResultGrid biens={results} loading={loading} favIds={favIds}
+          <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
             cols="grid-cols-2"
           />
@@ -427,7 +456,7 @@ export default function SearchPage() {
             <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} inline />
           </div>
 
-          <ResultGrid biens={results} loading={loading} favIds={favIds}
+          <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
             cols="grid-cols-2 lg:grid-cols-3"
           />
@@ -633,9 +662,10 @@ type ResultGridProps = {
   favIds: Set<number>
   onFavToggle: (id: number, added: boolean) => void
   cols: string
+  distanceFor?: (bien: any) => number | null
 }
 
-function ResultGrid({ biens, loading, favIds, onFavToggle, cols }: ResultGridProps) {
+function ResultGrid({ biens, loading, favIds, onFavToggle, cols, distanceFor }: ResultGridProps) {
   if (loading) return (
     <div className={`grid ${cols} gap-3 md:gap-4`}>
       {[1, 2, 3, 4, 5, 6].map(n => (
@@ -661,7 +691,7 @@ function ResultGrid({ biens, loading, favIds, onFavToggle, cols }: ResultGridPro
     <div className={`grid ${cols} gap-3 md:gap-4`}>
       {biens.map((b, i) => (
         <Reveal key={b.id} animation="anim-scale-in" delay={Math.min(i * 50, 300)} className="card-lift">
-          <BienCard bien={b} favoriteIds={favIds} onFavoriteToggle={onFavToggle} />
+          <BienCard bien={b} favoriteIds={favIds} onFavoriteToggle={onFavToggle} distanceKm={distanceFor?.(b) ?? null} />
         </Reveal>
       ))}
     </div>
