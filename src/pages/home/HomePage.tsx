@@ -6,6 +6,7 @@ import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
 import HERO_IMG from '../../assets/hero-interior.jpg'
+import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
 
 function norm(s: string) {
   return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -23,15 +24,30 @@ function matchLoc(bien: any, query: string) {
   return fields.some(f => f.includes(q))
 }
 
-type Category = { key: string; label: string }
+type Category = { key: string; label: string; transaction: string; type: string }
 const CATEGORIES: Category[] = [
-  { key: 'Tous',        label: 'Tous' },
-  { key: 'location',    label: 'À louer' },
-  { key: 'vente',       label: 'À vendre' },
-  { key: 'maison',      label: 'Maison' },
-  { key: 'appartement', label: 'Appartement' },
-  { key: 'terrain',     label: 'Terrain' },
-  { key: 'guesthouse',  label: 'Guesthouse' },
+  { key: 'Tous',        label: 'Tous',        transaction: '',         type: '' },
+  { key: 'location',    label: 'À louer',     transaction: 'location', type: '' },
+  { key: 'vente',       label: 'À vendre',    transaction: 'vente',    type: '' },
+  { key: 'maison',      label: 'Maison',      transaction: '',         type: 'maison' },
+  { key: 'appartement', label: 'Appartement', transaction: '',         type: 'appart_vide' },
+  { key: 'terrain',     label: 'Terrain',     transaction: '',         type: 'terrain' },
+  { key: 'guesthouse',  label: 'Guesthouse',  transaction: '',         type: 'guesthouse' },
+]
+
+const TRANSACTIONS = [
+  { key: '',         label: 'Tous' },
+  { key: 'location', label: 'À louer' },
+  { key: 'vente',    label: 'À vendre' },
+]
+
+const TYPES = [
+  { key: '',              label: 'Tous les types' },
+  { key: 'maison',        label: 'Maison' },
+  { key: 'appart_vide',   label: 'Appart. vide' },
+  { key: 'appart_meuble', label: 'Appart. meublé' },
+  { key: 'terrain',       label: 'Terrain' },
+  { key: 'guesthouse',    label: 'Guesthouse' },
 ]
 
 const BUDGET_PRESETS = [
@@ -42,6 +58,17 @@ const BUDGET_PRESETS = [
   { label: '< 5M',   max: 5_000_000 },
 ]
 
+const PinIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+)
+const XIcon = () => (
+  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+)
 const FilterIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -95,35 +122,32 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 export default function HomePage() {
   const { isLoggedIn, user } = useAuth()
   const navigate = useNavigate()
-  const [category, setCategory] = useState('Tous')
+  const [transaction, setTransaction] = useState('')
+  const [type, setType] = useState('')
   const [search, setSearch] = useState('')
+  const [showSuggest, setShowSuggest] = useState(false)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [favIds, setFavIds] = useState<Set<number>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
-  const [budgetMax, setBudgetMax] = useState<number | null>(null)
   const [prixMin, setPrixMin] = useState('')
   const [prixMax, setPrixMax] = useState('')
 
-  const loadBiens = async (params?: any) => {
+  const suggestions: Quartier[] = search.trim().length >= 1 ? rechercherQuartiers(search) : []
+
+  // Charge tout le catalogue une seule fois — tous les filtres (transaction,
+  // type, ville/quartier, budget) s'appliquent ensuite côté client, ce qui
+  // évite tout risque de décalage entre ce qui est chargé et ce qui est filtré.
+  const loadBiens = async () => {
     setLoading(true)
     try {
-      const hasTransactionFilter = params?.transaction
-      const hasTypeFilter = params?.type
-
-      if (!hasTransactionFilter && !hasTypeFilter) {
-        const [locData, venteData] = await Promise.all([
-          biensApi.list({ ...params, transaction: 'location', limit: 100 }),
-          biensApi.list({ ...params, transaction: 'vente',    limit: 100 }),
-        ])
-        const loc   = Array.isArray(locData)   ? locData   : locData.data   || []
-        const vente = Array.isArray(venteData)  ? venteData : venteData.data || []
-        setBiens([...loc, ...vente])
-      } else {
-        const data = await biensApi.list({ ...params, limit: 100 })
-        const list = Array.isArray(data) ? data : data.data || []
-        setBiens(list)
-      }
+      const [locData, venteData] = await Promise.all([
+        biensApi.list({ transaction: 'location', limit: 100 }),
+        biensApi.list({ transaction: 'vente',    limit: 100 }),
+      ])
+      const loc   = Array.isArray(locData)   ? locData   : locData.data   || []
+      const vente = Array.isArray(venteData) ? venteData : venteData.data || []
+      setBiens([...loc, ...vente])
     } catch (_) {
     }
     setLoading(false)
@@ -143,23 +167,11 @@ export default function HomePage() {
     loadFavs()
   }, [isLoggedIn])
 
-  useEffect(() => {
-    const params: any = {}
-    if (category === 'location' || category === 'vente') {
-      params.transaction = category
-    } else if (category !== 'Tous') {
-      if (category === 'appartement') params.type = 'appart_vide'
-      else params.type = category
-    }
-    loadBiens(params)
-  }, [category])
-
-  // Filtrage par ville/quartier côté client — la recherche texte porte sur
-  // les biens déjà chargés, sans dépendre d'un filtre "ville" backend qui
-  // ne matche jamais un nom de quartier (ex: recherche "Godomey").
   const minVal = prixMin ? Number(prixMin) : null
-  const maxVal = budgetMax ?? (prixMax ? Number(prixMax) : null)
+  const maxVal = prixMax ? Number(prixMax) : null
   const displayedBiens = biens
+    .filter(b => !transaction || b.transaction === transaction)
+    .filter(b => !type || b.type === type)
     .filter(b => !search.trim() || matchLoc(b, search.trim()))
     .filter(b => minVal == null || Number(b.prix) >= minVal)
     .filter(b => maxVal == null || Number(b.prix) <= maxVal)
@@ -175,13 +187,16 @@ export default function HomePage() {
 
   const firstName = user?.prenom || user?.nom || 'vous'
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
-  const catLabel = CATEGORIES.find(c => c.key === category)?.label || 'Annonces'
+  const activeCat = CATEGORIES.find(c => c.transaction === transaction && c.type === type)
+  const combinedLabel = [transaction && (transaction === 'location' ? 'À louer' : 'À vendre'), TYPES.find(t => t.key === type)?.label]
+    .filter(Boolean).join(' · ')
+  const catLabel = activeCat?.label ?? (combinedLabel || 'Annonces')
 
   const goToSearch = () => {
     const params = new URLSearchParams()
     if (search.trim()) params.set('q', search.trim())
-    if (category === 'location' || category === 'vente') params.set('transaction', category)
-    else if (category !== 'Tous') params.set('type', category === 'appartement' ? 'appart_vide' : category)
+    if (transaction) params.set('transaction', transaction)
+    if (type) params.set('type', type)
     if (minVal != null) params.set('prix_min', String(minVal))
     if (maxVal != null) params.set('prix_max', String(maxVal))
     const qs = params.toString()
@@ -306,9 +321,9 @@ export default function HomePage() {
           {CATEGORIES.map(cat => (
             <button
               key={cat.key}
-              onClick={() => setCategory(cat.key)}
+              onClick={() => { setTransaction(cat.transaction); setType(cat.type) }}
               className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
-              style={category === cat.key ? {
+              style={transaction === cat.transaction && type === cat.type ? {
                 background: 'rgba(75,107,255,0.14)',
                 border: '1px solid rgba(75,107,255,0.35)',
                 color: '#4B6BFF',
@@ -329,7 +344,7 @@ export default function HomePage() {
           <button
             onClick={() => setShowFilters(s => !s)}
             className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
-            style={showFilters || budgetMax != null || prixMin || prixMax ? {
+            style={showFilters || prixMin || prixMax ? {
               background: 'rgba(75,107,255,0.14)',
               border: '1px solid rgba(75,107,255,0.35)',
               color: '#4B6BFF',
@@ -348,43 +363,119 @@ export default function HomePage() {
           </button>
         </Reveal>
 
-        {/* Budget — panneau repliable */}
+        {/* Filtres — panneau repliable */}
         {showFilters && (
           <Reveal animation="anim-fade-up" className="glass-card rounded-2xl p-4 mb-4">
-            <p className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2.5">Budget (FCFA)</p>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {BUDGET_PRESETS.map(p => (
-                <button
-                  key={p.label}
-                  onClick={() => { setBudgetMax(prev => prev === p.max ? null : p.max); setPrixMin(''); setPrixMax('') }}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all"
-                  style={budgetMax === p.max
-                    ? { background: '#4B6BFF', color: '#fff', borderColor: '#4B6BFF' }
-                    : { background: '#fff', color: '#6E6E73', borderColor: 'rgba(0,0,0,0.08)' }}
-                >
-                  {p.label}
-                </button>
-              ))}
+
+            {/* Ville ou quartier */}
+            <div className="mb-4">
+              <p className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2">Ville ou quartier</p>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-divider bg-surface-g">
+                  <span style={{ color: 'rgba(0,0,0,0.3)' }}><PinIcon /></span>
+                  <input
+                    value={search}
+                    onChange={e => { setSearch(e.target.value); setShowSuggest(true) }}
+                    onFocus={() => setShowSuggest(true)}
+                    onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+                    placeholder="Ex: Cotonou, Adovié, Akpakpa…"
+                    className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+                  />
+                  {search && (
+                    <button onClick={() => setSearch('')} style={{ color: 'rgba(0,0,0,0.3)' }}>
+                      <XIcon />
+                    </button>
+                  )}
+                </div>
+                {showSuggest && suggestions.length > 0 && (
+                  <div className="absolute z-30 mt-1 w-full bg-white rounded-xl border border-divider shadow-lg max-h-56 overflow-y-auto">
+                    {suggestions.map((q, i) => (
+                      <button key={`${q.nom}-${i}`} type="button" onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
+                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2">
+                        <span className="text-text-dark font-medium">{q.nom}</span>
+                        <span className="text-text-grey text-xs flex-shrink-0">{q.ville}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <p className="text-[11px] text-text-grey mt-1.5">La recherche tolère les variantes orthographiques</p>
             </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="number" min={0} value={prixMin}
-                onChange={e => { setPrixMin(e.target.value); setBudgetMax(null) }}
-                placeholder="Minimum"
-                className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
-              />
-              <span className="text-text-grey text-sm">—</span>
-              <input
-                type="number" min={0} value={prixMax}
-                onChange={e => { setPrixMax(e.target.value); setBudgetMax(null) }}
-                placeholder="Maximum"
-                className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
-              />
-              {(budgetMax != null || prixMin || prixMax) && (
-                <button onClick={() => { setBudgetMax(null); setPrixMin(''); setPrixMax('') }} className="text-xs font-semibold text-primary flex-shrink-0">
-                  Effacer
-                </button>
-              )}
+
+            {/* Transaction */}
+            <div className="mb-4">
+              <p className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2">Transaction</p>
+              <div className="flex gap-2">
+                {TRANSACTIONS.map(t => (
+                  <button key={t.key} onClick={() => setTransaction(t.key)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all"
+                    style={transaction === t.key
+                      ? { background: 'rgba(75,107,255,0.14)', borderColor: 'rgba(75,107,255,0.35)', color: '#4B6BFF' }
+                      : { background: '#fff', borderColor: 'rgba(0,0,0,0.08)', color: '#6E6E73' }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Type de bien */}
+            <div className="mb-4">
+              <p className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2">Type de bien</p>
+              <div className="flex flex-wrap gap-2">
+                {TYPES.map(t => (
+                  <button key={t.key} onClick={() => setType(t.key)}
+                    className="px-3 py-2 rounded-xl text-xs font-semibold border transition-all"
+                    style={type === t.key
+                      ? { background: 'rgba(75,107,255,0.14)', borderColor: 'rgba(75,107,255,0.35)', color: '#4B6BFF' }
+                      : { background: '#fff', borderColor: 'rgba(0,0,0,0.08)', color: '#6E6E73' }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Budget */}
+            <div>
+              <p className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2">Budget (FCFA)</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {BUDGET_PRESETS.map(p => {
+                  const active = prixMax === String(p.max)
+                  return (
+                    <button
+                      key={p.label}
+                      onClick={() => { setPrixMin(''); setPrixMax(active ? '' : String(p.max)) }}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all"
+                      style={active
+                        ? { background: '#4B6BFF', color: '#fff', borderColor: '#4B6BFF' }
+                        : { background: '#fff', color: '#6E6E73', borderColor: 'rgba(0,0,0,0.08)' }}
+                    >
+                      {p.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number" min={0} value={prixMin}
+                  onChange={e => setPrixMin(e.target.value)}
+                  placeholder="Minimum"
+                  className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
+                />
+                <span className="text-text-grey text-sm">—</span>
+                <input
+                  type="number" min={0} value={prixMax}
+                  onChange={e => setPrixMax(e.target.value)}
+                  placeholder="Maximum"
+                  className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
+                />
+                {(prixMin || prixMax) && (
+                  <button onClick={() => { setPrixMin(''); setPrixMax('') }} className="text-xs font-semibold text-primary flex-shrink-0">
+                    Effacer
+                  </button>
+                )}
+              </div>
             </div>
           </Reveal>
         )}
@@ -392,7 +483,7 @@ export default function HomePage() {
         {/* Section title */}
         <Reveal animation="anim-fade-up" className="flex items-center justify-between mb-4">
           <h2 className="text-base md:text-lg font-bold text-text-dark">
-            {category === 'Tous' ? 'Toutes les annonces' : catLabel}
+            {!transaction && !type ? 'Toutes les annonces' : catLabel}
             {displayedBiens.length > 0 && (
               <span className="font-normal text-sm ml-2 text-text-grey">({displayedBiens.length})</span>
             )}
