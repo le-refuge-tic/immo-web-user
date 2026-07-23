@@ -2,6 +2,34 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../api/walletApi'
 
+const isLoyer = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
+const isVisite = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
+const typeLabel = (t: any) => isLoyer(t) ? 'Loyer mensuel' : isVisite(t) ? 'Frais de visite' : String(t.libelle ?? t.description ?? t.type ?? 'Transaction')
+const montantOf = (t: any) => Number(t.montant ?? t.amount ?? 0)
+const statutLabel = (t: any) => {
+  const s = String(t.statut ?? t.status ?? '').toLowerCase()
+  if (s.includes('rembours')) return 'Remboursé'
+  if (s.includes('fail') || s.includes('echec')) return 'Échoué'
+  if (s.includes('pending') || s.includes('attente')) return 'En attente'
+  return 'Payé'
+}
+const statutColor = (s: string) => s === 'Échoué' ? '#FF3B30' : (s === 'Remboursé' || s === 'En attente') ? '#FF9800' : '#34C759'
+const typeColor = (t: any) => isLoyer(t) ? '#4B6BFF' : isVisite(t) ? '#FF6B35' : '#6E6E73'
+const fieldLabel = (k: string) => k.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ')
+const formatDate = (t: any) => {
+  const raw = String(t.created_at ?? t.date ?? '')
+  if (!raw) return '—'
+  const d = new Date(raw)
+  if (isNaN(d.getTime())) return raw.slice(0, 10)
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function TypeIcon({ t, color, className }: { t: any; color: string; className: string }) {
+  if (isLoyer(t)) return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" /></svg>
+  if (isVisite(t)) return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+  return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
+}
+
 export default function PortefeuillePage() {
   const navigate = useNavigate()
   const [wallet, setWallet]         = useState<any>(null)
@@ -11,6 +39,8 @@ export default function PortefeuillePage() {
   const [montant, setMontant]       = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [retraitOk, setRetraitOk]  = useState(false)
+  const [filter, setFilter]         = useState<'Tous' | 'Loyers' | 'Visites'>('Tous')
+  const [detailTx, setDetailTx]     = useState<any>(null)
 
   const load = async () => {
     setLoading(true)
@@ -34,6 +64,10 @@ export default function PortefeuillePage() {
   }
 
   const solde = Number(wallet?.solde || 0)
+  const loyerCount = transactions.filter(isLoyer).length
+  const visiteCount = transactions.filter(isVisite).length
+  const filteredTx = filter === 'Loyers' ? transactions.filter(isLoyer) : filter === 'Visites' ? transactions.filter(isVisite) : transactions
+  const totalFiltre = filteredTx.reduce((s, t) => s + montantOf(t), 0)
 
   return (
     <div className="min-h-full flex flex-col">
@@ -102,6 +136,42 @@ export default function PortefeuillePage() {
             </div>
           )}
 
+          {/* Modal détail transaction */}
+          {detailTx && (
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
+              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
+              onClick={() => setDetailTx(null)}>
+              <div className="w-full max-w-md rounded-2xl p-6 max-h-[80vh] overflow-y-auto" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(40px)' }}
+                onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${typeColor(detailTx)}1A` }}>
+                    <TypeIcon t={detailTx} color={typeColor(detailTx)} className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-text-dark">{typeLabel(detailTx)}</p>
+                    <p className="text-xs text-text-grey">{formatDate(detailTx)}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-text-dark">{montantOf(detailTx).toLocaleString('fr-FR')} FCFA</p>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${statutColor(statutLabel(detailTx))}1F`, color: statutColor(statutLabel(detailTx)) }}>
+                      {statutLabel(detailTx)}
+                    </span>
+                  </div>
+                </div>
+                <div className="border-t border-divider pt-3 space-y-2.5">
+                  {Object.entries(detailTx)
+                    .filter(([k, v]) => !['id', 'type', 'wallet_id', 'created_at'].includes(k) && v != null && String(v) !== '')
+                    .map(([k, v]) => (
+                      <div key={k} className="flex items-start gap-3">
+                        <span className="w-32 flex-shrink-0 text-xs text-text-grey">{fieldLabel(k)}</span>
+                        <span className="text-xs font-semibold text-text-dark break-words">{String(v)}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Transactions */}
           <div>
             <p className="font-bold text-text-dark mb-4">Historique des transactions</p>
@@ -115,31 +185,68 @@ export default function PortefeuillePage() {
                 <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
                 <p className="text-text-grey text-sm">Vos commissions apparaîtront ici.</p>
               </div>
-            ) : transactions.map((t: any, i: number) => {
-              const isCredit = t.type === 'credit' || Number(t.montant) > 0
-              return (
-                <div key={i} className="flex items-center gap-3 p-4 bg-white rounded-2xl mb-3 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: isCredit ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#22C55E' : '#EF4444'} strokeWidth={2.5} className="w-5 h-5">
-                      {isCredit
-                        ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8-8-8 8"/>
-                        : <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m8 8l-8 8-8-8"/>}
-                    </svg>
+            ) : (
+              <>
+                {/* Résumé */}
+                <div className="rounded-2xl p-4 mb-4 text-white flex items-center justify-between"
+                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
+                  <div>
+                    <p className="text-white/70 text-xs">Total{filter !== 'Tous' ? ` (${filter})` : ''}</p>
+                    <p className="text-xl font-bold mt-0.5">{totalFiltre.toLocaleString('fr-FR')} FCFA</p>
+                    <p className="text-white/55 text-[11px] mt-0.5">{filteredTx.length} transaction{filteredTx.length !== 1 ? 's' : ''}</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-text-dark text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
-                    <p className="text-xs text-text-grey mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
-                      {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
-                    </p>
-                    {t.solde_apres != null && <p className="text-[10px] text-text-grey">{Number(t.solde_apres).toLocaleString('fr-FR')} F</p>}
+                  <div className="flex flex-col gap-1.5 items-end flex-shrink-0">
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                      {loyerCount} Loyers
+                    </span>
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                      {visiteCount} Visites
+                    </span>
                   </div>
                 </div>
-              )
-            })}
+
+                {/* Filtres */}
+                <div className="flex gap-2 mb-4">
+                  {(['Tous', 'Loyers', 'Visites'] as const).map(f => (
+                    <button key={f} onClick={() => setFilter(f)}
+                      className="px-4 py-2 rounded-full text-xs font-bold transition-colors"
+                      style={filter === f
+                        ? { background: '#4B6BFF', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
+                        : { background: '#fff', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
+                      {f}
+                    </button>
+                  ))}
+                </div>
+
+                {filteredTx.length === 0 ? (
+                  <p className="text-text-grey text-sm text-center py-8">Aucune transaction dans cette catégorie.</p>
+                ) : filteredTx.map((t: any, i: number) => {
+                  const statut = statutLabel(t)
+                  const sColor = statutColor(statut)
+                  const tColor = typeColor(t)
+                  const subtitle = String(t.bien ?? t.reference ?? t.libelle ?? '')
+                  return (
+                    <div key={i} onClick={() => setDetailTx(t)}
+                      className="flex items-center gap-3 p-4 bg-white rounded-2xl mb-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tColor}1A` }}>
+                        <TypeIcon t={t} color={tColor} className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-text-dark text-sm truncate">{typeLabel(t)}</p>
+                        {subtitle && <p className="text-xs text-text-grey mt-0.5 truncate">{subtitle}</p>}
+                        <p className="text-[11px] text-text-grey mt-0.5">{formatDate(t)}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-bold text-sm text-text-dark">{montantOf(t).toLocaleString('fr-FR')} FCFA</p>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${sColor}1F`, color: sColor }}>
+                          {statut}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </>
+            )}
           </div>
         </div>
       </div>
