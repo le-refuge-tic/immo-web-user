@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
@@ -6,6 +6,22 @@ import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
 import HERO_IMG from '../../assets/hero-interior.jpg'
+
+function norm(s: string) {
+  return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+}
+
+function matchLoc(bien: any, query: string) {
+  if (!query) return true
+  const q = norm(query)
+  const fields = [
+    bien.localisation?.ville,
+    bien.localisation?.quartier,
+    bien.localisation?.commune,
+    bien.localisation?.adresse,
+  ].filter(Boolean).map((f: string) => norm(f))
+  return fields.some(f => f.includes(q))
+}
 
 type Category = { key: string; label: string }
 const CATEGORIES: Category[] = [
@@ -71,7 +87,6 @@ export default function HomePage() {
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [favIds, setFavIds] = useState<Set<number>>(new Set())
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadBiens = async (params?: any) => {
     setLoading(true)
@@ -112,20 +127,20 @@ export default function HomePage() {
   }, [isLoggedIn])
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      const params: any = {}
-      if (category === 'location' || category === 'vente') {
-        params.transaction = category
-      } else if (category !== 'Tous') {
-        if (category === 'appartement') params.type = 'appart_vide'
-        else params.type = category
-      }
-      if (search.trim()) params.ville = search.trim()
-      loadBiens(params)
-    }, 400)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [category, search])
+    const params: any = {}
+    if (category === 'location' || category === 'vente') {
+      params.transaction = category
+    } else if (category !== 'Tous') {
+      if (category === 'appartement') params.type = 'appart_vide'
+      else params.type = category
+    }
+    loadBiens(params)
+  }, [category])
+
+  // Filtrage par ville/quartier côté client — la recherche texte porte sur
+  // les biens déjà chargés, sans dépendre d'un filtre "ville" backend qui
+  // ne matche jamais un nom de quartier (ex: recherche "Godomey").
+  const displayedBiens = search.trim() ? biens.filter(b => matchLoc(b, search.trim())) : biens
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -139,6 +154,15 @@ export default function HomePage() {
   const firstName = user?.prenom || user?.nom || 'vous'
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const catLabel = CATEGORIES.find(c => c.key === category)?.label || 'Annonces'
+
+  const goToSearch = () => {
+    const params = new URLSearchParams()
+    if (search.trim()) params.set('q', search.trim())
+    if (category === 'location' || category === 'vente') params.set('transaction', category)
+    else if (category !== 'Tous') params.set('type', category === 'appartement' ? 'appart_vide' : category)
+    const qs = params.toString()
+    navigate(qs ? `/search?${qs}` : '/search')
+  }
 
   return (
     <div className="min-h-full overflow-x-hidden">
@@ -185,6 +209,7 @@ export default function HomePage() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
               placeholder="Ville, quartier, type de bien…"
               className="flex-1 text-sm bg-transparent outline-none text-white placeholder-white/50"
             />
@@ -225,6 +250,7 @@ export default function HomePage() {
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
                 placeholder="Ville, quartier, type de bien…"
                 className="flex-1 text-sm bg-transparent outline-none text-white placeholder-white/50"
               />
@@ -282,11 +308,11 @@ export default function HomePage() {
         <Reveal animation="anim-fade-up" className="flex items-center justify-between mb-4">
           <h2 className="text-base md:text-lg font-bold text-text-dark">
             {category === 'Tous' ? 'Toutes les annonces' : catLabel}
-            {biens.length > 0 && (
-              <span className="font-normal text-sm ml-2 text-text-grey">({biens.length})</span>
+            {displayedBiens.length > 0 && (
+              <span className="font-normal text-sm ml-2 text-text-grey">({displayedBiens.length})</span>
             )}
           </h2>
-          <button onClick={() => navigate('/search')} className="text-sm font-semibold text-primary">
+          <button onClick={goToSearch} className="text-sm font-semibold text-primary">
             Voir tout
           </button>
         </Reveal>
@@ -298,14 +324,14 @@ export default function HomePage() {
               <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />
             ))}
           </div>
-        ) : biens.length === 0 ? (
+        ) : displayedBiens.length === 0 ? (
           <Reveal animation="anim-fade-in" className="flex flex-col items-center justify-center py-20 text-center">
             <div className="mb-4 opacity-50"><EmptyIcon /></div>
             <p className="text-text-grey text-sm font-medium">Aucun bien trouvé</p>
           </Reveal>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {biens.map((bien, idx) => (
+            {displayedBiens.map((bien, idx) => (
               <Reveal
                 key={bien.id}
                 animation="anim-scale-in"

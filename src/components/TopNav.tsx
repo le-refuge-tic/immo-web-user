@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useNotifications } from '../context/NotificationsContext'
 import logoUrl from '../assets/REFUGE-LOGO.png'
 
 const NAV_ITEMS = [
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 
 export default function TopNav() {
   const { isLoggedIn, user, logout } = useAuth()
+  const { unreadAlertes, unreadMessages } = useNotifications()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -70,11 +72,12 @@ export default function TopNav() {
         <nav className="flex items-center justify-center gap-1">
           {NAV_ITEMS.map(item => {
             const active = isActive(item.path)
+            const badge = item.path === '/notifications' ? unreadAlertes : item.path === '/conversations' ? unreadMessages : 0
             return (
               <button
                 key={item.path}
                 onClick={() => handleNav(item)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${!active ? 'nav-link' : ''}`}
+                className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${!active ? 'nav-link' : ''}`}
                 style={{
                   color:       active ? '#4B6BFF' : 'rgba(0,0,0,0.55)',
                   background:  active ? 'rgba(75,107,255,0.10)' : 'transparent',
@@ -84,6 +87,11 @@ export default function TopNav() {
                 }}
               >
                 {item.label}
+                {badge > 0 && (
+                  <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
               </button>
             )
           })}

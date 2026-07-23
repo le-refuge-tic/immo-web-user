@@ -76,19 +76,19 @@ export default function NotificationsPage() {
   const markRead = async (id: number) => {
     try {
       await notificationsApi.markRead(id)
-      setNotifs(prev => prev.map(n => n.id === id ? { ...n, lue: true } : n))
+      setNotifs(prev => prev.map(n => n.id === id ? { ...n, lu: true } : n))
     } catch (_) {}
   }
 
   const markAll = async () => {
     try {
       await notificationsApi.markAllRead()
-      setNotifs(prev => prev.map(n => ({ ...n, lue: true })))
+      setNotifs(prev => prev.map(n => ({ ...n, lu: true })))
     } catch (_) {}
   }
 
-  const unread = notifs.filter(n => !n.lue).length
-  const displayed = filter === 'non_lues' ? notifs.filter(n => !n.lue) : notifs
+  const unread = notifs.filter(n => !n.lu).length
+  const displayed = filter === 'non_lues' ? notifs.filter(n => !n.lu) : notifs
 
   if (!isLoggedIn) return (
     <div className="min-h-full flex flex-col items-center justify-center py-20 text-center px-6">
@@ -170,8 +170,8 @@ export default function NotificationsPage() {
               return (
                 <div
                   key={n.id}
-                  onClick={() => !n.lue && markRead(n.id)}
-                  className={`glass-card rounded-2xl p-4 flex items-start gap-4 transition-all cursor-pointer ${n.lue ? '' : 'ring-1 ring-primary/20'}`}
+                  onClick={() => !n.lu && markRead(n.id)}
+                  className={`glass-card rounded-2xl p-4 flex items-start gap-4 transition-all cursor-pointer ${n.lu ? '' : 'ring-1 ring-primary/20'}`}
                 >
                   {/* Icon */}
                   <div
@@ -183,17 +183,17 @@ export default function NotificationsPage() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${n.lue ? 'text-text-grey' : 'text-text-dark font-semibold'}`}>
+                    <p className={`text-sm leading-snug ${n.lu ? 'text-text-grey' : 'text-text-dark font-semibold'}`}>
                       {n.titre || n.message}
                     </p>
-                    {n.contenu && n.titre && (
-                      <p className="text-xs text-text-grey mt-1 line-clamp-2">{n.contenu}</p>
+                    {n.corps && n.titre && (
+                      <p className="text-xs text-text-grey mt-1 line-clamp-2">{n.corps}</p>
                     )}
                     <p className="text-xs text-text-grey mt-1.5">{timeAgo(n.created_at)}</p>
                   </div>
 
                   {/* Unread dot */}
-                  {!n.lue && (
+                  {!n.lu && (
                     <div className="w-2.5 h-2.5 rounded-full bg-primary flex-shrink-0 mt-1" />
                   )}
                 </div>

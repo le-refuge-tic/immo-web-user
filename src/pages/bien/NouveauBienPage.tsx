@@ -19,16 +19,15 @@ const TYPES_BIEN = [
 ]
 
 const SANITAIRE_OPTS = [
+  { value: 'ordinaire', label: 'Ordinaire' },
   { value: 'interieur', label: 'Sanitaire' },
-  { value: 'cour', label: 'Non sanitaire' },
+  { value: 'semi_sanitaire', label: 'Semi-Sanitaire' },
   { value: 'autre', label: 'Autre à préciser' },
 ]
 
 const FINITION_OPTS = [
-  { value: 'ordinaire', label: 'Ordinaire', sub: '' },
-  { value: 'semi_staffe', label: 'Semi-Staffé', sub: 'Salon staffé et carrelé ; chambre au plafond propre, sans carrelage.' },
-  { value: 'staffe_carele', label: 'Staffé-Carrelé', sub: 'Staff complet moderne et carreaux récents partout.' },
-  { value: 'haut_standing', label: 'Haut Standing / VIP', sub: 'Baies vitrées, douche moderne, climatisation.' },
+  { value: 'staffe', label: 'Staffé', sub: '' },
+  { value: 'haut_standing', label: 'Haut Standing', sub: 'Baies vitrées, douche moderne, climatisation.' },
 ]
 
 const CUISINE_OPTS = [
@@ -110,21 +109,24 @@ function Section({ title, required }: { title: string; required?: boolean }) {
   )
 }
 
-function ChoiceList({ options, value, onChange }: { options: { value: string; label: string; sub?: string }[]; value: string | null; onChange: (v: string) => void }) {
+function ChoiceList({ options, value, onChange, disabledValues }: { options: { value: string; label: string; sub?: string }[]; value: string | null; onChange: (v: string) => void; disabledValues?: string[] }) {
   return (
     <div className="space-y-2">
-      {options.map(o => (
-        <button key={o.value} type="button" onClick={() => onChange(o.value)}
-          className={`w-full flex items-start justify-between gap-2 px-4 py-3 rounded-xl border-2 text-left transition-all ${
-            value === o.value ? 'border-primary bg-primary-l' : 'border-divider bg-white'
-          }`}>
-          <span>
-            <span className={`block text-sm font-semibold ${value === o.value ? 'text-primary' : 'text-text-dark'}`}>{o.label}</span>
-            {o.sub && <span className="block text-xs text-text-grey mt-0.5">{o.sub}</span>}
-          </span>
-          {value === o.value && <span className="text-primary font-bold shrink-0">✓</span>}
-        </button>
-      ))}
+      {options.map(o => {
+        const isDisabled = disabledValues?.includes(o.value) ?? false
+        return (
+          <button key={o.value} type="button" disabled={isDisabled} onClick={() => onChange(o.value)}
+            className={`w-full flex items-start justify-between gap-2 px-4 py-3 rounded-xl border-2 text-left transition-all ${
+              isDisabled ? 'border-divider bg-surface-g opacity-40 cursor-not-allowed' : value === o.value ? 'border-primary bg-primary-l' : 'border-divider bg-white'
+            }`}>
+            <span>
+              <span className={`block text-sm font-semibold ${isDisabled ? 'text-text-grey' : value === o.value ? 'text-primary' : 'text-text-dark'}`}>{o.label}</span>
+              {o.sub && <span className="block text-xs text-text-grey mt-0.5">{o.sub}</span>}
+            </span>
+            {value === o.value && !isDisabled && <span className="text-primary font-bold shrink-0">✓</span>}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -207,6 +209,11 @@ export default function NouveauBienPage() {
   const [sanitaire, setSanitaire] = useState<string | null>(null)
   const [sanitaireAutre, setSanitaireAutre] = useState('')
   const [finition, setFinition] = useState<string | null>(null)
+  const finitionDisabled = sanitaire === 'ordinaire' ? ['haut_standing'] : []
+  const onSelectSanitaire = (v: string) => {
+    setSanitaire(v)
+    if (v === 'ordinaire' && finition === 'haut_standing') setFinition('staffe')
+  }
   const [prixLongSejour, setPrixLongSejour] = useState('')
   const [prixSejourRestreint, setPrixSejourRestreint] = useState('')
   const [prixHeure, setPrixHeure] = useState('')
@@ -216,7 +223,6 @@ export default function NouveauBienPage() {
   const [ville, setVille] = useState('')
   const [quartier, setQuartier] = useState('')
   const [arrondissement, setArrondissement] = useState('')
-  const [quartierInconnu, setQuartierInconnu] = useState(false)
   const [indicationAdresse, setIndicationAdresse] = useState('')
 
   // ── Étape 2 : Confort / Terrain / Boutique ────────────────────────────────
@@ -343,7 +349,8 @@ export default function NouveauBienPage() {
     }
 
     if (sanitaire === 'interieur') a.sanitaire = true
-    if (sanitaire === 'cour') a.sanitaire = false
+    if (sanitaire === 'ordinaire') { a.sanitaire = false; a.sanitaire_autre = 'Ordinaire' }
+    if (sanitaire === 'semi_sanitaire') { a.sanitaire = true; a.sanitaire_autre = 'Semi-Sanitaire' }
     if (sanitaire === 'autre' && sanitaireAutre.trim()) a.sanitaire_autre = sanitaireAutre.trim()
     if (finition) a.finition = finition
     a.disponibilite = disponibilite
@@ -389,19 +396,21 @@ export default function NouveauBienPage() {
   }
 
   const buildPieces = () => {
+    // surface: 0 = non précisée par le propriétaire — BienDetailPage n'affiche
+    // la taille que si surface > 0, donc aucune fausse valeur n'est montrée au client.
     if (isTerrain || isBoutique) return []
-    if (typeBien === 'entree_coucher') return [{ nom: 'Chambre', surface: 12 }, { nom: 'Entrée', surface: 8 }]
+    if (typeBien === 'entree_coucher') return [{ nom: 'Chambre', surface: 0 }, { nom: 'Entrée', surface: 0 }]
     if (typeBien === 'chambre_salon') {
       const p: any[] = []
-      for (let i = 0; i < chambres; i++) p.push({ nom: 'Chambre', surface: 15 })
-      for (let i = 0; i < salons; i++) p.push({ nom: 'Salon', surface: 20 })
+      for (let i = 0; i < chambres; i++) p.push({ nom: 'Chambre', surface: 0 })
+      for (let i = 0; i < salons; i++) p.push({ nom: 'Salon', surface: 0 })
       return p
     }
     const p: any[] = []
-    for (let i = 0; i < chambres; i++) p.push({ nom: 'Chambre', surface: 15 })
-    for (let i = 0; i < salons; i++) p.push({ nom: 'Salon', surface: 20 })
-    for (let i = 0; i < cuisines; i++) p.push({ nom: 'Cuisine', surface: 12 })
-    for (let i = 0; i < douches; i++) p.push({ nom: 'Salle de bain', surface: 8 })
+    for (let i = 0; i < chambres; i++) p.push({ nom: 'Chambre', surface: 0 })
+    for (let i = 0; i < salons; i++) p.push({ nom: 'Salon', surface: 0 })
+    for (let i = 0; i < cuisines; i++) p.push({ nom: 'Cuisine', surface: 0 })
+    for (let i = 0; i < douches; i++) p.push({ nom: 'Salle de bain', surface: 0 })
     return p
   }
 
@@ -431,7 +440,7 @@ export default function NouveauBienPage() {
         description: descFull || undefined,
         localisation: {
           adresse: indicationAdresse.trim() || [quartier, arrondissement].filter(Boolean).join(', ') || quartier,
-          ville: ville || 'Cotonou',
+          ville: ville || quartier || undefined,
           quartier: quartier || undefined,
           latitude: 6.3654,
           longitude: 2.4183,
@@ -487,9 +496,9 @@ export default function NouveauBienPage() {
   }
 
   return (
-    <div className="min-h-full flex flex-col md:max-w-2xl md:mx-auto">
+    <div className="min-h-full flex flex-col md:max-w-2xl md:mx-auto md:mt-6">
       {/* Header */}
-      <div className="bg-white px-4 pt-12 md:pt-6 pb-4 border-b border-divider sticky top-0 z-10">
+      <div className="bg-white px-4 pt-12 md:pt-6 pb-4 border-b border-divider rounded-t-2xl md:rounded-2xl sticky top-0 md:top-6 z-10">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate(-1)}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-g">
@@ -536,7 +545,7 @@ export default function NouveauBienPage() {
               <>
                 <div>
                   <Section title="Sanitaires" />
-                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={setSanitaire} />
+                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} />
                   {sanitaire === 'autre' && (
                     <input value={sanitaireAutre} onChange={e => setSanitaireAutre(e.target.value)}
                       placeholder="Précisez la configuration des sanitaires"
@@ -545,7 +554,7 @@ export default function NouveauBienPage() {
                 </div>
                 <div>
                   <Section title="Finition / Standing" />
-                  <ChoiceList options={FINITION_OPTS} value={finition} onChange={setFinition} />
+                  <ChoiceList options={FINITION_OPTS} value={finition} onChange={setFinition} disabledValues={finitionDisabled} />
                 </div>
               </>
             )}
@@ -612,21 +621,16 @@ export default function NouveauBienPage() {
               <label className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
               <QuartierPicker
                 value={quartier}
-                onChange={v => { setQuartier(v); setQuartierInconnu(false) }}
-                onSelect={q => { setVille(q.ville); setArrondissement(q.arrondissement); setQuartierInconnu(false) }}
+                onChange={v => setQuartier(v)}
+                onSelect={q => { setVille(q.ville); setArrondissement(q.arrondissement) }}
                 onBlur={() => {
-                  if (!quartier.trim()) { setQuartierInconnu(false); return }
+                  if (!quartier.trim()) return
                   const trouve = trouverQuartierExact(quartier)
-                  if (trouve) { setVille(trouve.ville); setArrondissement(trouve.arrondissement); setQuartierInconnu(false) }
-                  else { setVille(''); setArrondissement(''); setQuartierInconnu(true) }
+                  if (trouve) { setVille(trouve.ville); setArrondissement(trouve.arrondissement) }
+                  else { setVille(''); setArrondissement('') }
                 }}
                 placeholder="Ex: Cadjèhoun, Godomey…"
               />
-              {quartierInconnu && (
-                <p className="text-[11px] mt-1.5 pl-1" style={{ color: '#D97706' }}>
-                  Ce quartier n'est pas dans Cotonou ou Abomey-Calavi, mais vous pouvez continuer.
-                </p>
-              )}
             </div>
             <div>
               <label className="text-xs font-semibold text-text-dark mb-1.5 block">Arrondissement</label>
@@ -803,7 +807,7 @@ export default function NouveauBienPage() {
               <>
                 <div>
                   <Section title="Sanitaires" />
-                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={setSanitaire} />
+                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} />
                   {sanitaire === 'autre' && (
                     <input value={sanitaireAutre} onChange={e => setSanitaireAutre(e.target.value)}
                       placeholder="Précisez la configuration des sanitaires"
@@ -812,7 +816,7 @@ export default function NouveauBienPage() {
                 </div>
                 <div>
                   <Section title="Finition / Standing" />
-                  <ChoiceList options={FINITION_OPTS} value={finition} onChange={setFinition} />
+                  <ChoiceList options={FINITION_OPTS} value={finition} onChange={setFinition} disabledValues={finitionDisabled} />
                 </div>
               </>
             )}

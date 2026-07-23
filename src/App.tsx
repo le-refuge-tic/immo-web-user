@@ -1,6 +1,7 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { NotificationsProvider } from './context/NotificationsContext'
 import MainLayout from './components/MainLayout'
 import HomePage from './pages/home/HomePage'
 import BienDetailPage from './pages/bien/BienDetailPage'
@@ -56,6 +57,7 @@ function HomeGuard() {
 function App() {
   return (
     <AuthProvider>
+    <NotificationsProvider>
       <Routes>
         {/* Pages sans layout (standalone) */}
         <Route path="/splash" element={<SplashPage />} />
@@ -124,6 +126,7 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </NotificationsProvider>
     </AuthProvider>
   )
 }

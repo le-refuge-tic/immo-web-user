@@ -280,8 +280,8 @@ function ReservationsTab() {
         ) : filtered.map((v, i) => {
           const echouee = isEchouee(v)
           const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
-          const nom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
-          const init = nom.charAt(0).toUpperCase()
+          const nom = 'Client'
+          const init = 'C'
           const bType = typeLabel(v.bien?.type || '')
           const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
           const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
@@ -293,7 +293,7 @@ function ReservationsTab() {
                   style={{ background: `linear-gradient(135deg, ${PURPLE}, ${DARK_PURPLE})` }}>{init}</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-text-dark text-sm">{nom}</p>
-                  <p className="text-xs text-text-grey">{v.client?.telephone || '—'}</p>
+                  <p className="text-xs text-text-grey">Identité masquée avant confirmation</p>
                 </div>
                 <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
               </div>
@@ -537,7 +537,7 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
               </div>
               <p className="text-xs text-text-grey mb-3">
-                {d.bien ? `${typeLabel(d.bien.type)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'} · {d.taux_commission_demarcheur}% commission
+                {d.bien ? `${typeLabel(d.bien.type)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'}
               </p>
               {d.statut === 'en_attente' && (
                 <div className="flex gap-2">

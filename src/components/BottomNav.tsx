@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useNotifications } from '../context/NotificationsContext'
 
 const HomeIcon = ({ active }: { active: boolean }) => (
   <svg viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 0 : 2} className="w-6 h-6">
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const { isLoggedIn } = useAuth()
+  const { unreadAlertes, unreadMessages } = useNotifications()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -65,19 +67,25 @@ export default function BottomNav() {
         {NAV_ITEMS.map(item => {
           const active = isActive(item.path)
           const Icon = item.icon
+          const badge = item.path === '/notifications' ? unreadAlertes : item.path === '/conversations' ? unreadMessages : 0
           return (
             <button
               key={item.path}
               onClick={() => handleNav(item)}
-              className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 btn-press"
+              className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 btn-press"
               style={{
                 background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
                 border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',
                 boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.8)' : 'none',
               }}
             >
-              <span style={{ color: active ? '#4B6BFF' : 'rgba(0,0,0,0.40)' }}>
+              <span className="relative" style={{ color: active ? '#4B6BFF' : 'rgba(0,0,0,0.40)' }}>
                 <Icon active={active} />
+                {badge > 0 && (
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
               </span>
               {active && (
                 <span className="text-[10px] font-bold" style={{ color: '#4B6BFF' }}>{item.label}</span>

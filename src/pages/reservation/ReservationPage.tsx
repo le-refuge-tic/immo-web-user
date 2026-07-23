@@ -122,7 +122,7 @@ export default function ReservationPage() {
   ) : null
 
   const CalendarCard = () => (
-    <div className="rounded-2xl p-5" style={GLASS}>
+    <div className="rounded-2xl p-5 md:max-w-sm" style={GLASS}>
       <p className="text-sm font-bold text-text-dark mb-4">Choisir une date</p>
       <div className="flex items-center justify-between mb-4">
         <button onClick={prevMonth} className="w-9 h-9 flex items-center justify-center rounded-[10px]" style={{ background: 'rgba(0,0,0,0.05)' }}>

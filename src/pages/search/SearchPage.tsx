@@ -100,10 +100,11 @@ export default function SearchPage() {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
 
-  /* Filtres */
-  const [query,       setQuery]       = useState('')
-  const [transaction, setTransaction] = useState('')
-  const [type,        setType]        = useState('')
+  /* Filtres — préremplis depuis l'URL (ex: venant de "Voir tout" ou d'une recherche sur l'accueil) */
+  const initialParams = new URLSearchParams(window.location.search)
+  const [query,       setQuery]       = useState(initialParams.get('q') || '')
+  const [transaction, setTransaction] = useState(initialParams.get('transaction') || '')
+  const [type,        setType]        = useState(initialParams.get('type') || '')
   const [prixMin,     setPrixMin]     = useState('')
   const [prixMax,     setPrixMax]     = useState('')
 
@@ -458,7 +459,7 @@ export default function SearchPage() {
 
           <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
-            cols="grid-cols-2 lg:grid-cols-3"
+            cols="grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           />
         </div>
       </div>
