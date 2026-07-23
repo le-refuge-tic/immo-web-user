@@ -332,7 +332,7 @@ export default function SearchPage() {
           <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} />
           <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
-            cols="grid-cols-2"
+            cols="grid-cols-1"
           />
         </div>
       </div>

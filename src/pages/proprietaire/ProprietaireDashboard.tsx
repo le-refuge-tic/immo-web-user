@@ -321,7 +321,10 @@ function ReservationsTab() {
           const init = 'C'
           const bType = typeLabel(v.bien?.type || '')
           const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
-          const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+          const dateStr = v.date_souhaitee
+            ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+              + ' à ' + new Date(v.date_souhaitee).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            : '—'
           const contactNumero = v.client?.numero_whatsapp || v.client?.telephone
           return (
             <div key={v.id || i} className="bg-white rounded-2xl shadow-sm mb-3 p-4">

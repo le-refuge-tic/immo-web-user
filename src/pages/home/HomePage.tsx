@@ -495,7 +495,7 @@ export default function HomePage() {
 
         {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
               <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />
             ))}
@@ -506,7 +506,7 @@ export default function HomePage() {
             <p className="text-text-grey text-sm font-medium">Aucun bien trouvé</p>
           </Reveal>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {displayedBiens.map((bien, idx) => (
               <Reveal
                 key={bien.id}
