@@ -34,6 +34,19 @@ const CATEGORIES: Category[] = [
   { key: 'guesthouse',  label: 'Guesthouse' },
 ]
 
+const BUDGET_PRESETS = [
+  { label: '< 50k',  max: 50_000 },
+  { label: '< 150k', max: 150_000 },
+  { label: '< 500k', max: 500_000 },
+  { label: '< 1M',   max: 1_000_000 },
+  { label: '< 5M',   max: 5_000_000 },
+]
+
+const FilterIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+  </svg>
+)
 const LayersIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
@@ -87,6 +100,10 @@ export default function HomePage() {
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [favIds, setFavIds] = useState<Set<number>>(new Set())
+  const [showFilters, setShowFilters] = useState(false)
+  const [budgetMax, setBudgetMax] = useState<number | null>(null)
+  const [prixMin, setPrixMin] = useState('')
+  const [prixMax, setPrixMax] = useState('')
 
   const loadBiens = async (params?: any) => {
     setLoading(true)
@@ -140,7 +157,12 @@ export default function HomePage() {
   // Filtrage par ville/quartier côté client — la recherche texte porte sur
   // les biens déjà chargés, sans dépendre d'un filtre "ville" backend qui
   // ne matche jamais un nom de quartier (ex: recherche "Godomey").
-  const displayedBiens = search.trim() ? biens.filter(b => matchLoc(b, search.trim())) : biens
+  const minVal = prixMin ? Number(prixMin) : null
+  const maxVal = budgetMax ?? (prixMax ? Number(prixMax) : null)
+  const displayedBiens = biens
+    .filter(b => !search.trim() || matchLoc(b, search.trim()))
+    .filter(b => minVal == null || Number(b.prix) >= minVal)
+    .filter(b => maxVal == null || Number(b.prix) <= maxVal)
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -160,6 +182,8 @@ export default function HomePage() {
     if (search.trim()) params.set('q', search.trim())
     if (category === 'location' || category === 'vente') params.set('transaction', category)
     else if (category !== 'Tous') params.set('type', category === 'appartement' ? 'appart_vide' : category)
+    if (minVal != null) params.set('prix_min', String(minVal))
+    if (maxVal != null) params.set('prix_max', String(maxVal))
     const qs = params.toString()
     navigate(qs ? `/search?${qs}` : '/search')
   }
@@ -302,7 +326,68 @@ export default function HomePage() {
               <span>{cat.label}</span>
             </button>
           ))}
+          <button
+            onClick={() => setShowFilters(s => !s)}
+            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
+            style={showFilters || budgetMax != null || prixMin || prixMax ? {
+              background: 'rgba(75,107,255,0.14)',
+              border: '1px solid rgba(75,107,255,0.35)',
+              color: '#4B6BFF',
+              boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.9), 0 2px 12px rgba(75,107,255,0.15)',
+              backdropFilter: 'blur(20px)',
+            } : {
+              background: 'rgba(255,255,255,0.70)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.88)',
+              color: 'rgba(0,0,0,0.55)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.05)',
+            }}
+          >
+            <FilterIcon />
+            <span>Filtres</span>
+          </button>
         </Reveal>
+
+        {/* Budget — panneau repliable */}
+        {showFilters && (
+          <Reveal animation="anim-fade-up" className="glass-card rounded-2xl p-4 mb-4">
+            <p className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2.5">Budget (FCFA)</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {BUDGET_PRESETS.map(p => (
+                <button
+                  key={p.label}
+                  onClick={() => { setBudgetMax(prev => prev === p.max ? null : p.max); setPrixMin(''); setPrixMax('') }}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all"
+                  style={budgetMax === p.max
+                    ? { background: '#4B6BFF', color: '#fff', borderColor: '#4B6BFF' }
+                    : { background: '#fff', color: '#6E6E73', borderColor: 'rgba(0,0,0,0.08)' }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="number" min={0} value={prixMin}
+                onChange={e => { setPrixMin(e.target.value); setBudgetMax(null) }}
+                placeholder="Minimum"
+                className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
+              />
+              <span className="text-text-grey text-sm">—</span>
+              <input
+                type="number" min={0} value={prixMax}
+                onChange={e => { setPrixMax(e.target.value); setBudgetMax(null) }}
+                placeholder="Maximum"
+                className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
+              />
+              {(budgetMax != null || prixMin || prixMax) && (
+                <button onClick={() => { setBudgetMax(null); setPrixMin(''); setPrixMax('') }} className="text-xs font-semibold text-primary flex-shrink-0">
+                  Effacer
+                </button>
+              )}
+            </div>
+          </Reveal>
+        )}
 
         {/* Section title */}
         <Reveal animation="anim-fade-up" className="flex items-center justify-between mb-4">

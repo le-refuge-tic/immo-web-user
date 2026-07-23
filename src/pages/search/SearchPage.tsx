@@ -105,8 +105,8 @@ export default function SearchPage() {
   const [query,       setQuery]       = useState(initialParams.get('q') || '')
   const [transaction, setTransaction] = useState(initialParams.get('transaction') || '')
   const [type,        setType]        = useState(initialParams.get('type') || '')
-  const [prixMin,     setPrixMin]     = useState('')
-  const [prixMax,     setPrixMax]     = useState('')
+  const [prixMin,     setPrixMin]     = useState(initialParams.get('prix_min') || '')
+  const [prixMax,     setPrixMax]     = useState(initialParams.get('prix_max') || '')
 
   /* État */
   const [allBiens,    setAllBiens]    = useState<any[]>([])
