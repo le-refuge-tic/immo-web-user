@@ -49,4 +49,7 @@ export const visitesApi = {
 
   reserverVisite: (bienId: number, dateSouhaitee: string) =>
     axios.post(`${BASE}/visites`, { bien_id: bienId, date_souhaitee: dateSouhaitee }, auth()).then(r => r.data),
+
+  donnerFeedback: (id: number, body: { note: number; tags?: string[]; texte?: string }) =>
+    axios.patch(`${BASE}/visites/${id}/feedback`, body, auth()).then(r => r.data),
 }

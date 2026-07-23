@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
-import { feedbackApi } from '../../api/feedbackApi'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
@@ -38,6 +38,55 @@ function fmtDate(raw: string | undefined | null) {
 
 const TABS = ['Toutes', 'À venir', 'Terminées']
 
+const FACE_CONFIG: Record<number, { color: string; label: string }> = {
+  5: { color: '#26C6DA', label: 'Ravi' },
+  4: { color: '#66BB6A', label: 'Satisfait' },
+  3: { color: '#FFCA28', label: 'Neutre' },
+  2: { color: '#FF9800', label: 'Insatisfait' },
+  1: { color: '#FF5252', label: 'Très mécontent' },
+}
+
+const ISSUES_TAGS = [
+  "L'interlocuteur n'était pas professionnel",
+  'Le bien ne correspond pas aux photos',
+  'La description était trompeuse',
+  "L'état du bien était décevant",
+  'Des informations importantes ont été omises',
+  'La visite était trop précipitée',
+  "Le bien n'est plus disponible comme annoncé",
+  'Le prix annoncé ne reflète pas la réalité',
+]
+
+function FaceRating({ selected, onSelect }: { selected: number | null; onSelect: (n: number) => void }) {
+  return (
+    <div className="flex justify-between gap-1">
+      {[5, 4, 3, 2, 1].map(n => {
+        const cfg = FACE_CONFIG[n]
+        const isSel = selected === n
+        return (
+          <button key={n} onClick={() => onSelect(n)}
+            className="flex flex-col items-center gap-1.5 transition-transform"
+            style={{ transform: isSel ? 'scale(1.12)' : 'scale(1)', opacity: selected !== null && !isSel ? 0.45 : 1 }}>
+            <svg width="48" height="48" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="22" fill={cfg.color} style={isSel ? { filter: `drop-shadow(0 0 6px ${cfg.color}90)` } : undefined} />
+              <circle cx="16" cy="19" r="2.6" fill="#00000055" />
+              <circle cx="32" cy="19" r="2.6" fill="#00000055" />
+              {n === 5 && <path d="M14 27 Q24 38 34 27" stroke="#00000060" strokeWidth="3" fill="none" strokeLinecap="round" />}
+              {n === 4 && <path d="M15 27 Q24 34 33 27" stroke="#00000060" strokeWidth="2.5" fill="none" strokeLinecap="round" />}
+              {n === 3 && <path d="M16 29 L32 29" stroke="#00000060" strokeWidth="2.5" fill="none" strokeLinecap="round" />}
+              {n === 2 && <path d="M15 32 Q24 26 33 32" stroke="#00000060" strokeWidth="2.5" fill="none" strokeLinecap="round" />}
+              {n === 1 && <path d="M14 34 Q24 24 34 34" stroke="#00000060" strokeWidth="3" fill="none" strokeLinecap="round" />}
+            </svg>
+            <span className="text-[9.5px] font-semibold text-center leading-tight" style={{ color: isSel ? cfg.color : '#9CA3AF', maxWidth: 48 }}>
+              {cfg.label}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function MesVisitesPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState(0)
@@ -53,7 +102,8 @@ export default function MesVisitesPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; body: string; onConfirm: () => void } | null>(null)
   const [showFeedback, setShowFeedback] = useState<any>(null)
-  const [feedbackNote, setFeedbackNote] = useState(5)
+  const [feedbackNote, setFeedbackNote] = useState<number | null>(null)
+  const [feedbackTags, setFeedbackTags] = useState<string[]>([])
   const [feedbackComment, setFeedbackComment] = useState('')
   const [feedbackSaving, setFeedbackSaving] = useState(false)
   const [feedbackError, setFeedbackError] = useState('')
@@ -162,24 +212,32 @@ export default function MesVisitesPage() {
 
   const openFeedback = (v: any) => {
     setShowFeedback(v)
-    setFeedbackNote(5)
+    setFeedbackNote(null)
+    setFeedbackTags([])
     setFeedbackComment('')
     setFeedbackError('')
     setFeedbackDone(false)
   }
 
+  const needsTags = feedbackNote !== null && feedbackNote <= 3
+  const canSubmitFeedback = feedbackNote !== null &&
+    (feedbackNote > 3 || feedbackTags.length > 0 || feedbackComment.trim().length > 0)
+
+  const toggleFeedbackTag = (tag: string) =>
+    setFeedbackTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+
   const handleSubmitFeedback = async () => {
-    if (!showFeedback) return
+    if (!showFeedback || !canSubmitFeedback) return
     setFeedbackSaving(true)
     setFeedbackError('')
     try {
-      await feedbackApi.soumettreVisite({
-        visite_id: showFeedback.id,
-        bien_id: showFeedback.bien?.id,
-        note: feedbackNote,
-        commentaire: feedbackComment.trim() || undefined,
+      await visitesApi.donnerFeedback(showFeedback.id, {
+        note: feedbackNote!,
+        tags: feedbackTags.length ? feedbackTags : undefined,
+        texte: feedbackComment.trim() || undefined,
       })
       setFeedbackDone(true)
+      loadVisites()
     } catch (err: any) {
       setFeedbackError(err?.response?.data?.message || "Impossible d'envoyer l'avis")
     }
@@ -242,8 +300,8 @@ export default function MesVisitesPage() {
       </div>
 
       {/* Payment modal */}
-      {showPay && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={payState === 'idle' ? closePayModal : undefined}>
+      {showPay && createPortal(
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={payState === 'idle' ? closePayModal : undefined}>
           <div className="glass-strong rounded-t-3xl p-6 w-full" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
 
@@ -306,12 +364,13 @@ export default function MesVisitesPage() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* Feedback modal */}
-      {showFeedback && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setShowFeedback(null)}>
+      {showFeedback && createPortal(
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={() => setShowFeedback(null)}>
           <div className="glass-strong rounded-t-3xl p-6 w-full" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
             {feedbackDone ? (
@@ -323,43 +382,63 @@ export default function MesVisitesPage() {
                 <button onClick={() => setShowFeedback(null)} className="mt-3 text-sm font-semibold text-text-grey">Fermer</button>
               </div>
             ) : (
-              <>
-                <h3 className="font-bold text-text-dark mb-1">Comment s'est passée la visite ?</h3>
-                <p className="text-sm text-text-grey mb-4">Votre avis aide les futurs visiteurs.</p>
+              <div className="max-h-[75vh] overflow-y-auto">
+                <h3 className="font-bold text-text-dark mb-1 text-center">Comment s'est passée votre visite ?</h3>
+                <p className="text-sm text-text-grey mb-5 text-center">Votre avis aide les futurs visiteurs.</p>
                 {feedbackError && <p className="text-danger text-sm mb-3">{feedbackError}</p>}
-                <div className="flex justify-center gap-2 mb-5">
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <button key={n} onClick={() => setFeedbackNote(n)} aria-label={`${n} étoiles`}>
-                      <svg className="w-9 h-9" viewBox="0 0 24 24" fill={n <= feedbackNote ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg>
-                    </button>
-                  ))}
-                </div>
+
+                <FaceRating selected={feedbackNote} onSelect={n => { setFeedbackNote(n); if (n > 3) setFeedbackTags([]) }} />
+
+                {needsTags && (
+                  <div className="mt-5">
+                    <p className="text-sm font-bold text-text-dark mb-1">Qu'est-ce qui n'a pas fonctionné ?</p>
+                    <p className="text-xs text-text-grey mb-3">Sélectionnez tout ce qui s'applique (au moins un)</p>
+                    <div className="flex flex-wrap gap-2">
+                      {ISSUES_TAGS.map(tag => {
+                        const sel = feedbackTags.includes(tag)
+                        return (
+                          <button key={tag} onClick={() => toggleFeedbackTag(tag)}
+                            className="px-3 py-2 rounded-xl text-xs font-medium border transition-all"
+                            style={sel
+                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#EF4444', fontWeight: 600 }
+                              : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
+                            {tag}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-sm font-bold text-text-dark mt-5 mb-2">
+                  {needsTags ? 'Vous souhaitez ajouter quelque chose ?' : 'Laissez un commentaire (optionnel)'}
+                </p>
                 <textarea
                   value={feedbackComment}
                   onChange={e => setFeedbackComment(e.target.value)}
-                  placeholder="Un commentaire (optionnel)…"
+                  placeholder="Partagez votre expérience en détail…"
                   rows={3}
+                  maxLength={500}
                   className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none resize-none mb-4"
                 />
                 <button
                   onClick={handleSubmitFeedback}
-                  disabled={feedbackSaving}
+                  disabled={feedbackSaving || !canSubmitFeedback}
                   className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
                   style={{ background: '#4B6BFF' }}
                 >
                   {feedbackSaving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Envoyer mon avis'}
                 </button>
-              </>
+              </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* Confirm dialog */}
-      {confirmDialog && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-5" onClick={() => setConfirmDialog(null)}>
+      {confirmDialog && createPortal(
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center px-5" onClick={() => setConfirmDialog(null)}>
           <div className="glass-strong rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-text-dark text-base mb-2">{confirmDialog.title}</h3>
             <p className="text-sm text-text-grey leading-relaxed mb-5">{confirmDialog.body}</p>
@@ -372,7 +451,8 @@ export default function MesVisitesPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
@@ -536,7 +616,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
           </button>
         )}
 
-        {v.statut === 'effectuee' && (
+        {v.statut === 'effectuee' && !v.feedback_donne && (
           <button
             onClick={() => onFeedback(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"

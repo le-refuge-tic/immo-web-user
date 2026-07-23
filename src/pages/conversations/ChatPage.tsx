@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { chatApi } from '../../api/chatApi'
+import { visitesApi } from '../../api/visitesApi'
 import { io, Socket } from 'socket.io-client'
 
 const WS_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
@@ -93,6 +94,7 @@ export default function ChatPage() {
   const [showSlotPicker, setShowSlotPicker] = useState(false)
   const [counterFor, setCounterFor] = useState<any>(null)
   const [isProposingSlot, setIsProposingSlot] = useState(false)
+  const [payingFromChat, setPayingFromChat] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const socketRef = useRef<Socket | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -149,6 +151,7 @@ export default function ChatPage() {
   const other = conv?.participants?.find((p: any) => p.id !== user?.id) || conv?.participants?.[0] || null
   const otherName = other?.pseudonyme || 'Conversation'
   const roleLabel = other?.role === 'demarcheur' ? 'Agent immobilier' : other?.role === 'proprietaire' ? 'Propriétaire' : ''
+  const isClientRole = other?.role === 'demarcheur' || other?.role === 'proprietaire'
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
   const bienLoc = conv?.bien?.localisation ? (conv.bien.localisation.quartier || conv.bien.localisation.ville) : null
 
@@ -271,6 +274,23 @@ export default function ChatPage() {
     setTimeout(() => setCodeCopied(false), 2000)
   }
 
+  const payerDepuisChat = async () => {
+    if (!conv?.bien?.id) return
+    setPayingFromChat(true)
+    try {
+      const data = await visitesApi.mesVisites()
+      const list = Array.isArray(data) ? data : data.data || []
+      const visite = list.find((v: any) => v.bien?.id === conv.bien.id)
+      if (!visite) { alert('Aucune visite trouvée pour ce bien.'); return }
+      if (visite.paiement_effectue) { alert('Visite déjà payée ✓'); return }
+      if (!(Number(visite.frais_visite) > 0)) { alert('Visite gratuite — aucun paiement requis.'); return }
+      navigate('/mes-visites')
+    } catch (_) {
+      alert("Impossible de récupérer la visite. Réessayez.")
+    }
+    setPayingFromChat(false)
+  }
+
   const visibleMessages = messages.filter(m => !hiddenForMe.has(m.id))
 
   const canEdit = (msg: any) =>
@@ -319,6 +339,20 @@ export default function ChatPage() {
                 className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(76,175,80,0.13)', color: '#4CAF50' }}>Accepter</button>
               <button onClick={() => repondreProposition(msg, 'countered')}
                 className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF' }}>Modifier</button>
+            </div>
+          )}
+          {status === 'accepted' && conv?.bien?.id && isClientRole && (
+            <div className="mt-2.5 pt-2.5" style={{ borderTop: `1px solid ${p.accent}33` }}>
+              <button onClick={payerDepuisChat} disabled={payingFromChat}
+                className="w-full py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-60"
+                style={{ background: 'rgba(76,175,80,0.13)', color: '#4CAF50' }}>
+                {payingFromChat ? '…' : (
+                  <>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
+                    Payer maintenant
+                  </>
+                )}
+              </button>
             </div>
           )}
           <p className="text-[10px] text-text-grey mt-1.5">{timeLabel(msg.created_at)}</p>

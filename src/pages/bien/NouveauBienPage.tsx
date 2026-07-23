@@ -427,7 +427,7 @@ export default function NouveauBienPage() {
         type: typeBackend,
         transaction: typeTransaction,
         prix: prixFinal,
-        frais_visite: parsePrix(fraisVisite) ?? 0,
+        frais_visite: isDemarcheur ? (parsePrix(fraisVisite) ?? 0) : 0,
         description: descFull || undefined,
         localisation: {
           adresse: indicationAdresse.trim() || [quartier, arrondissement].filter(Boolean).join(', ') || quartier,
@@ -1022,11 +1022,13 @@ export default function NouveauBienPage() {
         {/* ═══ ÉTAPE 3 : HONORAIRES ═══ */}
         {step === 3 && (
           <div className="space-y-5">
-            <div>
-              <Section title="Frais de visite" />
-              <p className="text-xs text-text-grey mb-2.5">Montant payé par chaque client pour visiter ce bien.</p>
-              <MoneyInput value={fraisVisite} onChange={setFraisVisite} />
-            </div>
+            {isDemarcheur && (
+              <div>
+                <Section title="Frais de visite" />
+                <p className="text-xs text-text-grey mb-2.5">Montant payé par chaque client pour visiter ce bien.</p>
+                <MoneyInput value={fraisVisite} onChange={setFraisVisite} />
+              </div>
+            )}
 
             {isDemarcheur && !isTerrain && (
               <div>
