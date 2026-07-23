@@ -33,11 +33,6 @@ const ShieldIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
   </svg>
 )
-const WarningIcon = () => (
-  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-  </svg>
-)
 const CalendarCardIcon = () => (
   <svg className="w-[22px] h-[22px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -175,8 +170,6 @@ export default function ProfilePage() {
 
   const visitCount = visites.filter(v => v.statut !== 'annulee').length
   const score = apiUser?.score_credibilite ?? 100
-  const penalite = parseFloat(apiUser?.penalite_pourcentage ?? '0') || 0
-  const penaliteStr = `${penalite.toFixed(0)}%`
 
   const visiteActive = visites.find(v => v.statut === 'en_attente' || v.statut === 'confirmee')
 
@@ -189,11 +182,7 @@ export default function ProfilePage() {
 
   const handleAnnuler = async () => {
     if (!visiteActive) return
-    if (!window.confirm(
-      visiteActive.statut === 'confirmee'
-        ? 'Si vous annulez cette visite confirmée, une pénalité sera appliquée à votre compte.'
-        : 'Voulez-vous vraiment annuler cette demande de visite ?'
-    )) return
+    if (!window.confirm('Voulez-vous vraiment annuler cette visite ?')) return
     try {
       await visitesApi.annuler(visiteActive.id)
       setVisites(prev => prev.map(v => v.id === visiteActive.id ? { ...v, statut: 'annulee' } : v))
@@ -217,7 +206,6 @@ export default function ProfilePage() {
     <div className="flex gap-3">
       <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="#4B6BFF" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
       <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="#4CAF50" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
-      <StatBadge icon={<WarningIcon />} value={penaliteStr} label="Pénalité" color={penalite > 0 ? '#F44336' : '#4CAF50'} bg={penalite > 0 ? 'rgba(244,67,54,0.08)' : 'rgba(76,175,80,0.08)'} border={penalite > 0 ? 'rgba(244,67,54,0.15)' : 'rgba(76,175,80,0.15)'} />
     </div>
   )
 

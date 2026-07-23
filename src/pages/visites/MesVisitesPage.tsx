@@ -131,7 +131,7 @@ export default function MesVisitesPage() {
 
   const handleAnnuler = (v: any) => {
     const body = v.statut === 'confirmee'
-      ? "Cette visite est déjà confirmée. L'annuler entraînera une pénalité sur votre compte."
+      ? 'Cette visite est déjà confirmée. Voulez-vous vraiment l\'annuler ?'
       : 'Voulez-vous vraiment annuler cette demande de visite ?'
     setConfirmDialog({
       title: 'Annuler la visite ?',

@@ -58,7 +58,7 @@ function typeLabel(t: string) {
   return m[t] || t
 }
 function fmtPrix(p: any) {
-  const n = Number(p); return n >= 1000 ? `${Math.round(n / 1000)}K FCFA` : `${n} FCFA`
+  const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
 }
 function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
@@ -606,8 +606,6 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
             <div className="flex-1"><p className="text-white/60 text-[10px]">Biens</p><p className="text-white font-bold text-sm">{user?.nb_biens ?? 0}</p></div>
             <div className="w-px bg-white/20 mx-3" />
             <div className="flex-1"><p className="text-white/60 text-[10px]">Étoiles</p><p className="text-white font-bold text-sm">{user?.nb_etoiles ?? 0}</p></div>
-            <div className="w-px bg-white/20 mx-3" />
-            <div className="flex-1"><p className="text-white/60 text-[10px]">Pénalité</p><p className="text-white font-bold text-sm">{user?.penalite_pourcentage ?? 0}%</p></div>
           </div>
         </div>
       </div>
@@ -760,7 +758,6 @@ export default function DemarcheurDashboard() {
                   {[
                     { label: 'Biens',    value: `${biens.length}` },
                     { label: 'Étoiles', value: `${me?.nb_etoiles ?? 0}` },
-                    { label: 'Pénalité', value: `${me?.penalite_pourcentage ?? 0}%` },
                   ].map((s, i) => (
                     <div key={s.label} className="flex items-center flex-1">
                       {i > 0 && <div className="w-px h-8 mr-3" style={{ background: 'rgba(255,255,255,0.2)' }} />}

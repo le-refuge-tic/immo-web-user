@@ -2,6 +2,14 @@ import axios from 'axios'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
 
+/**
+ * Sans timeout, une requête lente (ex: réveil à froid du serveur) laisse
+ * un bouton en chargement indéfiniment — l'utilisateur croit l'app plantée
+ * alors qu'elle attend juste une réponse qui ne viendra jamais assez vite.
+ * 30s laisse le temps à un cold start tout en garantissant un retour.
+ */
+axios.defaults.timeout = 30000
+
 let refreshing: Promise<string | null> | null = null
 
 async function refreshAccessToken(): Promise<string | null> {

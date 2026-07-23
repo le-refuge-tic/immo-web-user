@@ -23,8 +23,11 @@ export default function MainLayout() {
       {/* Header desktop */}
       <TopNav />
 
-      {/* Contenu */}
-      <div className="flex-1 overflow-y-auto pb-20 md:pb-0 md:pt-16 relative z-10">
+      {/* Contenu — z-index au-dessus de la bottom nav (z-50) pour que les éléments
+          `fixed` d'une page (barre de validation, modale) puissent s'afficher par-dessus
+          elle ; le flux normal du contenu reste cantonné à sa propre zone (flex-1) et
+          ne chevauche jamais la bottom nav, donc rien ne change visuellement au repos. */}
+      <div className="flex-1 overflow-y-auto pb-20 md:pb-0 md:pt-16 relative z-[55]">
         <Outlet />
       </div>
 
