@@ -4,6 +4,9 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import './api/httpInterceptor'
 import App from './App.tsx'
+import { registerServiceWorker } from './lib/push'
+
+registerServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

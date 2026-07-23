@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import TopNav from './TopNav'
 import BottomNav from './BottomNav'
+import PushPrompt from './PushPrompt'
 
 export default function MainLayout() {
   return (
@@ -35,6 +36,8 @@ export default function MainLayout() {
       <div className="md:hidden relative z-50">
         <BottomNav />
       </div>
+
+      <PushPrompt />
     </div>
   )
 }
