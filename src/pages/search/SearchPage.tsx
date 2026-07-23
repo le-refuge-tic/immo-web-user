@@ -44,11 +44,11 @@ const TYPES = [
 ]
 
 const BUDGET_PRESETS = [
-  { label: '< 50k',      max: 50_000 },
-  { label: '< 150k',     max: 150_000 },
-  { label: '< 500k',     max: 500_000 },
-  { label: '< 1M',       max: 1_000_000 },
-  { label: '< 5M',       max: 5_000_000 },
+  { label: '< 50 000',      max: 50_000 },
+  { label: '< 150 000',     max: 150_000 },
+  { label: '< 500 000',     max: 500_000 },
+  { label: '< 1 000 000',   max: 1_000_000 },
+  { label: '< 5 000 000',   max: 5_000_000 },
 ]
 
 /* ── Icônes inline ──────────────────────────────────────────────── */
@@ -88,9 +88,7 @@ const ClearIcon = () => (
 function fmtFcfa(v: string) {
   const n = Number(v.replace(/\D/g, ''))
   if (!n) return ''
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 0)}k`
-  return `${n}`
+  return n.toLocaleString('fr-FR')
 }
 
 /* ═══════════════════════════════════════════════════════════════════
