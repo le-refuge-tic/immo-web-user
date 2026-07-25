@@ -382,8 +382,8 @@ export default function NouveauBienPage() {
       a.electricite = electricite
       if (electricite === 'decompteur' && parsePrix(prixKwh) !== undefined) a.prix_kwh = parsePrix(prixKwh)
       a.eau = eau
-      if (eau === 'soneb' && sonebGestion) a.soneb_gestion = sonebGestion
-      if (eau === 'soneb' && sonebGestion === 'prix_m3' && parsePrix(prixM3) !== undefined) a.prix_m3 = parsePrix(prixM3)
+      if (eau === 'decompteur' && sonebGestion) a.soneb_gestion = sonebGestion
+      if (eau === 'decompteur' && sonebGestion === 'prix_m3' && parsePrix(prixM3) !== undefined) a.prix_m3 = parsePrix(prixM3)
       if (eau === 'forage' && parsePrix(prixForage) !== undefined) a.prix_forage = parsePrix(prixForage)
       if (isMeuble) a.tarifs_meuble = buildTarifsMeuble()
     }
@@ -931,16 +931,16 @@ export default function NouveauBienPage() {
 
             <div>
               <Section title="Eau" />
-              <ChoiceList options={[{ value: 'non', label: 'Non' }, { value: 'soneb', label: 'SONEB' }, { value: 'forage', label: 'Forage' }]}
+              <ChoiceList options={[{ value: 'non', label: 'Non' }, { value: 'soneb', label: 'SONEB' }, { value: 'decompteur', label: 'Décompteur' }, { value: 'forage', label: 'Forage' }]}
                 value={eau} onChange={setEau} />
-              {eau === 'soneb' && (
+              {eau === 'decompteur' && (
                 <div className="mt-2.5">
                   <p className="text-xs font-semibold text-text-dark mb-1.5">Comment c'est géré ?</p>
                   <div className="grid grid-cols-2 gap-2.5">
                     <Chip label="Entre voisins" active={sonebGestion === 'voisins'} onClick={() => setSonebGestion('voisins')} />
                     <Chip label="Prix du m³" active={sonebGestion === 'prix_m3'} onClick={() => setSonebGestion('prix_m3')} />
                   </div>
-                  {sonebGestion === 'voisins' && <p className="text-xs text-primary italic mt-1.5">La facture SONEB est partagée entre les voisins.</p>}
+                  {sonebGestion === 'voisins' && <p className="text-xs text-primary italic mt-1.5">La facture est partagée entre les voisins.</p>}
                   {sonebGestion === 'prix_m3' && (
                     <div className="mt-2.5">
                       <p className="text-xs font-semibold text-text-dark mb-1.5">Prix du m³</p>
