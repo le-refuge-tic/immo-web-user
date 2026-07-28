@@ -5,7 +5,7 @@ import PushPrompt from './PushPrompt'
 
 export default function MainLayout() {
   return (
-    <div className="flex flex-col min-h-dvh" style={{ background: '#F5F5F7' }}>
+    <div className="flex flex-col h-dvh overflow-hidden" style={{ background: '#F5F5F7' }}>
 
       {/* Orbes pastel Liquid Glass — sur fond clair, couleurs vives traversent le verre */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

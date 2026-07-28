@@ -101,10 +101,8 @@ export default function LoginPage() {
             </svg>
           </button>
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-[46px] h-[46px] flex items-center justify-center rounded-[14px]" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.4)' }}>
-              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-              </svg>
+            <div className="w-[46px] h-[46px] flex items-center justify-center rounded-[14px]" style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.15)' }}>
+              <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             </div>
             <div>
               <p className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</p>
