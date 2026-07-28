@@ -318,7 +318,7 @@ export default function ReservationPage() {
       </div>
 
       {/* ── Bouton fixe — mobile/tablette uniquement ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-divider px-5 py-3 safe-bottom">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white border-t border-divider px-5 py-3 safe-bottom">
         <SubmitBtn />
       </div>
     </div>

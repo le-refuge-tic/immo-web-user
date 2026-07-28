@@ -24,11 +24,15 @@ export default function MainLayout() {
       {/* Header desktop */}
       <TopNav />
 
-      {/* Contenu — z-index au-dessus de la bottom nav (z-50) pour que les éléments
-          `fixed` d'une page (barre de validation, modale) puissent s'afficher par-dessus
-          elle ; le flux normal du contenu reste cantonné à sa propre zone (flex-1) et
-          ne chevauche jamais la bottom nav, donc rien ne change visuellement au repos. */}
-      <div className="flex-1 overflow-y-auto pb-20 md:pb-0 md:pt-16 relative z-[55]">
+      {/* Contenu — pas de z-index ici : un z-index sur ce conteneur créerait
+          un contexte d'empilement qui plafonnerait TOUT son contenu (y
+          compris les éléments `fixed` des pages enfants) sous ce niveau,
+          quel que soit leur propre z-index. En restant à z-auto, le
+          contenu se compare directement à la bottom nav (z-50) et reste
+          toujours en dessous ; les rares barres `fixed` de page qui
+          doivent apparaître au-dessus (ex. bouton de validation en bas
+          d'écran) portent leur propre z-index supérieur (z-[60]). */}
+      <div className="flex-1 overflow-y-auto pb-20 md:pb-0 md:pt-16 relative">
         <Outlet />
       </div>
 
