@@ -119,7 +119,7 @@ export default function RegisterPage() {
       </div>
 
       {/* ── Colonne droite — formulaire ── */}
-      <div className="flex-1 flex flex-col bg-app-bg md:bg-app-bg">
+      <div className="flex-1 min-w-0 flex flex-col bg-app-bg md:bg-app-bg">
 
         {/* Header mobile uniquement */}
         <div
@@ -270,7 +270,7 @@ export default function RegisterPage() {
                     <select
                       value={countryCode}
                       onChange={e => setCountryCode(e.target.value)}
-                      className="glass-input rounded-xl px-3 py-3.5 text-sm font-medium text-text-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                      className="glass-input flex-shrink-0 w-[92px] rounded-xl px-2 py-3.5 text-sm font-medium text-text-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                     >
                       {COUNTRY_CODES.map(c => (
                         <option key={c.code} value={c.code}>{c.label}</option>
@@ -281,7 +281,7 @@ export default function RegisterPage() {
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
                       placeholder="97 00 00 00"
-                      className="flex-1 glass-input rounded-xl px-4 py-3.5 text-sm text-text-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                      className="flex-1 min-w-0 glass-input rounded-xl px-4 py-3.5 text-sm text-text-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                     />
                   </div>
                 </div>
