@@ -70,7 +70,7 @@ export default function RecuPage() {
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-btn" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
+        <div className="card-soft rounded-2xl p-6">
 
           <div className="flex flex-col items-center text-center mb-6 pb-6" style={{ borderBottom: '1px dashed rgba(0,0,0,0.15)' }}>
             <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: '#F0FDF4' }}>

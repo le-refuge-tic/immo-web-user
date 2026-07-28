@@ -161,7 +161,7 @@ export default function ConversationsPage() {
       <div className="hidden md:flex" style={{ height: 'calc(100vh - 64px)' }}>
 
         {/* Panneau gauche — liste */}
-        <div className="w-[320px] flex-shrink-0 flex flex-col" style={SIDEBAR}>
+        <div className="w-72 lg:w-80 flex-shrink-0 flex flex-col" style={SIDEBAR}>
           <div className="px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
             <h2 className="text-xl font-bold text-text-dark">Messages</h2>
             {!loading && <p className="text-xs text-text-grey mt-0.5">{convs.length} conversation{convs.length > 1 ? 's' : ''}</p>}

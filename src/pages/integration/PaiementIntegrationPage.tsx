@@ -11,6 +11,7 @@ export default function PaiementIntegrationPage() {
   const navigate = useNavigate()
 
   const [bien, setBien]         = useState<any>(null)
+  const [visite, setVisite]     = useState<any>(null)
   const [visiteId, setVisiteId] = useState<number | null>(null)
   const [tel, setTel]           = useState('')
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
@@ -26,8 +27,8 @@ export default function PaiementIntegrationPage() {
     visitesApi.mesVisites()
       .then(data => {
         const list = Array.isArray(data) ? data : data.data || []
-        const visite = list.find((v: any) => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
-        if (visite) setVisiteId(visite.id)
+        const found = list.find((v: any) => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
+        if (found) { setVisiteId(found.id); setVisite(found) }
       })
       .catch(() => {})
   }, [bienId])
@@ -62,11 +63,14 @@ export default function PaiementIntegrationPage() {
   }
 
   const prix = Number(bien?.prix || 0)
-  const avanceMois = bien?.avance_mois || 1
+  const avanceMois = Number(bien?.amenites?.avance_mois ?? 2)
+  const prepayeMois = Number(bien?.amenites?.loyer_prepaye_mois ?? 0)
   const cautionEau = Number(bien?.amenites?.caution_eau || 0)
   const cautionElec = Number(bien?.amenites?.caution_elec || 0)
   const avanceTotal = prix * avanceMois
-  const total = avanceTotal + cautionEau + cautionElec
+  const prepayeTotal = prix * prepayeMois
+  const remiseVisite = visite?.paiement_effectue ? Number(visite.frais_visite || 0) : 0
+  const total = avanceTotal + prepayeTotal + cautionEau + cautionElec - remiseVisite
 
   if (state === 'success') return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F0FDF4' }}>
@@ -121,10 +125,21 @@ export default function PaiementIntegrationPage() {
           <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
             <p className="font-bold text-text-dark mb-4">Détail du paiement</p>
             <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-text-grey">Avance ({avanceMois} mois × {prix.toLocaleString('fr-FR')} F)</span>
-                <span className="font-semibold text-text-dark">{avanceTotal.toLocaleString('fr-FR')} FCFA</span>
-              </div>
+              {avanceTotal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-grey">Avance ({avanceMois} mois × {prix.toLocaleString('fr-FR')} F)</span>
+                  <span className="font-semibold text-text-dark">{avanceTotal.toLocaleString('fr-FR')} FCFA</span>
+                </div>
+              )}
+              {prepayeTotal > 0 && (
+                <div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-text-grey">Passez {prepayeMois} mois sans loyer</span>
+                    <span className="font-semibold text-text-dark">{prepayeTotal.toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                  <p className="text-xs mt-0.5" style={{ color: '#22C55E' }}>Inclus dans votre paiement</p>
+                </div>
+              )}
               {cautionEau > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-text-grey">Caution eau</span>
@@ -135,6 +150,15 @@ export default function PaiementIntegrationPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-text-grey">Caution électricité</span>
                   <span className="font-semibold text-text-dark">{cautionElec.toLocaleString('fr-FR')} FCFA</span>
+                </div>
+              )}
+              {remiseVisite > 0 && (
+                <div className="flex justify-between text-sm">
+                  <div>
+                    <span className="font-semibold" style={{ color: '#22C55E' }}>Remise frais de visite</span>
+                    <p className="text-xs" style={{ color: '#22C55E' }}>Déduits car visite déjà payée</p>
+                  </div>
+                  <span className="font-semibold" style={{ color: '#22C55E' }}>− {remiseVisite.toLocaleString('fr-FR')} FCFA</span>
                 </div>
               )}
               <div className="border-t border-divider pt-3 flex justify-between">

@@ -257,7 +257,7 @@ export default function HomePage() {
       </div>
 
       {/* ── DESKTOP hero image pleine largeur ── */}
-      <div className="hidden md:flex relative w-full flex-col justify-end -mt-16" style={{ minHeight: '88vh' }}>
+      <div className="hidden md:flex relative w-full flex-col justify-end" style={{ minHeight: '80vh' }}>
         <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.40) 50%, rgba(0,0,0,0.20) 100%)' }} />
 
@@ -495,7 +495,7 @@ export default function HomePage() {
 
         {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
               <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />
             ))}
@@ -506,7 +506,7 @@ export default function HomePage() {
             <p className="text-text-grey text-sm font-medium">Aucun bien trouvé</p>
           </Reveal>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
             {displayedBiens.map((bien, idx) => (
               <Reveal
                 key={bien.id}

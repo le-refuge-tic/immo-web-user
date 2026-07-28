@@ -176,7 +176,7 @@ export default function PortefeuillePage() {
           <div>
             <p className="font-bold text-text-dark mb-4">Historique des transactions</p>
             {loading ? (
-              [1,2,3].map(n => <div key={n} className="h-16 bg-white rounded-2xl animate-pulse mb-3" />)
+              [1,2,3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
             ) : transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: 'rgba(75,107,255,0.1)' }}>
@@ -227,7 +227,7 @@ export default function PortefeuillePage() {
                   const subtitle = String(t.bien ?? t.reference ?? t.libelle ?? '')
                   return (
                     <div key={i} onClick={() => setDetailTx(t)}
-                      className="flex items-center gap-3 p-4 bg-white rounded-2xl mb-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow">
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tColor}1A` }}>
                         <TypeIcon t={t} color={tColor} className="w-5 h-5" />
                       </div>

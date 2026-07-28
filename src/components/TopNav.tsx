@@ -60,16 +60,16 @@ export default function TopNav() {
         boxShadow: 'inset 0 -0.5px 0 rgba(0,0,0,0.04), 0 2px 20px rgba(0,0,0,0.06)',
       }}
     >
-      <div className="w-full px-6 md:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-6">
+      <div className="w-full px-4 md:px-6 lg:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-3 lg:gap-6">
 
         {/* Logo */}
-        <button onClick={() => navigate('/')} className="flex items-center gap-2.5 flex-shrink-0">
-          <img src={logoUrl} alt="REFUGE" style={{ width: 46, height: 46, objectFit: 'contain' }} />
-          <span className="font-bold text-xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
+        <button onClick={() => navigate('/')} className="flex items-center gap-2 lg:gap-2.5 flex-shrink-0">
+          <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} className="lg:w-[46px] lg:h-[46px]" />
+          <span className="font-bold text-lg lg:text-xl tracking-tight hidden sm:inline" style={{ color: '#00AEEF' }}>REFUGE</span>
         </button>
 
         {/* Nav centré */}
-        <nav className="flex items-center justify-center gap-1">
+        <nav className="flex items-center justify-center gap-0.5 lg:gap-1">
           {NAV_ITEMS.map(item => {
             const active = isActive(item.path)
             const badge = item.path === '/notifications' ? unreadAlertes : item.path === '/conversations' ? unreadMessages : 0
@@ -77,7 +77,7 @@ export default function TopNav() {
               <button
                 key={item.path}
                 onClick={() => handleNav(item)}
-                className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${!active ? 'nav-link' : ''}`}
+                className={`relative flex items-center gap-1.5 lg:gap-2 px-2.5 lg:px-4 py-2 rounded-xl text-[13px] lg:text-sm font-medium transition-all whitespace-nowrap ${!active ? 'nav-link' : ''}`}
                 style={{
                   color:       active ? '#4B6BFF' : 'rgba(0,0,0,0.55)',
                   background:  active ? 'rgba(75,107,255,0.10)' : 'transparent',
@@ -99,10 +99,10 @@ export default function TopNav() {
 
         {/* Auth */}
         {!isLoggedIn ? (
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
             <button
               onClick={() => navigate('/login')}
-              className="px-4 py-2 text-sm font-semibold rounded-xl transition-all"
+              className="px-3 lg:px-4 py-2 text-[13px] lg:text-sm font-semibold rounded-xl transition-all whitespace-nowrap"
               style={{
                 color: '#1D1D1F',
                 background: 'rgba(255,255,255,0.70)',
@@ -117,7 +117,7 @@ export default function TopNav() {
             </button>
             <button
               onClick={() => navigate('/register')}
-              className="px-4 py-2 text-sm font-semibold rounded-xl text-white transition-all btn-glow"
+              className="px-3 lg:px-4 py-2 text-[13px] lg:text-sm font-semibold rounded-xl text-white transition-all btn-glow whitespace-nowrap"
               style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}
             >
               S'inscrire
@@ -151,7 +151,7 @@ export default function TopNav() {
                   {initials}
                 </div>
               )}
-              <div className="text-left">
+              <div className="text-left hidden lg:block">
                 <p className="text-sm font-semibold leading-none" style={{ color: '#1D1D1F' }}>{user?.prenom} {user?.nom}</p>
                 <p className="text-[11px] mt-0.5 capitalize" style={{ color: 'rgba(0,0,0,0.4)' }}>{user?.role}</p>
               </div>

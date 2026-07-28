@@ -10,6 +10,17 @@ const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
  */
 axios.defaults.timeout = 30000
 
+/**
+ * Le cold start Render free tier (~50s) peut dépasser les 30s par défaut sur
+ * les mutations (POST/PATCH/DELETE), causant des échecs apparents alors que
+ * la requête a en fait abouti côté serveur. On leur laisse 90s.
+ */
+axios.interceptors.request.use((config) => {
+  const method = config.method?.toLowerCase()
+  if (method && method !== 'get' && method !== 'head') config.timeout = 90000
+  return config
+})
+
 let refreshing: Promise<string | null> | null = null
 
 async function refreshAccessToken(): Promise<string | null> {

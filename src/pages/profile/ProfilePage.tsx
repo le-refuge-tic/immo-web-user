@@ -169,7 +169,7 @@ export default function ProfilePage() {
   const roleLabel = ROLE_LABELS[role] || role
 
   const visitCount = visites.filter(v => v.statut !== 'annulee').length
-  const score = apiUser?.score_credibilite ?? 100
+  const score = (Number(apiUser?.nb_etoiles) || 0) * 20
 
   const visiteActive = visites.find(v => v.statut === 'en_attente' || v.statut === 'confirmee')
 
@@ -183,10 +183,17 @@ export default function ProfilePage() {
   const handleAnnuler = async () => {
     if (!visiteActive) return
     if (!window.confirm('Voulez-vous vraiment annuler cette visite ?')) return
+    // Recharger même en cas d'erreur réseau — le serveur a peut-être traité la
+    // demande (cold start Render) et l'état affiché doit refléter la réalité.
     try {
       await visitesApi.annuler(visiteActive.id)
-      setVisites(prev => prev.map(v => v.id === visiteActive.id ? { ...v, statut: 'annulee' } : v))
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      try {
+        const data = await visitesApi.mesVisites()
+        setVisites(Array.isArray(data) ? data : data.data || [])
+      } catch (_) {}
+    }
   }
 
   const AvatarBlock = ({ size = 88 }: { size?: number }) => (
@@ -242,15 +249,15 @@ export default function ProfilePage() {
   return (
     <div className="min-h-full">
 
-      {/* ── MOBILE layout ── */}
-      <div className="md:hidden">
-        <div className="flex items-center justify-between px-5 pt-12 pb-4">
+      {/* ── MOBILE / TABLETTE layout ── */}
+      <div className="lg:hidden">
+        <div className="flex items-center justify-between px-5 md:px-10 pt-12 md:pt-8 pb-4">
           <h1 className="text-xl font-bold text-text-dark">Profil</h1>
           <div className="glass-btn w-[38px] h-[38px] rounded-[10px] flex items-center justify-center">
             <SettingsIcon />
           </div>
         </div>
-        <div className="px-5 pb-28 space-y-5">
+        <div className="px-5 md:px-10 pb-28 space-y-5 md:max-w-2xl md:mx-auto">
           <div className="flex flex-col items-center gap-3">
             <AvatarBlock size={88} />
             <div className="text-center">
@@ -282,7 +289,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block w-full px-6 md:px-16 py-10">
+      <div className="hidden lg:block w-full px-6 md:px-16 py-10">
         <h1 className="text-2xl font-bold text-text-dark mb-8">Mon profil</h1>
         <div className="grid grid-cols-[300px_1fr] gap-6 items-start">
 

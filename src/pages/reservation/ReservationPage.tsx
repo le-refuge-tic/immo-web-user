@@ -95,7 +95,7 @@ export default function ReservationPage() {
     ? resolveUrl(bien.photos[0].url)
     : bien?.photo_couverture ? resolveUrl(bien.photo_couverture) : null
 
-  const frais = Number(bien?.frais_visite || 0)
+  const frais = 500
 
   // ── Blocs réutilisables ──────────────────────────────────────────────
 
@@ -112,12 +112,10 @@ export default function ReservationPage() {
         </p>
         <p className="text-sm font-bold text-primary mt-1">{Number(bien.prix).toLocaleString('fr-FR')} FCFA</p>
       </div>
-      {frais > 0 && (
-        <div className="flex flex-col items-end justify-center flex-shrink-0">
-          <p className="text-[10px] text-text-grey">Frais visite</p>
-          <p className="text-xs font-bold" style={{ color: '#7B4BFF' }}>{frais.toLocaleString('fr-FR')} F</p>
-        </div>
-      )}
+      <div className="flex flex-col items-end justify-center flex-shrink-0">
+        <p className="text-[10px] text-text-grey">Frais visite</p>
+        <p className="text-xs font-bold" style={{ color: '#7B4BFF' }}>{frais.toLocaleString('fr-FR')} F</p>
+      </div>
     </div>
   ) : null
 
@@ -237,17 +235,13 @@ export default function ReservationPage() {
       <SummaryRow icon="clock" label="Heure souhaitée" value={selectedTime ? selectedTime.replace(':', 'h') : 'Non sélectionnée'} />
       <div className="h-2.5" />
       <SummaryRow icon="people" label="Personnes" value={`${travelers} personne${travelers > 1 ? 's' : ''}`} />
-      {frais > 0 && (
-        <>
-          <div className="my-3 border-t border-white/20" />
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-[8px]" style={{ background: 'rgba(255,255,255,0.08)' }}>
-            <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.54)" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.54)' }}>Les frais de visite seront prélevés à la confirmation</p>
-          </div>
-        </>
-      )}
+      <div className="my-3 border-t border-white/20" />
+      <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-[8px]" style={{ background: 'rgba(255,255,255,0.08)' }}>
+        <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.54)" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.54)' }}>Les frais de visite seront prélevés à la confirmation</p>
+      </div>
     </div>
   )
 
@@ -284,8 +278,8 @@ export default function ReservationPage() {
         </div>
       </div>
 
-      {/* ── MOBILE ── */}
-      <div className="md:hidden flex-1 overflow-y-auto pb-28 px-5 pt-5 space-y-4">
+      {/* ── MOBILE / TABLETTE ── */}
+      <div className="lg:hidden flex-1 overflow-y-auto pb-28 px-5 md:px-10 pt-5 md:pt-8 space-y-4 md:max-w-xl md:mx-auto md:w-full">
         <PropertyCard />
         <CalendarCard />
         <TimeCard />
@@ -299,7 +293,7 @@ export default function ReservationPage() {
       </div>
 
       {/* ── DESKTOP : deux colonnes ── */}
-      <div className="hidden md:block flex-1">
+      <div className="hidden lg:block flex-1">
         <div className="max-w-5xl mx-auto px-8 py-8 grid grid-cols-[1fr_340px] gap-8 items-start">
 
           {/* Colonne gauche — formulaire */}
@@ -323,8 +317,8 @@ export default function ReservationPage() {
         </div>
       </div>
 
-      {/* ── Bouton fixe — mobile uniquement ── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-divider px-5 py-3 safe-bottom">
+      {/* ── Bouton fixe — mobile/tablette uniquement ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-divider px-5 py-3 safe-bottom">
         <SubmitBtn />
       </div>
     </div>

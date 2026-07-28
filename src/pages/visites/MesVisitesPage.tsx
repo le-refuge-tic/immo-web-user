@@ -14,10 +14,8 @@ const STATUT_META: Record<string, { label: string; color: string; bg: string }> 
 }
 
 const OPERATORS = [
-  { key: 'momo',    label: 'MTN MoMo'     },
-  { key: 'flooz',   label: 'Moov Flooz'   },
-  { key: 'celtiis', label: 'Celtiis Cash' },
-  { key: 'fedapay', label: 'FedaPay'      },
+  { key: 'momo',    label: 'MTN MoMo' },
+  { key: 'fedapay', label: 'FedaPay'  },
 ]
 
 const TYPE_LABELS: Record<string, string> = {
@@ -138,7 +136,9 @@ export default function MesVisitesPage() {
       body,
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.annuler(v.id); loadVisites() } catch (_) {}
+        // Recharger même en cas d'erreur réseau — le serveur a peut-être traité
+        // la demande (cold start Render) et l'état affiché doit refléter la réalité.
+        try { await visitesApi.annuler(v.id) } catch (_) {} finally { loadVisites() }
       },
     })
   }
@@ -156,7 +156,7 @@ export default function MesVisitesPage() {
       body: 'La visite sera annulée. Vous pouvez faire une nouvelle demande si vous le souhaitez.',
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.annuler(v.id); loadVisites() } catch (_) {}
+        try { await visitesApi.annuler(v.id) } catch (_) {} finally { loadVisites() }
       },
     })
   }
@@ -294,15 +294,15 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} />)}
+            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
           </div>
         )}
       </div>
 
       {/* Payment modal */}
       {showPay && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={payState === 'idle' ? closePayModal : undefined}>
-          <div className="glass-strong rounded-t-3xl p-6 w-full" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' ? closePayModal : undefined}>
+          <div className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
 
             {payState === 'success' ? (
@@ -327,7 +327,7 @@ export default function MesVisitesPage() {
               <>
                 <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
                 <p className="text-sm text-text-grey mb-4">
-                  Montant : <span className="font-bold text-text-dark">{Number(showPay.frais_visite || 0).toLocaleString('fr-FR')} FCFA</span>
+                  Montant : <span className="font-bold text-text-dark">500 FCFA</span>
                 </p>
                 {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
                 <div className="flex gap-2 mb-4">
@@ -346,13 +346,18 @@ export default function MesVisitesPage() {
                     </button>
                   ))}
                 </div>
-                <input
-                  type="tel"
-                  value={phoneOp}
-                  onChange={e => setPhoneOp(e.target.value)}
-                  placeholder="Numéro Mobile Money"
-                  className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4"
-                />
+                <div className="flex items-center gap-3 rounded-2xl px-3.5 border border-divider bg-surface-g mb-4 focus-within:border-primary">
+                  <span className="text-lg">🇧🇯</span>
+                  <span className="font-bold text-text-dark text-sm">+229</span>
+                  <div className="w-px h-5 bg-divider" />
+                  <input
+                    type="tel"
+                    value={phoneOp}
+                    onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="96XXXXXXXX"
+                    className="flex-1 bg-transparent outline-none text-sm py-4"
+                  />
+                </div>
                 <button
                   onClick={handlePayer}
                   disabled={!phoneOp || paying}
@@ -370,8 +375,8 @@ export default function MesVisitesPage() {
 
       {/* Feedback modal */}
       {showFeedback && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={() => setShowFeedback(null)}>
-          <div className="glass-strong rounded-t-3xl p-6 w-full" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={() => setShowFeedback(null)}>
+          <div className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
             {feedbackDone ? (
               <div className="flex flex-col items-center text-center py-4">
@@ -467,14 +472,14 @@ type VisiteCardProps = {
   onPay: (v: any) => void
   onMessage: (id: number) => void
   onFeedback: (v: any) => void
+  onPayIntegration: (bienId: number) => void
 }
 
-function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegration, onPay, onMessage, onFeedback }: VisiteCardProps) {
+function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegration, onPay, onMessage, onFeedback, onPayIntegration }: VisiteCardProps) {
   const meta = STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' }
   const bien = v.bien
   const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
   const isCP = v.statut === 'contre_proposee'
-  const frais = Number(v.frais_visite || 0)
 
   return (
     <div
@@ -538,7 +543,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
       )}
 
       {/* Integration decision */}
-      {v.statut === 'effectuee' && v.integre === null && v.integre === undefined && (
+      {v.statut === 'effectuee' && (v.client_decision_integration === null || v.client_decision_integration === undefined) && (
         <div className="bg-primary/5 rounded-xl p-3 mb-3">
           <p className="text-xs font-bold text-text-dark mb-2">Souhaitez-vous intégrer ce logement ?</p>
           <div className="flex gap-2">
@@ -558,6 +563,24 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
             </button>
           </div>
         </div>
+      )}
+
+      {/* Décision oui, paiement d'intégration effectué */}
+      {v.statut === 'effectuee' && v.client_decision_integration === true && v.paiement_integration_effectue && (
+        <div className="rounded-xl p-3 mb-3 text-center" style={{ background: 'rgba(34,197,94,0.1)' }}>
+          <p className="text-xs font-bold" style={{ color: '#22C55E' }}>Intégré · Terminé</p>
+        </div>
+      )}
+
+      {/* Décision oui, paiement d'intégration en attente */}
+      {v.statut === 'effectuee' && v.client_decision_integration === true && !v.paiement_integration_effectue && (
+        <button
+          onClick={() => onPayIntegration(bien?.id)}
+          className="w-full py-2.5 rounded-xl text-xs font-bold text-white mb-3"
+          style={{ background: '#4B6BFF' }}
+        >
+          Payer l'intégration
+        </button>
       )}
 
       {/* Actions */}
@@ -582,14 +605,14 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
           </>
         )}
 
-        {/* Confirmée: payer (si frais > 0 et pas encore payé) + message + annuler */}
-        {v.statut === 'confirmee' && frais > 0 && !v.paiement_effectue && (
+        {/* Confirmée: payer (pas encore payé) + message + annuler */}
+        {v.statut === 'confirmee' && !v.paiement_effectue && (
           <button
             onClick={() => onPay(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
             style={{ background: '#FF6B35' }}
           >
-            Payer ({frais.toLocaleString('fr-FR')} FCFA)
+            Payer les frais de visite (500 FCFA)
           </button>
         )}
 

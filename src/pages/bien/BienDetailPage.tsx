@@ -91,7 +91,7 @@ export default function BienDetailPage() {
     <div className="min-h-full pb-28 md:pb-0">
 
       {/* ── MOBILE header / galerie ── */}
-      <div className="md:hidden relative h-72" style={{ background: 'rgba(0,0,0,0.04)' }}>
+      <div className="lg:hidden relative h-72 md:h-[420px]" style={{ background: 'rgba(0,0,0,0.04)' }}>
         {allUrls.length > 0 ? (
           <img src={allUrls[photoIdx]} alt="photo" className="w-full h-full object-cover" />
         ) : (
@@ -125,7 +125,7 @@ export default function BienDetailPage() {
       </div>
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block w-full px-6 md:px-16 py-8">
+      <div className="hidden lg:block w-full px-6 md:px-16 py-8">
         {/* Breadcrumb / back */}
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-text-grey hover:text-primary transition-colors mb-6 group text-sm font-medium">
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -293,12 +293,10 @@ export default function BienDetailPage() {
                 <p className="text-3xl font-bold text-text-dark">
                   {prix} <span className="text-base font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
                 </p>
-                {bien.frais_visite && Number(bien.frais_visite) > 0 && (
-                  <p className="text-sm text-text-grey mt-1.5 flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-secondary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Frais de visite : <strong className="text-secondary">{Number(bien.frais_visite).toLocaleString('fr-FR')} FCFA</strong>
-                  </p>
-                )}
+                <p className="text-sm text-text-grey mt-1.5 flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-secondary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Frais de visite : <strong className="text-secondary">500 FCFA</strong>
+                </p>
               </div>
 
               <div className="h-px bg-divider mb-5" />
@@ -350,7 +348,7 @@ export default function BienDetailPage() {
       </div>
 
       {/* ── MOBILE content ── */}
-      <div className="md:hidden px-4 py-5 space-y-4">
+      <div className="lg:hidden px-4 md:px-8 py-5 md:py-8 space-y-4 md:max-w-2xl md:mx-auto">
         <div>
           <div className="flex gap-2 mb-3">
             <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-secondary'}`}>
@@ -361,9 +359,7 @@ export default function BienDetailPage() {
           <p className="text-2xl font-bold text-text-dark">
             {prix} FCFA{isLocation && <span className="text-base font-medium text-text-grey">/mois</span>}
           </p>
-          {bien.frais_visite && Number(bien.frais_visite) > 0 && (
-            <p className="text-sm text-text-grey mt-1">Frais de visite : <strong className="text-secondary">{Number(bien.frais_visite).toLocaleString('fr-FR')} FCFA</strong></p>
-          )}
+          <p className="text-sm text-text-grey mt-1">Frais de visite : <strong className="text-secondary">500 FCFA</strong></p>
         </div>
 
         <div className="glass-card rounded-2xl p-4 flex items-start gap-3">
@@ -386,7 +382,7 @@ export default function BienDetailPage() {
         {bien.pieces && bien.pieces.length > 0 && (
           <div className="glass-card rounded-2xl p-4">
             <h3 className="font-bold text-text-dark text-sm mb-3">Pièces ({bien.pieces.length})</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {bien.pieces.map((p: any) => (
                 <div key={p.id} className="glass-card rounded-xl p-3">
                   <p className="text-sm font-semibold text-text-dark">{p.nom}</p>

@@ -109,13 +109,14 @@ function Section({ title, required }: { title: string; required?: boolean }) {
   )
 }
 
-function ChoiceList({ options, value, onChange, disabledValues }: { options: { value: string; label: string; sub?: string }[]; value: string | null; onChange: (v: string) => void; disabledValues?: string[] }) {
+function ChoiceList({ options, value, onChange, disabledValues, onDeselect }: { options: { value: string; label: string; sub?: string }[]; value: string | null; onChange: (v: string) => void; disabledValues?: string[]; onDeselect?: () => void }) {
   return (
     <div className="space-y-2">
       {options.map(o => {
         const isDisabled = disabledValues?.includes(o.value) ?? false
         return (
-          <button key={o.value} type="button" disabled={isDisabled} onClick={() => onChange(o.value)}
+          <button key={o.value} type="button" disabled={isDisabled}
+            onClick={() => (value === o.value && onDeselect) ? onDeselect() : onChange(o.value)}
             className={`w-full flex items-start justify-between gap-2 px-4 py-3 rounded-xl border-2 text-left transition-all ${
               isDisabled ? 'border-divider bg-surface-g opacity-40 cursor-not-allowed' : value === o.value ? 'border-primary bg-primary-l' : 'border-divider bg-white'
             }`}>
@@ -251,7 +252,7 @@ export default function NouveauBienPage() {
   const [electricite, setElectricite] = useState('non')
   const [prixKwh, setPrixKwh] = useState('')
   const [eau, setEau] = useState('non')
-  const [sonebGestion, setSonebGestion] = useState<string | null>(null)
+  const [forageGestion, setForageGestion] = useState<string | null>(null)
   const [prixM3, setPrixM3] = useState('')
   const [prixForage, setPrixForage] = useState('')
   const [equipementsBonus, setEquipementsBonus] = useState<string[]>([])
@@ -382,9 +383,9 @@ export default function NouveauBienPage() {
       a.electricite = electricite
       if (electricite === 'decompteur' && parsePrix(prixKwh) !== undefined) a.prix_kwh = parsePrix(prixKwh)
       a.eau = eau
-      if (eau === 'decompteur' && sonebGestion) a.soneb_gestion = sonebGestion
-      if (eau === 'decompteur' && sonebGestion === 'prix_m3' && parsePrix(prixM3) !== undefined) a.prix_m3 = parsePrix(prixM3)
+      if (eau === 'decompteur' && parsePrix(prixM3) !== undefined) a.prix_m3 = parsePrix(prixM3)
       if (eau === 'forage' && parsePrix(prixForage) !== undefined) a.prix_forage = parsePrix(prixForage)
+      if (eau === 'forage' && forageGestion) a.forage_gestion = forageGestion
       if (isMeuble) a.tarifs_meuble = buildTarifsMeuble()
     }
 
@@ -545,7 +546,7 @@ export default function NouveauBienPage() {
               <>
                 <div>
                   <Section title="Sanitaires" />
-                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} />
+                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} onDeselect={() => setSanitaire(null)} />
                   {sanitaire === 'autre' && (
                     <input value={sanitaireAutre} onChange={e => setSanitaireAutre(e.target.value)}
                       placeholder="Précisez la configuration des sanitaires"
@@ -667,7 +668,7 @@ export default function NouveauBienPage() {
             </div>
             <div>
               <Section title="Document" />
-              <ChoiceList options={DOCUMENT_TERRAIN_OPTS} value={documentTerrain} onChange={setDocumentTerrain} />
+              <ChoiceList options={DOCUMENT_TERRAIN_OPTS} value={documentTerrain} onChange={setDocumentTerrain} onDeselect={() => setDocumentTerrain(null)} />
             </div>
             <div>
               <Section title="Position" />
@@ -807,7 +808,7 @@ export default function NouveauBienPage() {
               <>
                 <div>
                   <Section title="Sanitaires" />
-                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} />
+                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} onDeselect={() => setSanitaire(null)} />
                   {sanitaire === 'autre' && (
                     <input value={sanitaireAutre} onChange={e => setSanitaireAutre(e.target.value)}
                       placeholder="Précisez la configuration des sanitaires"
@@ -935,35 +936,32 @@ export default function NouveauBienPage() {
                 value={eau} onChange={setEau} />
               {eau === 'decompteur' && (
                 <div className="mt-2.5">
-                  <p className="text-xs font-semibold text-text-dark mb-1.5">Comment c'est géré ?</p>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <Chip label="Entre voisins" active={sonebGestion === 'voisins'} onClick={() => setSonebGestion('voisins')} />
-                    <Chip label="Prix du m³" active={sonebGestion === 'prix_m3'} onClick={() => setSonebGestion('prix_m3')} />
-                  </div>
-                  {sonebGestion === 'voisins' && <p className="text-xs text-primary italic mt-1.5">La facture est partagée entre les voisins.</p>}
-                  {sonebGestion === 'prix_m3' && (
-                    <div className="mt-2.5">
-                      <p className="text-xs font-semibold text-text-dark mb-1.5">Prix du m³</p>
-                      <MoneyInput value={prixM3} onChange={setPrixM3} placeholder="Ex: 500" />
-                    </div>
-                  )}
+                  <p className="text-xs font-semibold text-text-dark mb-1.5">Prix du m³</p>
+                  <MoneyInput value={prixM3} onChange={setPrixM3} placeholder="Ex: 150" />
                 </div>
               )}
               {eau === 'forage' && (
                 <div className="mt-2.5">
                   <p className="text-xs font-semibold text-text-dark mb-1.5">Prix du forage</p>
                   <MoneyInput value={prixForage} onChange={setPrixForage} placeholder="Ex: 50000" />
+                  <p className="text-xs font-semibold text-text-dark mb-1.5 mt-3.5">Comment c'est géré ?</p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Chip label="Entre voisins" active={forageGestion === 'voisins'} onClick={() => setForageGestion(g => g === 'voisins' ? null : 'voisins')} />
+                    <Chip label="Abonnement mensuel" active={forageGestion === 'mensuel'} onClick={() => setForageGestion(g => g === 'mensuel' ? null : 'mensuel')} />
+                  </div>
+                  {forageGestion === 'voisins' && <p className="text-xs text-primary italic mt-1.5">Le coût du forage est partagé entre les voisins.</p>}
+                  {forageGestion === 'mensuel' && <p className="text-xs text-primary italic mt-1.5">Chaque locataire paie un abonnement mensuel fixe.</p>}
                 </div>
               )}
             </div>
 
-            {(eau === 'soneb' || electricite !== 'non') && (
+            {(eau === 'soneb' || eau === 'decompteur' || electricite !== 'non') && (
               <div>
                 <Section title="Caution" />
                 <div className="bg-white rounded-xl border border-divider p-4 space-y-3">
-                  {eau === 'soneb' && (
+                  {(eau === 'soneb' || eau === 'decompteur') && (
                     <div>
-                      <p className="text-xs font-semibold text-text-dark mb-1.5">Caution eau (SONEB)</p>
+                      <p className="text-xs font-semibold text-text-dark mb-1.5">Caution eau</p>
                       <MoneyInput value={cautionEau} onChange={setCautionEau} />
                       <p className="text-[11px] text-text-grey mt-1">Saisir 0 si pas de caution eau</p>
                     </div>

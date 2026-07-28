@@ -66,11 +66,11 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   return (
     <div
       onClick={() => navigate(`/biens/${bien.id}`)}
-      className="glass-card rounded-2xl overflow-hidden cursor-pointer group"
+      className="glass-card rounded-[22px] overflow-hidden cursor-pointer group"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)'
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 48px rgba(0,0,0,0.12), inset 0 1.5px 0 rgba(255,255,255,0.95)'
+        ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 48px rgba(0,0,0,0.14), inset 0 1.5px 0 rgba(255,255,255,0.95)'
       }}
       onMouseLeave={e => {
         (e.currentTarget as HTMLDivElement).style.transform = ''
@@ -78,7 +78,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       }}
     >
       {/* Image */}
-      <div className="relative h-44 md:h-52 img-zoom">
+      <div className="relative h-44 sm:h-48 md:h-52 lg:h-56 img-zoom">
         {coverUrl ? (
           <img src={coverUrl} alt={label} className="w-full h-full object-cover" loading="lazy" />
         ) : (
@@ -126,15 +126,15 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       </div>
 
       {/* Infos */}
-      <div className="p-3.5">
-        <p className="text-base md:text-lg font-bold leading-tight" style={{ color: '#1D1D1F' }}>
+      <div className="p-4">
+        <p className="text-lg md:text-xl font-bold leading-tight tracking-tight" style={{ color: '#1D1D1F' }}>
           {Number(bien.prix).toLocaleString('fr-FR')}{' '}
           <span className="text-sm font-medium" style={{ color: 'rgba(0,0,0,0.38)' }}>
             FCFA{isLocation ? '/mois' : ''}
           </span>
         </p>
-        <p className="text-sm font-medium mt-0.5" style={{ color: 'rgba(0,0,0,0.58)' }}>{label}</p>
-        <div className="flex items-center gap-1 mt-1.5">
+        <p className="text-sm font-medium mt-1" style={{ color: 'rgba(0,0,0,0.58)' }}>{label}</p>
+        <div className="flex items-center gap-1 mt-2">
           <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.30)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -146,7 +146,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             )}
           </p>
         </div>
-        {bien.frais_visite && Number(bien.frais_visite) > 0 && (
+        {Number(bien.frais_visite) > 0 && (
           <p className="hidden md:block text-xs mt-2 pt-2" style={{ color: 'rgba(0,0,0,0.30)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
             Frais visite : <span className="font-semibold" style={{ color: '#FF6B35' }}>{Number(bien.frais_visite).toLocaleString('fr-FR')} FCFA</span>
           </p>

@@ -43,6 +43,16 @@ const SystemeIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
   </svg>
 )
+const BienApprouveIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+)
+const BienRejeteIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+)
 
 type TypeCfg = { icon: React.ReactNode; color: string; bg: string }
 const TYPE_CONFIG: Record<string, TypeCfg> = {
@@ -52,6 +62,8 @@ const TYPE_CONFIG: Record<string, TypeCfg> = {
   loyer:        { icon: <LoyerIcon />,        color: '#F59E0B', bg: 'rgba(245,158,11,0.08)' },
   message:      { icon: <MessageIcon />,      color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)' },
   systeme:      { icon: <SystemeIcon />,      color: '#6B7280', bg: 'rgba(107,114,128,0.08)' },
+  bien_approuve: { icon: <BienApprouveIcon />, color: '#22C55E', bg: 'rgba(34,197,94,0.08)' },
+  bien_rejete:   { icon: <BienRejeteIcon />,   color: '#EF4444', bg: 'rgba(239,68,68,0.08)' },
 }
 
 function getTypeConfig(type?: string): TypeCfg {

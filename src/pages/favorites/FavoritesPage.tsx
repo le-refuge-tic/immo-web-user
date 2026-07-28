@@ -76,7 +76,7 @@ export default function FavoritesPage() {
           </div>
 
         ) : loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
             {[1, 2, 3, 4, 5, 6].map(n => (
               <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />
             ))}
@@ -106,7 +106,7 @@ export default function FavoritesPage() {
           </div>
 
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 pb-24 md:pb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 pb-24 md:pb-8">
             {biens.map(f => {
               const bien = f.bien || f
               return (

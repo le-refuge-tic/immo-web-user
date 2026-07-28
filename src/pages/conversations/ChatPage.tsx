@@ -53,7 +53,7 @@ function SlotPickerModal({ onConfirm, onCancel }: { onConfirm: (iso: string) => 
   const [time, setTime] = useState('09:00')
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onCancel}>
-      <div className="bg-white rounded-2xl p-5 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+      <div className="glass-strong rounded-2xl p-5 w-full max-w-sm" onClick={e => e.stopPropagation()}>
         <p className="font-bold text-text-dark mb-4">Proposer un créneau</p>
         <div className="space-y-3">
           <div>
@@ -233,6 +233,39 @@ export default function ChatPage() {
   }
 
   const pinnedMessage = messages.filter(m => m.epingle && !m.supprime_pour_tous).slice(-1)[0]
+  const lastSlotMessage = messages.filter(m => m.type === 'slot_proposal' && !m.supprime_pour_tous).slice(-1)[0]
+
+  const findVisitePourBien = async () => {
+    if (!conv?.bien?.id) return null
+    try {
+      const data = await visitesApi.mesVisites()
+      const list = Array.isArray(data) ? data : data.data || []
+      return list.find((v: any) => v.bien?.id === conv.bien.id) || null
+    } catch { return null }
+  }
+
+  const syncVisiteContreProposer = async (iso: string) => {
+    const visite = await findVisitePourBien()
+    if (visite && visite.statut === 'en_attente') {
+      try { await visitesApi.contreProposer(visite.id, iso) } catch (_) {}
+    }
+  }
+
+  const syncVisiteStatusAfterAccept = async () => {
+    const visite = await findVisitePourBien()
+    if (!visite) return
+    try {
+      if (isClientRole) {
+        if (visite.statut === 'contre_proposee' || visite.statut === 'en_attente') {
+          await visitesApi.accepterContreProposition(visite.id)
+        }
+      } else {
+        if (visite.statut === 'en_attente' || visite.statut === 'contre_proposee') {
+          await visitesApi.confirmerVisite(visite.id)
+        }
+      }
+    } catch (_) {}
+  }
 
   const proposerCreneau = async (iso: string) => {
     setShowSlotPicker(false)
@@ -241,6 +274,7 @@ export default function ChatPage() {
       const msg = await chatApi.proposerCreneau(convId, iso)
       setMessages(prev => [...prev, msg])
       scrollToBottom()
+      if (!isClientRole) syncVisiteContreProposer(iso)
     } catch (e) { showBlockedOrError(e) }
     setIsProposingSlot(false)
   }
@@ -250,6 +284,7 @@ export default function ChatPage() {
     try {
       const updated = await chatApi.repondreProposition(msg.id, response)
       setMessages(prev => prev.map(m => m.id === msg.id ? updated : m))
+      if (response === 'accepted') syncVisiteStatusAfterAccept()
     } catch (e) { showBlockedOrError(e) }
   }
 
@@ -411,7 +446,7 @@ export default function ChatPage() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4" onClick={() => setOpenMenuId(null)}>
         {pinnedMessage && (
-          <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 mb-3 border-l-[3px]" style={{ borderLeftColor: '#4B6BFF' }}>
+          <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 mb-3 border-l-[3px] shadow-sm" style={{ borderLeftColor: '#4B6BFF' }}>
             <svg className="w-3.5 h-3.5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" /></svg>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold text-text-grey">Message épinglé</p>
@@ -419,6 +454,32 @@ export default function ChatPage() {
             </div>
           </div>
         )}
+
+        {lastSlotMessage && (() => {
+          const status = lastSlotMessage.metadata?.status || 'pending'
+          const dt = lastSlotMessage.metadata?.proposed_at ? new Date(lastSlotMessage.metadata.proposed_at) : null
+          const cfg: Record<string, { accent: string; label: string }> = {
+            accepted:  { accent: '#4CAF50', label: 'Créneau confirmé' },
+            declined:  { accent: '#EF4444', label: 'Créneau refusé' },
+            countered: { accent: '#FF9800', label: 'Contre-proposition' },
+            pending:   { accent: '#4B6BFF', label: 'Créneau en discussion' },
+          }
+          const c = cfg[status] || cfg.pending
+          return (
+            <button
+              onClick={() => document.getElementById(`msg-${lastSlotMessage.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              className="w-full flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 mb-3 border-l-[3px] text-left shadow-sm"
+              style={{ borderLeftColor: c.accent }}
+            >
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold" style={{ color: c.accent }}>{c.label}</p>
+                <p className="text-xs font-semibold text-text-dark truncate">{dt ? formatSlotDate(dt) : '—'}</p>
+              </div>
+              <svg className="w-4 h-4 flex-shrink-0 opacity-60" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+          )
+        })()}
 
         {loading ? (
           <div className="flex justify-center pt-8">
@@ -431,7 +492,7 @@ export default function ChatPage() {
           const needsSeparator = i === 0 || !sameDay(visibleMessages[i - 1].created_at, msg.created_at)
           if (msg.type === 'slot_proposal') {
             return (
-              <div key={msg.id}>
+              <div key={msg.id} id={`msg-${msg.id}`}>
                 {needsSeparator && <div className="text-center text-[11px] text-text-grey my-3">{dateSeparatorLabel(msg.created_at)}</div>}
                 <SlotBubble msg={msg} />
               </div>

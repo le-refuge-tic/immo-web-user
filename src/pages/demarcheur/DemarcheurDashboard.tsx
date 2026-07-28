@@ -76,7 +76,7 @@ function statutVisite(s: string) {
 
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex-1 bg-white rounded-2xl py-4 flex flex-col items-center gap-2 shadow-sm active:scale-95 transition-transform">
+    <button onClick={onClick} className="flex-1 card-soft rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform">
       <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
         <span style={{ color }}>{icon}</span>
       </div>
@@ -139,9 +139,11 @@ function MesBiensTab() {
           ))}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
         {loading ? (
-          [1,2,3].map(n => <div key={n} className="h-48 bg-white rounded-2xl animate-pulse mb-3" />)
+          <div className="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+            {[1,2,3].map(n => <div key={n} className="h-48 skeleton rounded-2xl mb-3 sm:mb-0" />)}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
@@ -153,37 +155,41 @@ function MesBiensTab() {
               <IcPlus /> Ajouter un bien
             </button>
           </div>
-        ) : filtered.map(b => {
-          const { label, color } = statutBien(b.statut_moderation || 'en_attente')
-          const loc = b.localisation
-          const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-          const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
-          return (
-            <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} role="button" tabIndex={0}
-              className="bg-white rounded-2xl shadow-sm overflow-hidden mb-3 cursor-pointer transition-transform hover:-translate-y-0.5">
-              <div className="relative h-32">
-                {cover?.url
-                  ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
-                  : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}cc, ${PURPLE}aa)` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
-                }
-                <div className="absolute inset-0 bg-black/20" />
-                <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
-                <div className="absolute top-3 right-3 flex gap-1.5">
-                  <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
-                  <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+        ) : (
+          <div className="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+            {filtered.map(b => {
+              const { label, color } = statutBien(b.statut_moderation || 'en_attente')
+              const loc = b.localisation
+              const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+              const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+              return (
+                <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} role="button" tabIndex={0}
+                  className="card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
+                  <div className="relative h-32">
+                    {cover?.url
+                      ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
+                      : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}cc, ${PURPLE}aa)` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+                    }
+                    <div className="absolute inset-0 bg-black/20" />
+                    <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
+                    <div className="absolute top-3 right-3 flex gap-1.5">
+                      <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
+                      <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                    </div>
+                    <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
+                  </div>
+                  <div className="p-3.5">
+                    <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
+                    <div className="flex items-center gap-1 mt-0.5"><span className="text-text-grey"><IcPin /></span><span className="text-xs text-text-grey">{adresse}</span></div>
+                    {b.statut_moderation === 'rejete' && b.motif_refus && (
+                      <div className="mt-2 p-2 rounded-lg bg-danger/5 border border-danger/20"><p className="text-danger text-xs">{b.motif_refus}</p></div>
+                    )}
+                  </div>
                 </div>
-                <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
-              </div>
-              <div className="p-3.5">
-                <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
-                <div className="flex items-center gap-1 mt-0.5"><span className="text-text-grey"><IcPin /></span><span className="text-xs text-text-grey">{adresse}</span></div>
-                {b.statut_moderation === 'rejete' && b.motif_refus && (
-                  <div className="mt-2 p-2 rounded-lg bg-danger/5 border border-danger/20"><p className="text-danger text-xs">{b.motif_refus}</p></div>
-                )}
-              </div>
-            </div>
-          )
-        })}
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -266,9 +272,11 @@ function ReservationsTab() {
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
         {loading ? (
-          [1,2].map(n => <div key={n} className="h-40 bg-white rounded-2xl animate-pulse mb-3" />)
+          <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4">
+            {[1,2].map(n => <div key={n} className="h-40 skeleton rounded-2xl mb-3 md:mb-0" />)}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
@@ -277,7 +285,9 @@ function ReservationsTab() {
             <p className="font-bold text-text-dark mb-1">Aucune réservation</p>
             <p className="text-sm text-text-grey text-center">Les demandes de visite apparaîtront ici</p>
           </div>
-        ) : filtered.map((v, i) => {
+        ) : (
+        <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:items-start">
+        {filtered.map((v, i) => {
           const echouee = isEchouee(v)
           const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
           const nom = 'Client'
@@ -290,7 +300,7 @@ function ReservationsTab() {
             : '—'
           const contactNumero = v.client?.numero_whatsapp || v.client?.telephone
           return (
-            <div key={v.id || i} className="bg-white rounded-2xl shadow-sm mb-3 p-4">
+            <div key={v.id || i} className="card-soft rounded-2xl mb-3 md:mb-0 p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
                   style={{ background: `linear-gradient(135deg, ${PURPLE}, ${DARK_PURPLE})` }}>{init}</div>
@@ -365,6 +375,8 @@ function ReservationsTab() {
             </div>
           )
         })}
+        </div>
+        )}
       </div>
     </div>
   )
@@ -427,7 +439,7 @@ function PortefeuilleTab() {
 
         <p className="font-bold text-text-dark mb-4">Historique des transactions</p>
         {loading ? (
-          [1,2,3].map(n => <div key={n} className="h-16 bg-white rounded-2xl animate-pulse mb-3" />)
+          [1,2,3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
         ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: PURPLE + '15' }}>
@@ -439,7 +451,7 @@ function PortefeuilleTab() {
         ) : transactions.map((t: any, i: number) => {
           const isCredit = t.type === 'credit' || Number(t.montant) > 0
           return (
-            <div key={i} className="flex items-center gap-3 p-4 bg-white rounded-2xl mb-3 shadow-sm">
+            <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: isCredit ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#22C55E' : '#EF4444'} strokeWidth={2.5} className="w-5 h-5">
@@ -523,7 +535,7 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {loading ? [1, 2].map(n => <div key={n} className="h-24 bg-white rounded-xl animate-pulse mb-3" />) : delegations.length === 0 ? (
+        {loading ? [1, 2].map(n => <div key={n} className="h-24 skeleton rounded-xl mb-3" />) : delegations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
               <IcPerson />
@@ -534,7 +546,7 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
         ) : delegations.map(d => {
           const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#9CA3AF' }
           return (
-            <div key={d.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm">
+            <div key={d.id} className="card-soft rounded-xl p-4 mb-3">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-semibold text-text-dark text-sm">{d.proprietaire?.prenom} {d.proprietaire?.nom}</p>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
@@ -621,7 +633,7 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
             { label: 'CIP (Carte d\'identité professionnelle)', file: cipFile, setFile: setCipFile, onUpload: uploadCip },
             { label: 'IFU (Identifiant Fiscal Unique)', file: ifuFile, setFile: setIfuFile, onUpload: uploadIfu },
           ].map(doc => (
-            <div key={doc.label} className="bg-white rounded-xl p-4 shadow-sm">
+            <div key={doc.label} className="card-soft rounded-xl p-4">
               <p className="text-sm font-semibold text-text-dark mb-3">{doc.label}</p>
               <label className="block border-2 border-dashed border-divider rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors">
                 <div className="flex flex-col items-center gap-1">
@@ -642,23 +654,23 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
       </div>
 
       <div className="px-4 space-y-2">
-        <button onClick={() => setEditOpen(true)} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+        <button onClick={() => setEditOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
           <span className="text-sm font-semibold text-text-dark">Modifier le profil</span>
           <IcChevron />
         </button>
-        <button onClick={() => setPasswordOpen(true)} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+        <button onClick={() => setPasswordOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
           <span className="text-sm font-semibold text-text-dark">Changer le mot de passe</span>
           <IcChevron />
         </button>
-        <button onClick={onOpenDelegations} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+        <button onClick={onOpenDelegations} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
           <span className="text-sm font-semibold text-text-dark">Délégations reçues</span>
           <IcChevron />
         </button>
-        <button onClick={() => navigate('/mes-roles')} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+        <button onClick={() => navigate('/mes-roles')} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
           <span className="text-sm font-semibold text-text-dark">Gérer mes rôles</span>
           <IcChevron />
         </button>
-        <button onClick={() => navigate('/portefeuille')} className="w-full bg-white rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+        <button onClick={() => navigate('/portefeuille')} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
           <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
           <IcChevron />
         </button>
@@ -699,48 +711,50 @@ export default function DemarcheurDashboard() {
     <div className="flex flex-col h-full bg-[#F4F6FA] relative">
 
       {/* Header */}
-      <div className="flex-shrink-0 px-5 pt-12 pb-6" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-11 h-11 rounded-[13px] flex items-center justify-center border flex-shrink-0"
-            style={{ background: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)' }}>
-            {loading
-              ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : <span className="text-white font-bold text-sm">{initials}</span>}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white/70 text-xs">Bonjour 👋</p>
-            <p className="text-white font-bold text-base truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
-          </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0"
-            style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
-            <IcVerif />
-            <span className="text-white text-[11px] font-semibold">Agent</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { icon: <IcHome />, value: `${biens.length}`, label: 'Biens' },
-            { icon: <IcEye />,  value: '--',              label: 'Vues' },
-            { icon: <IcCal />,  value: '--',              label: 'Visites' },
-            { icon: <IcStar />, value: `${score}`,        label: 'Score' },
-          ].map(s => (
-            <div key={s.label} className="rounded-xl py-2.5 px-1 text-center border"
-              style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.15)' }}>
-              <span className="text-white flex justify-center mb-1">{s.icon}</span>
-              <p className="text-white font-bold text-base leading-none">{s.value}</p>
-              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
+      <div className="flex-shrink-0 px-5 md:px-8 pt-12 md:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
+        <div className="md:max-w-5xl md:mx-auto">
+          <div className="flex items-center gap-3 mb-5 md:mb-6">
+            <div className="w-11 h-11 md:w-12 md:h-12 rounded-[13px] flex items-center justify-center border flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)' }}>
+              {loading
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <span className="text-white font-bold text-sm md:text-base">{initials}</span>}
             </div>
-          ))}
+            <div className="flex-1 min-w-0">
+              <p className="text-white/70 text-xs md:text-sm">Bonjour 👋</p>
+              <p className="text-white font-bold text-base md:text-xl truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
+              <IcVerif />
+              <span className="text-white text-[11px] md:text-xs font-semibold">Agent</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2 md:gap-4 md:max-w-xl">
+            {[
+              { icon: <IcHome />, value: `${biens.length}`, label: 'Biens' },
+              { icon: <IcEye />,  value: '--',              label: 'Vues' },
+              { icon: <IcCal />,  value: '--',              label: 'Visites' },
+              { icon: <IcStar />, value: `${score}`,        label: 'Score' },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl py-2.5 md:py-3.5 px-1 text-center border transition-transform md:hover:-translate-y-0.5"
+                style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.15)' }}>
+                <span className="text-white flex justify-center mb-1">{s.icon}</span>
+                <p className="text-white font-bold text-base md:text-lg leading-none">{s.value}</p>
+                <p className="text-[10px] md:text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-hidden flex flex-col md:max-w-5xl md:mx-auto md:w-full">
         {tab === 'tableau' && (
           <div className="flex-1 overflow-y-auto">
-            <div className="px-5 py-5">
-              <p className="text-[17px] font-bold text-text-dark mb-3.5">Actions rapides</p>
-              <div className="flex gap-3 mb-7">
+            <div className="px-5 md:px-8 py-5 md:py-8">
+              <p className="text-[17px] md:text-lg font-bold text-text-dark mb-3.5">Actions rapides</p>
+              <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={PURPLE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
                 <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
                 <QuickAction icon={<IcHome />} color="#FF6B35" label="Mes biens" onClick={() => setTab('biens')} />
@@ -779,9 +793,9 @@ export default function DemarcheurDashboard() {
                 <button onClick={() => setTab('biens')} className="text-sm font-semibold" style={{ color: PURPLE }}>Voir tout</button>
               </div>
               {loading ? (
-                [1,2].map(n => <div key={n} className="h-20 bg-white rounded-xl animate-pulse mb-2.5" />)
+                [1,2].map(n => <div key={n} className="h-20 skeleton rounded-xl mb-2.5" />)
               ) : biens.length === 0 ? (
-                <div className="bg-white rounded-xl p-5 text-center shadow-sm">
+                <div className="card-soft rounded-xl p-5 text-center">
                   <p className="text-text-grey text-sm">Aucun bien publié pour l'instant</p>
                 </div>
               ) : biens.slice(0, 3).map(b => {
@@ -789,7 +803,7 @@ export default function DemarcheurDashboard() {
                 const loc = b.localisation
                 const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
                 return (
-                  <div key={b.id} className="bg-white rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3 shadow-sm">
+                  <div key={b.id} className="card-soft rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: PURPLE + '15' }}>
                       <span style={{ color: PURPLE }}><IcHome /></span>
                     </div>
@@ -820,9 +834,9 @@ export default function DemarcheurDashboard() {
 
       {/* FAB */}
       {(tab === 'tableau' || tab === 'biens') && (
-        <div className="absolute bottom-20 right-4 z-20">
+        <div className="absolute bottom-20 right-4 md:bottom-24 md:right-8 z-20">
           <button onClick={() => navigate('/nouveau-bien')}
-            className="flex items-center gap-2 px-5 py-3.5 rounded-full text-white font-bold shadow-lg active:scale-95 transition-transform"
+            className="flex items-center gap-2 px-5 py-3.5 rounded-full text-white font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
             style={{ background: PURPLE, boxShadow: `0 4px 15px ${PURPLE}60` }}>
             <IcPlus /> Nouveau bien
           </button>
@@ -830,19 +844,21 @@ export default function DemarcheurDashboard() {
       )}
 
       {/* Bottom Nav */}
-      <div className="flex-shrink-0 bg-white border-t border-divider" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
-        <div className="flex items-center justify-around px-2 py-2">
-          {TABS.map(t => {
-            const active = tab === t.key
-            return (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] transition-all"
-                style={active ? { background: PURPLE + '18' } : {}}>
-                <span style={{ color: active ? PURPLE : '#9E9E9E' }}>{t.icon}</span>
-                {active && <span className="text-xs font-bold" style={{ color: PURPLE }}>{t.label}</span>}
-              </button>
-            )
-          })}
+      <div className="flex-shrink-0 md:px-6 md:pb-4">
+        <div className="bg-white border-t border-divider md:border md:rounded-2xl" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
+          <div className="flex items-center justify-around px-2 py-2 md:max-w-lg md:mx-auto">
+            {TABS.map(t => {
+              const active = tab === t.key
+              return (
+                <button key={t.key} onClick={() => setTab(t.key)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] transition-all"
+                  style={active ? { background: PURPLE + '18' } : {}}>
+                  <span style={{ color: active ? PURPLE : '#9E9E9E' }}>{t.icon}</span>
+                  {active && <span className="text-xs font-bold" style={{ color: PURPLE }}>{t.label}</span>}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>

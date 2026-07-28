@@ -219,7 +219,7 @@ export default function SearchPage() {
     <div className="min-h-full">
 
       {/* ══════════════════════ MOBILE ══════════════════════════ */}
-      <div className="md:hidden">
+      <div className="lg:hidden">
 
         {/* Header mobile collant */}
         <div className="sticky top-0 z-30 px-4 pt-10 pb-3"
@@ -328,17 +328,17 @@ export default function SearchPage() {
         )}
 
         {/* Résultats */}
-        <div className="px-4 py-4">
+        <div className="px-4 md:px-8 py-4 md:py-6">
           <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} />
           <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
-            cols="grid-cols-1"
+            cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
           />
         </div>
       </div>
 
       {/* ══════════════════════ DESKTOP ═════════════════════════ */}
-      <div className="hidden md:flex min-h-full">
+      <div className="hidden lg:flex min-h-full">
 
         {/* Sidebar filtres — collant */}
         <aside className="w-80 flex-shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto p-6"
