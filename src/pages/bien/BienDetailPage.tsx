@@ -34,7 +34,7 @@ function hasRealSurface(p: { nom: string; surface: any }) {
 export default function BienDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, user } = useAuth()
   const [bien, setBien] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -87,6 +87,9 @@ export default function BienDetailPage() {
     </div>
   )
 
+  const isOwnBien = !!(isLoggedIn && user && bien.user_id === user.id)
+  const dashboardPath = user?.role === 'demarcheur' ? '/demarcheur' : '/proprietaire'
+
   const photos: any[] = bien.photos || []
   const allUrls = photos.map((p: any) => resolveUrl(p.url))
   const isLocation = bien.transaction === 'location'
@@ -117,11 +120,13 @@ export default function BienDetailPage() {
         <button onClick={() => navigate(-1)} className="absolute top-12 left-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <button onClick={toggleFav} className="absolute top-12 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
-          <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke="white" strokeWidth={2} className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </button>
+        {!isOwnBien && (
+          <button onClick={toggleFav} className="absolute top-12 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke="white" strokeWidth={2} className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+        )}
         {allUrls.length > 1 && (
           <>
             <button onClick={() => setPhotoIdx(i => (i - 1 + allUrls.length) % allUrls.length)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
@@ -332,29 +337,47 @@ export default function BienDetailPage() {
                 </div>
               </div>
 
-              {/* Favoris */}
-              <button
-                onClick={toggleFav}
-                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold mb-3 transition-all ${isFav ? 'border-[#FF6B35] text-[#FF6B35] bg-[#FF6B35]/5' : 'border-divider text-text-grey hover:border-primary hover:text-primary'}`}
-              >
-                <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke="currentColor" strokeWidth={2} className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                {isFav ? 'Retiré des favoris' : 'Ajouter aux favoris'}
-              </button>
+              {isOwnBien ? (
+                <>
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl mb-3" style={{ background: 'rgba(75,107,255,0.08)', border: '1px solid rgba(75,107,255,0.2)' }}>
+                    <svg className="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p className="text-sm font-medium text-text-dark">C'est votre annonce</p>
+                  </div>
+                  <button
+                    onClick={() => navigate(dashboardPath)}
+                    className="w-full py-4 rounded-xl font-bold text-white text-sm shadow-btn transition-opacity hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
+                  >
+                    Gérer ce bien
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Favoris */}
+                  <button
+                    onClick={toggleFav}
+                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold mb-3 transition-all ${isFav ? 'border-[#FF6B35] text-[#FF6B35] bg-[#FF6B35]/5' : 'border-divider text-text-grey hover:border-primary hover:text-primary'}`}
+                  >
+                    <svg viewBox="0 0 24 24" fill={isFav ? '#FF6B35' : 'none'} stroke="currentColor" strokeWidth={2} className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {isFav ? 'Retiré des favoris' : 'Ajouter aux favoris'}
+                  </button>
 
-              {/* CTA principal */}
-              <button
-                onClick={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
-                className="w-full py-4 rounded-xl font-bold text-white text-sm shadow-btn transition-opacity hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
-              >
-                {isLocation ? 'Réserver une visite' : 'Demander une visite'}
-              </button>
+                  {/* CTA principal */}
+                  <button
+                    onClick={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
+                    className="w-full py-4 rounded-xl font-bold text-white text-sm shadow-btn transition-opacity hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
+                  >
+                    {isLocation ? 'Réserver une visite' : 'Demander une visite'}
+                  </button>
 
-              <p className="text-xs text-text-grey text-center mt-3">
-                Sans engagement · Réponse sous 24h
-              </p>
+                  <p className="text-xs text-text-grey text-center mt-3">
+                    Sans engagement · Réponse sous 24h
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -436,13 +459,23 @@ export default function BienDetailPage() {
         )}
 
         {/* CTA inline — au-dessus du BottomNav dans le scroll */}
-        <button
-          onClick={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
-          className="w-full py-4 rounded-xl font-bold text-white shadow-btn"
-          style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
-        >
-          {isLocation ? 'Réserver une visite' : 'Demander une visite'}
-        </button>
+        {isOwnBien ? (
+          <button
+            onClick={() => navigate(dashboardPath)}
+            className="w-full py-4 rounded-xl font-bold text-white shadow-btn"
+            style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
+          >
+            Gérer ce bien
+          </button>
+        ) : (
+          <button
+            onClick={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
+            className="w-full py-4 rounded-xl font-bold text-white shadow-btn"
+            style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
+          >
+            {isLocation ? 'Réserver une visite' : 'Demander une visite'}
+          </button>
+        )}
       </div>
     </div>
   )
