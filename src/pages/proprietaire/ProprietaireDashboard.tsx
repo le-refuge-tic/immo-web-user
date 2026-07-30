@@ -131,31 +131,36 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
 const IcTrendUp = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l6-6 4 4L20 9.5M20 9.5h-4.5M20 9.5v4.5"/></svg>
 const IcTrendDown = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l6 6 4-4L20 14.5M20 14.5h-4.5M20 14.5v-4.5"/></svg>
 
-function StatCard({ label, value, trendPct }: { label: string; value: string; trendPct?: number }) {
+function StatCard({ icon, color, label, value, trendPct }: { icon: React.ReactNode; color: string; label: string; value: string; trendPct?: number }) {
   const up = (trendPct ?? 0) >= 0
   return (
-    <div className="card-soft rounded-2xl p-4 flex-1 min-w-0">
-      <p className="text-xs text-text-grey mb-1.5 truncate">{label}</p>
-      <p className="text-xl font-bold text-text-dark leading-none mb-2">{value}</p>
-      {trendPct != null && (
-        <div className="flex items-center gap-1.5">
+    <div className="card-soft rounded-2xl p-4 flex-1 min-w-0 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: color }} />
+      <div className="flex items-center justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: color + '18' }}>
+          <span style={{ color }}>{icon}</span>
+        </div>
+        {trendPct != null && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
             style={{ background: (up ? '#22C55E' : '#EF4444') + '18', color: up ? '#22C55E' : '#EF4444' }}>
             {up ? <IcTrendUp /> : <IcTrendDown />} {Math.abs(trendPct)}%
           </span>
-          <span className="text-[10px] text-text-grey">vs mois dernier</span>
-        </div>
-      )}
+        )}
+      </div>
+      <p className="text-xl font-extrabold text-text-dark leading-none mb-1.5 truncate">{value}</p>
+      <p className="text-xs text-text-grey truncate">{label}</p>
     </div>
   )
 }
 
-/** Petite carte profil bien distincte (icône + valeur + libellé) — remplace
- *  les pastilles translucides autrefois posées sur le bandeau du header. */
+/** Petite carte profil bien distincte (icône + valeur + libellé), teintée dans la
+ *  couleur de sa métrique — remplace les pastilles translucides autrefois posées
+ *  sur le bandeau du header. */
 function MiniStatCard({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) {
   return (
-    <div className="card-soft rounded-2xl px-3 py-3.5 md:px-4 flex flex-col items-center text-center gap-1.5 md:flex-row md:items-center md:text-left md:gap-3 flex-1 min-w-0">
-      <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + '18' }}>
+    <div className="rounded-2xl px-3 py-3.5 md:px-4 flex flex-col items-center text-center gap-1.5 md:flex-row md:items-center md:text-left md:gap-3 flex-1 min-w-0 border transition-shadow hover:shadow-sm"
+      style={{ background: `linear-gradient(155deg, ${color}12, ${color}05)`, borderColor: color + '22' }}>
+      <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + '20' }}>
         <span style={{ color }}>{icon}</span>
       </div>
       <div className="min-w-0">
@@ -298,13 +303,23 @@ function AreaChart({ data, color = '#2E86C1', height = 130 }: { data: { label: s
   )
 }
 
-function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function ChartCard({ title, subtitle, icon, color, className = '', children }: { title: string; subtitle?: string; icon?: React.ReactNode; color?: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className="card-soft rounded-2xl p-4 md:p-5">
-      <p className="font-bold text-text-dark text-sm mb-0.5">{title}</p>
-      {subtitle && <p className="text-[11px] text-text-grey mb-4">{subtitle}</p>}
-      {!subtitle && <div className="mb-3" />}
-      {children}
+    <div className={`card-soft rounded-2xl p-4 md:p-5 ${className}`}>
+      <div className="flex items-center gap-2.5 mb-0.5">
+        {icon && (
+          <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: (color || BLUE) + '18' }}>
+            <span style={{ color: color || BLUE }}>{icon}</span>
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="font-bold text-text-dark text-sm">{title}</p>
+          {subtitle && <p className="text-[11px] text-text-grey">{subtitle}</p>}
+        </div>
+      </div>
+      <div className={icon ? 'mt-4' : subtitle ? 'mt-4' : 'mt-3'}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -1345,23 +1360,18 @@ export default function ProprietaireDashboard() {
               </div>
 
               {/* Stat cards */}
-              <div className="flex flex-wrap gap-3 mb-4">
-                <StatCard label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} />
-                <StatCard label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} />
-                <StatCard label="Taux d'occupation" value={`${tauxOccupation}%`} />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} />
+                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} />
+                <StatCard icon={<IcHome />} color="#22C55E" label="Taux d'occupation" value={`${tauxOccupation}%`} />
               </div>
 
-              {/* Charts */}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
-                <ChartCard title="Revenus locatifs" subtitle="6 derniers mois">
+              {/* Charts — mise en page bento : le graphique principal prend le double de place */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+                <ChartCard title="Revenus locatifs" subtitle="6 derniers mois" icon={<IcWallet />} color={BLUE} className="xl:col-span-2">
                   {hasRevenus ? <AreaChart data={revenusSeries} color={BLUE} /> : <EmptyChartState label="Aucun loyer encaissé pour l'instant" />}
                 </ChartCard>
-                <ChartCard title="Visites reçues" subtitle="6 derniers mois">
-                  {hasVisites
-                    ? visitesSeries.map((v, i) => <BarRow key={i} label={v.label} value={v.value} max={Math.max(...visitesSeries.map(x => x.value), 1)} color="#4B6BFF" />)
-                    : <EmptyChartState label="Aucune visite reçue pour l'instant" />}
-                </ChartCard>
-                <ChartCard title="Répartition de mes biens" subtitle="Par statut de modération">
+                <ChartCard title="Répartition de mes biens" subtitle="Par statut de modération" icon={<IcDash />} color="#7B2FBE">
                   {biens.length > 0
                     ? <DonutChart segments={[
                         { label: 'Publiés',    value: approuves, color: '#22C55E' },
@@ -1370,8 +1380,13 @@ export default function ProprietaireDashboard() {
                       ]} />
                     : <EmptyChartState label="Publiez votre premier bien pour voir vos statistiques" />}
                 </ChartCard>
+                <ChartCard title="Visites reçues" subtitle="6 derniers mois" icon={<IcCal />} color="#4B6BFF" className={biensParType.length > 0 ? 'xl:col-span-2' : 'xl:col-span-3'}>
+                  {hasVisites
+                    ? visitesSeries.map((v, i) => <BarRow key={i} label={v.label} value={v.value} max={Math.max(...visitesSeries.map(x => x.value), 1)} color="#4B6BFF" />)
+                    : <EmptyChartState label="Aucune visite reçue pour l'instant" />}
+                </ChartCard>
                 {biensParType.length > 0 && (
-                  <ChartCard title="Biens par type" subtitle="Répartition par catégorie">
+                  <ChartCard title="Biens par type" subtitle="Répartition par catégorie" icon={<IcHome />} color="#FF6B35">
                     {biensParType.map((b, i) => (
                       <BarRow key={b.label} label={b.label} value={b.value} max={biensParType[0].value}
                         color={[BLUE, '#7B2FBE', '#FF6B35', '#22C55E', '#E67E22'][i % 5]} />
