@@ -55,4 +55,8 @@ export const visitesApi = {
 
   donnerFeedback: (id: number, body: { note: number; tags?: string[]; texte?: string }) =>
     axios.patch(`${BASE}/visites/${id}/feedback`, body, auth()).then(r => r.data),
+
+  /** Visites confirmées d'un bien — gestionnaire uniquement (compte + dates, sans noms). */
+  visitesConfirmeesParBien: (bienId: number) =>
+    axios.get(`${BASE}/visites/bien/${bienId}/confirmees`, auth()).then(r => r.data),
 }

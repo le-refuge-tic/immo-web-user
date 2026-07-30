@@ -130,17 +130,14 @@ export function infosLogementRows(a: any): InfoRow[] {
 
   if (a.sanitaire != null) {
     const interne = a.sanitaire === true || a.sanitaire === 'interieur'
-    rows.push({ label: 'Sanitaires', value: interne ? 'Intérieur (dans la chambre / maison)' : 'Extérieur (dans la cour)' })
+    rows.push({ label: 'Sanitaires', value: interne ? 'Intérieur' : 'Extérieur' })
   }
 
   const finition = finitionLabel(a)
   if (finition) rows.push({ label: 'Finition', value: finition })
 
-  const dispo = disponibiliteLabel(a)
-  if (dispo) rows.push({ label: 'Disponibilité', value: dispo })
-
   if (a.echeance_mois != null && a.echeance_mois > 1) {
-    rows.push({ label: 'Loyer payable tous les', value: `${a.echeance_mois} mois` })
+    rows.push({ label: 'Loyer', value: `Tous les ${a.echeance_mois} du mois` })
   }
 
   return rows

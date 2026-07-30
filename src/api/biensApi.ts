@@ -25,6 +25,14 @@ export const biensApi = {
   updateStatut: (id: number, statut: string) =>
     axios.patch(`${BASE}/biens/${id}/statut`, { statut }, auth()).then(r => r.data),
 
+  /** Visites confirmées/à venir pour ce bien — public, sans noms (créneaux uniquement). */
+  visitesPlanifiees: (id: number) =>
+    axios.get(`${BASE}/biens/${id}/visites-planifiees`).then(r => r.data),
+
+  /** Enregistre une vue (1 user = 1 vue) et retourne le compteur mis à jour. */
+  incrementerVue: (id: number) =>
+    axios.post(`${BASE}/biens/${id}/vue`, {}, auth()).then(r => r.data),
+
   delete: (id: number) =>
     axios.delete(`${BASE}/biens/${id}`, auth()).then(r => r.data),
 
