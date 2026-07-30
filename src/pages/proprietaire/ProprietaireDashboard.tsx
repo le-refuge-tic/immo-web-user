@@ -75,6 +75,27 @@ function statutVisite(s: string) {
   return { label: 'En attente', color: '#FF9800' }
 }
 
+const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
+
+/** Revenus locatifs encaissés (loyers payés), regroupés par mois — 6 derniers mois. */
+function buildRevenueSeries(contrats: any[]): { label: string; value: number }[] {
+  const now = new Date()
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+    return { key: `${d.getFullYear()}-${d.getMonth()}`, label: MONTH_LABELS[d.getMonth()], value: 0 }
+  })
+  const byKey = new Map(months.map(m => [m.key, m]))
+  for (const c of contrats) {
+    for (const l of c.loyers || []) {
+      if (l.statut !== 'paye' || !l.date_paiement) continue
+      const d = new Date(l.date_paiement)
+      const m = byKey.get(`${d.getFullYear()}-${d.getMonth()}`)
+      if (m) m.value += Number(l.montant)
+    }
+  }
+  return months
+}
+
 // ─── QuickAction ──────────────────────────────────────────────────────────────
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
   return (
@@ -84,6 +105,120 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
       </div>
       <span className="text-[11px] font-semibold text-text-dark text-center leading-tight">{label}</span>
     </button>
+  )
+}
+
+// ─── Composants graphiques (SVG maison, sans librairie externe) ───────────────
+const IcTrendUp = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l6-6 4 4L20 9.5M20 9.5h-4.5M20 9.5v4.5"/></svg>
+const IcTrendDown = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l6 6 4-4L20 14.5M20 14.5h-4.5M20 14.5v-4.5"/></svg>
+
+function StatCard({ label, value, trendPct }: { label: string; value: string; trendPct?: number }) {
+  const up = (trendPct ?? 0) >= 0
+  return (
+    <div className="card-soft rounded-2xl p-4 flex-1 min-w-0">
+      <p className="text-xs text-text-grey mb-1.5 truncate">{label}</p>
+      <p className="text-xl font-bold text-text-dark leading-none mb-2">{value}</p>
+      {trendPct != null && (
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+            style={{ background: (up ? '#22C55E' : '#EF4444') + '18', color: up ? '#22C55E' : '#EF4444' }}>
+            {up ? <IcTrendUp /> : <IcTrendDown />} {Math.abs(trendPct)}%
+          </span>
+          <span className="text-[10px] text-text-grey">vs mois dernier</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DonutChart({ segments, size = 108, thickness = 16 }: { segments: { label: string; value: number; color: string }[]; size?: number; thickness?: number }) {
+  const total = segments.reduce((s, x) => s + x.value, 0)
+  const radius = (size - thickness) / 2
+  const circumference = 2 * Math.PI * radius
+  let offset = 0
+  return (
+    <div className="flex items-center gap-5">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="flex-shrink-0">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#F1F3F6" strokeWidth={thickness} />
+        {total > 0 && segments.filter(s => s.value > 0).map((s, i) => {
+          const frac = s.value / total
+          const dash = frac * circumference
+          const el = (
+            <circle key={i} cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={s.color} strokeWidth={thickness}
+              strokeDasharray={`${dash} ${circumference - dash}`} strokeDashoffset={-offset}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+          )
+          offset += dash
+          return el
+        })}
+        <text x="50%" y="47%" textAnchor="middle" className="fill-text-dark" style={{ fontSize: 20, fontWeight: 800 }}>{total}</text>
+        <text x="50%" y="63%" textAnchor="middle" className="fill-text-grey" style={{ fontSize: 9 }}>biens</text>
+      </svg>
+      <div className="flex-1 min-w-0 space-y-2">
+        {segments.map((s, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+            <span className="text-xs text-text-grey flex-1 truncate">{s.label}</span>
+            <span className="text-xs font-bold text-text-dark">{s.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BarRow({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0
+  return (
+    <div className="mb-3.5 last:mb-0">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-medium text-text-grey">{label}</span>
+        <span className="text-xs font-bold text-text-dark">{value}</span>
+      </div>
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: '#F1F3F6' }}>
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
+      </div>
+    </div>
+  )
+}
+
+function AreaChart({ data, color = '#2E86C1', height = 130 }: { data: { label: string; value: number }[]; color?: string; height?: number }) {
+  const width = 100
+  const max = Math.max(...data.map(d => d.value), 1)
+  const padTop = 10
+  const stepX = width / Math.max(data.length - 1, 1)
+  const points = data.map((d, i) => [i * stepX, height - padTop - (d.value / max) * (height - padTop * 2)])
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
+  const areaPath = `${linePath} L${width},${height} L0,${height} Z`
+  const gradId = `areaGrad-${color.replace('#', '')}`
+  return (
+    <div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill={`url(#${gradId})`} />
+        <path d={linePath} fill="none" stroke={color} strokeWidth={1.6} />
+        {points.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={1.8} fill={color} />)}
+      </svg>
+      <div className="flex justify-between mt-1.5">
+        {data.map((d, i) => <span key={i} className="text-[10px] text-text-grey">{d.label}</span>)}
+      </div>
+    </div>
+  )
+}
+
+function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="card-soft rounded-2xl p-4 md:p-5">
+      <p className="font-bold text-text-dark text-sm mb-0.5">{title}</p>
+      {subtitle && <p className="text-[11px] text-text-grey mb-4">{subtitle}</p>}
+      {!subtitle && <div className="mb-3" />}
+      {children}
+    </div>
   )
 }
 
@@ -874,12 +1009,14 @@ export default function ProprietaireDashboard() {
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loyersDash, setLoyersDash] = useState<any>(null)
 
   const loadData = async () => {
     try {
-      const [u, b] = await Promise.allSettled([userApi.me(), biensApi.mesBiens()])
+      const [u, b, l] = await Promise.allSettled([userApi.me(), biensApi.mesBiens(), loyersApi.dashboard()])
       if (u.status === 'fulfilled') setUser(u.value?.user || u.value)
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
+      if (l.status === 'fulfilled') setLoyersDash(l.value)
     } catch (_) {}
     setLoading(false)
   }
@@ -891,6 +1028,21 @@ export default function ProprietaireDashboard() {
   const approuves = biens.filter(b => b.statut_moderation === 'approuve').length
   const enAttente = biens.filter(b => b.statut_moderation === 'en_attente').length
   const rejetes   = biens.filter(b => b.statut_moderation === 'rejete').length
+
+  const biensParType = (() => {
+    const counts: Record<string, number> = {}
+    for (const b of biens) counts[b.type] = (counts[b.type] || 0) + 1
+    return Object.entries(counts)
+      .map(([type, n]) => ({ label: typeLabel(type), value: n }))
+      .sort((a, b) => b.value - a.value)
+  })()
+
+  const revenusSeries = buildRevenueSeries(loyersDash?.contrats || [])
+  const revenusMoisActuel = revenusSeries[revenusSeries.length - 1]?.value ?? 0
+  const revenusMoisPrecedent = revenusSeries[revenusSeries.length - 2]?.value ?? 0
+  const revenusTrendPct = revenusMoisPrecedent > 0
+    ? Math.round(((revenusMoisActuel - revenusMoisPrecedent) / revenusMoisPrecedent) * 100)
+    : (revenusMoisActuel > 0 ? 100 : 0)
 
   return (
     <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] relative">
@@ -980,30 +1132,32 @@ export default function ProprietaireDashboard() {
                 <QuickAction icon={<IcClock />} color="#FF6B35" label="Créneaux" onClick={() => setTab('creneaux')} />
               </div>
 
-              {/* Occupation card */}
-              <div className="rounded-2xl p-5 mb-6" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="px-2.5 py-1 rounded-xl text-white text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.15)' }}>Mes biens</span>
-                  <span className="text-white/70"><IcHome /></span>
-                </div>
-                <p className="text-white/70 text-sm">Tableau de bord occupation</p>
-                <p className="text-white text-[22px] font-bold mt-1 mb-4">{biens.length} bien{biens.length > 1 ? 's' : ''} au total</p>
-                <div className="flex items-center">
-                  {[
-                    { label: 'Total',      value: biens.length },
-                    { label: 'Publiés',    value: approuves },
-                    { label: 'En attente', value: enAttente },
-                    { label: 'Rejetés',    value: rejetes },
-                  ].map((s, i) => (
-                    <div key={s.label} className="flex items-center flex-1">
-                      {i > 0 && <div className="w-px h-8 mr-3" style={{ background: 'rgba(255,255,255,0.2)' }} />}
-                      <div>
-                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{s.label}</p>
-                        <p className="text-white font-bold text-base">{s.value}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {/* Stat cards */}
+              <div className="flex gap-3 mb-4">
+                <StatCard label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={revenusTrendPct} />
+                <StatCard label="Revenus totaux" value={fmtPrix(loyersDash?.stats?.revenus_total ?? 0)} />
+              </div>
+
+              {/* Charts */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+                <ChartCard title="Revenus locatifs" subtitle="6 derniers mois">
+                  <AreaChart data={revenusSeries} color={BLUE} />
+                </ChartCard>
+                <ChartCard title="Répartition de mes biens" subtitle="Par statut de modération">
+                  <DonutChart segments={[
+                    { label: 'Publiés',    value: approuves, color: '#22C55E' },
+                    { label: 'En attente', value: enAttente, color: '#F59E0B' },
+                    { label: 'Rejetés',    value: rejetes,   color: '#EF4444' },
+                  ]} />
+                </ChartCard>
+                {biensParType.length > 0 && (
+                  <ChartCard title="Biens par type" subtitle="Répartition par catégorie">
+                    {biensParType.map((b, i) => (
+                      <BarRow key={b.label} label={b.label} value={b.value} max={biensParType[0].value}
+                        color={[BLUE, '#7B2FBE', '#FF6B35', '#22C55E', '#E67E22'][i % 5]} />
+                    ))}
+                  </ChartCard>
+                )}
               </div>
 
               {/* Biens récents */}
