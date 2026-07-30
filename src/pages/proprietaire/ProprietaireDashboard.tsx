@@ -96,6 +96,25 @@ function buildRevenueSeries(contrats: any[]): { label: string; value: number }[]
   return months
 }
 
+/** Compte des éléments par mois (6 derniers mois) — ex. visites reçues. */
+function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | undefined): { label: string; value: number }[] {
+  const now = new Date()
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+    return { key: `${d.getFullYear()}-${d.getMonth()}`, label: MONTH_LABELS[d.getMonth()], value: 0 }
+  })
+  const byKey = new Map(months.map(m => [m.key, m]))
+  for (const item of items) {
+    const raw = getDate(item)
+    if (!raw) continue
+    const d = new Date(raw)
+    if (isNaN(d.getTime())) continue
+    const m = byKey.get(`${d.getFullYear()}-${d.getMonth()}`)
+    if (m) m.value += 1
+  }
+  return months
+}
+
 // ─── QuickAction ──────────────────────────────────────────────────────────────
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
   return (
@@ -218,6 +237,30 @@ function ChartCard({ title, subtitle, children }: { title: string; subtitle?: st
       {subtitle && <p className="text-[11px] text-text-grey mb-4">{subtitle}</p>}
       {!subtitle && <div className="mb-3" />}
       {children}
+    </div>
+  )
+}
+
+function EmptyChartState({ label, height = 130 }: { label: string; height?: number }) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center" style={{ height }}>
+      <svg className="w-7 h-7 text-text-grey/40 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+      <p className="text-xs text-text-grey">{label}</p>
+    </div>
+  )
+}
+
+/** Petit indicateur "temps réel" — pastille pulsante + horodatage de dernière synchro. */
+function LiveIndicator({ label, refreshing }: { label: string; refreshing: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="relative flex w-2 h-2">
+        {!refreshing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#22C55E' }} />}
+        <span className="relative inline-flex rounded-full w-2 h-2" style={{ background: refreshing ? '#F59E0B' : '#22C55E' }} />
+      </span>
+      <span className="text-[11px] text-text-grey">{refreshing ? 'Synchronisation…' : `À jour · ${label}`}</span>
     </div>
   )
 }
@@ -1010,17 +1053,38 @@ export default function ProprietaireDashboard() {
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [loyersDash, setLoyersDash] = useState<any>(null)
+  const [visites, setVisites] = useState<any[]>([])
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
+    if (silent) setRefreshing(true)
     try {
-      const [u, b, l] = await Promise.allSettled([userApi.me(), biensApi.mesBiens(), loyersApi.dashboard()])
+      const [u, b, l, v] = await Promise.allSettled([
+        userApi.me(), biensApi.mesBiens(), loyersApi.dashboard(), visitesApi.reservationsRecues(),
+      ])
       if (u.status === 'fulfilled') setUser(u.value?.user || u.value)
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
       if (l.status === 'fulfilled') setLoyersDash(l.value)
+      if (v.status === 'fulfilled') setVisites(Array.isArray(v.value) ? v.value : v.value.data || [])
+      setLastUpdated(new Date())
     } catch (_) {}
     setLoading(false)
+    setRefreshing(false)
   }
+
+  // Tableau de bord "temps réel" : première charge immédiate, puis on
+  // rafraîchit silencieusement toutes les 30s (et quand l'onglet redevient
+  // visible) tant qu'on reste sur l'onglet Tableau — pas de spinner plein
+  // écran pour ces rafraîchissements, juste l'horodatage qui bouge.
   useEffect(() => { loadData() }, [])
+  useEffect(() => {
+    if (tab !== 'tableau') return
+    const id = setInterval(() => loadData(true), 30000)
+    const onVisible = () => { if (document.visibilityState === 'visible') loadData(true) }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
+  }, [tab])
 
   const me = user || authUser
   const initials = `${me?.prenom?.[0] || ''}${me?.nom?.[0] || ''}`.toUpperCase()
@@ -1043,6 +1107,22 @@ export default function ProprietaireDashboard() {
   const revenusTrendPct = revenusMoisPrecedent > 0
     ? Math.round(((revenusMoisActuel - revenusMoisPrecedent) / revenusMoisPrecedent) * 100)
     : (revenusMoisActuel > 0 ? 100 : 0)
+  const hasRevenus = revenusSeries.some(m => m.value > 0)
+
+  const visitesSeries = buildCountSeries(visites, v => v.date_souhaitee)
+  const visitesMoisActuel = visitesSeries[visitesSeries.length - 1]?.value ?? 0
+  const visitesMoisPrecedent = visitesSeries[visitesSeries.length - 2]?.value ?? 0
+  const visitesTrendPct = visitesMoisPrecedent > 0
+    ? Math.round(((visitesMoisActuel - visitesMoisPrecedent) / visitesMoisPrecedent) * 100)
+    : (visitesMoisActuel > 0 ? 100 : 0)
+  const hasVisites = visitesSeries.some(m => m.value > 0)
+
+  const biensOccupes = biens.filter(b => b.statut === 'occupe').length
+  const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
+
+  const lastUpdatedLabel = lastUpdated
+    ? lastUpdated.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    : '—'
 
   return (
     <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] relative">
@@ -1125,7 +1205,10 @@ export default function ProprietaireDashboard() {
         {tab === 'tableau' && (
           <div className="flex-1 overflow-y-auto">
             <div className="px-5 md:px-8 xl:px-10 py-5 md:py-8">
-              <p className="text-[17px] md:text-lg font-bold text-text-dark mb-3.5">Actions rapides</p>
+              <div className="flex items-center justify-between mb-3.5">
+                <p className="text-[17px] md:text-lg font-bold text-text-dark">Actions rapides</p>
+                <LiveIndicator label={lastUpdatedLabel} refreshing={refreshing} />
+              </div>
               <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={BLUE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
                 <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
@@ -1133,22 +1216,30 @@ export default function ProprietaireDashboard() {
               </div>
 
               {/* Stat cards */}
-              <div className="flex gap-3 mb-4">
-                <StatCard label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={revenusTrendPct} />
-                <StatCard label="Revenus totaux" value={fmtPrix(loyersDash?.stats?.revenus_total ?? 0)} />
+              <div className="flex flex-wrap gap-3 mb-4">
+                <StatCard label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} />
+                <StatCard label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} />
+                <StatCard label="Taux d'occupation" value={`${tauxOccupation}%`} />
               </div>
 
               {/* Charts */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
                 <ChartCard title="Revenus locatifs" subtitle="6 derniers mois">
-                  <AreaChart data={revenusSeries} color={BLUE} />
+                  {hasRevenus ? <AreaChart data={revenusSeries} color={BLUE} /> : <EmptyChartState label="Aucun loyer encaissé pour l'instant" />}
+                </ChartCard>
+                <ChartCard title="Visites reçues" subtitle="6 derniers mois">
+                  {hasVisites
+                    ? visitesSeries.map((v, i) => <BarRow key={i} label={v.label} value={v.value} max={Math.max(...visitesSeries.map(x => x.value), 1)} color="#4B6BFF" />)
+                    : <EmptyChartState label="Aucune visite reçue pour l'instant" />}
                 </ChartCard>
                 <ChartCard title="Répartition de mes biens" subtitle="Par statut de modération">
-                  <DonutChart segments={[
-                    { label: 'Publiés',    value: approuves, color: '#22C55E' },
-                    { label: 'En attente', value: enAttente, color: '#F59E0B' },
-                    { label: 'Rejetés',    value: rejetes,   color: '#EF4444' },
-                  ]} />
+                  {biens.length > 0
+                    ? <DonutChart segments={[
+                        { label: 'Publiés',    value: approuves, color: '#22C55E' },
+                        { label: 'En attente', value: enAttente, color: '#F59E0B' },
+                        { label: 'Rejetés',    value: rejetes,   color: '#EF4444' },
+                      ]} />
+                    : <EmptyChartState label="Publiez votre premier bien pour voir vos statistiques" />}
                 </ChartCard>
                 {biensParType.length > 0 && (
                   <ChartCard title="Biens par type" subtitle="Répartition par catégorie">
