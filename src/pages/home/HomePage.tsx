@@ -250,7 +250,7 @@ export default function HomePage() {
               onChange={e => setSearch(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
               placeholder="Ville, quartier, type de bien…"
-              className="flex-1 text-sm bg-transparent outline-none text-white placeholder-white/50"
+              className="flex-1 min-w-0 text-sm bg-transparent outline-none text-white placeholder-white/50"
             />
           </div>
         </div>
@@ -291,7 +291,7 @@ export default function HomePage() {
                 onChange={e => setSearch(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
                 placeholder="Ville, quartier, type de bien…"
-                className="flex-1 text-sm bg-transparent outline-none text-white placeholder-white/50"
+                className="flex-1 min-w-0 text-sm bg-transparent outline-none text-white placeholder-white/50"
               />
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function HomePage() {
                     onFocus={() => setShowSuggest(true)}
                     onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                     placeholder="Ex: Cotonou, Adovié, Akpakpa…"
-                    className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+                    className="flex-1 min-w-0 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
                   />
                   {search && (
                     <button onClick={() => setSearch('')} style={{ color: 'rgba(0,0,0,0.3)' }}>
@@ -461,14 +461,14 @@ export default function HomePage() {
                   type="number" min={0} value={prixMin}
                   onChange={e => setPrixMin(e.target.value)}
                   placeholder="Minimum"
-                  className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
+                  className="flex-1 min-w-0 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
                 />
-                <span className="text-text-grey text-sm">—</span>
+                <span className="text-text-grey text-sm flex-shrink-0">—</span>
                 <input
                   type="number" min={0} value={prixMax}
                   onChange={e => setPrixMax(e.target.value)}
                   placeholder="Maximum"
-                  className="flex-1 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
+                  className="flex-1 min-w-0 border border-divider rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-surface-g"
                 />
                 {(prixMin || prixMax) && (
                   <button onClick={() => { setPrixMin(''); setPrixMax('') }} className="text-xs font-semibold text-primary flex-shrink-0">

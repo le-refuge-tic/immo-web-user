@@ -186,7 +186,7 @@ export default function PaiementIntegrationPage() {
                 <div className="w-px h-4 bg-divider" />
                 <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
                   placeholder="XX XX XX XX" maxLength={8}
-                  className="flex-1 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
+                  className="flex-1 min-w-0 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
               </div>
               <div className="flex items-start gap-2 text-xs text-text-grey mb-4">
                 <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

@@ -559,7 +559,7 @@ export default function ChatPage() {
             onKeyDown={handleKey}
             placeholder="Écrire un message…"
             rows={1}
-            className="glass-input flex-1 rounded-2xl px-4 py-2.5 text-sm outline-none resize-none max-h-28 leading-relaxed"
+            className="glass-input flex-1 min-w-0 rounded-2xl px-4 py-2.5 text-sm outline-none resize-none max-h-28 leading-relaxed"
             style={{ minHeight: '42px' }}
           />
           <button

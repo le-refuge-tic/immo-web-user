@@ -226,7 +226,7 @@ function MonLogementTab() {
                         <div className="w-px h-4 bg-divider" />
                         <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
                           placeholder="XX XX XX XX" maxLength={8}
-                          className="flex-1 bg-transparent text-sm outline-none text-text-dark" />
+                          className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                       </div>
                       <button onClick={payer} disabled={!tel || paying}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
@@ -401,7 +401,7 @@ function ActiviteTab() {
                 <div className="w-px h-4 bg-divider" />
                 <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
                   placeholder="XX XX XX XX" maxLength={8}
-                  className="flex-1 bg-transparent text-sm outline-none text-text-dark" />
+                  className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setShowPay(false)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>

@@ -245,7 +245,7 @@ export default function SearchPage() {
                   onFocus={() => setShowSuggest(true)}
                   onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                   placeholder="Ville ou quartier…"
-                  className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
                 />
                 {query && (
                   <button onClick={() => setQuery('')} style={{ color: 'rgba(0,0,0,0.3)' }}>
@@ -388,7 +388,7 @@ export default function SearchPage() {
                   onFocus={() => setShowSuggest(true)}
                   onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                   placeholder="Ex: Cotonou, Adovié, Akpakpa…"
-                  className="flex-1 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
                 />
                 {query && (
                   <button onClick={() => setQuery('')} style={{ color: 'rgba(0,0,0,0.3)' }}>

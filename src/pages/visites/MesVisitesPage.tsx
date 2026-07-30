@@ -355,7 +355,7 @@ export default function MesVisitesPage() {
                     value={phoneOp}
                     onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
                     placeholder="96XXXXXXXX"
-                    className="flex-1 bg-transparent outline-none text-sm py-4"
+                    className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
                   />
                 </div>
                 <button
