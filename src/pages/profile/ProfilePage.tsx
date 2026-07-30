@@ -176,8 +176,15 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     const rt = localStorage.getItem('rg_refresh') || ''
     try { await authApi.logout(rt) } catch (_) {}
-    logout()
+    // Naviguer vers l'accueil D'ABORD, puis vider le contexte auth seulement
+    // après deux frames (donne à React le temps de démonter /profil, qui est
+    // protégé par PrivateRoute). Sinon PrivateRoute est encore monté quand
+    // isLoggedIn passe à false : son propre effet de redirection vers
+    // /login s'exécute après coup et écrase cette navigation vers l'accueil,
+    // même si logout() est appelé après navigate() — un simple setTimeout(0)
+    // ne suffit pas, la course a été vérifiée empiriquement.
     navigate('/', { replace: true })
+    requestAnimationFrame(() => requestAnimationFrame(logout))
   }
 
   const handleAnnuler = async () => {
