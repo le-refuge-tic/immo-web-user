@@ -68,8 +68,8 @@ function MonLogementTab() {
   useEffect(() => { load() }, [])
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
-  const loyers: any[] = data?.loyers_en_attente || []
-  const historique: any[] = data?.historique || []
+  const loyers: any[] = data?.loyers_en_attente?.length ? data.loyers_en_attente : (data?.prochain_loyer ? [data.prochain_loyer] : [])
+  const historique: any[] = data?.historique_loyers || []
   const contrat = data?.contrat
   const bien    = data?.bien
   const gestionnaire = data?.gestionnaire
@@ -187,7 +187,12 @@ function MonLogementTab() {
                       {selected.includes(l.id) && <span className="text-white"><IcCheck /></span>}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-text-dark text-sm">{l.mois || new Date(l.date_echeance).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold text-text-dark text-sm">{l.mois || new Date(l.date_echeance).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+                        {l.statut === 'en_retard' && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: '#EF4444' }}>En retard</span>
+                        )}
+                      </div>
                       <p className="text-xs text-text-grey">Échéance : {new Date(l.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
                     </div>
                     <p className="font-bold text-text-dark text-sm flex-shrink-0">{Number(l.montant).toLocaleString('fr-FR')} F</p>
@@ -311,8 +316,8 @@ function ActiviteTab() {
   useEffect(() => { load() }, [])
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
-  const prochainLoyer = data?.loyers_en_attente?.[0]
-  const historique: any[] = data?.historique || []
+  const prochainLoyer = data?.loyers_en_attente?.[0] || data?.prochain_loyer
+  const historique: any[] = data?.historique_loyers || []
 
   const urgence = () => {
     if (!prochainLoyer) return null

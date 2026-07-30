@@ -70,8 +70,14 @@ function getTypeConfig(type?: string): TypeCfg {
   return TYPE_CONFIG[type ?? ''] || TYPE_CONFIG['systeme']
 }
 
+const VISITE_TYPES = new Set([
+  'visite_demande', 'visite_confirmee', 'visite_contre_proposee',
+  'visite_effectuee', 'visite_annulee', 'rappel_visite', 'paiement_visite',
+])
+const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
+
 export default function NotificationsPage() {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, hasRole } = useAuth()
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -97,6 +103,20 @@ export default function NotificationsPage() {
       await notificationsApi.markAllRead()
       setNotifs(prev => prev.map(n => ({ ...n, lu: true })))
     } catch (_) {}
+  }
+
+  const openNotif = (n: any) => {
+    if (!n.lu) markRead(n.id)
+    const meta = n.meta || {}
+    if (n.type === 'nouveau_message' && meta.conversation_id) {
+      navigate(`/conversations/${meta.conversation_id}`)
+    } else if (VISITE_TYPES.has(n.type) && meta.visite_id) {
+      if (hasRole('demarcheur')) navigate('/demarcheur')
+      else if (hasRole('proprietaire')) navigate('/proprietaire')
+      else navigate('/mes-visites')
+    } else if (BIEN_TYPES.has(n.type) && meta.bien_id) {
+      navigate(`/biens/${meta.bien_id}`)
+    }
   }
 
   const unread = notifs.filter(n => !n.lu).length
@@ -182,7 +202,7 @@ export default function NotificationsPage() {
               return (
                 <div
                   key={n.id}
-                  onClick={() => !n.lu && markRead(n.id)}
+                  onClick={() => openNotif(n)}
                   className={`glass-card rounded-2xl p-4 flex items-start gap-4 transition-all cursor-pointer ${n.lu ? '' : 'ring-1 ring-primary/20'}`}
                 >
                   {/* Icon */}

@@ -319,7 +319,7 @@ export default function ChatPage() {
       if (!visite) { alert('Aucune visite trouvée pour ce bien.'); return }
       if (visite.paiement_effectue) { alert('Visite déjà payée ✓'); return }
       if (!(Number(visite.frais_visite) > 0)) { alert('Visite gratuite — aucun paiement requis.'); return }
-      navigate('/mes-visites')
+      navigate('/mes-visites', { state: { openPayForVisiteId: visite.id } })
     } catch (_) {
       alert("Impossible de récupérer la visite. Réessayez.")
     }

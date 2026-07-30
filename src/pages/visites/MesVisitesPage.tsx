@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import FaceRating from '../../components/FaceRating'
@@ -50,6 +50,7 @@ const ISSUES_TAGS = [
 
 export default function MesVisitesPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [tab, setTab] = useState(0)
   const [visites, setVisites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -73,6 +74,19 @@ export default function MesVisitesPage() {
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   useEffect(() => { loadVisites() }, [])
+
+  // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
+  // dans le chat (comme sur mobile) — au lieu de laisser l'utilisateur
+  // rechercher lui-même la visite dans la liste.
+  useEffect(() => {
+    const targetId = (location.state as any)?.openPayForVisiteId
+    if (!targetId || visites.length === 0) return
+    const v = visites.find(x => x.id === targetId)
+    if (v) {
+      setShowPay(v)
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [visites, location.state])
 
   const loadVisites = async () => {
     setLoading(true)
