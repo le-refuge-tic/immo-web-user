@@ -150,6 +150,22 @@ function StatCard({ label, value, trendPct }: { label: string; value: string; tr
   )
 }
 
+/** Petite carte profil bien distincte (icône + valeur + libellé) — remplace
+ *  les pastilles translucides autrefois posées sur le bandeau du header. */
+function MiniStatCard({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) {
+  return (
+    <div className="card-soft rounded-2xl px-3 py-3.5 md:px-4 flex flex-col items-center text-center gap-1.5 md:flex-row md:items-center md:text-left md:gap-3 flex-1 min-w-0">
+      <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + '18' }}>
+        <span style={{ color }}>{icon}</span>
+      </div>
+      <div className="min-w-0">
+        <p className="text-base md:text-lg font-bold text-text-dark leading-none">{value}</p>
+        <p className="text-[11px] text-text-grey mt-1 truncate">{label}</p>
+      </div>
+    </div>
+  )
+}
+
 function DonutChart({ segments, size = 108, thickness = 16 }: { segments: { label: string; value: number; color: string }[]; size?: number; thickness?: number }) {
   const total = segments.reduce((s, x) => s + x.value, 0)
   const radius = (size - thickness) / 2
@@ -1183,20 +1199,6 @@ export default function ProprietaireDashboard() {
               <span className="text-white text-[11px] md:text-xs font-semibold">Propriétaire</span>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 md:gap-4 md:max-w-lg">
-            {[
-              { icon: <IcHome />,   value: `${biens.length}`,               label: 'Biens' },
-              { icon: <IcStar />,   value: `${me?.nb_etoiles ?? 0}`,        label: 'Étoiles' },
-              { icon: <IcShield />, value: `${score}`,                      label: 'Score' },
-            ].map(s => (
-              <div key={s.label} className="rounded-xl py-2.5 md:py-3.5 px-1 text-center border transition-transform md:hover:-translate-y-0.5"
-                style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.15)' }}>
-                <span className="text-white flex justify-center mb-1">{s.icon}</span>
-                <p className="text-white font-bold text-base md:text-lg leading-none">{s.value}</p>
-                <p className="text-[10px] md:text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -1205,6 +1207,13 @@ export default function ProprietaireDashboard() {
         {tab === 'tableau' && (
           <div className="flex-1 overflow-y-auto">
             <div className="px-5 md:px-8 xl:px-10 py-5 md:py-8">
+              {/* Profil — petites cartes distinctes (remplace les pastilles du bandeau) */}
+              <div className="flex gap-3 mb-6">
+                <MiniStatCard icon={<IcHome />} value={`${biens.length}`} label="Biens" color={BLUE} />
+                <MiniStatCard icon={<IcStar />} value={`${me?.nb_etoiles ?? 0}`} label="Étoiles" color="#F59E0B" />
+                <MiniStatCard icon={<IcShield />} value={`${score}`} label="Score" color="#22C55E" />
+              </div>
+
               <div className="flex items-center justify-between mb-3.5">
                 <p className="text-[17px] md:text-lg font-bold text-text-dark">Actions rapides</p>
                 <LiveIndicator label={lastUpdatedLabel} refreshing={refreshing} />
