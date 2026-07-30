@@ -44,6 +44,10 @@ export const visitesApi = {
   contreProposer: (id: number, dateProposee: string) =>
     axios.patch(`${BASE}/visites/${id}/contre-proposer`, { date_proposee: dateProposee }, auth()).then(r => r.data),
 
+  /** Client propose une autre date en retour, quand la contre-proposition du gestionnaire ne convient pas. */
+  reProposer: (id: number, dateProposee: string) =>
+    axios.patch(`${BASE}/visites/${id}/re-proposer`, { date_proposee: dateProposee }, auth()).then(r => r.data),
+
   marquerEffectuee: (id: number) =>
     axios.patch(`${BASE}/visites/${id}/effectuee`, {}, auth()).then(r => r.data),
 

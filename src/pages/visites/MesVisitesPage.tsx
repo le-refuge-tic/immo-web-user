@@ -138,6 +138,10 @@ export default function MesVisitesPage() {
     })
   }
 
+  const handleReproposer = async (id: number, isoDate: string) => {
+    try { await visitesApi.reProposer(id, isoDate) } catch (_) {} finally { loadVisites() }
+  }
+
   const handleIntegration = async (id: number, integre: boolean, bienId?: number) => {
     try {
       await visitesApi.deciderIntegration(id, integre)
@@ -277,7 +281,7 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
+            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
           </div>
         )}
       </div>
@@ -483,6 +487,7 @@ type VisiteCardProps = {
   onAnnuler: (v: any) => void
   onAccepterCP: (id: number) => void
   onRefuserCP: (v: any) => void
+  onReproposer: (id: number, isoDate: string) => void | Promise<void>
   onIntegration: (id: number, integre: boolean, bienId?: number) => void
   onPay: (v: any) => void
   onMessage: (id: number) => void
@@ -490,11 +495,27 @@ type VisiteCardProps = {
   onPayIntegration: (bienId: number) => void
 }
 
-function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegration, onPay, onMessage, onFeedback, onPayIntegration }: VisiteCardProps) {
+function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onIntegration, onPay, onMessage, onFeedback, onPayIntegration }: VisiteCardProps) {
   const meta = STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' }
   const bien = v.bien
   const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
   const isCP = v.statut === 'contre_proposee'
+  const [reproposing, setReproposing] = useState(false)
+  const [newDate, setNewDate] = useState('')
+  const [newTime, setNewTime] = useState('')
+  const [submittingRepro, setSubmittingRepro] = useState(false)
+
+  const handleSubmitRepro = async () => {
+    if (!newDate || !newTime) return
+    setSubmittingRepro(true)
+    try {
+      await onReproposer(v.id, `${newDate}T${newTime}:00`)
+      setReproposing(false)
+      setNewDate('')
+      setNewTime('')
+    } catch (_) {}
+    setSubmittingRepro(false)
+  }
 
   return (
     <div
@@ -600,8 +621,8 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
 
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
-        {/* Contre-proposition: accept / refuse */}
-        {isCP && (
+        {/* Contre-proposition: accept / propose another date / refuse */}
+        {isCP && !reproposing && (
           <>
             <button
               onClick={() => onAccepterCP(v.id)}
@@ -611,9 +632,16 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
               Accepter le créneau
             </button>
             <button
-              onClick={() => onRefuserCP(v)}
+              onClick={() => setReproposing(true)}
               className="flex-1 py-2 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444' }}
+              style={{ background: 'rgba(75,107,255,0.1)', color: '#4B6BFF' }}
+            >
+              Proposer une autre date
+            </button>
+            <button
+              onClick={() => onRefuserCP(v)}
+              className="px-3 py-2 rounded-xl text-xs font-bold"
+              style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#EF4444' }}
             >
               Refuser
             </button>
@@ -665,6 +693,29 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
           </button>
         )}
       </div>
+
+      {/* Formulaire inline : proposer une autre date */}
+      {isCP && reproposing && (
+        <div className="mt-3 pt-3 border-t border-divider">
+          <p className="text-sm font-bold text-text-dark mb-3">Proposer une autre date</p>
+          <div className="space-y-2 mb-3">
+            <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
+              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+            <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
+              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => { setReproposing(false); setNewDate(''); setNewTime('') }}
+              className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">
+              Annuler
+            </button>
+            <button onClick={handleSubmitRepro} disabled={!newDate || !newTime || submittingRepro}
+              className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4B6BFF' }}>
+              {submittingRepro ? 'Envoi…' : 'Envoyer'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
