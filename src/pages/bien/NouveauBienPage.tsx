@@ -261,8 +261,8 @@ export default function NouveauBienPage() {
   const [showMoreOptions, setShowMoreOptions] = useState(false)
 
   // Terrain
-  const [titreTerrain, setTitreTerrain] = useState('')
   const [superficieTerrain, setSuperficieTerrain] = useState('')
+  const [superficieTerrainHa, setSuperficieTerrainHa] = useState('')
   const [documentTerrain, setDocumentTerrain] = useState<string | null>(null)
   const [positionTerrain, setPositionTerrain] = useState('bord_goudron')
   const [angleRue, setAngleRue] = useState(false)
@@ -428,10 +428,7 @@ export default function NouveauBienPage() {
         prixFinal = parsePrix(prix) ?? 0
       }
 
-      const notes = description.trim()
-      const descFull = isTerrain && titreTerrain.trim()
-        ? (notes ? `${titreTerrain.trim()}\n\n${notes}` : titreTerrain.trim())
-        : notes
+      const descFull = description.trim()
 
       const body: any = {
         type: typeBackend,
@@ -656,15 +653,31 @@ export default function NouveauBienPage() {
         {step === 2 && isTerrain && (
           <div className="space-y-5">
             <div>
-              <Section title="Nom du bien" required />
-              <textarea value={titreTerrain} onChange={e => setTitreTerrain(e.target.value)} rows={2}
-                placeholder="Ex: Parcelle bâtie à vendre en angle de rue à Cotonou Saint Jean"
-                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary resize-none" />
-            </div>
-            <div>
-              <Section title="Superficie (m²)" required />
-              <input type="number" value={superficieTerrain} onChange={e => setSuperficieTerrain(e.target.value)} placeholder="Ex: 612"
-                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary" />
+              <Section title="Superficie" required />
+              <div className="flex gap-2.5">
+                <div className="flex-1 min-w-0 relative">
+                  <input type="number" value={superficieTerrain} placeholder="Ex: 612"
+                    onChange={e => {
+                      const v = e.target.value
+                      setSuperficieTerrain(v)
+                      const n = parseFloat(v.replace(',', '.'))
+                      setSuperficieTerrainHa(isNaN(n) ? '' : String(n / 10000))
+                    }}
+                    className="w-full bg-white border border-divider rounded-xl pl-4 pr-10 py-3 text-sm outline-none focus:border-primary" />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-grey pointer-events-none">m²</span>
+                </div>
+                <div className="flex-1 min-w-0 relative">
+                  <input type="number" value={superficieTerrainHa} placeholder="Ex: 0.0612"
+                    onChange={e => {
+                      const v = e.target.value
+                      setSuperficieTerrainHa(v)
+                      const n = parseFloat(v.replace(',', '.'))
+                      setSuperficieTerrain(isNaN(n) ? '' : String(Math.round(n * 10000)))
+                    }}
+                    className="w-full bg-white border border-divider rounded-xl pl-4 pr-10 py-3 text-sm outline-none focus:border-primary" />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-grey pointer-events-none">ha</span>
+                </div>
+              </div>
             </div>
             <div>
               <Section title="Document" />
