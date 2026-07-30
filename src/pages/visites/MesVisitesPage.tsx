@@ -124,8 +124,14 @@ export default function MesVisitesPage() {
     })
   }
 
-  const handleIntegration = async (id: number, integre: boolean) => {
-    try { await visitesApi.deciderIntegration(id, integre); loadVisites() } catch (_) {}
+  const handleIntegration = async (id: number, integre: boolean, bienId?: number) => {
+    try {
+      await visitesApi.deciderIntegration(id, integre)
+      loadVisites()
+      // Comme sur mobile : le contrat de bail s'affiche une seule fois,
+      // juste après avoir accepté d'intégrer — avant d'aller au paiement.
+      if (integre && bienId) navigate(`/contrat-bail/${bienId}`)
+    } catch (_) {}
   }
 
   const handlePayer = async () => {
@@ -463,7 +469,7 @@ type VisiteCardProps = {
   onAnnuler: (v: any) => void
   onAccepterCP: (id: number) => void
   onRefuserCP: (v: any) => void
-  onIntegration: (id: number, integre: boolean) => void
+  onIntegration: (id: number, integre: boolean, bienId?: number) => void
   onPay: (v: any) => void
   onMessage: (id: number) => void
   onFeedback: (v: any) => void
@@ -543,7 +549,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onIntegra
           <p className="text-xs font-bold text-text-dark mb-2">Souhaitez-vous intégrer ce logement ?</p>
           <div className="flex gap-2">
             <button
-              onClick={() => onIntegration(v.id, true)}
+              onClick={() => onIntegration(v.id, true, bien?.id)}
               className="flex-1 py-2 rounded-lg text-xs font-bold"
               style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
             >
