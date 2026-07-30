@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { infosLogementRows, infosTerrainRows, type InfoRow } from '../../utils/amenites'
+import logoSbee from '../../assets/logo-SBEE.png'
+import logoSoneb from '../../assets/logo-SONEB.png'
 
 const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
 
@@ -54,6 +56,9 @@ function isEchoueeVisite(v: any): boolean {
 type IconType =
   | 'bed' | 'sofa' | 'kitchen' | 'bathtub' | 'toilet' | 'garage' | 'deck' | 'briefcase' | 'door' | 'room'
   | 'ruler' | 'fence' | 'parking' | 'yard' | 'person' | 'people'
+  | 'countertop' | 'plant' | 'shower' | 'paintroller' | 'car' | 'slidingdoor'
+  | 'wallet' | 'calendargrid' | 'waterdrop' | 'bolt' | 'document' | 'tag' | 'clockrepeat'
+  | 'gridon' | 'verified' | 'construction' | 'turnright' | 'map' | 'homework'
 
 function Icon({ type, className }: { type: IconType; className?: string }) {
   const cls = className || 'w-4 h-4'
@@ -89,6 +94,44 @@ function Icon({ type, className }: { type: IconType; className?: string }) {
       return <svg {...common}><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
     case 'people':
       return <svg {...common}><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0112 0" /><circle cx="16" cy="9" r="2.5" /><path d="M13 20a5 5 0 019 0" /></svg>
+    case 'countertop':
+      return <svg {...common}><rect x="3" y="9" width="18" height="3" rx="1" /><rect x="5" y="12" width="14" height="8" rx="1" /><path d="M9 16v4M15 16v4" /></svg>
+    case 'plant':
+      return <svg {...common}><path d="M12 21v-8" /><path d="M12 13c0-3.2-2.2-5.5-5.5-5.5C6.5 10.7 8.8 13 12 13z" /><path d="M12 13c0-3.2 2.2-5.5 5.5-5.5C17.5 10.7 15.2 13 12 13z" /></svg>
+    case 'shower':
+      return <svg {...common}><path d="M7 4.5A5 5 0 0117 4.5" /><path d="M4 9h16" /><path d="M8 13v2M12 13v3M16 13v2" /></svg>
+    case 'paintroller':
+      return <svg {...common}><rect x="4" y="4" width="12" height="6" rx="1.5" /><path d="M9 10v4h3v6" /></svg>
+    case 'car':
+      return <svg {...common}><path d="M3 16l1.5-5A2 2 0 016.4 9.5h11.2a2 2 0 011.9 1.5L21 16" /><rect x="3" y="16" width="18" height="4" rx="1" /><circle cx="7.5" cy="20" r="1.3" fill="currentColor" /><circle cx="16.5" cy="20" r="1.3" fill="currentColor" /></svg>
+    case 'slidingdoor':
+      return <svg {...common}><rect x="3" y="4" width="9" height="16" rx="1" /><rect x="12" y="4" width="9" height="16" rx="1" /><path d="M8 12h.01M16 12h.01" /></svg>
+    case 'wallet':
+      return <svg {...common}><rect x="3" y="7" width="18" height="12" rx="2" /><path d="M3 10h18" /><circle cx="17" cy="14" r="1.1" fill="currentColor" /></svg>
+    case 'calendargrid':
+      return <svg {...common}><rect x="3" y="5" width="18" height="15" rx="2" /><path d="M3 10h18M9 5v15M15 5v15" /></svg>
+    case 'waterdrop':
+      return <svg {...common}><path d="M12 21c-4 0-7-3-7-6.5C5 10 12 3 12 3s7 7 7 11.5c0 3.5-3 6.5-7 6.5z" /></svg>
+    case 'bolt':
+      return <svg {...common}><path d="M13 2L4.5 12.5H11L10 22l9.5-11.5H13L13 2z" /></svg>
+    case 'document':
+      return <svg {...common}><path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 16h6" /></svg>
+    case 'tag':
+      return <svg {...common}><path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.169.659 1.591l9.581 9.581c.699.699 1.83.699 2.528 0l7.409-7.409a1.79 1.79 0 000-2.528l-9.581-9.581A2.25 2.25 0 009.568 3z" /><circle cx="6.75" cy="6.75" r="1" fill="currentColor" /></svg>
+    case 'clockrepeat':
+      return <svg {...common}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path d="M12 6v6l4 2" /></svg>
+    case 'gridon':
+      return <svg {...common}><rect x="3" y="3" width="18" height="18" rx="1.5" /><path d="M3 9h18M3 15h18M9 3v18M15 3v18" /></svg>
+    case 'verified':
+      return <svg {...common}><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+    case 'construction':
+      return <svg {...common}><path d="M12 3l9 16H3L12 3z" /><path d="M12 10v4M12 17h.01" /></svg>
+    case 'turnright':
+      return <svg {...common}><path d="M4 6h11a4 4 0 014 4v3" /><path d="M15 9l4-4-4-4" transform="translate(0 4)" /></svg>
+    case 'map':
+      return <svg {...common}><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14M15 6v14" /></svg>
+    case 'homework':
+      return <svg {...common}><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /><path d="M9 20v-6h6v6" /></svg>
     case 'room':
     default:
       return <svg {...common}><rect x="6" y="3" width="12" height="18" rx="1" /><circle cx="14.5" cy="12" r="1" fill="currentColor" /></svg>
@@ -534,7 +577,7 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
       {logementRows.length > 0 && (
         <div>
           <SectionTitle title="Informations logement" />
-          <InfoCard rows={logementRows} />
+          <InfoCard rows={logementRows} amenites={bien.amenites} />
         </div>
       )}
 
@@ -606,17 +649,52 @@ function VisitesBanner({ title, lines }: { title: string; lines: string[] }) {
   )
 }
 
-function InfoCard({ rows }: { rows: InfoRow[] }) {
+// Icône + couleur par ligne — miroir exact de _buildInfosLogement / _buildTerrainSection
+// (électricité et eau/SONEB utilisent le vrai logo du fournisseur, pas une icône).
+const INFO_ROW_META: Record<string, { icon: IconType; color: string }> = {
+  'Eau': { icon: 'waterdrop', color: '#2E86C1' },
+  'Cuisine': { icon: 'countertop', color: '#FF6B35' },
+  'Cour / Accès': { icon: 'plant', color: '#4CAF50' },
+  'Accès véhicule': { icon: 'car', color: '#5E6AD2' },
+  'Maison à couloir': { icon: 'slidingdoor', color: '#8E6ABE' },
+  'Sanitaires': { icon: 'shower', color: '#26A69A' },
+  'Finition': { icon: 'paintroller', color: '#E67E22' },
+  'Loyer': { icon: 'clockrepeat', color: '#7B2FBE' },
+  'Document disponible': { icon: 'document', color: '#2980B9' },
+  'Terrain loti': { icon: 'gridon', color: '#27AE60' },
+  'Titre foncier': { icon: 'verified', color: '#16A085' },
+  'Permission de construire': { icon: 'construction', color: '#E67E22' },
+  'Angle de rue': { icon: 'turnright', color: '#8E6ABE' },
+  'Position': { icon: 'map', color: '#2980B9' },
+  'Construction existante': { icon: 'homework', color: '#5D6D7E' },
+}
+
+function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: any }) {
+  const isSonebEau = (amenites?.eau ?? amenites?.compteur_eau) === 'soneb'
   return (
     <div className="rounded-2xl bg-white border border-divider shadow-sm divide-y divide-divider">
-      {rows.map((r, i) => (
-        <div key={i} className="flex items-center gap-3 px-4 py-3">
-          <div className="flex-1">
-            <p className="text-[11px] text-text-grey">{r.label}</p>
-            <p className="text-[13px] font-semibold text-text-dark mt-0.5">{r.value}</p>
+      {rows.map((r, i) => {
+        const isElec = r.label === 'Électricité'
+        const isEau = r.label === 'Eau'
+        const meta = INFO_ROW_META[r.label] || { icon: 'document' as IconType, color: '#6B7280' }
+        return (
+          <div key={i} className="flex items-center gap-3 px-4 py-3">
+            <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+              {isElec ? (
+                <img src={logoSbee} alt="SBEE" className="h-7 w-auto object-contain" />
+              ) : isEau && isSonebEau ? (
+                <img src={logoSoneb} alt="SONEB" className="h-7 w-auto object-contain" />
+              ) : (
+                <span style={{ color: meta.color }}><Icon type={meta.icon} className="w-[22px] h-[22px]" /></span>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-[11px] text-text-grey">{r.label}</p>
+              <p className="text-[13px] font-semibold text-text-dark mt-0.5">{r.value}</p>
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -636,23 +714,23 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
   const autresFraisTotal = autresFrais.reduce((s, f) => s + (Number(f.montant) || 0), 0)
   const total = (avanceMois + prepayeMois) * prix + cautionEau + cautionElec + autresFraisTotal + (!isOwnBien ? commission : 0)
 
-  const rows: { icon: string; color: string; label: string; amount: number; note?: string }[] = []
-  if (avanceMois > 0) rows.push({ icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0zM12 6v6l4 2', color: '#7B2FBE', label: `Avance (${avanceMois} mois)`, amount: montantAvance })
-  if (prepayeMois > 0) rows.push({ icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', color: '#22C55E', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
-  if (cautionEau > 0) rows.push({ icon: 'M12 21c-4 0-7-3-7-6.5C5 10 12 3 12 3s7 7 7 11.5c0 3.5-3 6.5-7 6.5z', color: '#2E86C1', label: 'Caution eau', amount: cautionEau })
-  if (cautionElec > 0) rows.push({ icon: 'M13 2L4.5 12.5H11L10 22l9.5-11.5H13L13 2z', color: '#FFCC00', label: 'Caution électricité', amount: cautionElec })
+  const rows: { icon: IconType; color: string; label: string; amount: number; note?: string }[] = []
+  if (avanceMois > 0) rows.push({ icon: 'wallet', color: '#7B2FBE', label: `Avance (${avanceMois} mois)`, amount: montantAvance })
+  if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: '#22C55E', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
+  if (cautionEau > 0) rows.push({ icon: 'waterdrop', color: '#2E86C1', label: 'Caution eau', amount: cautionEau })
+  if (cautionElec > 0) rows.push({ icon: 'bolt', color: '#FFCC00', label: 'Caution électricité', amount: cautionElec })
   for (const f of autresFrais) {
     const montant = Number(f.montant) || 0
-    if (montant > 0) rows.push({ icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: '#8E44AD', label: f.label || 'Autre frais', amount: montant })
+    if (montant > 0) rows.push({ icon: 'document', color: '#8E44AD', label: f.label || 'Autre frais', amount: montant })
   }
-  if (!isOwnBien && commission > 0) rows.push({ icon: 'M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.169.659 1.591l9.581 9.581c.699.699 1.83.699 2.528 0l7.409-7.409a1.79 1.79 0 000-2.528l-9.581-9.581A2.25 2.25 0 009.568 3zM6.375 7.5a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z', color: '#2E86C1', label: 'Commission agence', amount: commission, note: "Frais d'agence inclus dans votre paiement" })
+  if (!isOwnBien && commission > 0) rows.push({ icon: 'tag', color: '#2E86C1', label: 'Commission agence', amount: commission, note: "Frais d'agence inclus dans votre paiement" })
 
   return (
     <div className="rounded-2xl bg-white border border-divider shadow-sm overflow-hidden">
       <div className="divide-y divide-divider">
         {rows.map((r, i) => (
           <div key={i} className="flex items-center gap-3 px-4 py-3">
-            <svg className="w-[22px] h-[22px] flex-shrink-0" style={{ color: r.color }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d={r.icon} /></svg>
+            <span className="flex-shrink-0" style={{ color: r.color }}><Icon type={r.icon} className="w-[22px] h-[22px]" /></span>
             <div className="flex-1">
               <p className="text-[13px] font-medium text-text-dark">{r.label}</p>
               {r.note && <p className="text-[11px] text-success mt-0.5">{r.note}</p>}
