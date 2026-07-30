@@ -23,7 +23,13 @@ axios.interceptors.request.use((config) => {
 
 let refreshing: Promise<string | null> | null = null
 
-async function refreshAccessToken(): Promise<string | null> {
+/**
+ * Exporté pour être appelé explicitement après activation/désactivation d'un
+ * rôle : le token d'accès embarque `roles_actifs` au moment de sa création et
+ * n'est jamais réémis tout seul — sans ce rafraîchissement immédiat, les
+ * routes protégées par le nouveau rôle répondent 403 pendant jusqu'à 1h.
+ */
+export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = localStorage.getItem('rg_refresh')
   if (!refreshToken) return null
   try {

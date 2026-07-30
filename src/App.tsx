@@ -38,13 +38,17 @@ function PrivateRoute({ children }: { children: React.ReactElement }) {
 
 // Page d'accueil avec garde first-launch
 function HomeGuard() {
-  const { isLoggedIn, user } = useAuth()
+  const { isLoggedIn, activeRole } = useAuth()
   const isOnboarded = localStorage.getItem('rg_onboarded') === 'true'
 
+  // activeRole reflète l'espace choisi par l'utilisateur (voir "Gérer mes
+  // rôles") — un propriétaire/démarcheur qui a activé le rôle prospect et
+  // cliqué "Accéder" doit voir l'accueil client, pas être renvoyé de force
+  // vers son tableau de bord.
   if (isLoggedIn) {
-    if (user?.role === 'proprietaire') return <Navigate to="/proprietaire" replace />
-    if (user?.role === 'demarcheur')   return <Navigate to="/demarcheur" replace />
-    if (user?.role === 'locataire')    return <Navigate to="/locataire" replace />
+    if (activeRole === 'proprietaire') return <Navigate to="/proprietaire" replace />
+    if (activeRole === 'demarcheur')   return <Navigate to="/demarcheur" replace />
+    if (activeRole === 'locataire')    return <Navigate to="/locataire" replace />
   }
 
   if (!isLoggedIn && !isOnboarded) {

@@ -25,6 +25,11 @@ type AuthCtx = {
   updateUser: (u: Partial<AuthUser>) => void
   hasRole: (role: string) => boolean
   rolesActifs: string[]
+  /** Rôle "espace" actuellement parcouru (peut différer du rôle principal
+   *  quand un propriétaire/démarcheur a activé le rôle prospect pour
+   *  naviguer côté client). */
+  activeRole: string
+  setActiveRole: (role: string) => void
 }
 
 const AuthContext = createContext<AuthCtx>({
@@ -36,6 +41,8 @@ const AuthContext = createContext<AuthCtx>({
   updateUser: () => {},
   hasRole: () => false,
   rolesActifs: [],
+  activeRole: '',
+  setActiveRole: () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -46,6 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem('rg_token')
   )
+  const [activeRole, setActiveRoleState] = useState<string>(() =>
+    localStorage.getItem('rg_active_role') || ''
+  )
+
+  const setActiveRole = (role: string) => {
+    setActiveRoleState(role)
+    localStorage.setItem('rg_active_role', role)
+  }
 
   const login = (data: any) => {
     const u: AuthUser = data.user
@@ -56,14 +71,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('rg_user', JSON.stringify(u))
     localStorage.setItem('rg_token', t)
     localStorage.setItem('rg_refresh', rt)
+    setActiveRole(u.role_principal || u.role)
   }
 
   const logout = () => {
     setUser(null)
     setToken(null)
+    setActiveRoleState('')
     localStorage.removeItem('rg_user')
     localStorage.removeItem('rg_token')
     localStorage.removeItem('rg_refresh')
+    localStorage.removeItem('rg_active_role')
   }
 
   const updateUser = (partial: Partial<AuthUser>) => {
@@ -80,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {}, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn: !!token, login, logout, updateUser, hasRole, rolesActifs }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn: !!token, login, logout, updateUser, hasRole, rolesActifs, activeRole: activeRole || user?.role_principal || user?.role || '', setActiveRole }}>
       {children}
     </AuthContext.Provider>
   )

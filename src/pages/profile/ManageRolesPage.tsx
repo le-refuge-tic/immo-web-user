@@ -23,7 +23,7 @@ function roleLabel(key: string) {
 }
 
 export default function ManageRolesPage() {
-  const { user, rolesActifs, updateUser } = useAuth()
+  const { user, rolesActifs, updateUser, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState<string | null>(null)
   const [justif, setJustif] = useState('')
@@ -56,6 +56,8 @@ export default function ManageRolesPage() {
       await rolesApi.desactiver(role)
       const newRoles = actifs.filter(r => r !== role)
       updateUser({ roles_actifs: newRoles })
+      // On ne peut pas rester dans un espace dont le rôle vient d'être désactivé.
+      if (role === activeRole) setActiveRole(rolePrincipal)
       setSuccess(`Rôle "${roleLabel(role)}" désactivé.`)
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
@@ -65,6 +67,7 @@ export default function ManageRolesPage() {
   }
 
   const goToDashboard = (role: string) => {
+    setActiveRole(role)
     if (role === 'proprietaire') navigate('/proprietaire')
     else if (role === 'demarcheur') navigate('/demarcheur')
     else if (role === 'locataire') navigate('/locataire')

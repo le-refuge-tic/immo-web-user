@@ -6,17 +6,18 @@ import logoUrl from '../../assets/REFUGE-LOGO.png'
 
 export default function SplashPage() {
   const navigate = useNavigate()
-  const { isLoggedIn, user } = useAuth()
+  const { isLoggedIn, activeRole } = useAuth()
 
   useEffect(() => {
     if (isLoggedIn) {
-      if (user?.role === 'proprietaire') navigate('/proprietaire', { replace: true })
-      else if (user?.role === 'demarcheur') navigate('/demarcheur', { replace: true })
+      if (activeRole === 'proprietaire') navigate('/proprietaire', { replace: true })
+      else if (activeRole === 'demarcheur') navigate('/demarcheur', { replace: true })
+      else if (activeRole === 'locataire') navigate('/locataire', { replace: true })
       else navigate('/', { replace: true })
     } else if (localStorage.getItem('rg_onboarded') === 'true') {
       navigate('/', { replace: true })
     }
-  }, [isLoggedIn, user, navigate])
+  }, [isLoggedIn, activeRole, navigate])
 
   const skip = () => {
     localStorage.setItem('rg_onboarded', 'true')
