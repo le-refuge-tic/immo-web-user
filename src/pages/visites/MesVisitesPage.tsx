@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
+import FaceRating from '../../components/FaceRating'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
@@ -36,14 +37,6 @@ function fmtDate(raw: string | undefined | null) {
 
 const TABS = ['Toutes', 'À venir', 'Terminées']
 
-const FACE_CONFIG: Record<number, { color: string; label: string }> = {
-  5: { color: '#26C6DA', label: 'Ravi' },
-  4: { color: '#66BB6A', label: 'Satisfait' },
-  3: { color: '#FFCA28', label: 'Neutre' },
-  2: { color: '#FF9800', label: 'Insatisfait' },
-  1: { color: '#FF5252', label: 'Très mécontent' },
-}
-
 const ISSUES_TAGS = [
   "L'interlocuteur n'était pas professionnel",
   'Le bien ne correspond pas aux photos',
@@ -54,36 +47,6 @@ const ISSUES_TAGS = [
   "Le bien n'est plus disponible comme annoncé",
   'Le prix annoncé ne reflète pas la réalité',
 ]
-
-function FaceRating({ selected, onSelect }: { selected: number | null; onSelect: (n: number) => void }) {
-  return (
-    <div className="flex justify-between gap-1">
-      {[5, 4, 3, 2, 1].map(n => {
-        const cfg = FACE_CONFIG[n]
-        const isSel = selected === n
-        return (
-          <button key={n} onClick={() => onSelect(n)}
-            className="flex flex-col items-center gap-1.5 transition-transform"
-            style={{ transform: isSel ? 'scale(1.12)' : 'scale(1)', opacity: selected !== null && !isSel ? 0.45 : 1 }}>
-            <svg width="48" height="48" viewBox="0 0 48 48">
-              <circle cx="24" cy="24" r="22" fill={cfg.color} style={isSel ? { filter: `drop-shadow(0 0 6px ${cfg.color}90)` } : undefined} />
-              <circle cx="16" cy="19" r="2.6" fill="#00000055" />
-              <circle cx="32" cy="19" r="2.6" fill="#00000055" />
-              {n === 5 && <path d="M14 27 Q24 38 34 27" stroke="#00000060" strokeWidth="3" fill="none" strokeLinecap="round" />}
-              {n === 4 && <path d="M15 27 Q24 34 33 27" stroke="#00000060" strokeWidth="2.5" fill="none" strokeLinecap="round" />}
-              {n === 3 && <path d="M16 29 L32 29" stroke="#00000060" strokeWidth="2.5" fill="none" strokeLinecap="round" />}
-              {n === 2 && <path d="M15 32 Q24 26 33 32" stroke="#00000060" strokeWidth="2.5" fill="none" strokeLinecap="round" />}
-              {n === 1 && <path d="M14 34 Q24 24 34 34" stroke="#00000060" strokeWidth="3" fill="none" strokeLinecap="round" />}
-            </svg>
-            <span className="text-[9.5px] font-semibold text-center leading-tight" style={{ color: isSel ? cfg.color : '#9CA3AF', maxWidth: 48 }}>
-              {cfg.label}
-            </span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
 
 export default function MesVisitesPage() {
   const navigate = useNavigate()
@@ -375,38 +338,60 @@ export default function MesVisitesPage() {
 
       {/* Feedback modal */}
       {showFeedback && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={() => setShowFeedback(null)}>
-          <div className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
-            {feedbackDone ? (
-              <div className="flex flex-col items-center text-center py-4">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
-                  <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <p className="font-bold text-text-dark mb-1">Merci pour votre avis !</p>
-                <button onClick={() => setShowFeedback(null)} className="mt-3 text-sm font-semibold text-text-grey">Fermer</button>
+        <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#F8F9FA' }}>
+          {feedbackDone ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
+                <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               </div>
-            ) : (
-              <div className="max-h-[75vh] overflow-y-auto">
-                <h3 className="font-bold text-text-dark mb-1 text-center">Comment s'est passée votre visite ?</h3>
-                <p className="text-sm text-text-grey mb-5 text-center">Votre avis aide les futurs visiteurs.</p>
+              <p className="font-bold text-text-dark mb-1">Merci pour votre avis !</p>
+              <button onClick={() => setShowFeedback(null)} className="mt-3 text-sm font-semibold text-text-grey">Fermer</button>
+            </div>
+          ) : (
+            <>
+              {/* En-tête */}
+              <div className="flex-shrink-0 flex items-center gap-4 px-4 pt-4 pb-3">
+                <button onClick={() => setShowFeedback(null)}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white flex-shrink-0"
+                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                  <svg className="w-5 h-5 text-text-grey" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <div className="min-w-0">
+                  <p className="font-bold text-text-dark text-[15px]">Votre avis sur la visite</p>
+                  {showFeedback?.gestionnaire?.prenom && (
+                    <p className="text-xs text-text-grey truncate">Avec {showFeedback.gestionnaire.prenom}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Contenu */}
+              <div className="flex-1 overflow-y-auto px-5 pt-2 pb-32 md:max-w-md md:mx-auto md:w-full">
                 {feedbackError && <p className="text-danger text-sm mb-3">{feedbackError}</p>}
 
-                <FaceRating selected={feedbackNote} onSelect={n => { setFeedbackNote(n); if (n > 3) setFeedbackTags([]) }} />
+                <div className="bg-white rounded-2xl px-5 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                  <p className="font-semibold text-text-dark text-[15px] text-center mb-7 leading-snug">
+                    Comment s'est passée votre visite ?
+                  </p>
+                  <FaceRating selected={feedbackNote} onSelect={n => { setFeedbackNote(n); if (n > 3) setFeedbackTags([]) }} />
+                </div>
 
                 {needsTags && (
-                  <div className="mt-5">
-                    <p className="text-sm font-bold text-text-dark mb-1">Qu'est-ce qui n'a pas fonctionné ?</p>
-                    <p className="text-xs text-text-grey mb-3">Sélectionnez tout ce qui s'applique (au moins un)</p>
+                  <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: '#EF4444' }} />
+                      <p className="font-bold text-text-dark text-sm">Qu'est-ce qui n'a pas fonctionné ?</p>
+                    </div>
+                    <p className="text-xs text-text-grey mb-4">Sélectionnez tout ce qui s'applique (au moins un)</p>
                     <div className="flex flex-wrap gap-2">
                       {ISSUES_TAGS.map(tag => {
                         const sel = feedbackTags.includes(tag)
                         return (
                           <button key={tag} onClick={() => toggleFeedbackTag(tag)}
-                            className="px-3 py-2 rounded-xl text-xs font-medium border transition-all"
+                            className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
                             style={sel
                               ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#EF4444', fontWeight: 600 }
                               : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
+                            {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                             {tag}
                           </button>
                         )
@@ -415,28 +400,38 @@ export default function MesVisitesPage() {
                   </div>
                 )}
 
-                <p className="text-sm font-bold text-text-dark mt-5 mb-2">
-                  {needsTags ? 'Vous souhaitez ajouter quelque chose ?' : 'Laissez un commentaire (optionnel)'}
-                </p>
-                <textarea
-                  value={feedbackComment}
-                  onChange={e => setFeedbackComment(e.target.value)}
-                  placeholder="Partagez votre expérience en détail…"
-                  rows={3}
-                  maxLength={500}
-                  className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none resize-none mb-4"
-                />
-                <button
-                  onClick={handleSubmitFeedback}
-                  disabled={feedbackSaving || !canSubmitFeedback}
-                  className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
-                  style={{ background: '#4B6BFF' }}
-                >
-                  {feedbackSaving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Envoyer mon avis'}
-                </button>
+                <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                  <p className="font-semibold text-text-dark text-[13.5px] mb-3">
+                    {needsTags ? 'Vous souhaitez ajouter quelque chose ?' : 'Laissez un commentaire (optionnel)'}
+                  </p>
+                  <textarea
+                    value={feedbackComment}
+                    onChange={e => setFeedbackComment(e.target.value)}
+                    placeholder="Partagez votre expérience en détail…"
+                    rows={4}
+                    maxLength={500}
+                    className="w-full rounded-2xl px-3.5 py-3.5 text-[13.5px] outline-none resize-none"
+                    style={{ background: '#F5F5F5' }}
+                  />
+                  <p className="text-[11px] text-text-grey text-right mt-1">{feedbackComment.length}/500</p>
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Barre d'envoi fixe */}
+              <div className="flex-shrink-0 bg-white px-5 pt-3 safe-bottom" style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.05)' }}>
+                <div className="md:max-w-md md:mx-auto pb-3">
+                  <button
+                    onClick={handleSubmitFeedback}
+                    disabled={feedbackSaving || !canSubmitFeedback}
+                    className="w-full h-[52px] rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-opacity"
+                    style={{ background: '#4B6BFF', opacity: canSubmitFeedback ? 1 : 0.45 }}
+                  >
+                    {feedbackSaving ? <div className="w-[22px] h-[22px] border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Envoyer mon avis'}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>,
         document.body,
       )}
