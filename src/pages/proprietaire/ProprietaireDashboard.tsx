@@ -166,6 +166,58 @@ function MiniStatCard({ icon, value, label, color }: { icon: React.ReactNode; va
   )
 }
 
+/** Jauge circulaire (score /100) — anneau de progression + valeur centrée. */
+function RadialGauge({ value, size = 132, thickness = 12, color = BLUE }: { value: number; size?: number; thickness?: number; color?: string }) {
+  const radius = (size - thickness) / 2
+  const circumference = 2 * Math.PI * radius
+  const pct = Math.max(0, Math.min(100, value))
+  const dash = (pct / 100) * circumference
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#F1F3F6" strokeWidth={thickness} />
+      {pct > 0 && (
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={thickness}
+          strokeDasharray={`${dash} ${circumference - dash}`} strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+      )}
+      <text x="50%" y="52%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: size * 0.26, fontWeight: 800 }} className="fill-text-dark">{Math.round(pct)}</text>
+    </svg>
+  )
+}
+
+function PercentCard({ value, label, color }: { value: number; label: string; color: string }) {
+  return (
+    <div className="card-soft rounded-2xl p-4 flex-1 min-w-0">
+      <p className="text-2xl font-extrabold leading-none" style={{ color }}>{value}%</p>
+      <p className="text-xs text-text-grey mt-2">{label}</p>
+    </div>
+  )
+}
+
+function HighlightRow({ icon, color, title, subtitle, last }: { icon: React.ReactNode; color: string; title: string; subtitle: string; last?: boolean }) {
+  return (
+    <div className={`flex items-center gap-3 py-2.5 ${last ? '' : 'border-b border-divider'}`}>
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + '18' }}>
+        <span style={{ color }}>{icon}</span>
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-text-dark truncate">{title}</p>
+        <p className="text-[11px] text-text-grey truncate">{subtitle}</p>
+      </div>
+    </div>
+  )
+}
+
+function ActivityStat({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="flex-1 min-w-0 text-center">
+      <p className="text-xl font-bold text-text-dark">{value}</p>
+      <p className="text-[11px] text-text-grey mt-0.5 truncate">{label}</p>
+      <div className="h-1 rounded-full mt-2.5" style={{ background: color }} />
+    </div>
+  )
+}
+
 function DonutChart({ segments, size = 108, thickness = 16 }: { segments: { label: string; value: number; color: string }[]; size?: number; thickness?: number }) {
   const total = segments.reduce((s, x) => s + x.value, 0)
   const radius = (size - thickness) / 2
@@ -1007,52 +1059,124 @@ function PortefeuilleTab() {
 }
 
 // ─── Tab: Profil ──────────────────────────────────────────────────────────────
-function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: () => void }) {
+function ProfilTab({ user, biens, visites, onOpenDelegations }: { user: any; biens: any[]; visites: any[]; onOpenDelegations: () => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
+
+  const approuves = biens.filter(b => b.statut_moderation === 'approuve').length
+  const tauxPublication = biens.length > 0 ? Math.round((approuves / biens.length) * 100) : 0
+  const biensOccupes = biens.filter(b => b.statut === 'occupe').length
+  const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
+  const typesUniques = Array.from(new Set(biens.map(b => typeLabel(b.type))))
+
+  const visitesConfirmees = visites.filter(v => v.statut === 'confirmee').length
+  const visitesEnAttente = visites.filter(v => v.statut === 'en_attente').length
+  const visitesEffectuees = visites.filter(v => v.statut === 'effectuee').length
+
+  const memberSince = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+    : null
+
   return (
     <div className="flex-1 overflow-y-auto pb-10">
-      <div className="p-5 text-center">
-        <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }}>{initials}</div>
-        <p className="font-bold text-text-dark text-lg">{user?.prenom} {user?.nom}</p>
-        <p className="text-sm text-text-grey">{user?.email || user?.telephone}</p>
-      </div>
-      <div className="px-4 mb-4">
-        <div className="rounded-2xl p-4" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }}>
-          <p className="text-white/70 text-xs mb-1">Score de crédibilité</p>
-          <p className="text-white text-2xl font-bold mb-3">{score} / 100</p>
-          <div className="h-1.5 rounded-full bg-white/20 mb-4"><div className="h-full rounded-full bg-white" style={{ width: `${score}%` }} /></div>
-          <div><p className="text-white/60 text-[10px]">Étoiles</p><p className="text-white font-bold text-sm">{user?.nb_etoiles ?? 0}</p></div>
+      <div className="px-4 md:px-8 xl:px-10 py-5 md:py-8 xl:max-w-5xl xl:mx-auto">
+        <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-5 items-start">
+
+          {/* ── Colonne gauche : carte profil + menu ── */}
+          <div className="space-y-5">
+            <div className="card-soft rounded-2xl overflow-hidden">
+              <div className="h-16" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }} />
+              <div className="px-5 pb-5">
+                <div className="-mt-10 mb-3">
+                  {user?.photo_profil
+                    ? <img src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md" />
+                    : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-md" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }}>{initials}</div>}
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-text-dark text-lg truncate">{user?.prenom} {user?.nom}</p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0" style={{ background: BLUE + '15', color: BLUE }}>Propriétaire</span>
+                </div>
+                <p className="text-sm text-text-grey mt-0.5 truncate">{user?.email || user?.telephone}</p>
+                {typesUniques.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3.5">
+                    {typesUniques.map(t => (
+                      <span key={t} className="px-2.5 py-1 rounded-full text-[11px] font-semibold" style={{ background: '#F1F3F6', color: '#5F6B7A' }}>{t}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button onClick={() => setEditOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
+                <span className="text-sm font-semibold text-text-dark">Modifier le profil</span>
+                <IcChevron />
+              </button>
+              <button onClick={() => setPasswordOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
+                <span className="text-sm font-semibold text-text-dark">Changer le mot de passe</span>
+                <IcChevron />
+              </button>
+              <button onClick={onOpenDelegations} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
+                <span className="text-sm font-semibold text-text-dark">Délégations de gestion</span>
+                <IcChevron />
+              </button>
+              <button onClick={() => navigate('/mes-roles')} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
+                <span className="text-sm font-semibold text-text-dark">Gérer mes rôles</span>
+                <IcChevron />
+              </button>
+              <button onClick={() => navigate('/portefeuille')} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
+                <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
+                <IcChevron />
+              </button>
+              <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
+                Se déconnecter
+              </button>
+            </div>
+          </div>
+
+          {/* ── Colonne droite : indicateurs ── */}
+          <div className="space-y-5">
+            <div className="flex gap-3">
+              <PercentCard value={score} label="Score de crédibilité" color={BLUE} />
+              <PercentCard value={tauxOccupation} label="Taux d'occupation" color="#22C55E" />
+              <PercentCard value={tauxPublication} label="Biens publiés" color="#F59E0B" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="card-soft rounded-2xl p-5 flex flex-col items-center text-center">
+                <p className="font-bold text-text-dark text-sm self-start">Score de crédibilité</p>
+                <p className="text-xs text-text-grey self-start mb-4">Sur 100 points</p>
+                <RadialGauge value={score} color={BLUE} />
+              </div>
+              <div className="card-soft rounded-2xl p-5">
+                <p className="font-bold text-text-dark text-sm">Vue d'ensemble</p>
+                <p className="text-xs text-text-grey mb-1">Points clés de votre profil</p>
+                <HighlightRow icon={<IcHome />} color={BLUE}
+                  title={`${approuves} bien${approuves > 1 ? 's' : ''} publié${approuves > 1 ? 's' : ''}`}
+                  subtitle={`Sur ${biens.length} au total`} />
+                <HighlightRow icon={<IcStar />} color="#F59E0B"
+                  title={`${user?.nb_etoiles ?? 0} étoile${(user?.nb_etoiles ?? 0) > 1 ? 's' : ''}`}
+                  subtitle="Note moyenne reçue des clients" />
+                <HighlightRow icon={<IcCal />} color="#7B2FBE" title="Membre REFUGE"
+                  subtitle={memberSince ? `Depuis ${memberSince}` : 'Bienvenue !'} last />
+              </div>
+            </div>
+
+            <div className="card-soft rounded-2xl p-5">
+              <p className="font-bold text-text-dark text-sm mb-4">Mes visites</p>
+              <div className="flex">
+                <ActivityStat label="Toutes" value={visites.length} color={BLUE} />
+                <ActivityStat label="Confirmées" value={visitesConfirmees} color="#22C55E" />
+                <ActivityStat label="En attente" value={visitesEnAttente} color="#F59E0B" />
+                <ActivityStat label="Effectuées" value={visitesEffectuees} color="#7B2FBE" />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="px-4 space-y-2">
-        <button onClick={() => setEditOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-          <span className="text-sm font-semibold text-text-dark">Modifier le profil</span>
-          <IcChevron />
-        </button>
-        <button onClick={() => setPasswordOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-          <span className="text-sm font-semibold text-text-dark">Changer le mot de passe</span>
-          <IcChevron />
-        </button>
-        <button onClick={onOpenDelegations} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-          <span className="text-sm font-semibold text-text-dark">Délégations de gestion</span>
-          <IcChevron />
-        </button>
-        <button onClick={() => navigate('/mes-roles')} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-          <span className="text-sm font-semibold text-text-dark">Gérer mes rôles</span>
-          <IcChevron />
-        </button>
-        <button onClick={() => navigate('/portefeuille')} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-          <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
-          <IcChevron />
-        </button>
-        <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
-          Se déconnecter
-        </button>
       </div>
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
       <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
@@ -1179,25 +1303,21 @@ export default function ProprietaireDashboard() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
 
-      {/* Header */}
-      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-12 md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_BLUE} 0%, #1A5276 50%, ${BLUE} 100%)` }}>
-        <div className="md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0">
-          <div className="flex items-center gap-3 mb-5 md:mb-6">
-            <div className="w-11 h-11 md:w-12 md:h-12 rounded-[13px] flex items-center justify-center border flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)' }}>
-              {loading
-                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <span className="text-white font-bold text-sm md:text-base">{initials}</span>}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white/70 text-xs md:text-sm">Bonjour 👋</p>
-              <p className="text-white font-bold text-base md:text-xl truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
-            </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0 xl:hidden"
-              style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
-              <IcHome />
-              <span className="text-white text-[11px] md:text-xs font-semibold">Propriétaire</span>
-            </div>
+      {/* Header — bandeau fin, sans gros aplat de couleur */}
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 py-3.5 bg-white border-b border-divider">
+        <div className="md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
+            {loading
+              ? <div className="w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: BLUE, borderTopColor: 'transparent' }} />
+              : <span className="font-bold text-xs" style={{ color: BLUE }}>{initials}</span>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-text-grey text-[11px] leading-none">Bonjour 👋</p>
+            <p className="font-bold text-text-dark text-sm truncate mt-0.5">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 xl:hidden" style={{ background: BLUE + '10' }}>
+            <span style={{ color: BLUE }}><IcHome /></span>
+            <span className="text-[11px] font-semibold" style={{ color: BLUE }}>Propriétaire</span>
           </div>
         </div>
       </div>
@@ -1304,7 +1424,7 @@ export default function ProprietaireDashboard() {
         {tab === 'loyers'       && <LoyersTab />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
         {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
-        {tab === 'profil'       && <ProfilTab user={me} onOpenDelegations={() => setTab('delegations')} />}
+        {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenDelegations={() => setTab('delegations')} />}
       </div>
 
       {/* FAB */}
