@@ -501,7 +501,7 @@ export default function BienDetailPage() {
 // ─── Contenu partagé (mobile & desktop) — sections empilées, sans onglets ────
 function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows, terrainRows, voisinageLabels, visitesPlanifiees, visitesConfirmees }: {
   bien: any; isOwnBien: boolean; isLocation: boolean
-  composition: { icon: string; label: string }[] | null
+  composition: { icon: IconType; label: string }[] | null
   logementRows: InfoRow[]; terrainRows: InfoRow[]; voisinageLabels: string[]
   visitesPlanifiees: { total: number; slots: { date: string; count: number }[] } | null
   visitesConfirmees: { count: number; visites: { id: number; date: string | null }[] } | null
