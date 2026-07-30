@@ -1430,7 +1430,8 @@ export default function ProprietaireDashboard() {
                 const loc = b.localisation
                 const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
                 return (
-                  <div key={b.id} className="card-soft rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3">
+                  <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} role="button" tabIndex={0}
+                    className="card-soft rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
                       <span style={{ color: BLUE }}><IcHome /></span>
                     </div>

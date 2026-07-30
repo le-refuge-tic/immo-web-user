@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { infosLogementRows, infosTerrainRows, type InfoRow } from '../../utils/amenites'
+import EditBienModal from './EditBienModal'
 import logoSbee from '../../assets/logo-SBEE.png'
 import logoSoneb from '../../assets/logo-SONEB.png'
 
@@ -194,6 +195,7 @@ export default function BienDetailPage() {
 
   const [isOccupeLocal, setIsOccupeLocal] = useState(false)
   const [togglingStatut, setTogglingStatut] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     biensApi.byId(Number(id))
@@ -436,6 +438,7 @@ export default function BienDetailPage() {
                 visiteActive={visiteActive} visiteCancellee={visiteCancellee} visiteEchouee={visiteEchouee}
                 onAnnuler={annulerVisite} annulerBusy={annulerBusy}
                 onProposerVisite={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
+                onModifier={() => setEditing(true)}
               />
             </div>
           </div>
@@ -492,8 +495,14 @@ export default function BienDetailPage() {
           visiteActive={visiteActive} visiteCancellee={visiteCancellee} visiteEchouee={visiteEchouee}
           onAnnuler={annulerVisite} annulerBusy={annulerBusy}
           onProposerVisite={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
+          onModifier={() => setEditing(true)}
         />
       </div>
+
+      {editing && (
+        <EditBienModal bien={bien} onClose={() => setEditing(false)}
+          onSaved={updated => { setBien((prev: any) => ({ ...prev, ...updated })); setEditing(false) }} />
+      )}
     </div>
   )
 }
@@ -753,30 +762,40 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
 }
 
 // ─── Barre d'action (bottom bar mobile fixe / panneau desktop) ─────────────
-function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibilite, visiteActive, visiteCancellee, visiteEchouee, onAnnuler, annulerBusy, onProposerVisite }: {
+function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibilite, visiteActive, visiteCancellee, visiteEchouee, onAnnuler, annulerBusy, onProposerVisite, onModifier }: {
   isOwnBien: boolean; isOccupeLocal: boolean; togglingStatut: boolean; onToggleDisponibilite: () => void
   visiteActive: any; visiteCancellee: any; visiteEchouee: any
   onAnnuler: () => void; annulerBusy: boolean
   onProposerVisite: () => void
+  onModifier: () => void
 }) {
   if (isOwnBien) {
     return (
-      <button onClick={onToggleDisponibilite} disabled={togglingStatut}
-        className="w-full h-[54px] rounded-xl font-bold text-white text-[15px] flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity hover:opacity-90"
-        style={{ background: isOccupeLocal ? '#EF4444' : '#22C55E' }}>
-        {togglingStatut ? (
-          <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-        ) : (
-          <>
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              {isOccupeLocal
-                ? <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-9 4h10a1 1 0 011 1v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7a1 1 0 011-1z" />
-                : <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />}
-            </svg>
-            {isOccupeLocal ? 'Marquer comme disponible' : 'Marquer comme occupé'}
-          </>
-        )}
-      </button>
+      <div className="flex gap-2.5">
+        <button onClick={onModifier}
+          className="w-[54px] h-[54px] flex-shrink-0 rounded-xl border-2 border-divider flex items-center justify-center transition-colors hover:border-primary"
+          aria-label="Modifier le bien">
+          <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        <button onClick={onToggleDisponibilite} disabled={togglingStatut}
+          className="flex-1 h-[54px] rounded-xl font-bold text-white text-[15px] flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity hover:opacity-90"
+          style={{ background: isOccupeLocal ? '#EF4444' : '#22C55E' }}>
+          {togglingStatut ? (
+            <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                {isOccupeLocal
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-9 4h10a1 1 0 011 1v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7a1 1 0 011-1z" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />}
+              </svg>
+              {isOccupeLocal ? 'Marquer comme disponible' : 'Marquer comme occupé'}
+            </>
+          )}
+        </button>
+      </div>
     )
   }
 
