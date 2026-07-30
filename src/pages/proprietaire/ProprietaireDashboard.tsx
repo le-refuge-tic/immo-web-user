@@ -946,43 +946,62 @@ function LoyersTab() {
   const contrats: any[] = data?.contrats || []
   const loyers: any[] = contrats.flatMap((c: any) => (c.loyers || []).map((l: any) => ({ ...l, bien: c.bien, locataire: c.locataire })))
   const enAttenteMontant = loyers.filter(l => l.statut === 'en_attente' || l.statut === 'en_retard').reduce((s, l) => s + Number(l.montant || 0), 0)
+  const enRetardCount = stats.loyers_en_retard ?? loyers.filter(l => l.statut === 'en_retard').length
   const sorted = [...loyers].sort((a, b) => new Date(b.date_echeance || 0).getTime() - new Date(a.date_echeance || 0).getTime())
 
+  const loyerStatut = (s: string) =>
+    s === 'paye'      ? { label: 'Payé',       color: '#22C55E' } :
+    s === 'en_retard' ? { label: 'En retard',  color: '#EF4444' } :
+                         { label: 'En attente', color: '#F59E0B' }
+
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-5">
-      <div className="rounded-2xl p-5 mb-5 text-white" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
-        <p className="text-white/70 text-sm mb-1">Revenus totaux perçus</p>
-        <p className="text-2xl font-bold">{Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} FCFA</p>
-        <div className="flex gap-4 mt-4">
-          <div><p className="text-white/60 text-xs">Ce mois-ci</p><p className="font-bold">{Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} FCFA</p></div>
-          <div className="w-px bg-white/20" />
-          <div><p className="text-white/60 text-xs">En attente</p><p className="font-bold">{Number(enAttenteMontant).toLocaleString('fr-FR')} FCFA</p></div>
-          <div className="w-px bg-white/20" />
-          <div><p className="text-white/60 text-xs">En retard</p><p className="font-bold">{stats.loyers_en_retard ?? 0}</p></div>
+    <div className="flex-1 overflow-y-auto px-4 md:px-8 xl:px-10 py-5 md:py-8">
+      <div className="xl:max-w-5xl xl:mx-auto">
+        {/* Hero — revenu total */}
+        <div className="rounded-2xl p-5 md:p-6 mb-5 text-white" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
+          <p className="text-white/70 text-sm mb-1">Revenus totaux perçus</p>
+          <p className="text-2xl md:text-3xl font-extrabold">{Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} FCFA</p>
         </div>
+
+        {/* Cartes KPI — détail du mois, en attente, en retard */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-7">
+          <StatCard icon={<IcWallet />} color="#22C55E" label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} FCFA`} />
+          <StatCard icon={<IcClock />} color="#F59E0B" label="En attente de paiement" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} FCFA`} />
+          <StatCard icon={<IcMoney />} color="#EF4444" label="Loyers en retard" value={`${enRetardCount}`} />
+        </div>
+
+        <p className="text-[17px] font-bold text-text-dark mb-3.5">Historique des loyers</p>
+        {sorted.length === 0 ? (
+          <div className="card-soft rounded-2xl flex flex-col items-center justify-center py-12">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p className="font-bold text-text-dark mb-1">Aucun loyer</p>
+            <p className="text-sm text-text-grey">Les loyers apparaîtront ici</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {sorted.map((l: any, i: number) => {
+              const { label, color } = loyerStatut(l.statut)
+              return (
+                <div key={l.id || i} className="card-soft rounded-[14px] p-3.5 flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + '15' }}>
+                    <span style={{ color }}><IcWallet /></span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-text-dark text-sm truncate">{typeLabel(l.bien?.type || '')} — {l.bien?.localisation?.ville || '—'}</p>
+                    <p className="text-xs text-text-grey mt-0.5 truncate">{l.locataire?.prenom} {l.locataire?.nom}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-text-dark text-xs">{Number(l.montant).toLocaleString('fr-FR')} FCFA</p>
+                    <span className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
-      {sorted.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-          <p className="font-bold text-text-dark mb-1">Aucun loyer</p>
-          <p className="text-sm text-text-grey">Les loyers apparaîtront ici</p>
-        </div>
-      ) : sorted.map((l: any, i: number) => (
-        <div key={l.id || i} className="card-soft rounded-xl p-4 mb-3 flex items-center justify-between">
-          <div>
-            <p className="font-bold text-text-dark text-sm">{typeLabel(l.bien?.type || '')} — {l.bien?.localisation?.ville || '—'}</p>
-            <p className="text-xs text-text-grey mt-0.5">{l.locataire?.prenom} {l.locataire?.nom}</p>
-          </div>
-          <div className="text-right">
-            <p className="font-bold text-text-dark text-sm">{Number(l.montant).toLocaleString('fr-FR')} FCFA</p>
-            <span className={`text-xs font-semibold ${l.statut === 'paye' ? 'text-success' : l.statut === 'en_retard' ? 'text-danger' : 'text-warning'}`}>
-              {l.statut === 'paye' ? 'Payé' : l.statut === 'en_retard' ? 'En retard' : 'En attente'}
-            </span>
-          </div>
-        </div>
-      ))}
     </div>
   )
 }
