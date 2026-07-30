@@ -1,9 +1,17 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import TopNav from './TopNav'
 import BottomNav from './BottomNav'
 import PushPrompt from './PushPrompt'
 
+/** Pages "assistant plein écran" qui gèrent leur propre en-tête/navigation
+ *  — la nav client (Accueil/Favoris/Messages/Profil) n'a pas sa place ici,
+ *  qu'on y arrive en tant que client, propriétaire ou démarcheur. */
+const HIDE_CHROME_PATHS = ['/nouveau-bien']
+
 export default function MainLayout() {
+  const location = useLocation()
+  const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
+
   return (
     <div className="flex flex-col h-dvh overflow-hidden" style={{ background: '#F5F5F7' }}>
 
@@ -22,7 +30,7 @@ export default function MainLayout() {
       </div>
 
       {/* Header desktop */}
-      <TopNav />
+      {!hideChrome && <TopNav />}
 
       {/* Contenu — pas de z-index ici : un z-index sur ce conteneur créerait
           un contexte d'empilement qui plafonnerait TOUT son contenu (y
@@ -32,14 +40,16 @@ export default function MainLayout() {
           toujours en dessous ; les rares barres `fixed` de page qui
           doivent apparaître au-dessus (ex. bouton de validation en bas
           d'écran) portent leur propre z-index supérieur (z-[60]). */}
-      <div className="flex-1 overflow-y-auto pb-20 md:pb-0 md:pt-16 relative">
+      <div className={`flex-1 overflow-y-auto relative ${hideChrome ? '' : 'pb-20 md:pb-0 md:pt-16'}`}>
         <Outlet />
       </div>
 
       {/* Bottom nav mobile */}
-      <div className="md:hidden relative z-50">
-        <BottomNav />
-      </div>
+      {!hideChrome && (
+        <div className="md:hidden relative z-50">
+          <BottomNav />
+        </div>
+      )}
 
       <PushPrompt />
     </div>

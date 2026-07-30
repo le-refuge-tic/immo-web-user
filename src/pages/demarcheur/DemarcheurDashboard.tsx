@@ -708,11 +708,47 @@ export default function DemarcheurDashboard() {
   const score = me?.score_credibilite ?? 100
 
   return (
-    <div className="flex flex-col h-full bg-[#F4F6FA] relative">
+    <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] relative">
+
+      {/* Sidebar (desktop only) */}
+      <aside className="hidden xl:flex xl:flex-col xl:w-64 2xl:w-72 flex-shrink-0 bg-white border-r border-divider">
+        <div className="px-6 pt-8 pb-6 flex items-center gap-3 border-b border-divider">
+          <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0 text-white font-bold text-sm"
+            style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}, ${PURPLE})` }}>
+            {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : initials}
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-text-dark text-sm truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
+            <p className="text-xs text-text-grey">Démarcheur</p>
+          </div>
+        </div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+          {TABS.map(t => {
+            const active = tab === t.key
+            return (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                style={active ? { background: PURPLE + '15', color: PURPLE } : { color: '#5F6B7A' }}>
+                <span style={{ color: active ? PURPLE : '#9E9E9E' }}>{t.icon}</span>
+                {t.label}
+              </button>
+            )
+          })}
+        </nav>
+        <div className="px-3 py-4 border-t border-divider">
+          <button onClick={() => navigate('/nouveau-bien')}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold"
+            style={{ background: PURPLE }}>
+            <IcPlus /> Nouveau bien
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col overflow-hidden">
 
       {/* Header */}
-      <div className="flex-shrink-0 px-5 md:px-8 pt-12 md:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
-        <div className="md:max-w-5xl md:mx-auto">
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-12 md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
+        <div className="md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0">
           <div className="flex items-center gap-3 mb-5 md:mb-6">
             <div className="w-11 h-11 md:w-12 md:h-12 rounded-[13px] flex items-center justify-center border flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)' }}>
@@ -724,7 +760,7 @@ export default function DemarcheurDashboard() {
               <p className="text-white/70 text-xs md:text-sm">Bonjour 👋</p>
               <p className="text-white font-bold text-base md:text-xl truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0"
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0 xl:hidden"
               style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
               <IcVerif />
               <span className="text-white text-[11px] md:text-xs font-semibold">Agent</span>
@@ -749,10 +785,10 @@ export default function DemarcheurDashboard() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col md:max-w-5xl md:mx-auto md:w-full">
+      <div className="flex-1 overflow-hidden flex flex-col md:max-w-5xl md:mx-auto md:w-full xl:max-w-none xl:mx-0">
         {tab === 'tableau' && (
           <div className="flex-1 overflow-y-auto">
-            <div className="px-5 md:px-8 py-5 md:py-8">
+            <div className="px-5 md:px-8 xl:px-10 py-5 md:py-8">
               <p className="text-[17px] md:text-lg font-bold text-text-dark mb-3.5">Actions rapides</p>
               <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={PURPLE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
@@ -834,7 +870,7 @@ export default function DemarcheurDashboard() {
 
       {/* FAB */}
       {(tab === 'tableau' || tab === 'biens') && (
-        <div className="absolute bottom-20 right-4 md:bottom-24 md:right-8 z-20">
+        <div className="xl:hidden absolute bottom-20 right-4 md:bottom-24 md:right-8 z-20">
           <button onClick={() => navigate('/nouveau-bien')}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full text-white font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
             style={{ background: PURPLE, boxShadow: `0 4px 15px ${PURPLE}60` }}>
@@ -843,8 +879,8 @@ export default function DemarcheurDashboard() {
         </div>
       )}
 
-      {/* Bottom Nav */}
-      <div className="flex-shrink-0 md:px-6 md:pb-4">
+      {/* Bottom Nav (mobile & tablet only — desktop uses the sidebar) */}
+      <div className="xl:hidden flex-shrink-0 md:px-6 md:pb-4">
         <div className="bg-white border-t border-divider md:border md:rounded-2xl" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           <div className="flex items-center justify-around px-2 py-2 md:max-w-lg md:mx-auto">
             {TABS.map(t => {
@@ -860,6 +896,7 @@ export default function DemarcheurDashboard() {
             })}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )
