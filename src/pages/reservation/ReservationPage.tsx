@@ -7,15 +7,29 @@ import { chatApi } from '../../api/chatApi'
 const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
 const MONTH_SHORT = ['jan', 'fév', 'mar', 'avr', 'mai', 'jun', 'jul', 'aoû', 'sep', 'oct', 'nov', 'déc']
-const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-// Créneau proposé par défaut dès qu'une date est choisie — le client n'a
-// plus besoin d'ouvrir le sélecteur manuellement, il peut juste l'ajuster.
-const DEFAULT_VISIT_TIME = '10:00'
+const DAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 
 const TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement vide',
   appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain',
 }
+
+const SOUS_TYPE_LABELS: Record<string, string> = {
+  entree_coucher: 'Entrée-Coucher', chambre_salon: 'Chambre-Salon',
+  villa: 'Villa', maison_individuelle: 'Maison', villa_maison: 'Villa / Maison',
+  boutique: 'Boutique / Local', terrain: 'Terrain',
+}
+/** Miroir de Bien.typeLabel (mobile) : privilégie le sous-type quand il existe. */
+function bienTypeLabel(bien: any): string {
+  const sous = bien?.amenites?.sous_type
+  if (sous) {
+    if (sous === 'appartement') return bien.type === 'appart_meuble' ? 'Appartement meublé' : 'Appartement'
+    return SOUS_TYPE_LABELS[sous] || sous
+  }
+  return TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
+}
+
+const TIME_SLOTS = [7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19]
 
 const IMG_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
 function resolveUrl(url: string) {
@@ -35,6 +49,7 @@ export default function ReservationPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
   const timeInputRef = useRef<HTMLInputElement>(null)
+  const timeSectionRef = useRef<HTMLDivElement>(null)
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
@@ -43,7 +58,7 @@ export default function ReservationPage() {
   const [loadingBien, setLoadingBien] = useState(true)
   const [displayMonth, setDisplayMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selectedDate, setSelectedDate] = useState(tomorrow)
-  const [selectedTime, setSelectedTime] = useState(DEFAULT_VISIT_TIME)
+  const [selectedTime, setSelectedTime] = useState('')
   const [travelers, setTravelers] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -60,10 +75,7 @@ export default function ReservationPage() {
   const isToday = (d: Date) => d.getTime() === today.getTime()
   const isSelected = (d: Date) => d.getTime() === selectedDate.getTime()
   const daysInMonth = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 0).getDate()
-  const firstWeekday = (() => {
-    const d = new Date(displayMonth.getFullYear(), displayMonth.getMonth(), 1).getDay()
-    return d === 0 ? 6 : d - 1
-  })()
+  const firstWeekday = new Date(displayMonth.getFullYear(), displayMonth.getMonth(), 1).getDay()
 
   const prevMonth = () => setDisplayMonth(new Date(displayMonth.getFullYear(), displayMonth.getMonth() - 1, 1))
   const nextMonth = () => setDisplayMonth(new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 1))
@@ -109,22 +121,20 @@ export default function ReservationPage() {
         : <div className="w-16 h-16 rounded-xl flex-shrink-0" style={{ background: 'rgba(75,107,255,0.1)' }} />
       }
       <div className="flex-1 min-w-0 py-0.5">
-        <p className="font-bold text-text-dark text-sm truncate">{TYPE_LABELS[bien.type] || bien.type || 'Bien'}</p>
+        <p className="font-bold text-text-dark text-sm truncate">{bienTypeLabel(bien)}</p>
         <p className="text-xs text-text-grey mt-0.5 truncate">
           {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || ''}
         </p>
-        <p className="text-sm font-bold text-primary mt-1">{Number(bien.prix).toLocaleString('fr-FR')} FCFA</p>
       </div>
       <div className="flex flex-col items-end justify-center flex-shrink-0">
-        <p className="text-[10px] text-text-grey">Frais visite</p>
-        <p className="text-xs font-bold" style={{ color: '#7B4BFF' }}>{frais.toLocaleString('fr-FR')} F</p>
+        <p className="text-sm font-bold text-primary">{Number(bien.prix).toLocaleString('fr-FR')} FCFA</p>
+        {bien.transaction === 'location' && <p className="text-[10px] text-text-grey">/mois</p>}
       </div>
     </div>
   ) : null
 
   const CalendarCard = () => (
     <div className="rounded-2xl p-5 md:max-w-sm" style={GLASS}>
-      <p className="text-sm font-bold text-text-dark mb-4">Choisir une date</p>
       <div className="flex items-center justify-between mb-4">
         <button onClick={prevMonth} className="w-9 h-9 flex items-center justify-center rounded-[10px]" style={{ background: 'rgba(0,0,0,0.05)' }}>
           <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -147,7 +157,8 @@ export default function ReservationPage() {
             <button key={day} onClick={() => {
               if (past) return
               setSelectedDate(date)
-              setSelectedTime(t => t || DEFAULT_VISIT_TIME)
+              setSelectedTime('')
+              setTimeout(() => timeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
             }} disabled={past}
               className="aspect-square flex flex-col items-center justify-center rounded-[10px] transition-all"
               style={{
@@ -168,34 +179,39 @@ export default function ReservationPage() {
   )
 
   const TimeCard = () => (
-    <div className="rounded-2xl p-5" style={GLASS}>
-      <div className="flex items-center justify-between mb-3">
+    <div ref={timeSectionRef} className="rounded-2xl p-5" style={GLASS}>
+      <div className="flex items-center justify-between mb-3.5">
         <p className="text-sm font-bold text-text-dark">Heure souhaitée</p>
-        <span className="text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#4B6BFF' }}>
+        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#4B6BFF' }}>
           {(() => { const d = selectedDate; const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam']; return `${days[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}` })()}
         </span>
       </div>
-      <button onClick={() => timeInputRef.current?.showPicker?.() || timeInputRef.current?.click()}
-        className="w-full flex items-center gap-3 p-4 rounded-[14px] border transition-all"
-        style={{ background: selectedTime ? 'rgba(75,107,255,0.06)' : '#fff', borderColor: selectedTime ? '#4B6BFF' : '#E5E7EB', borderWidth: selectedTime ? 1.5 : 1 }}>
-        <div className="w-11 h-11 flex items-center justify-center rounded-[12px] flex-shrink-0"
-          style={{ background: selectedTime ? 'rgba(75,107,255,0.15)' : 'rgba(0,0,0,0.04)' }}>
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={selectedTime ? '#4B6BFF' : '#9CA3AF'} strokeWidth={2}>
-            <circle cx="12" cy="12" r="10" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+      <div className="flex flex-wrap gap-2">
+        {TIME_SLOTS.map(h => {
+          const value = `${String(h).padStart(2, '0')}:00`
+          const sel = selectedTime === value
+          return (
+            <button key={h} onClick={() => setSelectedTime(value)}
+              className="px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
+              style={{
+                background: sel ? '#4B6BFF' : '#fff',
+                color: sel ? '#fff' : '#1A1A2E',
+                border: `${sel ? 1.5 : 1}px solid ${sel ? '#4B6BFF' : '#E5E7EB'}`,
+                boxShadow: sel ? '0 3px 8px rgba(75,107,255,0.25)' : 'none',
+              }}>
+              {String(h).padStart(2, '0')}h00
+            </button>
+          )
+        })}
+        <button onClick={() => timeInputRef.current?.showPicker?.() || timeInputRef.current?.click()}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-semibold"
+          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid #E5E7EB', color: '#6B7280' }}>
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <circle cx="12" cy="13" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4l2 2M9 3h6" />
           </svg>
-        </div>
-        <div className="flex-1 text-left">
-          <p className="text-base" style={{ color: selectedTime ? '#1A1A2E' : '#9CA3AF', fontWeight: selectedTime ? 700 : 400 }}>
-            {selectedTime ? selectedTime.replace(':', 'h') : 'Choisir une heure'}
-          </p>
-          {!selectedTime && <p className="text-xs text-text-grey mt-0.5">Appuyez pour ouvrir le sélecteur</p>}
-        </div>
-        <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={selectedTime ? '#22C55E' : '#9CA3AF'} strokeWidth={2}>
-          {selectedTime
-            ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            : <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />}
-        </svg>
-      </button>
+          Autre…
+        </button>
+      </div>
       <input ref={timeInputRef} type="time" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="sr-only" />
       {selectedTime && (
         <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-[10px]" style={{ background: 'rgba(34,197,94,0.08)' }}>
@@ -260,7 +276,7 @@ export default function ReservationPage() {
         ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
         : <>
           <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
           </svg>
           <span>Envoyer ma demande de visite</span>
         </>
@@ -278,9 +294,16 @@ export default function ReservationPage() {
           <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-white font-bold text-lg">Proposer une visite</p>
-            <p className="text-white/60 text-xs mt-0.5">Choisissez une date et une heure</p>
+            <p className="text-white/60 text-xs mt-0.5">Choisissez le créneau qui vous convient</p>
+          </div>
+          <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] flex-shrink-0" style={{ background: 'rgba(75,107,255,0.25)', border: '1px solid rgba(75,107,255,0.5)' }}>
+            <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-white text-[11px] font-bold">{frais.toLocaleString('fr-FR')} FCFA</span>
           </div>
         </div>
       </div>

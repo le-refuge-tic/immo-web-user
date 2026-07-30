@@ -44,9 +44,15 @@ export default function TopNav() {
   const initials = user ? `${user.prenom?.[0] || ''}${user.nom?.[0] || ''}`.toUpperCase() : ''
 
   const handleLogout = () => {
-    logout()
     setMenuOpen(false)
+    // Naviguer d'abord, vider le contexte auth seulement après deux frames :
+    // si on clique ce bouton depuis une page protégée (ex. /profil,
+    // /mes-visites), PrivateRoute est encore monté au moment où
+    // isLoggedIn passe à false et son propre effet de redirection vers
+    // /login écrase sinon cette navigation vers l'accueil (vérifié
+    // empiriquement — voir ProfilePage.handleLogout pour le même correctif).
     navigate('/')
+    requestAnimationFrame(() => requestAnimationFrame(logout))
   }
 
   return (
