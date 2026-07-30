@@ -262,14 +262,13 @@ export default function NouveauBienPage() {
 
   // Terrain
   const [superficieTerrain, setSuperficieTerrain] = useState('')
-  const [superficieTerrainHa, setSuperficieTerrainHa] = useState('')
+  const [superficieUnite, setSuperficieUnite] = useState<'m2' | 'ha'>('m2')
   const [documentTerrain, setDocumentTerrain] = useState<string | null>(null)
   const [positionTerrain, setPositionTerrain] = useState('bord_goudron')
   const [angleRue, setAngleRue] = useState(false)
   const [permissionConstruire, setPermissionConstruire] = useState(false)
   const [descriptionConstruction, setDescriptionConstruction] = useState('')
-  const [estLoti, setEstLoti] = useState<boolean | null>(null)
-  const [titreFoncier, setTitreFoncier] = useState<boolean | null>(null)
+  const [estLoti, setEstLoti] = useState<'lotie' | 'non_lotie' | 'autre' | null>(null)
   const [detailsSupplementaires, setDetailsSupplementaires] = useState<DetailCustom[]>([])
 
   // Boutique
@@ -291,6 +290,13 @@ export default function NouveauBienPage() {
   const isMeuble = peutEtreMeuble && estMeuble
   const showPieces = ['appartement', 'villa', 'maison', 'chambre_salon'].includes(typeBien)
   const hasAtLeastOneTarif = !!(parsePrix(prixLongSejour) || parsePrix(prixSejourRestreint) || parsePrix(prixHeure) || tarifsAutres.some(t => parsePrix(t.prix)))
+
+  /** Superficie du terrain convertie en m² quelle que soit l'unité saisie (m² ou ha). */
+  const superficieM2 = (() => {
+    const n = parseFloat(superficieTerrain.replace(',', '.'))
+    if (isNaN(n)) return undefined
+    return Math.round(superficieUnite === 'ha' ? n * 10000 : n)
+  })()
 
   const typeBackend = isTerrain ? 'terrain'
     : (typeBien === 'villa' || typeBien === 'maison' || isBoutique) ? 'maison'
@@ -317,7 +323,7 @@ export default function NouveauBienPage() {
       if (isMeuble && !hasAtLeastOneTarif) { setError('Renseignez au moins un tarif'); return }
     }
     if (step === 1 && !quartier.trim()) { setError('Veuillez sélectionner un quartier'); return }
-    if (step === 2 && isTerrain && !parsePrix(superficieTerrain)) { setError('Veuillez indiquer la superficie du terrain'); return }
+    if (step === 2 && isTerrain && !superficieM2) { setError('Veuillez indiquer la superficie du terrain'); return }
     setError('')
     if (step === 4) { handleCreate(); return }
     setStep(s => s + 1)
@@ -343,7 +349,6 @@ export default function NouveauBienPage() {
       a.permission_construire = permissionConstruire
       if (permissionConstruire && descriptionConstruction.trim()) a.description_construction = descriptionConstruction.trim()
       if (estLoti !== null) a.loti = estLoti
-      if (titreFoncier !== null) a.titre_foncier = titreFoncier
       const details = detailsSupplementaires.filter(d => d.label.trim() && d.valeur.trim())
       if (details.length) a.details_supplementaires = details.map(d => ({ label: d.label.trim(), valeur: d.valeur.trim() }))
       return a
@@ -446,8 +451,8 @@ export default function NouveauBienPage() {
         amenites: buildAmenites(),
       }
 
-      if (isTerrain && parsePrix(superficieTerrain) !== undefined) {
-        body.details_terrain = { superficie: parsePrix(superficieTerrain), cloture: false }
+      if (isTerrain && superficieM2 !== undefined) {
+        body.details_terrain = { superficie: superficieM2, cloture: false }
       } else if (typeBackend === 'appart_vide' || typeBackend === 'appart_meuble') {
         body.details_appart = { entree_personnelle: typeCour === 'entree_personnelle' }
       }
@@ -655,27 +660,26 @@ export default function NouveauBienPage() {
             <div>
               <Section title="Superficie" required />
               <div className="flex gap-2.5">
-                <div className="flex-1 min-w-0 relative">
-                  <input type="number" value={superficieTerrain} placeholder="Ex: 612"
-                    onChange={e => {
-                      const v = e.target.value
-                      setSuperficieTerrain(v)
-                      const n = parseFloat(v.replace(',', '.'))
-                      setSuperficieTerrainHa(isNaN(n) ? '' : String(n / 10000))
-                    }}
-                    className="w-full bg-white border border-divider rounded-xl pl-4 pr-10 py-3 text-sm outline-none focus:border-primary" />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-grey pointer-events-none">m²</span>
-                </div>
-                <div className="flex-1 min-w-0 relative">
-                  <input type="number" value={superficieTerrainHa} placeholder="Ex: 0.0612"
-                    onChange={e => {
-                      const v = e.target.value
-                      setSuperficieTerrainHa(v)
-                      const n = parseFloat(v.replace(',', '.'))
-                      setSuperficieTerrain(isNaN(n) ? '' : String(Math.round(n * 10000)))
-                    }}
-                    className="w-full bg-white border border-divider rounded-xl pl-4 pr-10 py-3 text-sm outline-none focus:border-primary" />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-grey pointer-events-none">ha</span>
+                <input type="number" value={superficieTerrain} onChange={e => setSuperficieTerrain(e.target.value)}
+                  placeholder={superficieUnite === 'ha' ? 'Ex: 2.5' : 'Ex: 25000'}
+                  className="flex-1 min-w-0 bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary" />
+                <div className="flex rounded-xl border border-divider bg-white p-1 flex-shrink-0">
+                  {(['m2', 'ha'] as const).map(u => (
+                    <button key={u} type="button"
+                      onClick={() => {
+                        if (u === superficieUnite) return
+                        const n = parseFloat(superficieTerrain.replace(',', '.'))
+                        if (!isNaN(n)) {
+                          setSuperficieTerrain(String(u === 'ha' ? n / 10000 : Math.round(n * 10000)))
+                        }
+                        setSuperficieUnite(u)
+                      }}
+                      className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                        superficieUnite === u ? 'bg-primary text-white' : 'text-text-grey'
+                      }`}>
+                      {u === 'm2' ? 'm²' : 'ha'}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -685,7 +689,7 @@ export default function NouveauBienPage() {
             </div>
             <div>
               <Section title="Position" />
-              <ChoiceList options={[{ value: 'bord_goudron', label: 'Au bord du goudron' }, { value: 'ruelle', label: 'Dans la ruelle' }]}
+              <ChoiceList options={[{ value: 'bord_goudron', label: 'Au bord du goudron' }, { value: 'ruelle', label: 'Dans la ruelle' }, { value: 'autre', label: 'Autre' }]}
                 value={positionTerrain} onChange={setPositionTerrain} />
               <label className="mt-2.5 flex items-center justify-between px-4 py-3 rounded-xl border-2 border-divider bg-white cursor-pointer">
                 <span className="text-sm font-semibold text-text-dark">Parcelle en angle de rue</span>
@@ -706,16 +710,10 @@ export default function NouveauBienPage() {
             </div>
             <div>
               <Section title="Zone lotie ?" />
-              <div className="grid grid-cols-2 gap-2.5">
-                <Chip label="Lotie" active={estLoti === true} onClick={() => setEstLoti(true)} />
-                <Chip label="Non lotie" active={estLoti === false} onClick={() => setEstLoti(false)} />
-              </div>
-            </div>
-            <div>
-              <Section title="Titre foncier ?" />
-              <div className="grid grid-cols-2 gap-2.5">
-                <Chip label="Oui" active={titreFoncier === true} onClick={() => setTitreFoncier(true)} />
-                <Chip label="Non" active={titreFoncier === false} onClick={() => setTitreFoncier(false)} />
+              <div className="grid grid-cols-3 gap-2.5">
+                <Chip label="Lotie" active={estLoti === 'lotie'} onClick={() => setEstLoti('lotie')} />
+                <Chip label="Non lotie" active={estLoti === 'non_lotie'} onClick={() => setEstLoti('non_lotie')} />
+                <Chip label="Autre" active={estLoti === 'autre'} onClick={() => setEstLoti('autre')} />
               </div>
             </div>
             <div>
@@ -1061,22 +1059,24 @@ export default function NouveauBienPage() {
                 className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary resize-none" />
             </div>
 
-            <div>
-              <Section title="Autres frais (optionnel)" />
-              <p className="text-xs text-text-grey mb-2.5">Frais supplémentaires inclus dans le total à payer à l'intégration.</p>
-              <div className="space-y-2.5">
-                {autresFrais.map((f, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input value={f.label} onChange={e => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x))}
-                      placeholder="Libellé (ex: Frais de dossier)" className="flex-1 bg-white border border-divider rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary" />
-                    <div className="w-28"><MoneyInput value={f.prix} onChange={v => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} /></div>
-                    <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} className="text-danger">✕</button>
-                  </div>
-                ))}
-                <button type="button" onClick={() => setAutresFrais(a => [...a, { label: '', prix: '' }])}
-                  className="text-primary text-xs font-bold">+ Ajouter un frais</button>
+            {!isTerrain && (
+              <div>
+                <Section title="Autres frais (optionnel)" />
+                <p className="text-xs text-text-grey mb-2.5">Frais supplémentaires inclus dans le total à payer à l'intégration.</p>
+                <div className="space-y-2.5">
+                  {autresFrais.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input value={f.label} onChange={e => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x))}
+                        placeholder="Libellé (ex: Frais de dossier)" className="flex-1 bg-white border border-divider rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary" />
+                      <div className="w-28"><MoneyInput value={f.prix} onChange={v => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} /></div>
+                      <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} className="text-danger">✕</button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setAutresFrais(a => [...a, { label: '', prix: '' }])}
+                    className="text-primary text-xs font-bold">+ Ajouter un frais</button>
+                </div>
               </div>
-            </div>
+            )}
 
             {!isTerrain && typeTransaction === 'location' && montantBrut > 0 && (
               <div className="bg-primary-l rounded-xl p-4">
@@ -1143,7 +1143,7 @@ export default function NouveauBienPage() {
       {/* Footer CTA */}
       <div className="bg-white border-t border-divider px-4 py-3 safe-bottom">
         <button onClick={goNext} disabled={submitting}
-          className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-btn disabled:opacity-60">
+          className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-btn disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
           {submitting ? 'Publication…' : step < 4 ? 'Continuer →' : 'Publier le bien'}
         </button>
       </div>

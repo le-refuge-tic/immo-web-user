@@ -97,6 +97,7 @@ const POSITION_TERRAIN_LABELS: Record<string, string> = {
   bordure_route: 'Bordure de route',
   quartier: 'Dans le quartier',
   retrait: 'En retrait',
+  autre: 'Autre',
 }
 
 export type InfoRow = { label: string; value: string }
@@ -151,7 +152,10 @@ export function infosTerrainRows(a: any): InfoRow[] {
     rows.push({ label: 'Document disponible', value: DOCUMENT_TERRAIN_LABELS[a.document] ?? a.document })
   }
   if (a.loti != null) {
-    rows.push({ label: 'Terrain loti', value: a.loti ? 'Oui' : 'Non' })
+    const val = typeof a.loti === 'boolean'
+      ? (a.loti ? 'Oui' : 'Non')
+      : a.loti === 'lotie' ? 'Oui' : a.loti === 'non_lotie' ? 'Non' : 'Autre'
+    rows.push({ label: 'Terrain loti', value: val })
   }
   if (a.titre_foncier != null) {
     rows.push({ label: 'Titre foncier', value: a.titre_foncier ? 'Oui' : 'Non' })
