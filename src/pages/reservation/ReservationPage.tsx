@@ -8,6 +8,9 @@ const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
 const MONTH_SHORT = ['jan', 'fév', 'mar', 'avr', 'mai', 'jun', 'jul', 'aoû', 'sep', 'oct', 'nov', 'déc']
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+// Créneau proposé par défaut dès qu'une date est choisie — le client n'a
+// plus besoin d'ouvrir le sélecteur manuellement, il peut juste l'ajuster.
+const DEFAULT_VISIT_TIME = '10:00'
 
 const TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement vide',
@@ -40,7 +43,7 @@ export default function ReservationPage() {
   const [loadingBien, setLoadingBien] = useState(true)
   const [displayMonth, setDisplayMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selectedDate, setSelectedDate] = useState(tomorrow)
-  const [selectedTime, setSelectedTime] = useState('')
+  const [selectedTime, setSelectedTime] = useState(DEFAULT_VISIT_TIME)
   const [travelers, setTravelers] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -141,7 +144,11 @@ export default function ReservationPage() {
           const date = new Date(displayMonth.getFullYear(), displayMonth.getMonth(), day); date.setHours(0, 0, 0, 0)
           const past = isPast(date); const todayDay = isToday(date); const sel = isSelected(date)
           return (
-            <button key={day} onClick={() => !past && setSelectedDate(date)} disabled={past}
+            <button key={day} onClick={() => {
+              if (past) return
+              setSelectedDate(date)
+              setSelectedTime(t => t || DEFAULT_VISIT_TIME)
+            }} disabled={past}
               className="aspect-square flex flex-col items-center justify-center rounded-[10px] transition-all"
               style={{
                 background: sel ? '#4B6BFF' : todayDay && !sel ? 'rgba(75,107,255,0.08)' : 'transparent',

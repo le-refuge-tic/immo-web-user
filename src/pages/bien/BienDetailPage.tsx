@@ -18,6 +18,19 @@ const TYPE_LABELS: Record<string, string> = {
   appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain',
 }
 
+// L'app mobile générait autrefois des surfaces par défaut (non saisies par
+// l'utilisateur) pour les pièces créées sans dimension précisée. Corrigé côté
+// mobile, mais les biens déjà publiés avec ces valeurs restent en base : on
+// les masque ici pour ne pas afficher une fausse mesure au client.
+const LEGACY_DEFAULT_SURFACES: Record<string, number> = {
+  'Chambre': 15, 'Salon': 20, 'Entrée': 8, 'Cuisine': 12, 'Salle de bain': 8,
+}
+function hasRealSurface(p: { nom: string; surface: any }) {
+  const surface = Number(p.surface)
+  if (!(surface > 0)) return false
+  return LEGACY_DEFAULT_SURFACES[p.nom] !== surface
+}
+
 export default function BienDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -214,7 +227,7 @@ export default function BienDetailPage() {
                       {bien.pieces.map((p: any) => (
                         <div key={p.id} className="glass-card rounded-xl p-3.5">
                           <p className="text-sm font-semibold text-text-dark">{p.nom}</p>
-                          {p.surface > 0 && <p className="text-xs text-text-grey mt-0.5">{p.surface} m²</p>}
+                          {hasRealSurface(p) && <p className="text-xs text-text-grey mt-0.5">{p.surface} m²</p>}
                         </div>
                       ))}
                     </div>
@@ -386,7 +399,7 @@ export default function BienDetailPage() {
               {bien.pieces.map((p: any) => (
                 <div key={p.id} className="glass-card rounded-xl p-3">
                   <p className="text-sm font-semibold text-text-dark">{p.nom}</p>
-                  {p.surface > 0 && <p className="text-xs text-text-grey">{p.surface} m²</p>}
+                  {hasRealSurface(p) && <p className="text-xs text-text-grey">{p.surface} m²</p>}
                 </div>
               ))}
             </div>
