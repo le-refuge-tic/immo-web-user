@@ -47,20 +47,61 @@ function isEchoueeVisite(v: any): boolean {
   return new Date(raw).getTime() < Date.now()
 }
 
-// ─── Composition (chips groupées par type de pièce) ────────────────────────
-const PIECE_ICONS: Record<string, string> = {
-  Chambre: 'M4 18v-6a4 4 0 014-4h8a4 4 0 014 4v6M4 18h16M4 18v2M20 18v2M8 14v-2m8 2v-2',
-  Salon: 'M5 12V8a2 2 0 012-2h10a2 2 0 012 2v4M3 12h18v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM6 19v2m12-2v2',
-  Cuisine: 'M4 7h16M6 7v13a1 1 0 001 1h10a1 1 0 001-1V7M9 3h6l1 4H8l1-4z',
-  'Salle de bain': 'M4 12h16M6 12V6a2 2 0 012-2h2a2 2 0 012 2v6M7 12v8a1 1 0 001 1h8a1 1 0 001-1v-8',
-  Toilette: 'M8 4h8v4H8V4zM6 8h12v4a6 6 0 01-12 0V8z',
-  Garage: 'M4 21V9l8-5 8 5v12M4 21h16M4 21v-4h16v4M9 9h.01M15 9h.01',
-  Terrasse: 'M4 20h16M4 20V9l8-5 8 5v11M8 20v-6h8v6',
-  Bureau: 'M3 7h18v11a1 1 0 01-1 1H4a1 1 0 01-1-1V7zM8 7V5a2 2 0 012-2h4a2 2 0 012 2v2',
-  Entrée: 'M5 21V4a1 1 0 011-1h9l4 4v14M5 21h14M5 21v-2m10-13v13',
+// ─── Icônes — formes simples construites à partir de primitives SVG,
+// fidèles aux icônes Material utilisées par l'écran mobile équivalent
+// (bed_rounded, chair_rounded, kitchen_rounded, bathtub_rounded, wc_rounded,
+// garage_rounded, deck_rounded, work_rounded, door_front_door_rounded…). ────
+type IconType =
+  | 'bed' | 'sofa' | 'kitchen' | 'bathtub' | 'toilet' | 'garage' | 'deck' | 'briefcase' | 'door' | 'room'
+  | 'ruler' | 'fence' | 'parking' | 'yard' | 'person' | 'people'
+
+function Icon({ type, className }: { type: IconType; className?: string }) {
+  const cls = className || 'w-4 h-4'
+  const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, className: cls }
+  switch (type) {
+    case 'bed':
+      return <svg {...common}><rect x="3" y="11" width="18" height="7" rx="1.5" /><path d="M3 18v2M21 18v2" /><rect x="4" y="8" width="6" height="4" rx="1" /></svg>
+    case 'sofa':
+      return <svg {...common}><path d="M5 12V8a2 2 0 012-2h10a2 2 0 012 2v4" /><rect x="3" y="12" width="18" height="6" rx="1.5" /><path d="M6 18v2M18 18v2" /></svg>
+    case 'kitchen':
+      return <svg {...common}><rect x="5" y="10" width="14" height="9" rx="1.5" /><path d="M3 11h2M19 11h2" /><path d="M9 10V7a3 3 0 016 0v3" /></svg>
+    case 'bathtub':
+      return <svg {...common}><path d="M4 12h16v3a4 4 0 01-4 4H8a4 4 0 01-4-4v-3z" /><path d="M4 12V9a2 2 0 012-2h1" /><path d="M4 19v2M20 19v2" /></svg>
+    case 'toilet':
+      return <svg {...common}><rect x="8" y="3" width="8" height="5" rx="1.5" /><path d="M7 8h10l-1 5a4 4 0 01-4 4h0a4 4 0 01-4-4l-1-5z" /><path d="M8 17l-1 4M16 17l1 4" /></svg>
+    case 'garage':
+      return <svg {...common}><path d="M3 16l1.5-5A2 2 0 016.4 9.5h11.2a2 2 0 011.9 1.5L21 16" /><rect x="3" y="16" width="18" height="4" rx="1" /><circle cx="7.5" cy="20" r="1.3" fill="currentColor" /><circle cx="16.5" cy="20" r="1.3" fill="currentColor" /></svg>
+    case 'deck':
+      return <svg {...common}><path d="M12 3c4 0 7 2.5 7 6H5c0-3.5 3-6 7-6z" /><path d="M12 9v10M9 21h6" /></svg>
+    case 'briefcase':
+      return <svg {...common}><rect x="3" y="8" width="18" height="12" rx="2" /><path d="M9 8V6a2 2 0 012-2h2a2 2 0 012 2v2" /><path d="M3 13h18" /></svg>
+    case 'door':
+      return <svg {...common}><rect x="6" y="3" width="12" height="18" rx="1" /><circle cx="14.5" cy="12" r="1" fill="currentColor" /></svg>
+    case 'ruler':
+      return <svg {...common}><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" /></svg>
+    case 'fence':
+      return <svg {...common}><path d="M4 21V9l4-3 4 3v12M4 13h8M12 21V9l4-3 4 3v12M12 13h8" /></svg>
+    case 'parking':
+      return <svg {...common}><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M10 16V8h3a3 3 0 010 6h-3" /></svg>
+    case 'yard':
+      return <svg {...common}><path d="M12 3c-3 0-5 2-5 5 0 2 1 3 2 4h6c1-1 2-2 2-4 0-3-2-5-5-5z" /><path d="M12 12v9" /></svg>
+    case 'person':
+      return <svg {...common}><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+    case 'people':
+      return <svg {...common}><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0112 0" /><circle cx="16" cy="9" r="2.5" /><path d="M13 20a5 5 0 019 0" /></svg>
+    case 'room':
+    default:
+      return <svg {...common}><rect x="6" y="3" width="12" height="18" rx="1" /><circle cx="14.5" cy="12" r="1" fill="currentColor" /></svg>
+  }
 }
-function pieceIconPath(nom: string) {
-  return PIECE_ICONS[nom] || 'M4 4h16v16H4z'
+
+// ─── Composition (chips groupées par type de pièce) ────────────────────────
+const PIECE_ICON: Record<string, IconType> = {
+  Chambre: 'bed', Salon: 'sofa', Cuisine: 'kitchen', 'Salle de bain': 'bathtub',
+  Toilette: 'toilet', Garage: 'garage', Terrasse: 'deck', Bureau: 'briefcase', Entrée: 'door',
+}
+function pieceIconType(nom: string): IconType {
+  return PIECE_ICON[nom] || 'room'
 }
 function pluralPiece(nom: string, n: number) {
   if (n <= 1) return nom
@@ -68,7 +109,7 @@ function pluralPiece(nom: string, n: number) {
   return `${n} ${nom}s`
 }
 
-function buildComposition(bien: any): { icon: string; label: string }[] | null {
+function buildComposition(bien: any): { icon: IconType; label: string }[] | null {
   const sousType = bien.amenites?.sous_type
   const pieces: any[] = bien.pieces || []
   if (sousType === 'boutique' || sousType === 'terrain' || pieces.length === 0) return null
@@ -77,17 +118,17 @@ function buildComposition(bien: any): { icon: string; label: string }[] | null {
   for (const p of pieces) counts[p.nom] = (counts[p.nom] || 0) + 1
 
   if (sousType === 'chambre_salon' || sousType === 'entree_coucher') {
-    const chips: { icon: string; label: string }[] = []
+    const chips: { icon: IconType; label: string }[] = []
     const chambres = counts['Chambre'] || 0
     const salons = counts['Salon'] || 0
     const entrees = counts['Entrée'] || 0
-    if (chambres > 0) chips.push({ icon: pieceIconPath('Chambre'), label: `${chambres} Chambre${chambres > 1 ? 's' : ''}` })
-    if (salons > 0) chips.push({ icon: pieceIconPath('Salon'), label: `${salons} Salon${salons > 1 ? 's' : ''}` })
-    if (entrees > 0) chips.push({ icon: pieceIconPath('Entrée'), label: `${entrees} Entrée${entrees > 1 ? 's' : ''}` })
+    if (chambres > 0) chips.push({ icon: pieceIconType('Chambre'), label: `${chambres} Chambre${chambres > 1 ? 's' : ''}` })
+    if (salons > 0) chips.push({ icon: pieceIconType('Salon'), label: `${salons} Salon${salons > 1 ? 's' : ''}` })
+    if (entrees > 0) chips.push({ icon: pieceIconType('Entrée'), label: `${entrees} Entrée${entrees > 1 ? 's' : ''}` })
     return chips.length > 0 ? chips : null
   }
 
-  const chips = Object.entries(counts).map(([nom, n]) => ({ icon: pieceIconPath(nom), label: pluralPiece(nom, n) }))
+  const chips = Object.entries(counts).map(([nom, n]) => ({ icon: pieceIconType(nom), label: pluralPiece(nom, n) }))
   return chips.length > 0 ? chips : null
 }
 
@@ -447,16 +488,16 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
       {/* Feature chips */}
       {hasFeatureChips && (
         <div className="flex flex-wrap gap-2.5">
-          {bien.pieces?.length > 0 && <FeatureChip label={`${bien.pieces.length} pièce${bien.pieces.length > 1 ? 's' : ''}`} />}
-          {bien.details_maison?.superficie > 0 && <FeatureChip label={`${bien.details_maison.superficie} m²`} />}
-          {bien.details_terrain?.superficie > 0 && <FeatureChip label={`${bien.details_terrain.superficie} m²`} />}
-          {bien.details_appart?.entree_personnelle && <FeatureChip label="Entrée privée" />}
-          {(bien.details_maison?.cloture || bien.details_terrain?.cloture) && <FeatureChip label="Clôturé" />}
-          {bien.amenites?.parking && <FeatureChip label={bien.amenites?.parking_capacite ? `Parking ×${bien.amenites.parking_capacite}` : 'Parking'} />}
-          {bien.amenites?.cour && <FeatureChip label="Cour" />}
-          {bien.amenites?.boyerie && <FeatureChip label="Boyerie" />}
-          {bien.amenites?.sanitaire === true && <FeatureChip label="Sanitaire" />}
-          {bien.amenites?.sanitaire === false && <FeatureChip label="Non sanitaire" />}
+          {bien.pieces?.length > 0 && <FeatureChip icon="room" label={`${bien.pieces.length} pièce${bien.pieces.length > 1 ? 's' : ''}`} />}
+          {bien.details_maison?.superficie > 0 && <FeatureChip icon="ruler" label={`${bien.details_maison.superficie} m²`} />}
+          {bien.details_terrain?.superficie > 0 && <FeatureChip icon="ruler" label={`${bien.details_terrain.superficie} m²`} />}
+          {bien.details_appart?.entree_personnelle && <FeatureChip icon="door" label="Entrée privée" />}
+          {(bien.details_maison?.cloture || bien.details_terrain?.cloture) && <FeatureChip icon="fence" label="Clôturé" />}
+          {bien.amenites?.parking && <FeatureChip icon="parking" label={bien.amenites?.parking_capacite ? `Parking ×${bien.amenites.parking_capacite}` : 'Parking'} />}
+          {bien.amenites?.cour && <FeatureChip icon="yard" label="Cour" />}
+          {bien.amenites?.boyerie && <FeatureChip icon="person" label="Boyerie" />}
+          {bien.amenites?.sanitaire === true && <FeatureChip icon="bathtub" label="Sanitaire" />}
+          {bien.amenites?.sanitaire === false && <FeatureChip icon="people" label="Non sanitaire" />}
         </div>
       )}
 
@@ -481,7 +522,7 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
           <div className="flex flex-wrap gap-2.5">
             {composition.map((c, i) => (
               <div key={i} className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-primary/25 shadow-sm">
-                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d={c.icon} /></svg>
+                <Icon type={c.icon} className="w-4 h-4 text-primary" />
                 <span className="text-[13px] font-semibold text-text-dark">{c.label}</span>
               </div>
             ))}
@@ -535,9 +576,10 @@ function SectionTitle({ title }: { title: string }) {
   return <p className="font-bold text-text-dark text-[15px] mb-3">{title}</p>
 }
 
-function FeatureChip({ label }: { label: string }) {
+function FeatureChip({ icon, label }: { icon: IconType; label: string }) {
   return (
-    <span className="px-3 py-1.5 rounded-lg text-xs font-medium text-text-grey" style={{ background: 'rgba(0,0,0,0.045)' }}>
+    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-grey" style={{ background: 'rgba(0,0,0,0.045)' }}>
+      <Icon type={icon} className="w-[13px] h-[13px]" />
       {label}
     </span>
   )
@@ -603,7 +645,7 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
     const montant = Number(f.montant) || 0
     if (montant > 0) rows.push({ icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: '#8E44AD', label: f.label || 'Autre frais', amount: montant })
   }
-  if (!isOwnBien && commission > 0) rows.push({ icon: 'M8 12h8m-8 0a4 4 0 01-4-4V6a2 2 0 012-2h1m9 8a4 4 0 004-4V6a2 2 0 00-2-2h-1m-8 0h8', color: '#2E86C1', label: 'Commission agence', amount: commission, note: "Frais d'agence inclus dans votre paiement" })
+  if (!isOwnBien && commission > 0) rows.push({ icon: 'M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.169.659 1.591l9.581 9.581c.699.699 1.83.699 2.528 0l7.409-7.409a1.79 1.79 0 000-2.528l-9.581-9.581A2.25 2.25 0 009.568 3zM6.375 7.5a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z', color: '#2E86C1', label: 'Commission agence', amount: commission, note: "Frais d'agence inclus dans votre paiement" })
 
   return (
     <div className="rounded-2xl bg-white border border-divider shadow-sm overflow-hidden">
