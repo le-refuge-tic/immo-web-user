@@ -8,6 +8,13 @@ import Reveal from '../../components/Reveal'
 import HERO_IMG from '../../assets/hero-interior.jpg'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
 
+const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
+function resolveUrl(url: string) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return BACKEND + url
+}
+
 function norm(s: string) {
   return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 }
@@ -184,8 +191,14 @@ export default function HomePage() {
     .filter(b => minVal == null || Number(b.prix) >= minVal)
     .filter(b => maxVal == null || Number(b.prix) <= maxVal)
 
-  // Bien mis en avant sur le hero desktop — priorité à un bien avec photo.
-  const featured = biens.find(b => b.photos?.length > 0) || biens[0]
+  // Biens avec photo — utilisés pour faire défiler le fond du hero desktop
+  // (comme les portails immobiliers classiques) au lieu d'une image fixe.
+  const [heroIndex, setHeroIndex] = useState(0)
+  const heroBiens = biens.filter(b => b.photos?.length > 0).slice(0, 8)
+  const heroBien = heroBiens.length > 0 ? heroBiens[heroIndex % heroBiens.length] : null
+  const heroCover = heroBien ? (heroBien.photos.find((p: any) => p.is_cover) || heroBien.photos[0]) : null
+  const heroPrev = () => setHeroIndex(i => (i - 1 + heroBiens.length) % heroBiens.length)
+  const heroNext = () => setHeroIndex(i => (i + 1) % heroBiens.length)
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -268,9 +281,41 @@ export default function HomePage() {
       </div>
 
       {/* ── DESKTOP hero image pleine largeur ── */}
-      <div className="hidden md:flex relative w-full flex-col justify-center" style={{ minHeight: '72vh' }}>
-        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="hidden md:flex relative w-full flex-col justify-center group/hero" style={{ minHeight: '72vh' }}>
+        <img
+          key={heroBien?.id ?? 'default'}
+          src={heroCover ? resolveUrl(heroCover.url) : HERO_IMG}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover anim-fade-in"
+        />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.15) 100%)' }} />
+
+        {/* Flèches de navigation entre les photos des biens — visibles au survol
+            du hero, pour switcher vers la photo d'un autre bien publié. */}
+        {heroBiens.length > 1 && (
+          <>
+            <button
+              onClick={heroPrev}
+              aria-label="Bien précédent"
+              className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity"
+              style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)' }}
+            >
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={heroNext}
+              aria-label="Bien suivant"
+              className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity"
+              style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)' }}
+            >
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </>
+        )}
 
         <div className="relative z-10 w-full px-16 pb-20">
           <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4 anim-fade-up">
@@ -302,9 +347,9 @@ export default function HomePage() {
         {/* Carte "bien à la une" — flottante sur le hero, inspirée des portails
             immobiliers classiques ; n'apparaît qu'à partir de xl pour ne jamais
             chevaucher le titre sur les largeurs desktop plus étroites. */}
-        {featured && (
-          <div className="hidden xl:block absolute z-10 anim-scale-in d-400" style={{ top: '18%', right: '4rem', width: 320 }}>
-            <button onClick={() => navigate(`/biens/${featured.id}`)} className="w-full text-left bg-white rounded-2xl overflow-hidden shadow-2xl hover:-translate-y-1 transition-transform">
+        {heroBien && (
+          <div key={heroBien.id} className="hidden xl:block absolute z-10 anim-scale-in" style={{ top: '18%', right: '4rem', width: 320 }}>
+            <button onClick={() => navigate(`/biens/${heroBien.id}`)} className="w-full text-left bg-white rounded-2xl overflow-hidden shadow-2xl hover:-translate-y-1 transition-transform">
               <div className="px-3 pt-3">
                 <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold text-white" style={{ background: '#4B6BFF' }}>
                   À la une
@@ -312,24 +357,37 @@ export default function HomePage() {
               </div>
               <div className="px-5 pt-3 pb-5">
                 <p className="font-bold text-text-dark text-[15px] leading-snug mb-2">
-                  {TYPES.find(t => t.key === featured.type)?.label || featured.type}
-                  {featured.localisation?.quartier ? ` — ${featured.localisation.quartier}` : ''}
+                  {TYPES.find(t => t.key === heroBien.type)?.label || heroBien.type}
+                  {heroBien.localisation?.quartier ? ` — ${heroBien.localisation.quartier}` : ''}
                 </p>
                 <div className="flex items-center gap-1.5 text-text-grey text-xs mb-3">
                   <PinIcon />
-                  <span>{featured.localisation?.ville || 'Bénin'}</span>
+                  <span>{heroBien.localisation?.ville || 'Bénin'}</span>
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-divider">
                   <span className="text-[11px] font-semibold text-text-grey uppercase tracking-wide">
-                    {featured.transaction === 'location' ? 'À louer' : 'À vendre'}
+                    {heroBien.transaction === 'location' ? 'À louer' : 'À vendre'}
                   </span>
                   <p className="font-bold text-lg" style={{ color: '#4B6BFF' }}>
-                    {Number(featured.prix).toLocaleString('fr-FR')}
-                    <span className="text-xs font-medium text-text-grey"> FCFA{featured.transaction === 'location' ? '/mois' : ''}</span>
+                    {Number(heroBien.prix).toLocaleString('fr-FR')}
+                    <span className="text-xs font-medium text-text-grey"> FCFA{heroBien.transaction === 'location' ? '/mois' : ''}</span>
                   </p>
                 </div>
               </div>
             </button>
+            {heroBiens.length > 1 && (
+              <div className="flex items-center justify-center gap-1.5 mt-3">
+                {heroBiens.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => setHeroIndex(i)}
+                    aria-label={`Bien ${i + 1}`}
+                    className="h-1.5 rounded-full transition-all"
+                    style={{ width: i === heroIndex ? 20 : 6, background: i === heroIndex ? '#fff' : 'rgba(255,255,255,0.4)' }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
