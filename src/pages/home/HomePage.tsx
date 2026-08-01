@@ -213,6 +213,18 @@ export default function HomePage() {
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 3)
 
+  // Quartiers où des biens sont actuellement publiés — pour la bannière CTA.
+  const quartiersActifs = Array.from(new Set(
+    biens.map(b => b.localisation?.quartier).filter((q): q is string => !!q?.trim())
+  )).slice(0, 5)
+
+  const voirLesBiens = () => {
+    document.getElementById('location-biens')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  const publierUnBien = () => {
+    navigate(isLoggedIn ? '/nouveau-bien' : '/login')
+  }
+
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
       const next = new Set(prev)
@@ -468,7 +480,7 @@ export default function HomePage() {
 
       {/* ── Biens récemment ajoutés pour location ── */}
       {recentLocation.length > 0 && (
-        <div className="hidden md:block w-full px-16 pt-16 pb-4">
+        <div id="location-biens" className="hidden md:block w-full px-16 pt-16 pb-4">
           <div className="max-w-3xl mx-auto text-center mb-10">
             <h2 className="text-3xl font-bold tracking-tight" style={{ color: '#4B6BFF' }}>
               Biens récemment ajoutés pour location
@@ -731,6 +743,36 @@ export default function HomePage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Bannière CTA — voir les biens / publier un bien ── */}
+      <div className="hidden md:block relative w-full overflow-hidden mt-4" style={{ height: 340 }}>
+        <div className="absolute inset-0" style={{ clipPath: 'polygon(0 6%, 100% 0%, 100% 94%, 0% 100%)' }}>
+          <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ background: 'rgba(10,10,10,0.72)' }} />
+        </div>
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8">
+          <p className="text-white/70 text-sm font-semibold uppercase tracking-wide mb-3">
+            Publier une annonce ou trouver un bien
+          </p>
+          <h2 className="text-white font-bold text-3xl md:text-4xl max-w-3xl leading-snug mb-7">
+            {quartiersActifs.length > 0
+              ? <>Des biens disponibles à {quartiersActifs.join(', ')}{quartiersActifs.length >= 5 ? '…' : ''}</>
+              : 'REFUGE, votre référence pour l’immobilier au Bénin'}
+          </h2>
+          <div className="flex items-center gap-4">
+            <button onClick={voirLesBiens}
+              className="px-7 py-3.5 rounded-xl font-bold text-white text-sm hover:opacity-90 transition-opacity"
+              style={{ background: '#4B6BFF', boxShadow: '0 4px 16px rgba(75,107,255,0.4)' }}>
+              Voir les biens
+            </button>
+            <button onClick={publierUnBien}
+              className="px-7 py-3.5 rounded-xl font-bold text-white text-sm transition-colors"
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(10px)' }}>
+              Publier un bien
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
