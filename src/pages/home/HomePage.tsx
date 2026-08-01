@@ -793,6 +793,9 @@ export default function HomePage() {
           <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
           <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
         </div>
+        <p className="text-xs mt-4" style={{ color: 'rgba(0,0,0,0.4)' }}>
+          © {new Date().getFullYear()} REFUGE. Tous droits réservés.
+        </p>
       </footer>
 
     </div>
