@@ -6,6 +6,7 @@ import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
 import HERO_IMG from '../../assets/hero-interior.jpg'
+import logoUrl from '../../assets/REFUGE-ICON.png'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
 
 const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
@@ -784,6 +785,14 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* ── Pied de page ── */}
+      <footer className="hidden md:block w-full px-16 py-8" style={{ background: '#111111' }}>
+        <div className="flex items-center gap-2.5">
+          <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+          <span className="font-bold text-lg tracking-tight text-white">REFUGE</span>
+        </div>
+      </footer>
 
     </div>
   )
