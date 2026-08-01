@@ -2,23 +2,23 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import sideImg from '../../assets/onboarding-side.jpg'
 import logoUrl from '../../assets/REFUGE-ICON.png'
+import { QUARTIERS as QUARTIERS_DB, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 
-const VILLES = ['Cotonou', 'Abomey-Calavi', 'Porto-Novo', 'Parakou', 'Bohicon']
+// Mêmes villes/quartiers que le reste de l'app (data/quartiers.ts, utilisé
+// par le QuartierPicker de l'accueil) — la liste précédente était une
+// courte sélection à la main, très incomplète par rapport à la vraie base.
+const VILLES: string[] = [...VILLES_AVEC_QUARTIERS]
 
-const QUARTIERS: Record<string, string[]> = {
-  'Cotonou':       ['Akpakpa', 'Fidjrossè', 'Cadjèhoun', 'Zogbo', 'Gbèdjromèdé', 'Agla', 'Dantokpa'],
-  'Abomey-Calavi': ['Godomey', 'Akassato', 'Togba', 'Kpanroun', 'Hêvié'],
-  'Porto-Novo':    ['Ouando', 'Agbossomè', 'Houin', 'Avrankou'],
-  'Parakou':       ['Banikanni', 'Madina', 'Zongo', 'Kpébié'],
-  'Bohicon':       ['Saclo', 'Lissèzoun', 'Avogbanna'],
-}
+const QUARTIERS: Record<string, string[]> = Object.fromEntries(
+  VILLES_AVEC_QUARTIERS.map(v => [
+    v,
+    QUARTIERS_DB.filter(q => q.ville === v).map(q => q.nom).sort((a, b) => a.localeCompare(b, 'fr')),
+  ]),
+)
 
 const VILLE_DEP: Record<string, string> = {
   'Cotonou':       'Littoral',
   'Abomey-Calavi': 'Atlantique',
-  'Porto-Novo':    'Ouémé',
-  'Parakou':       'Borgou',
-  'Bohicon':       'Zou',
 }
 
 export default function OnboardingDestinationPage() {

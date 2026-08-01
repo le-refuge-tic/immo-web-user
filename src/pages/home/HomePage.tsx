@@ -129,7 +129,10 @@ export default function HomePage() {
   const navigate = useNavigate()
   const [transaction, setTransaction] = useState('')
   const [type, setType] = useState('')
-  const [search, setSearch] = useState('')
+  // Reprend le quartier/ville choisi lors de l'onboarding ("Où souhaitez-vous
+  // louer ?") comme filtre de départ, pour que ce choix serve réellement à
+  // quelque chose au lieu de rester inutilisé en localStorage.
+  const [search, setSearch] = useState(() => localStorage.getItem('rg_quartier') || localStorage.getItem('rg_ville') || '')
   const [showSuggest, setShowSuggest] = useState(false)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
