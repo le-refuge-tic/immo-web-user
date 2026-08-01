@@ -100,6 +100,11 @@ const VillaIcon = () => (
   </svg>
 )
 
+const SearchIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+)
 const PersonIcon = () => (
   <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -175,6 +180,9 @@ export default function HomePage() {
     .filter(b => !search.trim() || matchLoc(b, search.trim()))
     .filter(b => minVal == null || Number(b.prix) >= minVal)
     .filter(b => maxVal == null || Number(b.prix) <= maxVal)
+
+  // Bien mis en avant sur le hero desktop — priorité à un bien avec photo.
+  const featured = biens.find(b => b.photos?.length > 0) || biens[0]
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -257,47 +265,23 @@ export default function HomePage() {
       </div>
 
       {/* ── DESKTOP hero image pleine largeur ── */}
-      <div className="hidden md:flex relative w-full flex-col justify-end" style={{ minHeight: '80vh' }}>
+      <div className="hidden md:flex relative w-full flex-col justify-center" style={{ minHeight: '72vh' }}>
         <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.40) 50%, rgba(0,0,0,0.20) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.15) 100%)' }} />
 
-        <div className="relative z-10 w-full px-16 pb-16">
+        <div className="relative z-10 w-full px-16 pb-20">
           <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4 anim-fade-up">
             Immobilier au Bénin — Annonces vérifiées
           </p>
-          <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-5 anim-blur-up d-100" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
+          <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-5 anim-blur-up d-100 max-w-2xl" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
             Trouvez votre logement idéal.<br />Habitez en confiance.
           </h1>
           <p className="text-white/60 text-lg leading-relaxed mb-8 max-w-xl anim-fade-up d-300">
             Maisons, appartements, terrains — à Cotonou, Abomey-Calavi et partout au Bénin.
           </p>
 
-          {/* Barre de recherche — glass clair sur fond sombre de l'image */}
-          <div className="flex items-center w-full max-w-2xl rounded-2xl overflow-hidden anim-scale-in d-400"
-            style={{
-              background: 'rgba(255,255,255,0.16)',
-              backdropFilter: 'blur(40px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.28)',
-              boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.35), 0 8px 32px rgba(0,0,0,0.2)',
-            }}
-          >
-            <div className="flex items-center gap-3 px-5 py-4 flex-1">
-              <svg className="w-5 h-5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
-                placeholder="Ville, quartier, type de bien…"
-                className="flex-1 min-w-0 text-sm bg-transparent outline-none text-white placeholder-white/50"
-              />
-            </div>
-          </div>
-
           {/* Stats */}
-          <div className="flex items-center gap-12 mt-10 pt-10 anim-fade-in d-600" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+          <div className="flex items-center gap-12 pt-8 mt-2 anim-fade-in d-600 max-w-2xl" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
             {[
               { val: biens.length > 0 ? `${biens.length}+` : '500+', label: 'Annonces disponibles' },
               { val: '5',    label: 'Villes couvertes' },
@@ -310,6 +294,101 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Carte "bien à la une" — flottante sur le hero, inspirée des portails
+            immobiliers classiques ; n'apparaît qu'à partir de xl pour ne jamais
+            chevaucher le titre sur les largeurs desktop plus étroites. */}
+        {featured && (
+          <div className="hidden xl:block absolute z-10 anim-scale-in d-400" style={{ top: '18%', right: '4rem', width: 320 }}>
+            <button onClick={() => navigate(`/biens/${featured.id}`)} className="w-full text-left bg-white rounded-2xl overflow-hidden shadow-2xl hover:-translate-y-1 transition-transform">
+              <div className="px-3 pt-3">
+                <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold text-white" style={{ background: '#4B6BFF' }}>
+                  À la une
+                </span>
+              </div>
+              <div className="px-5 pt-3 pb-5">
+                <p className="font-bold text-text-dark text-[15px] leading-snug mb-2">
+                  {TYPES.find(t => t.key === featured.type)?.label || featured.type}
+                  {featured.localisation?.quartier ? ` — ${featured.localisation.quartier}` : ''}
+                </p>
+                <div className="flex items-center gap-1.5 text-text-grey text-xs mb-3">
+                  <PinIcon />
+                  <span>{featured.localisation?.ville || 'Bénin'}</span>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-divider">
+                  <span className="text-[11px] font-semibold text-text-grey uppercase tracking-wide">
+                    {featured.transaction === 'location' ? 'À louer' : 'À vendre'}
+                  </span>
+                  <p className="font-bold text-lg" style={{ color: '#4B6BFF' }}>
+                    {Number(featured.prix).toLocaleString('fr-FR')}
+                    <span className="text-xs font-medium text-text-grey"> FCFA{featured.transaction === 'location' ? '/mois' : ''}</span>
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Barre de recherche structurée — ancrée à cheval sur le bas du hero,
+          remplace l'ancienne barre mono-champ + panneau "Filtres" replié. ── */}
+      <div className="hidden md:block relative z-20 px-16" style={{ marginTop: -44 }}>
+        <div className="bg-white rounded-2xl shadow-2xl flex items-stretch divide-x divide-divider anim-scale-in d-400">
+          <div className="flex-1 min-w-0 px-6 py-4 relative">
+            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Quartier</p>
+            <div className="flex items-center gap-2">
+              <span className="text-text-grey flex-shrink-0"><PinIcon /></span>
+              <input
+                value={search}
+                onChange={e => { setSearch(e.target.value); setShowSuggest(true) }}
+                onFocus={() => setShowSuggest(true)}
+                onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+                onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
+                placeholder="Où cherchez-vous ?"
+                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+              />
+            </div>
+            {showSuggest && suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-2 z-30 bg-white rounded-xl border border-divider shadow-lg max-h-56 overflow-y-auto">
+                {suggestions.map((q, i) => (
+                  <button key={`${q.nom}-${i}`} type="button" onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
+                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2">
+                    <span className="text-text-dark font-medium">{q.nom}</span>
+                    <span className="text-text-grey text-xs flex-shrink-0">{q.ville}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="w-48 flex-shrink-0 px-6 py-4">
+            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Opération</p>
+            <select value={transaction} onChange={e => setTransaction(e.target.value)}
+              className="w-full bg-transparent outline-none text-sm text-text-dark cursor-pointer">
+              {TRANSACTIONS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </div>
+          <div className="w-48 flex-shrink-0 px-6 py-4">
+            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Type de bien</p>
+            <select value={type} onChange={e => setType(e.target.value)}
+              className="w-full bg-transparent outline-none text-sm text-text-dark cursor-pointer">
+              {TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </div>
+          <div className="w-44 flex-shrink-0 px-6 py-4">
+            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget max</p>
+            <select value={prixMax} onChange={e => { setPrixMin(''); setPrixMax(e.target.value) }}
+              className="w-full bg-transparent outline-none text-sm text-text-dark cursor-pointer">
+              <option value="">Tous</option>
+              {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{p.label}</option>)}
+            </select>
+          </div>
+          <button onClick={goToSearch}
+            className="flex-shrink-0 flex items-center gap-2 px-8 font-bold text-white text-sm rounded-r-2xl transition-opacity hover:opacity-90"
+            style={{ background: '#4B6BFF' }}>
+            <SearchIcon />
+            Rechercher
+          </button>
         </div>
       </div>
 
@@ -343,7 +422,7 @@ export default function HomePage() {
           ))}
           <button
             onClick={() => setShowFilters(s => !s)}
-            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
+            className="md:hidden flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
             style={showFilters || prixMin || prixMax ? {
               background: 'rgba(75,107,255,0.14)',
               border: '1px solid rgba(75,107,255,0.35)',
@@ -363,9 +442,10 @@ export default function HomePage() {
           </button>
         </Reveal>
 
-        {/* Filtres — panneau repliable */}
+        {/* Filtres — panneau repliable (mobile uniquement : sur desktop, la
+            barre structurée ancrée sous le hero couvre déjà ces filtres) */}
         {showFilters && (
-          <Reveal animation="anim-fade-up" className="glass-card rounded-2xl p-4 mb-4">
+          <Reveal animation="anim-fade-up" className="md:hidden glass-card rounded-2xl p-4 mb-4">
 
             {/* Ville ou quartier */}
             <div className="mb-4">
