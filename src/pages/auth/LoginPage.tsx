@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-ICON.png'
 
 const COUNTRY_CODES = [
   { code: '+229', label: 'BJ +229' },
@@ -51,7 +51,7 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <img src={logoUrl} alt="REFUGE" style={{ width: 54, height: 54, objectFit: 'contain' }} />
+          <img src={logoUrl} alt="REFUGE" style={{ width: 64, height: 64, objectFit: 'contain' }} />
           <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
         </div>
 
@@ -102,7 +102,7 @@ export default function LoginPage() {
           </button>
           <div className="flex items-center gap-3 mb-6">
             <div className="w-[46px] h-[46px] flex items-center justify-center rounded-[14px]" style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.15)' }}>
-              <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+              <img src={logoUrl} alt="REFUGE" style={{ width: 38, height: 38, objectFit: 'contain' }} />
             </div>
             <div>
               <p className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</p>

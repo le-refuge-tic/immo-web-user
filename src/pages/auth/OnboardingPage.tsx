@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import img1 from '../../assets/onboarding-1.jpg'
 import img2 from '../../assets/onboarding-2.jpg'
 import img3 from '../../assets/onboarding-3.jpg'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-ICON.png'
 
 const SLIDES = [
   {
@@ -116,7 +116,7 @@ export default function OnboardingPage() {
             </button>
           ) : (
             <div className="flex items-center gap-2.5">
-              <img src={logoUrl} alt="REFUGE" style={{ width: 42, height: 42, objectFit: 'contain' }} />
+              <img src={logoUrl} alt="REFUGE" style={{ width: 52, height: 52, objectFit: 'contain' }} />
               <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
             </div>
           )}

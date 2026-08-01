@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import sideImg from '../../assets/onboarding-side.jpg'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-ICON.png'
 
 export default function OnboardingProjetPage() {
   const navigate = useNavigate()
@@ -23,7 +23,7 @@ export default function OnboardingProjetPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between px-6 md:px-16 pt-14 pb-4">
           <div className="flex items-center gap-2.5">
-            <img src={logoUrl} alt="REFUGE" style={{ width: 42, height: 42, objectFit: 'contain' }} />
+            <img src={logoUrl} alt="REFUGE" style={{ width: 52, height: 52, objectFit: 'contain' }} />
             <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
           </div>
           {/* Progress */}

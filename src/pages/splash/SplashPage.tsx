@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import bgImg from '../../assets/hero-interior.jpg'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-ICON.png'
 
 export default function SplashPage() {
   const navigate = useNavigate()
@@ -38,7 +38,7 @@ export default function SplashPage() {
         {/* Top bar : logo gauche + passer droite */}
         <div className="flex items-center justify-between px-7 md:px-16 pt-14">
           <div className="flex items-center gap-3 anim-slide-down">
-            <img src={logoUrl} alt="REFUGE" className="anim-bounce-in" style={{ width: 54, height: 54, objectFit: 'contain' }} />
+            <img src={logoUrl} alt="REFUGE" className="anim-bounce-in" style={{ width: 64, height: 64, objectFit: 'contain' }} />
             <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
           </div>
           <button
