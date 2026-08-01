@@ -787,10 +787,11 @@ export default function HomePage() {
       )}
 
       {/* ── Pied de page ── */}
-      <footer className="hidden md:block w-full px-16 py-8" style={{ background: '#111111' }}>
+      <footer className="hidden md:block w-full px-16 py-8"
+        style={{ background: 'rgba(245,245,247,0.78)', backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
         <div className="flex items-center gap-2.5">
           <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
-          <span className="font-bold text-lg tracking-tight text-white">REFUGE</span>
+          <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
         </div>
       </footer>
 
