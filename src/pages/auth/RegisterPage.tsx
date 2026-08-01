@@ -38,7 +38,12 @@ export default function RegisterPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
-  const [role, setRole] = useState('')
+  // Présélectionne le profil choisi lors de l'onboarding ("Je veux louer" /
+  // "J'ai un bien") pour éviter de reposer la question à l'inscription.
+  const [role, setRole] = useState(() => {
+    const suggere = localStorage.getItem('rg_role_suggere')
+    return suggere === 'proprietaire' || suggere === 'prospect' ? suggere : ''
+  })
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
   const [countryCode, setCountryCode] = useState('+229')

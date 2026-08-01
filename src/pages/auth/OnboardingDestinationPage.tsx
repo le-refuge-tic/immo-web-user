@@ -33,21 +33,27 @@ export default function OnboardingDestinationPage() {
 
   const handleVilleChange = (v: string) => { setVille(v); setQuartier('') }
 
+  // La réponse de l'étape 1 présélectionne directement le profil proposé à
+  // l'inscription (propriétaire ou prospect) — voir RegisterPage.
+  const roleSuggere = objectif === 'proprietaire' ? 'proprietaire' : 'prospect'
+
   const handleNext = () => {
     if (ville) localStorage.setItem('rg_ville', ville)
     if (quartier) localStorage.setItem('rg_quartier', quartier)
     localStorage.setItem('rg_objectif', objectif)
+    localStorage.setItem('rg_role_suggere', roleSuggere)
     localStorage.setItem('rg_onboarded', 'true')
     navigate('/', { replace: true })
   }
 
   const handleSkip = () => {
     localStorage.setItem('rg_objectif', objectif)
+    localStorage.setItem('rg_role_suggere', roleSuggere)
     localStorage.setItem('rg_onboarded', 'true')
     navigate('/', { replace: true })
   }
 
-  const verb = objectif === 'acheter' ? 'acheter' : 'louer'
+  const isProprietaire = objectif === 'proprietaire'
 
   return (
     <div className="min-h-dvh relative overflow-hidden flex flex-col">
@@ -77,9 +83,11 @@ export default function OnboardingDestinationPage() {
         <div className="px-6 md:px-16 pb-12 md:pb-16">
           <p className="text-white/45 text-xs uppercase tracking-[2px] mb-3">Étape 2 sur 2</p>
           <h2 className="text-white font-bold leading-[1.1] tracking-tight mb-2" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 3.2rem)' }}>
-            Où souhaitez-vous {verb} ?
+            {isProprietaire ? 'Où se trouve votre bien ?' : 'Où souhaitez-vous louer ?'}
           </h2>
-          <p className="text-white/55 text-sm md:text-base mb-8">Sélectionnez votre zone de préférence.</p>
+          <p className="text-white/55 text-sm md:text-base mb-8">
+            {isProprietaire ? 'Indiquez la zone où se situe votre bien.' : 'Sélectionnez votre zone de préférence.'}
+          </p>
 
           {/* Sélects */}
           <div className="space-y-4 md:max-w-lg mb-8">
