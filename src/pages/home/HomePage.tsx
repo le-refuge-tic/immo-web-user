@@ -200,6 +200,13 @@ export default function HomePage() {
   const heroPrev = () => setHeroIndex(i => (i - 1 + heroBiens.length) % heroBiens.length)
   const heroNext = () => setHeroIndex(i => (i + 1) % heroBiens.length)
 
+  // Biens à louer les plus récemment publiés — section dédiée façon portails
+  // immobiliers classiques (photo + nombre de photos + date d'ajout).
+  const recentLocation = biens
+    .filter(b => b.transaction === 'location')
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    .slice(0, 3)
+
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
       const next = new Set(prev)
@@ -452,6 +459,33 @@ export default function HomePage() {
           </button>
         </div>
       </div>
+
+      {/* ── Biens récemment ajoutés pour location ── */}
+      {recentLocation.length > 0 && (
+        <div className="hidden md:block w-full px-16 pt-16 pb-4">
+          <div className="max-w-3xl mx-auto text-center mb-10">
+            <h2 className="text-3xl font-bold tracking-tight" style={{ color: '#4B6BFF' }}>
+              Biens récemment ajoutés pour location
+            </h2>
+            <p className="text-text-grey text-sm leading-relaxed mt-3">
+              Vous recherchez un appartement ou une maison à louer ? Découvrez les derniers biens
+              publiés sur REFUGE et réservez votre visite en quelques clics.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-5">
+            {recentLocation.map(bien => (
+              <BienCard
+                key={bien.id}
+                bien={bien}
+                favoriteIds={favIds}
+                onFavoriteToggle={handleFavToggle}
+                showPhotoCount
+                showAddedDate
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Contenu principal (catégories + grille) ── */}
       <div className="w-full px-4 md:px-16 py-4 md:py-8">

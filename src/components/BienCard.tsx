@@ -11,14 +11,24 @@ function resolveUrl(url: string) {
   return BACKEND + url
 }
 
+function fmtAddedDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  } catch { return '' }
+}
+
 type Props = {
   bien: any
   favoriteIds?: Set<number>
   onFavoriteToggle?: (id: number, added: boolean) => void
   distanceKm?: number | null
+  /** Affiche le nombre de photos (badge bas-gauche), façon portails immobiliers classiques. */
+  showPhotoCount?: boolean
+  /** Affiche la date de publication du bien. */
+  showAddedDate?: boolean
 }
 
-export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distanceKm }: Props) {
+export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distanceKm, showPhotoCount, showAddedDate }: Props) {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
   const [isFav, setIsFav] = useState(favoriteIds?.has(bien.id) ?? false)
@@ -123,6 +133,18 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
         {/* Gradient bottom pour lisibilité du texte */}
         <div className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)' }} />
+
+        {/* Badge nombre de photos */}
+        {showPhotoCount && bien.photos?.length > 0 && (
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-white text-xs font-semibold"
+            style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {bien.photos.length}
+          </div>
+        )}
       </div>
 
       {/* Infos */}
@@ -149,6 +171,11 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
         {Number(bien.frais_visite) > 0 && (
           <p className="hidden md:block text-xs mt-2 pt-2" style={{ color: 'rgba(0,0,0,0.30)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
             Frais visite : <span className="font-semibold" style={{ color: '#FF6B35' }}>{Number(bien.frais_visite).toLocaleString('fr-FR')} FCFA</span>
+          </p>
+        )}
+        {showAddedDate && bien.created_at && (
+          <p className="text-[11px] mt-2" style={{ color: 'rgba(0,0,0,0.35)' }}>
+            Ajouté le {fmtAddedDate(bien.created_at)}
           </p>
         )}
       </div>
