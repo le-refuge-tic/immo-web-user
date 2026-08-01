@@ -207,6 +207,12 @@ export default function HomePage() {
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 3)
 
+  // Même principe côté vente.
+  const recentVente = biens
+    .filter(b => b.transaction === 'vente')
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    .slice(0, 3)
+
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
       const next = new Set(prev)
@@ -474,6 +480,33 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-3 gap-5">
             {recentLocation.map(bien => (
+              <BienCard
+                key={bien.id}
+                bien={bien}
+                favoriteIds={favIds}
+                onFavoriteToggle={handleFavToggle}
+                showPhotoCount
+                showAddedDate
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Nos exclusivités en vente ── */}
+      {recentVente.length > 0 && (
+        <div className="hidden md:block w-full px-16 pt-10 pb-4">
+          <div className="max-w-3xl mx-auto text-center mb-10">
+            <h2 className="text-3xl font-bold tracking-tight" style={{ color: '#FF6B35' }}>
+              Nos exclusivités en vente
+            </h2>
+            <p className="text-text-grey text-sm leading-relaxed mt-3">
+              Maisons, appartements, terrains à vendre — à Cotonou, Abomey-Calavi et partout au
+              Bénin. Découvrez les derniers biens publiés sur REFUGE.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-5">
+            {recentVente.map(bien => (
               <BienCard
                 key={bien.id}
                 bien={bien}
