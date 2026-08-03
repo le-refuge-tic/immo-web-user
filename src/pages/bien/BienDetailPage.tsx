@@ -196,6 +196,8 @@ export default function BienDetailPage() {
   const [isOccupeLocal, setIsOccupeLocal] = useState(false)
   const [togglingStatut, setTogglingStatut] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [similaires, setSimilaires] = useState<any[]>([])
 
   useEffect(() => {
     biensApi.byId(Number(id))
@@ -203,6 +205,26 @@ export default function BienDetailPage() {
       .catch(() => setError('Bien introuvable'))
       .finally(() => setLoading(false))
   }, [id])
+
+  // Biens similaires — même type & même ville, hors le bien courant.
+  useEffect(() => {
+    if (!bien) return
+    biensApi.list({ transaction: bien.transaction, type: bien.type })
+      .then(d => {
+        const list = Array.isArray(d) ? d : d.data || []
+        setSimilaires(
+          list.filter((b: any) => b.id !== bien.id && b.localisation?.ville === bien.localisation?.ville).slice(0, 4)
+        )
+      })
+      .catch(() => {})
+  }, [bien?.id])
+
+  const partager = () => {
+    navigator.clipboard?.writeText(window.location.href).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    }).catch(() => {})
+  }
 
   const isOwnBien = !!(isLoggedIn && user && bien && bien.user_id === user.id)
 
@@ -384,6 +406,7 @@ export default function BienDetailPage() {
           </div>
 
           {/* ── Panneau infos sticky desktop ── */}
+          <div>
           <div className="sticky top-20">
             <div className="glass-card rounded-2xl p-6">
               <div className="flex gap-2 mb-4">
@@ -440,8 +463,52 @@ export default function BienDetailPage() {
                 onProposerVisite={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
                 onModifier={() => setEditing(true)}
               />
+
+              <button onClick={partager}
+                className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-divider text-text-grey hover:text-text-dark hover:border-text-grey/40 transition-colors">
+                {linkCopied ? (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    <span style={{ color: '#22C55E' }}>Lien copié</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342a2.996 2.996 0 000-2.684m0 2.684a3 3 0 100 2.684m0-2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.368-2.684 3 3 0 00-5.368 2.684zm0 9.632a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                    Partager ce bien
+                  </>
+                )}
+              </button>
             </div>
           </div>
+
+          {/* Biens similaires */}
+          {similaires.length > 0 && (
+            <div className="mt-5">
+              <p className="font-bold text-text-dark text-sm mb-3">Biens similaires</p>
+              <div className="space-y-2.5">
+                {similaires.map(b => {
+                  const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  return (
+                    <button key={b.id} onClick={() => navigate(`/biens/${b.id}`)}
+                      className="w-full flex items-center gap-3 p-2.5 rounded-xl glass-card text-left hover:-translate-y-0.5 transition-transform">
+                      <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                        {cover ? <img src={resolveUrl(cover.url)} alt="" className="w-full h-full object-cover" /> : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-text-dark truncate">{Number(b.prix).toLocaleString('fr-FR')} FCFA{b.transaction === 'location' ? '/mois' : ''}</p>
+                        <p className="text-xs text-text-grey truncate">{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
         </div>
       </div>
 
