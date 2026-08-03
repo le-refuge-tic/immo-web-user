@@ -406,7 +406,6 @@ export default function BienDetailPage() {
           </div>
 
           {/* ── Panneau infos sticky desktop ── */}
-          <div>
           <div className="sticky top-20">
             <div className="glass-card rounded-2xl p-6">
               <div className="flex gap-2 mb-4">
@@ -479,7 +478,6 @@ export default function BienDetailPage() {
                 )}
               </button>
             </div>
-          </div>
 
           {/* Biens similaires */}
           {similaires.length > 0 && (
