@@ -39,7 +39,7 @@ export default function SplashPage() {
         <div className="flex items-center justify-between px-7 md:px-16 pt-14">
           <div className="flex items-center gap-3 anim-slide-down">
             <div className="anim-bounce-in w-[58px] h-[58px] flex items-center justify-center rounded-[16px] flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.22)' }}>
+              style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
               <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} />
             </div>
             <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
