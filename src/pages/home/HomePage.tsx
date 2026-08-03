@@ -767,6 +767,56 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* ── Nos services — pourquoi choisir REFUGE ── */}
+      <div className="hidden md:block w-full px-16 py-16">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <p className="text-sm font-bold uppercase tracking-wide mb-2" style={{ color: '#4B6BFF' }}>Pourquoi choisir REFUGE</p>
+          <h2 className="text-3xl font-extrabold tracking-tight text-text-dark">NOS SERVICES</h2>
+        </div>
+        <div className="grid grid-cols-3 gap-6">
+          {[
+            {
+              title: 'Moteur de recherche',
+              desc: 'Filtrez par ville, quartier, type de bien et budget pour trouver rapidement le logement qu\'il vous faut.',
+              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+            },
+            {
+              title: 'Visites en ligne',
+              desc: 'Réservez votre créneau de visite en quelques clics et suivez la confirmation en temps réel.',
+              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l2 2 4-4" /></svg>,
+            },
+            {
+              title: 'Paiement sécurisé',
+              desc: 'Réglez vos frais de visite et vos loyers via Mobile Money (MTN MoMo, FedaPay), en toute sécurité.',
+              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
+            },
+            {
+              title: 'Messagerie intégrée',
+              desc: 'Échangez directement avec les propriétaires et démarcheurs sans quitter l\'application.',
+              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
+            },
+            {
+              title: 'Biens vérifiés',
+              desc: 'Chaque annonce est vérifiée avant publication pour vous garantir des informations fiables.',
+              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+            },
+            {
+              title: 'Support réactif',
+              desc: 'Une équipe à votre écoute pour vous accompagner à chaque étape de votre recherche.',
+              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-2a4 4 0 014-4h10a4 4 0 014 4v2M3 18a2 2 0 002 2h1a1 1 0 001-1v-4a1 1 0 00-1-1H3v6zm18 0a2 2 0 01-2 2h-1a1 1 0 01-1-1v-4a1 1 0 011-1h3v6z" /></svg>,
+            },
+          ].map(s => (
+            <div key={s.title} className="rounded-2xl p-7 bg-white" style={{ border: '1px solid rgba(75,107,255,0.15)', boxShadow: '0 4px 20px rgba(75,107,255,0.06)' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'rgba(75,107,255,0.1)' }}>
+                {s.icon}
+              </div>
+              <h3 className="font-bold text-text-dark text-lg mb-2">{s.title}</h3>
+              <p className="text-sm text-text-grey leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── Emplacements de bien — tous les quartiers actuellement publiés ── */}
       {quartiersActifs.length > 0 && (
         <div className="hidden md:block w-full px-16 py-12" style={{ background: '#1A1A1A' }}>
