@@ -120,6 +120,17 @@ export default function MesVisitesPage() {
     })
   }
 
+  const handleMarquerEffectuee = (v: any) => {
+    setConfirmDialog({
+      title: 'Visite effectuée ?',
+      body: 'Confirmez-vous que la visite a bien eu lieu ?',
+      onConfirm: async () => {
+        setConfirmDialog(null)
+        try { await visitesApi.marquerEffectuee(v.id) } catch (_) {} finally { loadVisites() }
+      },
+    })
+  }
+
   const handleAccepterCP = async (id: number) => {
     try {
       await visitesApi.accepterContreProposition(id)
@@ -281,7 +292,7 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
+            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
           </div>
         )}
       </div>
@@ -488,6 +499,7 @@ type VisiteCardProps = {
   onAccepterCP: (id: number) => void
   onRefuserCP: (v: any) => void
   onReproposer: (id: number, isoDate: string) => void | Promise<void>
+  onMarquerEffectuee: (v: any) => void
   onIntegration: (id: number, integre: boolean, bienId?: number) => void
   onPay: (v: any) => void
   onMessage: (id: number) => void
@@ -495,7 +507,7 @@ type VisiteCardProps = {
   onPayIntegration: (bienId: number) => void
 }
 
-function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onIntegration, onPay, onMessage, onFeedback, onPayIntegration }: VisiteCardProps) {
+function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onFeedback, onPayIntegration }: VisiteCardProps) {
   const meta = STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' }
   const bien = v.bien
   const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
@@ -669,6 +681,19 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
             Message
+          </button>
+        )}
+
+        {v.statut === 'confirmee' && v.paiement_effectue && (
+          <button
+            onClick={() => onMarquerEffectuee(v)}
+            className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+            style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Marquer comme effectuée
           </button>
         )}
 

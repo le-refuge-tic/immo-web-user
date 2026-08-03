@@ -369,11 +369,17 @@ export default function ChatPage() {
             <span className="text-xs font-semibold" style={{ color: p.accent }}>{p.label}</span>
           </div>
           {!isMe && status === 'pending' && (
-            <div className="flex gap-2 mt-2.5 pt-2.5" style={{ borderTop: `1px solid ${p.accent}33` }}>
-              <button onClick={() => repondreProposition(msg, 'accepted')}
-                className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(76,175,80,0.13)', color: '#4CAF50' }}>Accepter</button>
+            <div className="mt-2.5 pt-2.5" style={{ borderTop: `1px solid ${p.accent}33` }}>
+              <div className="flex gap-2">
+                <button onClick={() => repondreProposition(msg, 'accepted')}
+                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(76,175,80,0.13)', color: '#4CAF50' }}>Confirmer</button>
+                <button onClick={() => repondreProposition(msg, 'declined')}
+                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(239,68,68,0.10)', color: '#EF4444' }}>Rejeter</button>
+              </div>
               <button onClick={() => repondreProposition(msg, 'countered')}
-                className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF' }}>Modifier</button>
+                className="w-full mt-2 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF' }}>
+                Proposer une autre date
+              </button>
             </div>
           )}
           {status === 'accepted' && conv?.bien?.id && isClientRole && (

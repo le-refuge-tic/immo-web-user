@@ -469,6 +469,13 @@ function isEchouee(v: any): boolean {
   return new Date(raw).getTime() < Date.now()
 }
 
+/** Date de la visite déjà passée (sans le délai de grâce de isEchouee) — désactive Confirmer. */
+function isDatePassee(v: any): boolean {
+  const raw = v.date_contre_proposee || v.date_souhaitee
+  if (!raw) return false
+  return new Date(raw).getTime() < Date.now()
+}
+
 function ReservationsTab() {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<any[]>([])
@@ -503,8 +510,9 @@ function ReservationsTab() {
 
   const byBien = bienIdFilter ? visites.filter(v => v.bien?.id === bienIdFilter) : visites
   const filtered = filter === 'Toutes' ? byBien
-    : filter === 'À traiter' ? byBien.filter(v => !isEchouee(v) && v.statut === 'en_attente')
+    : filter === 'À traiter' ? byBien.filter(v => !isEchouee(v) && (v.statut === 'en_attente' || v.statut === 'contre_proposee'))
     : filter === 'Confirmées' ? byBien.filter(v => !isEchouee(v) && v.statut === 'confirmee')
+    : filter === 'Effectuées' ? byBien.filter(v => v.statut === 'effectuee')
     : filter === 'Échouées' ? byBien.filter(v => isEchouee(v))
     : byBien.filter(v => v.statut === 'annulee')
 
@@ -546,7 +554,7 @@ function ReservationsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="bg-white border-b border-divider flex flex-shrink-0">
-        {['Toutes', 'À traiter', 'Confirmées', 'Échouées', 'Annulées'].map(f => (
+        {['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Échouées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
             style={filter === f ? { borderColor: BLUE, color: BLUE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
@@ -624,6 +632,30 @@ function ReservationsTab() {
                   Contre-proposition envoyée. En attente du client.
                 </div>
               )}
+              {v.statut === 'effectuee' && v.feedback_donne && v.note_client != null && (
+                <div className="rounded-xl p-3 mb-3" style={{ background: '#F59E0B10', border: '1px solid #F59E0B30' }}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-xs font-bold" style={{ color: '#F59E0B' }}>Avis du client</p>
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= v.note_client ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      ))}
+                    </div>
+                  </div>
+                  {v.feedback_tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-1.5">
+                      {v.feedback_tags.map((t: string) => (
+                        <span key={t} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: '#F59E0B18', color: '#F59E0B' }}>{t}</span>
+                      ))}
+                    </div>
+                  )}
+                  {v.feedback_libre && (
+                    <p className="text-xs text-text-grey italic">« {v.feedback_libre} »</p>
+                  )}
+                </div>
+              )}
               {v.paiement_effectue && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#4CAF5010', borderColor: '#4CAF5030', color: '#4CAF50' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -652,7 +684,11 @@ function ReservationsTab() {
                 </button>
                 {v.statut === 'en_attente' && <>
                   <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold text-center" style={{ borderColor: BLUE + '80', color: BLUE }}>Autre créneau</button>
-                  <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
+                  <button onClick={() => confirmer(v.id)} disabled={isDatePassee(v)}
+                    className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:cursor-not-allowed"
+                    style={{ background: isDatePassee(v) ? 'rgba(158,158,158,0.5)' : '#4CAF50' }}>
+                    {isDatePassee(v) ? 'Date dépassée' : 'Confirmer'}
+                  </button>
                 </>}
                 {v.statut === 'confirmee' && (
                   <button onClick={async () => { try { await visitesApi.marquerEffectuee(v.id); load() } catch (_) {} }} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>

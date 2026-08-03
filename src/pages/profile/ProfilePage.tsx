@@ -86,6 +86,11 @@ type Visite = {
   bienType?: string
   dateVisite?: string
   creneau?: { debut: string; bien?: { type?: string } }
+  bien?: { type?: string; localisation?: { ville?: string; quartier?: string } }
+  feedback_donne?: boolean
+  note_client?: number | null
+  feedback_tags?: string[]
+  feedback_libre?: string
 }
 
 type StatBadgeProps = {
@@ -172,6 +177,7 @@ export default function ProfilePage() {
   const score = (Number(apiUser?.nb_etoiles) || 0) * 20
 
   const visiteActive = visites.find(v => v.statut === 'en_attente' || v.statut === 'confirmee')
+  const mesAvis = visites.filter(v => v.statut === 'effectuee' && v.feedback_donne && v.note_client != null)
 
   const handleLogout = async () => {
     const rt = localStorage.getItem('rg_refresh') || ''
@@ -233,6 +239,44 @@ export default function ProfilePage() {
     </div>
   )
 
+  const MesAvisBlock = () => (
+    mesAvis.length === 0 ? null : (
+      <div className="glass-card rounded-[16px] p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold text-text-dark text-sm">Mes avis</h3>
+          <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">{mesAvis.length}</span>
+        </div>
+        <div className="space-y-3">
+          {mesAvis.map(v => (
+            <div key={v.id} className="rounded-[12px] p-3" style={{ background: '#F59E0B0D', border: '1px solid #F59E0B26' }}>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-semibold text-text-dark truncate">
+                  {v.bien?.type || v.bienType || 'Bien'}
+                  {v.bien?.localisation?.quartier ? ` — ${v.bien.localisation.quartier}` : ''}
+                </p>
+                <div className="flex items-center gap-0.5 flex-shrink-0">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= (v.note_client ?? 0) ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
+              {v.feedback_tags && v.feedback_tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-1.5">
+                  {v.feedback_tags.map(t => (
+                    <span key={t} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: '#F59E0B18', color: '#F59E0B' }}>{t}</span>
+                  ))}
+                </div>
+              )}
+              {v.feedback_libre && <p className="text-xs text-text-grey italic">« {v.feedback_libre} »</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  )
+
   const VisiteActiveBlock = () => (
     visiteActive ? (
       <div className="glass-card rounded-[14px] p-3.5 flex items-center gap-3">
@@ -288,6 +332,7 @@ export default function ProfilePage() {
             <ArrowRightSmIcon />
           </button>
           <MenuBlock />
+          <MesAvisBlock />
           <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-full" style={{ backgroundColor: '#FF6B35' }}>
             <LogoutIcon />
             <span className="text-white text-[15px] font-bold">Se déconnecter</span>
@@ -375,6 +420,8 @@ export default function ProfilePage() {
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
+
+            <MesAvisBlock />
           </div>
         </div>
       </div>
