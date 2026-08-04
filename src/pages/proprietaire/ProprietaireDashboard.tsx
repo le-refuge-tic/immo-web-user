@@ -115,6 +115,75 @@ function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | u
   return months
 }
 
+function timeAgo(dateMs: number) {
+  const diff = Date.now() - dateMs
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return "à l'instant"
+  if (m < 60) return `il y a ${m} min`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `il y a ${h} h`
+  const j = Math.floor(h / 24)
+  if (j < 7) return `il y a ${j} j`
+  return new Date(dateMs).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}
+
+type ActivityType = 'visite_demande' | 'visite_confirmee' | 'visite_effectuee' | 'visite_annulee' | 'loyer_paye' | 'bien_approuve' | 'bien_rejete' | 'bien_nouveau'
+type ActivityItem = { type: ActivityType; title: string; subtitle: string; dateMs: number }
+
+/** Fil d'activité "Live Activity Feed" — fusionne visites, loyers encaissés et
+ *  biens en un flux chronologique unique, à partir des données déjà chargées
+ *  pour le tableau de bord (aucun appel réseau supplémentaire). */
+function buildActivityFeed(biens: any[], visites: any[], loyersDash: any): ActivityItem[] {
+  const items: ActivityItem[] = []
+
+  for (const v of visites) {
+    const raw = v.created_at || v.date_souhaitee
+    if (!raw) continue
+    const dateMs = new Date(raw).getTime()
+    if (isNaN(dateMs)) continue
+    const bien = v.bien
+    const loc = bien?.localisation ? `${bien.localisation.quartier ? bien.localisation.quartier + ', ' : ''}${bien.localisation.ville || ''}` : ''
+    const subtitle = [typeLabel(bien?.type || ''), loc].filter(Boolean).join(' — ')
+    if (v.statut === 'confirmee')      items.push({ type: 'visite_confirmee', title: 'Visite confirmée',           subtitle, dateMs })
+    else if (v.statut === 'effectuee') items.push({ type: 'visite_effectuee', title: 'Visite effectuée',           subtitle, dateMs })
+    else if (v.statut === 'annulee')   items.push({ type: 'visite_annulee',   title: 'Visite annulée',             subtitle, dateMs })
+    else                                items.push({ type: 'visite_demande',  title: 'Nouvelle demande de visite', subtitle, dateMs })
+  }
+
+  for (const c of loyersDash?.contrats || []) {
+    for (const l of c.loyers || []) {
+      if (l.statut !== 'paye' || !l.date_paiement) continue
+      const dateMs = new Date(l.date_paiement).getTime()
+      if (isNaN(dateMs)) continue
+      items.push({ type: 'loyer_paye', title: 'Loyer encaissé', subtitle: `${Number(l.montant).toLocaleString('fr-FR')} FCFA`, dateMs })
+    }
+  }
+
+  for (const b of biens) {
+    if (!b.created_at) continue
+    const dateMs = new Date(b.created_at).getTime()
+    if (isNaN(dateMs)) continue
+    const loc = b.localisation ? `${b.localisation.quartier ? b.localisation.quartier + ', ' : ''}${b.localisation.ville || ''}` : ''
+    const subtitle = `${typeLabel(b.type)}${loc ? ' — ' + loc : ''}`
+    if (b.statut_moderation === 'approuve')    items.push({ type: 'bien_approuve', title: 'Annonce approuvée', subtitle, dateMs })
+    else if (b.statut_moderation === 'rejete') items.push({ type: 'bien_rejete',   title: 'Annonce rejetée',   subtitle, dateMs })
+    else                                        items.push({ type: 'bien_nouveau',  title: 'Bien ajouté',       subtitle, dateMs })
+  }
+
+  return items.sort((a, b) => b.dateMs - a.dateMs).slice(0, 8)
+}
+
+const ACTIVITY_META: Record<ActivityType, { icon: 'cal' | 'wallet' | 'home'; color: string }> = {
+  visite_demande:    { icon: 'cal',    color: '#F59E0B' },
+  visite_confirmee:  { icon: 'cal',    color: '#22C55E' },
+  visite_effectuee:  { icon: 'cal',    color: '#2E86C1' },
+  visite_annulee:    { icon: 'cal',    color: '#EF4444' },
+  loyer_paye:        { icon: 'wallet', color: '#22C55E' },
+  bien_approuve:     { icon: 'home',   color: '#22C55E' },
+  bien_rejete:       { icon: 'home',   color: '#EF4444' },
+  bien_nouveau:      { icon: 'home',   color: '#2E86C1' },
+}
+
 // ─── QuickAction ──────────────────────────────────────────────────────────────
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
   return (
@@ -131,7 +200,34 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
 const IcTrendUp = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l6-6 4 4L20 9.5M20 9.5h-4.5M20 9.5v4.5"/></svg>
 const IcTrendDown = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l6 6 4-4L20 14.5M20 14.5h-4.5M20 14.5v-4.5"/></svg>
 
-function StatCard({ icon, color, label, value, trendPct }: { icon: React.ReactNode; color: string; label: string; value: string; trendPct?: number }) {
+/** Mini-graphique compact (sans axes) posé dans une StatCard, comme les
+ *  petites courbes intégrées aux cartes KPI des dashboards admin. */
+function MiniSparkline({ data, color }: { data: { value: number }[]; color: string }) {
+  if (data.length < 2) return null
+  const width = 100, height = 28
+  const max = Math.max(...data.map(d => d.value), 1)
+  const min = Math.min(...data.map(d => d.value), 0)
+  const range = Math.max(max - min, 1)
+  const stepX = width / (data.length - 1)
+  const points = data.map((d, i) => [i * stepX, height - ((d.value - min) / range) * height])
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
+  const areaPath = `${linePath} L${width},${height} L0,${height} Z`
+  const gradId = `sparkGrad-${color.replace('#', '')}`
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill={`url(#${gradId})`} />
+      <path d={linePath} fill="none" stroke={color} strokeWidth={1.5} />
+    </svg>
+  )
+}
+
+function StatCard({ icon, color, label, value, trendPct, sparkline }: { icon: React.ReactNode; color: string; label: string; value: string; trendPct?: number; sparkline?: { value: number }[] }) {
   const up = (trendPct ?? 0) >= 0
   return (
     <div className="card-soft rounded-2xl p-4 flex-1 min-w-0 relative overflow-hidden">
@@ -149,6 +245,11 @@ function StatCard({ icon, color, label, value, trendPct }: { icon: React.ReactNo
       </div>
       <p className="text-xl font-extrabold text-text-dark leading-none mb-1.5 truncate">{value}</p>
       <p className="text-xs text-text-grey truncate">{label}</p>
+      {sparkline && sparkline.some(s => s.value > 0) && (
+        <div className="mt-2 -mx-1">
+          <MiniSparkline data={sparkline} color={color} />
+        </div>
+      )}
     </div>
   )
 }
@@ -1331,6 +1432,8 @@ export default function ProprietaireDashboard() {
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
 
+  const activityFeed = buildActivityFeed(biens, visites, loyersDash)
+
   const lastUpdatedLabel = lastUpdated
     ? lastUpdated.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     : '—'
@@ -1417,8 +1520,8 @@ export default function ProprietaireDashboard() {
 
               {/* Stat cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} />
-                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} />
+                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} sparkline={hasRevenus ? revenusSeries : undefined} />
+                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} sparkline={hasVisites ? visitesSeries : undefined} />
                 <StatCard icon={<IcHome />} color="#22C55E" label="Taux d'occupation" value={`${tauxOccupation}%`} />
               </div>
 
@@ -1449,6 +1552,21 @@ export default function ProprietaireDashboard() {
                     ))}
                   </ChartCard>
                 )}
+                <ChartCard title="Activité récente" subtitle="Derniers événements" icon={<IcClock />} color="#7B2FBE" className={biensParType.length > 0 ? 'xl:col-span-3' : 'xl:col-span-1'}>
+                  {activityFeed.length === 0 ? <EmptyChartState label="Aucune activité récente" /> : (
+                    <div>
+                      {activityFeed.map((a, i) => {
+                        const meta = ACTIVITY_META[a.type]
+                        const icon = meta.icon === 'cal' ? <IcCal /> : meta.icon === 'wallet' ? <IcWallet /> : <IcHome />
+                        return (
+                          <HighlightRow key={i} icon={icon} color={meta.color} title={a.title}
+                            subtitle={`${a.subtitle}${a.subtitle ? ' · ' : ''}${timeAgo(a.dateMs)}`}
+                            last={i === activityFeed.length - 1} />
+                        )
+                      })}
+                    </div>
+                  )}
+                </ChartCard>
               </div>
 
               {/* Biens récents */}
