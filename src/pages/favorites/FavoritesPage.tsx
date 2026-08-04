@@ -30,6 +30,14 @@ export default function FavoritesPage() {
     }
   }
 
+  const handleClearAll = async () => {
+    if (!confirm('Supprimer tous vos favoris ? Cette action est irréversible.')) return
+    const ids = Array.from(favIds)
+    setBiens([])
+    setFavIds(new Set())
+    try { await Promise.all(ids.map(id => favoritesApi.remove(id))) } catch (_) {}
+  }
+
   return (
     <div className="min-h-full">
       <div className="w-full px-4 md:px-16">
@@ -43,15 +51,26 @@ export default function FavoritesPage() {
             )}
           </div>
           {biens.length > 0 && (
-            <button
-              onClick={() => navigate('/')}
-              className="hidden md:flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              Ajouter des biens
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleClearAll}
+                className="flex items-center gap-2 text-sm font-semibold text-danger hover:underline"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" />
+                </svg>
+                Tout supprimer
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="hidden md:flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Ajouter des biens
+              </button>
+            </div>
           )}
         </div>
 

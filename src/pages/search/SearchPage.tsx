@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
@@ -41,6 +41,23 @@ const TYPES = [
   { key: 'appart_meuble', label: 'Appart. meublé' },
   { key: 'terrain',       label: 'Terrain' },
   { key: 'guesthouse',    label: 'Guesthouse' },
+]
+
+const SOUS_TYPES = [
+  { key: 'chambre_salon',       label: 'Chambre-Salon' },
+  { key: 'entree_coucher',      label: 'Entrée-Coucher' },
+  { key: 'appartement',         label: 'Appartement' },
+  { key: 'appart_meuble',       label: 'Appart. meublé' },
+  { key: 'villa',               label: 'Villa' },
+  { key: 'maison_individuelle', label: 'Maison individuelle' },
+  { key: 'boutique',            label: 'Boutique' },
+  { key: 'terrain',             label: 'Terrain' },
+]
+
+const SORTS = [
+  { key: 'pertinence', label: 'Pertinence' },
+  { key: 'prix_asc',   label: 'Prix croissant' },
+  { key: 'prix_desc',  label: 'Prix décroissant' },
 ]
 
 const BUDGET_PRESETS = [
@@ -105,10 +122,15 @@ export default function SearchPage() {
   const [type,        setType]        = useState(initialParams.get('type') || '')
   const [prixMin,     setPrixMin]     = useState(initialParams.get('prix_min') || '')
   const [prixMax,     setPrixMax]     = useState(initialParams.get('prix_max') || '')
+  const [sousType,      setSousType]      = useState('')
+  const [chambresMin,   setChambresMin]   = useState('')
+  const [salonsMin,     setSalonsMin]     = useState('')
+  const [superficieMin, setSuperficieMin] = useState('')
+  const [superficieMax, setSuperficieMax] = useState('')
+  const [sortBy,        setSortBy]        = useState<'pertinence' | 'prix_asc' | 'prix_desc'>('pertinence')
 
   /* État */
   const [allBiens,    setAllBiens]    = useState<any[]>([])
-  const [results,     setResults]     = useState<any[]>([])
   const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
   const [loading,     setLoading]     = useState(false)
   const [mobileOpen,  setMobileOpen]  = useState(false)
@@ -129,10 +151,30 @@ export default function SearchPage() {
       .catch(() => {})
   }, [isLoggedIn])
 
-  /* ── Filtrage + tri par pertinence client-side ──────────────────
-     Quartier correspondant en tête, puis ville, puis adresse. */
+  /* ── Filtrage (localisation + sous-type + pièces + superficie) + tri ──
+     Par défaut : quartier correspondant en tête, puis ville, puis adresse.
+     Le tri par prix (comme le "Trier par" de search_results_screen.dart
+     sur mobile) prend le pas sur le tri de pertinence quand actif. */
+  const countPiece = (bien: any, nom: string) => (bien.pieces || []).filter((p: any) => p.nom === nom).length
+
   const applyClientFilter = useCallback((biens: any[], q: string) => {
-    const filtered = biens.filter(b => matchLoc(b, q))
+    let filtered = biens.filter(b => matchLoc(b, q))
+    if (sousType) filtered = filtered.filter(b => b.amenites?.sous_type === sousType)
+    if (chambresMin) filtered = filtered.filter(b => countPiece(b, 'Chambre') >= Number(chambresMin))
+    if (salonsMin) filtered = filtered.filter(b => countPiece(b, 'Salon') >= Number(salonsMin))
+    if (superficieMin || superficieMax) {
+      filtered = filtered.filter(b => {
+        const s = b.details_terrain?.superficie || b.details_maison?.superficie
+        if (!s) return false
+        if (superficieMin && s < Number(superficieMin)) return false
+        if (superficieMax && s > Number(superficieMax)) return false
+        return true
+      })
+    }
+
+    if (sortBy === 'prix_asc')  return [...filtered].sort((a, b) => Number(a.prix) - Number(b.prix))
+    if (sortBy === 'prix_desc') return [...filtered].sort((a, b) => Number(b.prix) - Number(a.prix))
+
     if (!q) return filtered
     const nq = norm(q)
     const score = (b: any) => {
@@ -142,7 +184,9 @@ export default function SearchPage() {
       return 0
     }
     return [...filtered].sort((a, b) => score(b) - score(a))
-  }, [])
+  }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy])
+
+  const results = useMemo(() => applyClientFilter(allBiens, query.trim()), [allBiens, query, applyClientFilter])
 
   /* ── Distance GPS depuis le quartier recherché ──────────────────
      Disponible uniquement pour les quartiers d'Abomey-Calavi (données
@@ -158,19 +202,17 @@ export default function SearchPage() {
   }
 
   /* ── Appel API avec debounce ────────────────────────────────── */
-  const fetchBiens = useCallback(async (params: any, clientQuery: string) => {
+  const fetchBiens = useCallback(async (params: any) => {
     setLoading(true)
     try {
       const data = await biensApi.list(params)
       const raw = Array.isArray(data) ? data : data.data || []
       setAllBiens(raw)
-      setResults(applyClientFilter(raw, clientQuery))
     } catch (_) {
       setAllBiens([])
-      setResults([])
     }
     setLoading(false)
-  }, [applyClientFilter])
+  }, [])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -188,19 +230,15 @@ export default function SearchPage() {
       const nq = norm(query.trim())
       const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
       if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
-      fetchBiens(params, query.trim())
+      fetchBiens(params)
     }, 420)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [query, transaction, type, prixMin, prixMax, fetchBiens])
 
-  /* Quand allBiens change sans rechargement (ex: reset query) */
-  useEffect(() => {
-    setResults(applyClientFilter(allBiens, query.trim()))
-  }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
-
   /* ── Réinitialisation ────────────────────────────────────────── */
   const reset = () => {
     setQuery(''); setTransaction(''); setType(''); setPrixMin(''); setPrixMax('')
+    setSousType(''); setChambresMin(''); setSalonsMin(''); setSuperficieMin(''); setSuperficieMax(''); setSortBy('pertinence')
   }
 
   /* ── Chips de filtres actifs ─────────────────────────────────── */
@@ -211,6 +249,11 @@ export default function SearchPage() {
   if (type)        chips.push({ label: TYPES.find(t => t.key === type)?.label ?? type,                      onRemove: () => setType('') })
   if (prixMin)     chips.push({ label: `≥ ${fmtFcfa(prixMin)} FCFA`,           onRemove: () => setPrixMin('') })
   if (prixMax)     chips.push({ label: `≤ ${fmtFcfa(prixMax)} FCFA`,           onRemove: () => setPrixMax('') })
+  if (sousType)    chips.push({ label: SOUS_TYPES.find(t => t.key === sousType)?.label ?? sousType, onRemove: () => setSousType('') })
+  if (chambresMin) chips.push({ label: `≥ ${chambresMin} chambre${Number(chambresMin) > 1 ? 's' : ''}`, onRemove: () => setChambresMin('') })
+  if (salonsMin)   chips.push({ label: `≥ ${salonsMin} salon${Number(salonsMin) > 1 ? 's' : ''}`,       onRemove: () => setSalonsMin('') })
+  if (superficieMin) chips.push({ label: `≥ ${superficieMin} m²`, onRemove: () => setSuperficieMin('') })
+  if (superficieMax) chips.push({ label: `≤ ${superficieMax} m²`, onRemove: () => setSuperficieMax('') })
 
   const hasFilters = chips.length > 0
 
@@ -323,13 +366,18 @@ export default function SearchPage() {
               type={type} setType={setType}
               prixMin={prixMin} setPrixMin={setPrixMin}
               prixMax={prixMax} setPrixMax={setPrixMax}
+              sousType={sousType} setSousType={setSousType}
+              chambresMin={chambresMin} setChambresMin={setChambresMin}
+              salonsMin={salonsMin} setSalonsMin={setSalonsMin}
+              superficieMin={superficieMin} setSuperficieMin={setSuperficieMin}
+              superficieMax={superficieMax} setSuperficieMax={setSuperficieMax}
             />
           </div>
         )}
 
         {/* Résultats */}
         <div className="px-4 md:px-8 py-4 md:py-6">
-          <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} />
+          <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} sortBy={sortBy} setSortBy={setSortBy} />
           <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
             cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
@@ -420,6 +468,11 @@ export default function SearchPage() {
             type={type} setType={setType}
             prixMin={prixMin} setPrixMin={setPrixMin}
             prixMax={prixMax} setPrixMax={setPrixMax}
+            sousType={sousType} setSousType={setSousType}
+            chambresMin={chambresMin} setChambresMin={setChambresMin}
+            salonsMin={salonsMin} setSalonsMin={setSalonsMin}
+            superficieMin={superficieMin} setSuperficieMin={setSuperficieMin}
+            superficieMax={superficieMax} setSuperficieMax={setSuperficieMax}
           />
 
           {/* Chips récap en bas de sidebar */}
@@ -452,7 +505,7 @@ export default function SearchPage() {
               <h1 className="text-2xl font-bold text-text-dark">Recherche avancée</h1>
               <p className="text-sm text-text-grey mt-1">Tous les biens disponibles au Bénin</p>
             </div>
-            <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} inline />
+            <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} sortBy={sortBy} setSortBy={setSortBy} inline />
           </div>
 
           <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
@@ -473,9 +526,19 @@ type FilterPanelProps = {
   type: string; setType: (v: string) => void
   prixMin: string; setPrixMin: (v: string) => void
   prixMax: string; setPrixMax: (v: string) => void
+  sousType: string; setSousType: (v: string) => void
+  chambresMin: string; setChambresMin: (v: string) => void
+  salonsMin: string; setSalonsMin: (v: string) => void
+  superficieMin: string; setSuperficieMin: (v: string) => void
+  superficieMax: string; setSuperficieMax: (v: string) => void
 }
 
-function FilterPanel({ transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax }: FilterPanelProps) {
+function FilterPanel({
+  transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax,
+  sousType, setSousType, chambresMin, setChambresMin, salonsMin, setSalonsMin,
+  superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
+}: FilterPanelProps) {
+  const showSuperficie = type === 'terrain' || sousType === 'terrain'
   return (
     <div className="space-y-6">
 
@@ -532,6 +595,71 @@ function FilterPanel({ transaction, setTransaction, type, setType, prixMin, setP
           ))}
         </div>
       </div>
+
+      {/* Sous-type */}
+      <div>
+        <label className="block text-xs font-bold text-text-grey uppercase tracking-wider mb-2.5">
+          Sous-type
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {SOUS_TYPES.map(t => (
+            <button key={t.key} onClick={() => setSousType(sousType === t.key ? '' : t.key)}
+              className="flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+              style={sousType === t.key ? {
+                background: 'rgba(75,107,255,0.14)',
+                border: '1px solid rgba(75,107,255,0.35)',
+                color: '#4B6BFF',
+                boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.9)',
+              } : {
+                background: 'rgba(255,255,255,0.65)',
+                border: '1px solid rgba(0,0,0,0.08)',
+                color: 'rgba(0,0,0,0.50)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Pièces */}
+      <div>
+        <label className="block text-xs font-bold text-text-grey uppercase tracking-wider mb-2.5">
+          Pièces minimum
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <Stepper label="Chambres" value={chambresMin} onChange={setChambresMin} />
+          <Stepper label="Salons" value={salonsMin} onChange={setSalonsMin} />
+        </div>
+      </div>
+
+      {/* Superficie (terrain) */}
+      {showSuperficie && (
+        <div>
+          <label className="block text-xs font-bold text-text-grey uppercase tracking-wider mb-2.5">
+            Superficie (m²)
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className="text-[11px] text-text-grey mb-1">Minimum</p>
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.80)', border: '1px solid rgba(0,0,0,0.10)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}>
+                <input type="number" value={superficieMin} onChange={e => setSuperficieMin(e.target.value)}
+                  placeholder="0" className="flex-1 bg-transparent outline-none text-sm text-text-dark min-w-0 placeholder-gray-400" min={0} />
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] text-text-grey mb-1">Maximum</p>
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.80)', border: '1px solid rgba(0,0,0,0.10)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}>
+                <input type="number" value={superficieMax} onChange={e => setSuperficieMax(e.target.value)}
+                  placeholder="Illimité" className="flex-1 bg-transparent outline-none text-sm text-text-dark min-w-0 placeholder-gray-400" min={0} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Budget */}
       <div>
@@ -620,6 +748,28 @@ function FilterPanel({ transaction, setTransaction, type, setType, prixMin, setP
   )
 }
 
+/* ── Compteur incrémental (chambres/salons min) ─────────────────────── */
+function Stepper({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const n = Number(value) || 0
+  return (
+    <div>
+      <p className="text-[11px] text-text-grey mb-1">{label}</p>
+      <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-xl"
+        style={{ background: 'rgba(255,255,255,0.80)', border: '1px solid rgba(0,0,0,0.10)' }}>
+        <button type="button" onClick={() => onChange(n > 0 ? String(n - 1) : '')}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-text-grey font-bold" style={{ background: 'rgba(0,0,0,0.05)' }}>
+          −
+        </button>
+        <span className="text-sm font-semibold text-text-dark">{n || 'Peu importe'}</span>
+        <button type="button" onClick={() => onChange(String(n + 1))}
+          className="w-7 h-7 rounded-lg flex items-center justify-center font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    En-tête résultats
    ═════════════════════════════════════════════════════════════════ */
@@ -629,16 +779,18 @@ type ResultHeaderProps = {
   hasFilters: boolean
   reset: () => void
   inline?: boolean
+  sortBy: 'pertinence' | 'prix_asc' | 'prix_desc'
+  setSortBy: (v: 'pertinence' | 'prix_asc' | 'prix_desc') => void
 }
 
-function ResultHeader({ count, loading, hasFilters, reset, inline }: ResultHeaderProps) {
+function ResultHeader({ count, loading, hasFilters, reset, inline, sortBy, setSortBy }: ResultHeaderProps) {
   if (loading) return (
     <div className={inline ? 'flex items-center' : 'mb-4'}>
       <div className="w-28 h-4 rounded-lg skeleton" />
     </div>
   )
   return (
-    <div className={`flex items-center gap-3 ${inline ? '' : 'mb-4'}`}>
+    <div className={`flex items-center gap-3 flex-wrap ${inline ? '' : 'mb-4'}`}>
       <p className="text-sm font-medium text-text-grey">
         <strong className="text-text-dark font-bold">{count}</strong> résultat{count !== 1 ? 's' : ''}
         {hasFilters && ' trouvé' + (count !== 1 ? 's' : '')}
@@ -648,6 +800,13 @@ function ResultHeader({ count, loading, hasFilters, reset, inline }: ResultHeade
           Effacer les filtres
         </button>
       )}
+      <div className="ml-auto flex items-center gap-1.5">
+        <span className="text-xs text-text-grey">Trier :</span>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
+          className="text-xs font-semibold text-text-dark bg-transparent outline-none border border-divider rounded-lg px-2 py-1.5">
+          {SORTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+      </div>
     </div>
   )
 }
