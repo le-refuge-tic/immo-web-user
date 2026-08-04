@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
+import { chatApi } from '../../api/chatApi'
 import FaceRating from '../../components/FaceRating'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -12,6 +13,23 @@ const STATUT_META: Record<string, { label: string; color: string; bg: string }> 
   effectuee:       { label: 'Effectuée',        color: '#4B6BFF', bg: 'rgba(75,107,255,0.1)' },
   annulee:         { label: 'Annulée',          color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
   payee:           { label: 'Payée',            color: '#22C55E', bg: 'rgba(34,197,94,0.1)' },
+  echouee:         { label: 'Échouée',          color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
+}
+
+// Même règle que côté mobile : une visite non traitée (confirmée ou en attente
+// de réponse) est considérée "échouée" 2h après la date programmée.
+function isEchoueeVisite(v: any): boolean {
+  if (v.statut === 'echouee') return true
+  if (v.statut === 'effectuee' || v.statut === 'annulee') return false
+  const raw = v.date_contre_proposee || v.date_souhaitee
+  if (!raw) return false
+  return Date.now() > new Date(raw).getTime() + 2 * 60 * 60 * 1000
+}
+
+function isDatePasseeVisite(v: any): boolean {
+  const raw = v.date_contre_proposee || v.date_souhaitee
+  if (!raw) return false
+  return Date.now() > new Date(raw).getTime()
 }
 
 const OPERATORS = [
@@ -35,7 +53,7 @@ function fmtDate(raw: string | undefined | null) {
   } catch { return raw }
 }
 
-const TABS = ['Toutes', 'À venir', 'Terminées']
+const TABS = ['Toutes', 'À venir', 'Terminées', 'Annulées', 'Échouées']
 
 const ISSUES_TAGS = [
   "L'interlocuteur n'était pas professionnel",
@@ -98,9 +116,12 @@ export default function MesVisitesPage() {
   }
 
   const filtered = visites.filter(v => {
+    const echouee = isEchoueeVisite(v)
     if (tab === 0) return true
-    if (tab === 1) return ['en_attente', 'contre_proposee', 'confirmee'].includes(v.statut)
-    if (tab === 2) return ['effectuee', 'annulee'].includes(v.statut)
+    if (tab === 1) return !echouee && ['en_attente', 'contre_proposee', 'confirmee'].includes(v.statut)
+    if (tab === 2) return echouee || ['effectuee', 'annulee'].includes(v.statut)
+    if (tab === 3) return v.statut === 'annulee'
+    if (tab === 4) return echouee
     return true
   })
 
@@ -151,6 +172,22 @@ export default function MesVisitesPage() {
 
   const handleReproposer = async (id: number, isoDate: string) => {
     try { await visitesApi.reProposer(id, isoDate) } catch (_) {} finally { loadVisites() }
+  }
+
+  const openChat = async (bienId: number, draftMessage?: string) => {
+    try {
+      const conv = await chatApi.creerConversation(bienId)
+      navigate(`/conversations/${conv.conversationId}`, draftMessage ? { state: { draftMessage } } : undefined)
+    } catch (_) {}
+  }
+
+  const handleContacterEchouee = (v: any) => {
+    const bien = v.bien
+    const gestionnairePrenom = v.gestionnaire?.prenom || ''
+    const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'ce bien'
+    const loc = bien?.localisation?.quartier ? `${bien.localisation.quartier}, ${bien.localisation.ville}` : (bien?.localisation?.ville || '')
+    const msg = `Bonjour${gestionnairePrenom ? ' ' + gestionnairePrenom : ''}, je vous contacte au sujet de notre visite prévue le ${fmtDate(v.date_contre_proposee || v.date_souhaitee)} pour le bien ${typeStr}${loc ? ' à ' + loc : ''}, qui ne s'est pas tenue. Peut-on reprogrammer ?`
+    if (bien?.id) openChat(bien.id, msg)
   }
 
   const handleIntegration = async (id: number, integre: boolean, bienId?: number) => {
@@ -292,7 +329,7 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(id) => navigate(`/conversations?visiteId=${id}`)} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
+            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(bienId) => openChat(bienId)} onContacterEchouee={handleContacterEchouee} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
           </div>
         )}
       </div>
@@ -502,16 +539,19 @@ type VisiteCardProps = {
   onMarquerEffectuee: (v: any) => void
   onIntegration: (id: number, integre: boolean, bienId?: number) => void
   onPay: (v: any) => void
-  onMessage: (id: number) => void
+  onMessage: (bienId: number) => void
+  onContacterEchouee: (v: any) => void
   onFeedback: (v: any) => void
   onPayIntegration: (bienId: number) => void
 }
 
-function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onFeedback, onPayIntegration }: VisiteCardProps) {
-  const meta = STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' }
+function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {
+  const isEchouee = isEchoueeVisite(v)
+  const isDatePassee = isDatePasseeVisite(v)
+  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' })
   const bien = v.bien
   const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
-  const isCP = v.statut === 'contre_proposee'
+  const isCP = v.statut === 'contre_proposee' && !isEchouee
   const [reproposing, setReproposing] = useState(false)
   const [newDate, setNewDate] = useState('')
   const [newTime, setNewTime] = useState('')
@@ -590,6 +630,62 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
         </div>
       )}
 
+      {/* Contact partagé — visible ~30 min avant une visite confirmée */}
+      {!isEchouee && v.statut === 'confirmee' && v.numeros_partages && (
+        <div className="flex items-center gap-2.5 p-3 rounded-xl mb-3"
+          style={{ background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.3)' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(37,211,102,0.15)' }}>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Infos visite</p>
+            <p className="text-[13px] font-bold text-text-dark">+22993463716</p>
+          </div>
+          <a href="https://wa.me/22993463716" target="_blank" rel="noreferrer"
+            className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex-shrink-0"
+            style={{ background: '#fff', border: '1.5px solid #25D366', color: '#25D366' }}>
+            WhatsApp
+          </a>
+        </div>
+      )}
+
+      {/* Visite échouée */}
+      {isEchouee && (
+        <div className="flex items-center gap-2 p-3 rounded-xl mb-3"
+          style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)' }}>
+          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" />
+          </svg>
+          <p className="text-xs font-medium" style={{ color: '#EF4444' }}>Cette visite ne s'est pas tenue.</p>
+        </div>
+      )}
+
+      {isEchouee && bien?.id && (
+        <button onClick={() => onContacterEchouee(v)}
+          className="w-full py-2.5 rounded-xl text-xs font-bold mb-3 flex items-center justify-center gap-1.5"
+          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: '#EF4444' }}>
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Contacter le gestionnaire
+        </button>
+      )}
+
+      {/* Contre-proposition : créneau dépassé */}
+      {isCP && isDatePassee && (
+        <div className="flex items-start gap-2 p-3 rounded-xl mb-3"
+          style={{ background: 'rgba(230,126,34,0.08)', border: '1px solid rgba(230,126,34,0.35)' }}>
+          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <p className="text-xs leading-relaxed" style={{ color: '#E67E22' }}>
+            Le créneau proposé est dépassé. Attendez que le gestionnaire propose une nouvelle date.
+          </p>
+        </div>
+      )}
+
       {/* Integration decision */}
       {v.statut === 'effectuee' && (v.client_decision_integration === null || v.client_decision_integration === undefined) && (
         <div className="bg-primary/5 rounded-xl p-3 mb-3">
@@ -634,7 +730,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
         {/* Contre-proposition: accept / propose another date / refuse */}
-        {isCP && !reproposing && (
+        {isCP && !isDatePassee && !reproposing && (
           <>
             <button
               onClick={() => onAccepterCP(v.id)}
@@ -661,7 +757,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
         )}
 
         {/* Confirmée: payer (pas encore payé) + message + annuler */}
-        {v.statut === 'confirmee' && !v.paiement_effectue && (
+        {!isEchouee && v.statut === 'confirmee' && !v.paiement_effectue && (
           <button
             onClick={() => onPay(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
@@ -671,9 +767,9 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           </button>
         )}
 
-        {v.statut === 'confirmee' && (
+        {!isEchouee && v.statut === 'confirmee' && bien?.id && (
           <button
-            onClick={() => onMessage(v.id)}
+            onClick={() => onMessage(bien.id)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
             style={{ background: 'rgba(75,107,255,0.1)', color: '#4B6BFF' }}
           >
@@ -684,7 +780,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           </button>
         )}
 
-        {v.statut === 'confirmee' && v.paiement_effectue && (
+        {!isEchouee && v.statut === 'confirmee' && v.paiement_effectue && (
           <button
             onClick={() => onMarquerEffectuee(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
@@ -697,7 +793,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           </button>
         )}
 
-        {(v.statut === 'en_attente' || v.statut === 'confirmee') && (
+        {!isEchouee && (v.statut === 'en_attente' || v.statut === 'confirmee') && (
           <button
             onClick={() => onAnnuler(v)}
             className="px-3 py-2 rounded-xl text-xs font-bold"

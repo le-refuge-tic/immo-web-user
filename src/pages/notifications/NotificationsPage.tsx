@@ -76,6 +76,15 @@ const VISITE_TYPES = new Set([
 ])
 const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
+// Étiquette d'action affichée sous la notification, comme sur mobile (_Notif.chipLabel).
+function chipLabel(n: any): string | null {
+  const meta = n.meta || {}
+  if (BIEN_TYPES.has(n.type) && meta.bien_id) return 'Voir le bien'
+  if (VISITE_TYPES.has(n.type)) return 'Voir la visite'
+  if (n.type === 'nouveau_message') return 'Voir le message'
+  return null
+}
+
 export default function NotificationsPage() {
   const { isLoggedIn, hasRole } = useAuth()
   const navigate = useNavigate()
@@ -110,7 +119,7 @@ export default function NotificationsPage() {
     const meta = n.meta || {}
     if (n.type === 'nouveau_message' && meta.conversation_id) {
       navigate(`/conversations/${meta.conversation_id}`)
-    } else if (VISITE_TYPES.has(n.type) && meta.visite_id) {
+    } else if (VISITE_TYPES.has(n.type)) {
       if (hasRole('demarcheur')) navigate('/demarcheur')
       else if (hasRole('proprietaire')) navigate('/proprietaire')
       else navigate('/mes-visites')
@@ -199,6 +208,7 @@ export default function NotificationsPage() {
           <div className="space-y-2 pb-28 md:pb-8">
             {displayed.map(n => {
               const cfg = getTypeConfig(n.type)
+              const chip = chipLabel(n)
               return (
                 <div
                   key={n.id}
@@ -222,6 +232,11 @@ export default function NotificationsPage() {
                       <p className="text-xs text-text-grey mt-1 line-clamp-2">{n.corps}</p>
                     )}
                     <p className="text-xs text-text-grey mt-1.5">{timeAgo(n.created_at)}</p>
+                    {chip && (
+                      <span className="inline-block mt-2 px-2.5 py-1 rounded-lg text-[11px] font-bold" style={{ background: cfg.bg, color: cfg.color }}>
+                        {chip}
+                      </span>
+                    )}
                   </div>
 
                   {/* Unread dot */}

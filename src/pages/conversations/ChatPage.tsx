@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
@@ -81,6 +81,7 @@ export default function ChatPage() {
   const { id } = useParams<{ id: string }>()
   const { user, token } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [messages, setMessages] = useState<any[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
@@ -120,6 +121,16 @@ export default function ChatPage() {
     setReplyingTo(null)
     setEditingMessage(null)
   }, [convId])
+
+  // Message pré-rempli (ex : relance depuis une visite échouée) — comme
+  // ChatScreen.initialMessage sur mobile : pré-remplit le champ sans l'envoyer.
+  useEffect(() => {
+    const draft = (location.state as any)?.draftMessage
+    if (draft) {
+      setInput(draft)
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state])
 
   useEffect(() => {
     if (!token) return

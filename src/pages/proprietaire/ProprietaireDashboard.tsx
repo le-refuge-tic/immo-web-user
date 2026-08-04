@@ -365,6 +365,7 @@ function MesBiensTab() {
   const filtered = filter === 'Tous' ? biens
     : filter === 'Publié' ? biens.filter(b => b.statut_moderation === 'approuve')
     : filter === 'En attente' ? biens.filter(b => b.statut_moderation === 'en_attente')
+    : filter === 'Occupé' ? biens.filter(b => b.statut === 'occupe')
     : biens.filter(b => b.statut_moderation === 'rejete')
 
   const del = async (id: number) => {
@@ -393,7 +394,7 @@ function MesBiensTab() {
           </div>
         </div>
         <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {['Tous', 'Publié', 'En attente', 'Rejeté'].map(f => (
+          {['Tous', 'Publié', 'En attente', 'Rejeté', 'Occupé'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border"
               style={filter === f ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>

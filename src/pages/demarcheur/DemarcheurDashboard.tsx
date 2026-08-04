@@ -233,7 +233,7 @@ function ReservationsTab() {
     try { await visitesApi.confirmerVisite(id); load() } catch (_) {}
   }
 
-  const ouvrirChat = async (v: any) => {
+  const ouvrirChat = async (v: any, draftMessage?: string) => {
     const clientId = v.client?.id
     const bienId = v.bien?.id
     if (!clientId || !bienId) return
@@ -242,10 +242,22 @@ function ReservationsTab() {
       const convs = await chatApi.conversations()
       const list = Array.isArray(convs) ? convs : convs.data || []
       const match = list.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === clientId))
-      if (match) navigate(`/conversations/${match.id}`)
+      if (match) navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
       else alert('Ce client n\'a pas encore démarré de conversation pour ce bien.')
     } catch (_) {}
     setChatLoadingId(null)
+  }
+
+  // Message de relance pré-rempli pour une visite échouée — comme
+  // demarcheur_reservations.dart::_ouvrirChatEchouee sur mobile.
+  const ouvrirChatEchouee = (v: any) => {
+    const prenom = v.client?.prenom || ''
+    const bType = typeLabel(v.bien?.type || '')
+    const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : ''
+    const raw = v.date_contre_proposee || v.date_souhaitee
+    const dateStr = raw ? new Date(raw).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) + ' à ' + new Date(raw).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+    const msg = `Bonjour${prenom ? ' ' + prenom : ''}, je vous contacte au sujet de notre visite prévue le ${dateStr} pour le bien ${bType}${bLoc ? ' à ' + bLoc : ''}, qui ne s'est pas tenue. Peut-on reprogrammer ?`
+    ouvrirChat(v, msg)
   }
 
   const contreProposer = async () => {
@@ -343,16 +355,29 @@ function ReservationsTab() {
                   </a>
                 </div>
               )}
+              {echouee && (
+                <div className="flex items-center gap-2 p-2.5 rounded-xl mb-3" style={{ background: '#EF444410', border: '1px solid #EF444440' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" /></svg>
+                  <p className="text-xs font-medium" style={{ color: '#EF4444' }}>Cette visite ne s'est pas tenue.</p>
+                </div>
+              )}
               <div className="flex gap-2">
-                <button onClick={() => ouvrirChat(v)} disabled={chatLoadingId === v.id}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: PURPLE + '50', color: PURPLE, background: PURPLE + '10' }}>
-                  <IcChat /> {chatLoadingId === v.id ? '…' : 'Chat'}
-                </button>
-                {v.statut === 'en_attente' && <>
+                {echouee ? (
+                  <button onClick={() => ouvrirChatEchouee(v)} disabled={chatLoadingId === v.id}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: '#EF4444', background: '#EF444410' }}>
+                    <IcChat /> {chatLoadingId === v.id ? '…' : 'Contacter le client'}
+                  </button>
+                ) : (
+                  <button onClick={() => ouvrirChat(v)} disabled={chatLoadingId === v.id}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: PURPLE + '50', color: PURPLE, background: PURPLE + '10' }}>
+                    <IcChat /> {chatLoadingId === v.id ? '…' : 'Chat'}
+                  </button>
+                )}
+                {!echouee && v.statut === 'en_attente' && <>
                   <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: PURPLE + '80', color: PURPLE }}>Autre créneau</button>
                   <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
                 </>}
-                {v.statut === 'confirmee' && (
+                {!echouee && v.statut === 'confirmee' && (
                   <button onClick={() => visitesApi.marquerEffectuee(v.id).then(load)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: PURPLE }}>Marquer effectuée</button>
                 )}
               </div>
