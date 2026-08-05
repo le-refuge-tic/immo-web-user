@@ -469,13 +469,17 @@ export default function HomePage() {
               className="w-full bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
             />
           </div>
-          <div className="w-44 flex-shrink-0 px-6 py-4">
+          <div className="w-36 flex-shrink-0 px-6 py-4">
             <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget max</p>
-            <select value={prixMax} onChange={e => setPrixMax(e.target.value)}
-              className="w-full bg-transparent outline-none text-sm text-text-dark cursor-pointer">
-              <option value="">Tous</option>
+            <input
+              type="number" min={0} list="budget-max-presets" value={prixMax}
+              onChange={e => setPrixMax(e.target.value)}
+              placeholder="Illimité"
+              className="w-full bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+            />
+            <datalist id="budget-max-presets">
               {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{p.label}</option>)}
-            </select>
+            </datalist>
           </div>
           <button onClick={goToSearch}
             className="flex-shrink-0 flex items-center gap-2 px-8 font-bold text-white text-sm rounded-r-2xl transition-opacity hover:opacity-90"
