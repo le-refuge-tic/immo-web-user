@@ -77,11 +77,11 @@ function statutVisite(s: string) {
 
 const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
 
-/** Revenus locatifs encaissés (loyers payés), regroupés par mois — 6 derniers mois. */
-function buildRevenueSeries(contrats: any[]): { label: string; value: number }[] {
+/** Revenus locatifs encaissés (loyers payés), regroupés par mois — `n` derniers mois. */
+function buildRevenueSeries(contrats: any[], n = 6): { label: string; value: number }[] {
   const now = new Date()
-  const months = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+  const months = Array.from({ length: n }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1)
     return { key: `${d.getFullYear()}-${d.getMonth()}`, label: MONTH_LABELS[d.getMonth()], value: 0 }
   })
   const byKey = new Map(months.map(m => [m.key, m]))
@@ -96,11 +96,11 @@ function buildRevenueSeries(contrats: any[]): { label: string; value: number }[]
   return months
 }
 
-/** Compte des éléments par mois (6 derniers mois) — ex. visites reçues. */
-function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | undefined): { label: string; value: number }[] {
+/** Compte des éléments par mois (`n` derniers mois) — ex. visites reçues. */
+function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | undefined, n = 6): { label: string; value: number }[] {
   const now = new Date()
-  const months = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+  const months = Array.from({ length: n }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1)
     return { key: `${d.getFullYear()}-${d.getMonth()}`, label: MONTH_LABELS[d.getMonth()], value: 0 }
   })
   const byKey = new Map(months.map(m => [m.key, m]))
@@ -416,7 +416,7 @@ function AreaChart({ data, color = '#2E86C1', height = 130 }: { data: { label: s
   )
 }
 
-function ChartCard({ title, subtitle, icon, color, className = '', children }: { title: string; subtitle?: string; icon?: React.ReactNode; color?: string; className?: string; children: React.ReactNode }) {
+function ChartCard({ title, subtitle, icon, color, className = '', headerRight, children }: { title: string; subtitle?: string; icon?: React.ReactNode; color?: string; className?: string; headerRight?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className={`card-soft rounded-2xl p-4 md:p-5 ${className}`}>
       <div className="flex items-center gap-2.5 mb-0.5">
@@ -425,14 +425,31 @@ function ChartCard({ title, subtitle, icon, color, className = '', children }: {
             <span style={{ color: color || BLUE }}>{icon}</span>
           </div>
         )}
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-bold text-text-dark text-sm">{title}</p>
           {subtitle && <p className="text-[11px] text-text-grey">{subtitle}</p>}
         </div>
+        {headerRight}
       </div>
       <div className={icon ? 'mt-4' : subtitle ? 'mt-4' : 'mt-3'}>
         {children}
       </div>
+    </div>
+  )
+}
+
+/** Sélecteur de période façon "7D/30D/90D" du template — ici en mois,
+ *  réellement branché sur les séries affichées (pas décoratif). */
+function PeriodToggle({ value, onChange, color }: { value: 3 | 6 | 12; onChange: (v: 3 | 6 | 12) => void; color: string }) {
+  return (
+    <div className="flex-shrink-0 flex items-center gap-1 p-0.5 rounded-lg" style={{ background: '#F1F3F6' }}>
+      {([3, 6, 12] as const).map(n => (
+        <button key={n} onClick={() => onChange(n)}
+          className="px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors"
+          style={value === n ? { background: color, color: '#fff' } : { color: '#8A93A3' }}>
+          {n}M
+        </button>
+      ))}
     </div>
   )
 }
@@ -1438,6 +1455,7 @@ export default function ProprietaireDashboard() {
   const [visites, setVisites] = useState<any[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [chartPeriod, setChartPeriod] = useState<3 | 6 | 12>(6)
 
   const loadData = async (silent = false) => {
     if (silent) setRefreshing(true)
@@ -1483,21 +1501,28 @@ export default function ProprietaireDashboard() {
       .sort((a, b) => b.value - a.value)
   })()
 
-  const revenusSeries = buildRevenueSeries(loyersDash?.contrats || [])
-  const revenusMoisActuel = revenusSeries[revenusSeries.length - 1]?.value ?? 0
-  const revenusMoisPrecedent = revenusSeries[revenusSeries.length - 2]?.value ?? 0
+  // Séries "carte KPI" — toujours 6 mois, indépendantes du sélecteur de
+  // période du graphique (qui ne doit affecter que le grand graphique).
+  const revenusSeries6 = buildRevenueSeries(loyersDash?.contrats || [])
+  const revenusMoisActuel = revenusSeries6[revenusSeries6.length - 1]?.value ?? 0
+  const revenusMoisPrecedent = revenusSeries6[revenusSeries6.length - 2]?.value ?? 0
   const revenusTrendPct = revenusMoisPrecedent > 0
     ? Math.round(((revenusMoisActuel - revenusMoisPrecedent) / revenusMoisPrecedent) * 100)
     : (revenusMoisActuel > 0 ? 100 : 0)
-  const hasRevenus = revenusSeries.some(m => m.value > 0)
+  const hasRevenus = revenusSeries6.some(m => m.value > 0)
 
-  const visitesSeries = buildCountSeries(visites, v => v.date_souhaitee)
-  const visitesMoisActuel = visitesSeries[visitesSeries.length - 1]?.value ?? 0
-  const visitesMoisPrecedent = visitesSeries[visitesSeries.length - 2]?.value ?? 0
+  const visitesSeries6 = buildCountSeries(visites, v => v.date_souhaitee)
+  const visitesMoisActuel = visitesSeries6[visitesSeries6.length - 1]?.value ?? 0
+  const visitesMoisPrecedent = visitesSeries6[visitesSeries6.length - 2]?.value ?? 0
   const visitesTrendPct = visitesMoisPrecedent > 0
     ? Math.round(((visitesMoisActuel - visitesMoisPrecedent) / visitesMoisPrecedent) * 100)
     : (visitesMoisActuel > 0 ? 100 : 0)
-  const hasVisites = visitesSeries.some(m => m.value > 0)
+
+  // Séries des grands graphiques — respectent le sélecteur 3M/6M/12M
+  // (comme le 7D/30D/90D du template).
+  const revenusSeries = buildRevenueSeries(loyersDash?.contrats || [], chartPeriod)
+  const visitesSeries = buildCountSeries(visites, v => v.date_souhaitee, chartPeriod)
+  const hasVisites = visitesSeries6.some(m => m.value > 0)
 
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
@@ -1592,14 +1617,35 @@ export default function ProprietaireDashboard() {
 
               {/* Stat cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} trendCaption={hasRevenus ? 'vs mois dernier' : undefined} sparkline={hasRevenus ? revenusSeries : undefined} />
-                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} trendCaption={hasVisites ? 'vs mois dernier' : undefined} sparkline={hasVisites ? visitesSeries : undefined} />
+                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} trendCaption={hasRevenus ? 'vs mois dernier' : undefined} sparkline={hasRevenus ? revenusSeries6 : undefined} />
+                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} trendCaption={hasVisites ? 'vs mois dernier' : undefined} sparkline={hasVisites ? visitesSeries6 : undefined} />
                 <StatCard icon={<IcHome />} color="#22C55E" label="Taux d'occupation" value={`${tauxOccupation}%`} trendCaption={`${biensOccupes}/${biens.length} biens occupés`} />
               </div>
 
               {/* Charts — mise en page bento : le graphique principal prend le double de place */}
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
-                <ChartCard title="Revenus locatifs" subtitle="6 derniers mois" icon={<IcWallet />} color={BLUE} className="xl:col-span-2">
+                <ChartCard title="Revenus locatifs" subtitle={`${chartPeriod} derniers mois`} icon={<IcWallet />} color={BLUE} className="xl:col-span-2"
+                  headerRight={<PeriodToggle value={chartPeriod} onChange={setChartPeriod} color={BLUE} />}>
+                  <div className="flex items-center gap-6 mb-5 pb-5" style={{ borderBottom: '1px solid #F1F3F6' }}>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
+                        <span style={{ color: BLUE }}><IcWallet /></span>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-text-grey">Revenus ce mois</p>
+                        <p className="font-bold text-text-dark text-sm">{fmtPrix(revenusMoisActuel)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#7B2FBE15' }}>
+                        <span style={{ color: '#7B2FBE' }}><IcCal /></span>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-text-grey">Visites ce mois</p>
+                        <p className="font-bold text-text-dark text-sm">{visitesMoisActuel}</p>
+                      </div>
+                    </div>
+                  </div>
                   {hasRevenus ? <AreaChart data={revenusSeries} color={BLUE} /> : <EmptyChartState label="Aucun loyer encaissé pour l'instant" />}
                 </ChartCard>
                 <ChartCard title="Répartition de mes biens" subtitle="Par statut de modération" icon={<IcDash />} color="#7B2FBE">
@@ -1611,7 +1657,7 @@ export default function ProprietaireDashboard() {
                       ]} />
                     : <EmptyChartState label="Publiez votre premier bien pour voir vos statistiques" />}
                 </ChartCard>
-                <ChartCard title="Visites reçues" subtitle="6 derniers mois" icon={<IcCal />} color="#4B6BFF" className={biensParType.length > 0 ? 'xl:col-span-2' : 'xl:col-span-3'}>
+                <ChartCard title="Visites reçues" subtitle={`${chartPeriod} derniers mois`} icon={<IcCal />} color="#4B6BFF" className={biensParType.length > 0 ? 'xl:col-span-2' : 'xl:col-span-3'}>
                   {hasVisites
                     ? visitesSeries.map((v, i) => <BarRow key={i} label={v.label} value={v.value} max={Math.max(...visitesSeries.map(x => x.value), 1)} color="#4B6BFF" />)
                     : <EmptyChartState label="Aucune visite reçue pour l'instant" />}
