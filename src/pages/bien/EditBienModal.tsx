@@ -8,6 +8,7 @@ type Props = { bien: any; onClose: () => void; onSaved: (bien: any) => void }
 export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   const loc = bien.localisation || {}
   const [prix, setPrix] = useState(String(bien.prix ?? ''))
+  const [prixPromo, setPrixPromo] = useState(bien.prix_promo != null ? String(bien.prix_promo) : '')
   const [fraisVisite, setFraisVisite] = useState(String(bien.frais_visite ?? ''))
   const [description, setDescription] = useState(bien.description || '')
   const [quartier, setQuartier] = useState(loc.quartier || '')
@@ -25,11 +26,17 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
+    if (prixPromo.trim() && Number(prixPromo) >= Number(prix)) {
+      setError('Le prix promotionnel doit être inférieur au prix normal')
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
     setSaving(true)
     setError('')
     try {
       const body: any = {
         prix: Number(prix),
+        prix_promo: prixPromo.trim() ? Number(prixPromo) : null,
         frais_visite: fraisVisite.trim() ? Number(fraisVisite) : 0,
         description: description.trim() || undefined,
         localisation: {
@@ -75,6 +82,12 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Prix (FCFA)</label>
             <input type="number" value={prix} onChange={e => setPrix(e.target.value)}
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
+            <input type="number" value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo"
+              className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
+            <p className="text-[11px] text-text-grey mt-1">Affiché en avant sur la fiche du bien, à la place du prix normal.</p>
           </div>
           <div>
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Frais de visite (FCFA)</label>

@@ -206,15 +206,21 @@ export default function BienDetailPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  // Biens similaires — même type & même ville, hors le bien courant.
+  // Biens à proximité — même transaction (location/vente), hors le bien
+  // courant, triés par proximité réelle : même quartier d'abord, puis même
+  // ville. On ne filtre plus par type pour ne pas vider la liste dans les
+  // quartiers où peu de biens partagent exactement le même type.
   useEffect(() => {
     if (!bien) return
-    biensApi.list({ transaction: bien.transaction, type: bien.type })
+    biensApi.list({ transaction: bien.transaction })
       .then(d => {
         const list = Array.isArray(d) ? d : d.data || []
-        setSimilaires(
-          list.filter((b: any) => b.id !== bien.id && b.localisation?.ville === bien.localisation?.ville).slice(0, 4)
-        )
+        const autres = list.filter((b: any) => b.id !== bien.id)
+        const quartier = bien.localisation?.quartier
+        const ville = bien.localisation?.ville
+        const memeQuartier = quartier ? autres.filter((b: any) => b.localisation?.quartier === quartier) : []
+        const memeVille = autres.filter((b: any) => b.localisation?.ville === ville && !memeQuartier.some((m: any) => m.id === b.id))
+        setSimilaires([...memeQuartier, ...memeVille].slice(0, 6))
       })
       .catch(() => {})
   }, [bien?.id])
@@ -308,6 +314,10 @@ export default function BienDetailPage() {
   const typeLabel = TYPE_LABELS[bien.type] || bien.type
   const prix = Number(bien.prix).toLocaleString('fr-FR')
   const accentColor = isLocation ? '#4B6BFF' : '#FF6B35'
+  const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
+  const hasPromo = prixPromoNum != null && prixPromoNum > 0 && prixPromoNum < Number(bien.prix)
+  const prixPromo = hasPromo ? prixPromoNum!.toLocaleString('fr-FR') : null
+  const promoPct = hasPromo ? Math.round((1 - prixPromoNum! / Number(bien.prix)) * 100) : 0
 
   const am = bien.amenites
   const voisinageLabels: string[] = am?.voisinage && Array.isArray(am.voisinage) ? am.voisinage : []
@@ -419,8 +429,14 @@ export default function BienDetailPage() {
               </div>
 
               <div className="mb-5">
-                <p className="text-3xl font-bold" style={{ color: accentColor }}>
-                  {prix} <span className="text-base font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
+                {hasPromo && (
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#EF4444' }}>PROMO -{promoPct}%</span>
+                    <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
+                  </div>
+                )}
+                <p className="text-3xl font-bold" style={{ color: hasPromo ? '#EF4444' : accentColor }}>
+                  {hasPromo ? prixPromo : prix} <span className="text-base font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
                 </p>
               </div>
 
@@ -479,10 +495,10 @@ export default function BienDetailPage() {
               </button>
             </div>
 
-          {/* Biens similaires */}
+          {/* Biens à proximité */}
           {similaires.length > 0 && (
             <div className="mt-5">
-              <p className="font-bold text-text-dark text-sm mb-3">Biens similaires</p>
+              <p className="font-bold text-text-dark text-sm mb-3">Biens à proximité</p>
               <div className="space-y-2.5">
                 {similaires.map(b => {
                   const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
@@ -522,8 +538,14 @@ export default function BienDetailPage() {
               <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-danger">Occupé</span>
             )}
           </div>
-          <p className="text-2xl font-bold" style={{ color: accentColor }}>
-            {prix} FCFA{isLocation && <span className="text-base font-medium text-text-grey">/mois</span>}
+          {hasPromo && (
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#EF4444' }}>PROMO -{promoPct}%</span>
+              <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
+            </div>
+          )}
+          <p className="text-2xl font-bold" style={{ color: hasPromo ? '#EF4444' : accentColor }}>
+            {hasPromo ? prixPromo : prix} FCFA{isLocation && <span className="text-base font-medium text-text-grey">/mois</span>}
           </p>
         </div>
 
@@ -550,6 +572,33 @@ export default function BienDetailPage() {
           voisinageLabels={voisinageLabels}
           visitesPlanifiees={visitesPlanifiees} visitesConfirmees={visitesConfirmees}
         />
+
+        {similaires.length > 0 && (
+          <div>
+            <SectionTitle title="Biens à proximité" />
+            <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
+              {similaires.map(b => {
+                const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                return (
+                  <button key={b.id} onClick={() => navigate(`/biens/${b.id}`)}
+                    className="flex-shrink-0 w-40 text-left rounded-xl overflow-hidden card-soft">
+                    <div className="w-40 h-28" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                      {cover ? <img src={resolveUrl(cover.url)} alt="" className="w-full h-full object-cover" /> : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <svg className="w-6 h-6 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2.5">
+                      <p className="text-sm font-bold text-text-dark truncate">{Number(b.prix).toLocaleString('fr-FR')} FCFA{b.transaction === 'location' ? '/mois' : ''}</p>
+                      <p className="text-xs text-text-grey truncate">{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Barre CTA fixe (mobile/tablette) ── */}

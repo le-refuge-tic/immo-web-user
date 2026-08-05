@@ -1595,10 +1595,6 @@ export default function ProprietaireDashboard() {
             <p className="text-text-grey text-[11px] leading-none">Bonjour 👋</p>
             <p className="font-bold text-text-dark text-sm truncate mt-0.5">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 xl:hidden" style={{ background: BLUE + '10' }}>
-            <span style={{ color: BLUE }}><IcHome /></span>
-            <span className="text-[11px] font-semibold" style={{ color: BLUE }}>Propriétaire</span>
-          </div>
           <button onClick={() => navigate('/conversations')} title="Messagerie"
             className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0 transition-colors" style={{ background: BLUE + '10', color: BLUE }}>
             <IcMessage />

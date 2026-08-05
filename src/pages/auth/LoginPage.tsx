@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
+import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
 import logoUrl from '../../assets/REFUGE-ICON.png'
 import brandingImg from '../../assets/hero-interior.jpg'
 
@@ -57,7 +58,11 @@ export default function LoginPage() {
     setError('')
     try {
       const fullPhone = countryCode + phone.trim()
-      const data = await authApi.loginPhone(fullPhone, password)
+      const data = await withColdStartRetry(
+        () => authApi.loginPhone(fullPhone, password),
+        () => setError('Le serveur se réveille, nouvelle tentative…'),
+      )
+      setError('')
       if (data.requires_otp && data.session_token) {
         setSessionToken(data.session_token)
         setOtpDigits(Array(OTP_LENGTH).fill(''))
@@ -69,7 +74,7 @@ export default function LoginPage() {
         completeLogin(data)
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Identifiants incorrects')
+      setError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : 'Identifiants incorrects'))
     }
     setLoading(false)
   }
@@ -80,14 +85,18 @@ export default function LoginPage() {
     setOtpError('')
     try {
       const fullPhone = countryCode + phone.trim()
-      const data = await authApi.loginPhone(fullPhone, password)
+      const data = await withColdStartRetry(
+        () => authApi.loginPhone(fullPhone, password),
+        () => setOtpError('Le serveur se réveille, nouvelle tentative…'),
+      )
+      setOtpError('')
       if (data.requires_otp && data.session_token) {
         setSessionToken(data.session_token)
         setOtpDigits(Array(OTP_LENGTH).fill(''))
         setResendCooldown(RESEND_COOLDOWN)
       }
     } catch (err: any) {
-      setOtpError(err?.response?.data?.message || "Impossible de renvoyer le code")
+      setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : "Impossible de renvoyer le code"))
     }
     setLoading(false)
   }
@@ -97,10 +106,10 @@ export default function LoginPage() {
     setOtpLoading(true)
     setOtpError('')
     try {
-      const data = await authApi.verifyOtp(sessionToken, code)
+      const data = await withColdStartRetry(() => authApi.verifyOtp(sessionToken, code))
       completeLogin(data)
     } catch (err: any) {
-      setOtpError(err?.response?.data?.message || 'Code incorrect')
+      setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code incorrect'))
     }
     setOtpLoading(false)
   }

@@ -88,7 +88,7 @@ export default function ConversationsPage() {
       <div>
         {convs.map((conv, idx) => {
           const other = getOther(conv)
-          const name = other?.pseudonyme || 'Contact'
+          const name = other?.prenom || other?.pseudonyme || 'Contact'
           const lastMsg = conv.dernierMessage
           const lastContenu = lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : 'Nouvelle conversation')
           const unread = conv.nonLus || 0

@@ -160,7 +160,7 @@ export default function ChatPage() {
   }, [messages])
 
   const other = conv?.participants?.find((p: any) => p.id !== user?.id) || conv?.participants?.[0] || null
-  const otherName = other?.pseudonyme || 'Conversation'
+  const otherName = other?.prenom || other?.pseudonyme || 'Conversation'
   const roleLabel = other?.role === 'demarcheur' ? 'Agent immobilier' : other?.role === 'proprietaire' ? 'Propriétaire' : ''
   const isClientRole = other?.role === 'demarcheur' || other?.role === 'proprietaire'
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
