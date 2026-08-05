@@ -200,6 +200,16 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
 const IcTrendUp = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l6-6 4 4L20 9.5M20 9.5h-4.5M20 9.5v4.5"/></svg>
 const IcTrendDown = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l6 6 4-4L20 14.5M20 14.5h-4.5M20 14.5v-4.5"/></svg>
 
+/** Assombrit une couleur hex d'un facteur (0-1) — utilisé pour donner un
+ *  léger dégradé de profondeur aux StatCards pleines couleurs. */
+function shade(hex: string, amt: number): string {
+  const n = parseInt(hex.slice(1), 16)
+  const r = Math.max(0, Math.round(((n >> 16) & 255) * (1 - amt)))
+  const g = Math.max(0, Math.round(((n >> 8) & 255) * (1 - amt)))
+  const b = Math.max(0, Math.round((n & 255) * (1 - amt)))
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+}
+
 /** Mini-graphique compact (sans axes) posé dans une StatCard, comme les
  *  petites courbes intégrées aux cartes KPI des dashboards admin. */
 function MiniSparkline({ data, color }: { data: { value: number }[]; color: string }) {
@@ -227,27 +237,29 @@ function MiniSparkline({ data, color }: { data: { value: number }[]; color: stri
   )
 }
 
-function StatCard({ icon, color, label, value, trendPct, sparkline }: { icon: React.ReactNode; color: string; label: string; value: string; trendPct?: number; sparkline?: { value: number }[] }) {
+/** Carte KPI pleine couleur avec courbe intégrée — inspirée des cartes
+ *  "Total Revenue / Active Users / Orders" du template Admindek. */
+function StatCard({ icon, color, label, value, trendPct, trendCaption, sparkline }: { icon: React.ReactNode; color: string; label: string; value: string; trendPct?: number; trendCaption?: string; sparkline?: { value: number }[] }) {
   const up = (trendPct ?? 0) >= 0
   return (
-    <div className="card-soft rounded-2xl p-4 flex-1 min-w-0 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: color }} />
-      <div className="flex items-center justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: color + '18' }}>
-          <span style={{ color }}>{icon}</span>
+    <div className="rounded-2xl p-5 flex-1 min-w-0 relative overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${color}, ${shade(color, 0.28)})`, boxShadow: `0 8px 20px ${color}40` }}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.18)' }}>
+          <span className="text-white">{icon}</span>
         </div>
         {trendPct != null && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-            style={{ background: (up ? '#22C55E' : '#EF4444') + '18', color: up ? '#22C55E' : '#EF4444' }}>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: 'rgba(255,255,255,0.18)' }}>
             {up ? <IcTrendUp /> : <IcTrendDown />} {Math.abs(trendPct)}%
           </span>
         )}
       </div>
-      <p className="text-xl font-extrabold text-text-dark leading-none mb-1.5 truncate">{value}</p>
-      <p className="text-xs text-text-grey truncate">{label}</p>
+      <p className="text-white/75 text-xs font-semibold mb-1 truncate">{label}</p>
+      <p className="text-[26px] font-extrabold text-white leading-none mb-1.5 truncate">{value}</p>
+      {trendCaption && <p className="text-white/60 text-[11px] truncate">{trendCaption}</p>}
       {sparkline && sparkline.some(s => s.value > 0) && (
-        <div className="mt-2 -mx-1">
-          <MiniSparkline data={sparkline} color={color} />
+        <div className="mt-3 -mx-1 opacity-90">
+          <MiniSparkline data={sparkline} color="#ffffff" />
         </div>
       )}
     </div>
@@ -1580,9 +1592,9 @@ export default function ProprietaireDashboard() {
 
               {/* Stat cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} sparkline={hasRevenus ? revenusSeries : undefined} />
-                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} sparkline={hasVisites ? visitesSeries : undefined} />
-                <StatCard icon={<IcHome />} color="#22C55E" label="Taux d'occupation" value={`${tauxOccupation}%`} />
+                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} trendCaption={hasRevenus ? 'vs mois dernier' : undefined} sparkline={hasRevenus ? revenusSeries : undefined} />
+                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} trendCaption={hasVisites ? 'vs mois dernier' : undefined} sparkline={hasVisites ? visitesSeries : undefined} />
+                <StatCard icon={<IcHome />} color="#22C55E" label="Taux d'occupation" value={`${tauxOccupation}%`} trendCaption={`${biensOccupes}/${biens.length} biens occupés`} />
               </div>
 
               {/* Charts — mise en page bento : le graphique principal prend le double de place */}
