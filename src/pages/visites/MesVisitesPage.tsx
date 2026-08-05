@@ -79,6 +79,7 @@ export default function MesVisitesPage() {
   const [payError, setPayError] = useState('')
   const [payState, setPayState] = useState<'idle' | 'waiting' | 'success'>('idle')
   const [payRefId, setPayRefId] = useState('')
+  const [payUrl, setPayUrl] = useState('')
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; body: string; onConfirm: () => void } | null>(null)
   const [showFeedback, setShowFeedback] = useState<any>(null)
@@ -201,7 +202,8 @@ export default function MesVisitesPage() {
   }
 
   const handlePayer = async () => {
-    if (!showPay || !phoneOp) return
+    if (!showPay) return
+    if (operator !== 'fedapay' && !phoneOp) return
     setPaying(true)
     setPayError('')
     try {
@@ -213,7 +215,19 @@ export default function MesVisitesPage() {
       const ref = res.referenceId || res.reference_id
       setPayRefId(ref)
       setPayState('waiting')
+      // FedaPay : la transaction est créée côté serveur mais le paiement ne
+      // se fait que sur sa page hébergée — sans cette ouverture, l'utilisateur
+      // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
+      if (res.url_paiement) {
+        setPayUrl(res.url_paiement)
+        window.open(res.url_paiement, '_blank', 'noopener')
+      } else {
+        setPayUrl('')
+      }
       let attempts = 0
+      // FedaPay se paie sur une page hébergée ouverte à part — l'utilisateur a
+      // besoin de bien plus de temps que pour valider un push USSD MoMo.
+      const maxAttempts = res.url_paiement ? 100 : 20
       pollRef.current = setInterval(async () => {
         attempts++
         try {
@@ -228,7 +242,7 @@ export default function MesVisitesPage() {
             setPayState('idle')
           }
         } catch (_) {}
-        if (attempts >= 20) { clearInterval(pollRef.current!); setPayError('Délai de confirmation expiré.'); setPayState('idle') }
+        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayError('Délai de confirmation expiré.'); setPayState('idle') }
       }, 3000)
     } catch (err: any) {
       setPayError(err?.response?.data?.message || 'Erreur de paiement')
@@ -243,6 +257,7 @@ export default function MesVisitesPage() {
     setPayState('idle')
     setPhoneOp('')
     setPayError('')
+    setPayUrl('')
   }
 
   const openFeedback = (v: any) => {
@@ -356,7 +371,17 @@ export default function MesVisitesPage() {
               <div className="flex flex-col items-center text-center py-6">
                 <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="font-bold text-text-dark mb-1">Confirmation en cours…</p>
-                <p className="text-sm text-text-grey">Validez la demande sur votre téléphone {phoneOp}</p>
+                {payUrl ? (
+                  <>
+                    <p className="text-sm text-text-grey mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
+                    <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                      className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#FF6B35' }}>
+                      Rouvrir la page de paiement
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-sm text-text-grey">Validez la demande sur votre téléphone {phoneOp}</p>
+                )}
               </div>
             ) : (
               <>
@@ -381,21 +406,25 @@ export default function MesVisitesPage() {
                     </button>
                   ))}
                 </div>
-                <div className="flex items-center gap-3 rounded-2xl px-3.5 border border-divider bg-surface-g mb-4 focus-within:border-primary">
-                  <span className="text-lg">🇧🇯</span>
-                  <span className="font-bold text-text-dark text-sm">+229</span>
-                  <div className="w-px h-5 bg-divider" />
-                  <input
-                    type="tel"
-                    value={phoneOp}
-                    onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="96XXXXXXXX"
-                    className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
-                  />
-                </div>
+                {operator === 'fedapay' ? (
+                  <p className="text-xs text-text-grey mb-4">Vous serez redirigé vers la page de paiement sécurisée FedaPay (carte ou Mobile Money).</p>
+                ) : (
+                  <div className="flex items-center gap-3 rounded-2xl px-3.5 border border-divider bg-surface-g mb-4 focus-within:border-primary">
+                    <span className="text-lg">🇧🇯</span>
+                    <span className="font-bold text-text-dark text-sm">+229</span>
+                    <div className="w-px h-5 bg-divider" />
+                    <input
+                      type="tel"
+                      value={phoneOp}
+                      onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="96XXXXXXXX"
+                      className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
+                    />
+                  </div>
+                )}
                 <button
                   onClick={handlePayer}
-                  disabled={!phoneOp || paying}
+                  disabled={(operator !== 'fedapay' && !phoneOp) || paying}
                   className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
                   style={{ background: '#FF6B35' }}
                 >

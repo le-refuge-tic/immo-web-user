@@ -58,6 +58,7 @@ function MonLogementTab() {
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [payMsg, setPayMsg]     = useState('')
+  const [payUrl, setPayUrl]     = useState('')
   const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const load = async () => {
@@ -80,13 +81,22 @@ function MonLogementTab() {
   const totalSelected = loyers.filter(l => selected.includes(l.id)).reduce((s: number, l: any) => s + Number(l.montant), 0)
 
   const payer = async () => {
-    if (!tel || selected.length === 0) return
+    if ((operateur !== 'fedapay' && !tel) || selected.length === 0) return
     setPaying(true)
     setPayState('waiting')
     try {
       const res = await paiementApi.initierLoyer({ loyer_id: selected[0], methode_paiement: operateur, telephone_paiement: tel })
       const refId = res.referenceId || res.reference_id
+      // FedaPay se paie sur une page hébergée à part — sans l'ouvrir, l'utilisateur
+      // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
+      if ((res as any).url_paiement) {
+        setPayUrl((res as any).url_paiement)
+        window.open((res as any).url_paiement, '_blank', 'noopener')
+      } else {
+        setPayUrl('')
+      }
       let attempts = 0
+      const maxAttempts = (res as any).url_paiement ? 100 : 20
       pollRef.current = setInterval(async () => {
         attempts++
         try {
@@ -99,7 +109,7 @@ function MonLogementTab() {
             setPayState('error'); setPayMsg('Paiement échoué. Réessayez.')
           }
         } catch (_) {}
-        if (attempts >= 20) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
+        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
     } catch (e: any) {
       setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur de paiement')
@@ -216,8 +226,20 @@ function MonLogementTab() {
                   ) : payState === 'waiting' ? (
                     <div className="flex flex-col items-center gap-2 py-2">
                       <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} />
-                      <p className="text-sm text-text-grey">Confirmation du paiement MoMo…</p>
-                      <p className="text-xs text-text-grey">Validez la demande sur votre téléphone</p>
+                      {payUrl ? (
+                        <>
+                          <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
+                          <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                            className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
+                            Rouvrir la page de paiement
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-text-grey">Confirmation du paiement MoMo…</p>
+                          <p className="text-xs text-text-grey">Validez la demande sur votre téléphone</p>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <>
@@ -226,14 +248,16 @@ function MonLogementTab() {
                         <p className="font-bold text-text-dark">{totalSelected.toLocaleString('fr-FR')} FCFA</p>
                       </div>
                       <OperateurChips value={operateur} onChange={setOperateur} />
-                      <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
-                        <span className="text-text-grey text-sm font-semibold">+229</span>
-                        <div className="w-px h-4 bg-divider" />
-                        <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                          placeholder="XX XX XX XX" maxLength={8}
-                          className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
-                      </div>
-                      <button onClick={payer} disabled={!tel || paying}
+                      {operateur !== 'fedapay' && (
+                        <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
+                          <span className="text-text-grey text-sm font-semibold">+229</span>
+                          <div className="w-px h-4 bg-divider" />
+                          <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
+                            placeholder="XX XX XX XX" maxLength={8}
+                            className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
+                        </div>
+                      )}
+                      <button onClick={payer} disabled={(operateur !== 'fedapay' && !tel) || paying}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
                         style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
                         Payer via {OPERATEURS.find(o => o.id === operateur)?.label}
@@ -306,6 +330,7 @@ function ActiviteTab() {
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [payMsg, setPayMsg]     = useState('')
+  const [payUrl, setPayUrl]     = useState('')
   const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const load = async () => {
@@ -330,12 +355,19 @@ function ActiviteTab() {
   }
 
   const payer = async () => {
-    if (!tel || !prochainLoyer) return
+    if ((operateur !== 'fedapay' && !tel) || !prochainLoyer) return
     setPaying(true); setPayState('waiting')
     try {
       const res = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
       const refId = res.referenceId || res.reference_id
+      if ((res as any).url_paiement) {
+        setPayUrl((res as any).url_paiement)
+        window.open((res as any).url_paiement, '_blank', 'noopener')
+      } else {
+        setPayUrl('')
+      }
       let attempts = 0
+      const maxAttempts = (res as any).url_paiement ? 100 : 20
       pollRef.current = setInterval(async () => {
         attempts++
         try {
@@ -346,7 +378,7 @@ function ActiviteTab() {
             clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Paiement échoué.')
           }
         } catch (_) {}
-        if (attempts >= 20) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
+        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
     } catch (e: any) {
       setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur')
@@ -385,7 +417,17 @@ function ActiviteTab() {
           {payState === 'waiting' ? (
             <div className="flex flex-col items-center gap-2 py-3">
               <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} />
-              <p className="text-sm text-text-grey">Validez sur votre téléphone…</p>
+              {payUrl ? (
+                <>
+                  <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
+                  <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                    className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
+                    Rouvrir la page de paiement
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-text-grey">Validez sur votre téléphone…</p>
+              )}
             </div>
           ) : payState === 'success' ? (
             <div className="flex items-center gap-2 justify-center py-2">
@@ -399,18 +441,20 @@ function ActiviteTab() {
             </div>
           ) : (
             <>
-              <p className="font-semibold text-text-dark text-sm mb-2">Numéro de téléphone</p>
+              <p className="font-semibold text-text-dark text-sm mb-2">Mode de paiement</p>
               <OperateurChips value={operateur} onChange={setOperateur} />
-              <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
-                <span className="text-text-grey text-sm font-semibold">+229</span>
-                <div className="w-px h-4 bg-divider" />
-                <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                  placeholder="XX XX XX XX" maxLength={8}
-                  className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
-              </div>
+              {operateur !== 'fedapay' && (
+                <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
+                  <span className="text-text-grey text-sm font-semibold">+229</span>
+                  <div className="w-px h-4 bg-divider" />
+                  <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
+                    placeholder="XX XX XX XX" maxLength={8}
+                    className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
+                </div>
+              )}
               <div className="flex gap-2">
                 <button onClick={() => setShowPay(false)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-                <button onClick={payer} disabled={!tel || paying} className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
+                <button onClick={payer} disabled={(operateur !== 'fedapay' && !tel) || paying} className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: GREEN }}>Payer</button>
               </div>
             </>

@@ -218,8 +218,11 @@ export default function BienDetailPage() {
         const autres = list.filter((b: any) => b.id !== bien.id)
         const quartier = bien.localisation?.quartier
         const ville = bien.localisation?.ville
-        const memeQuartier = quartier ? autres.filter((b: any) => b.localisation?.quartier === quartier) : []
-        const memeVille = autres.filter((b: any) => b.localisation?.ville === ville && !memeQuartier.some((m: any) => m.id === b.id))
+        const parPrixCroissant = (a: any, b: any) => Number(a.prix) - Number(b.prix)
+        const memeQuartier = (quartier ? autres.filter((b: any) => b.localisation?.quartier === quartier) : []).sort(parPrixCroissant)
+        const memeVille = autres
+          .filter((b: any) => b.localisation?.ville === ville && !memeQuartier.some((m: any) => m.id === b.id))
+          .sort(parPrixCroissant)
         setSimilaires([...memeQuartier, ...memeVille].slice(0, 6))
       })
       .catch(() => {})
