@@ -722,12 +722,12 @@ export default function HomePage() {
       {quartiersActifs.length > 0 && (
         <div className="hidden md:block w-full px-16 py-12" style={{ background: '#1A1A1A' }}>
           <h2 className="text-white font-bold text-xl mb-5">Emplacements de bien</h2>
-          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
             {quartiersActifs.map(q => (
               <button
                 key={q}
                 onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)}
-                className="px-4 py-2.5 rounded-lg text-white text-sm font-semibold text-left truncate transition-opacity hover:opacity-85"
+                className="px-3 py-1.5 rounded-md text-white text-xs font-semibold text-left truncate transition-opacity hover:opacity-85"
                 style={{ background: '#4B6BFF' }}
               >
                 {q}

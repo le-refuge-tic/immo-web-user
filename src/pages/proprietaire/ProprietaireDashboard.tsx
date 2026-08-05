@@ -28,6 +28,8 @@ const IcTrash   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcEdit    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
 const IcChat    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+const IcLogout  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+const IcMessage = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -113,75 +115,6 @@ function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | u
     if (m) m.value += 1
   }
   return months
-}
-
-function timeAgo(dateMs: number) {
-  const diff = Date.now() - dateMs
-  const m = Math.floor(diff / 60000)
-  if (m < 1) return "à l'instant"
-  if (m < 60) return `il y a ${m} min`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `il y a ${h} h`
-  const j = Math.floor(h / 24)
-  if (j < 7) return `il y a ${j} j`
-  return new Date(dateMs).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-}
-
-type ActivityType = 'visite_demande' | 'visite_confirmee' | 'visite_effectuee' | 'visite_annulee' | 'loyer_paye' | 'bien_approuve' | 'bien_rejete' | 'bien_nouveau'
-type ActivityItem = { type: ActivityType; title: string; subtitle: string; dateMs: number }
-
-/** Fil d'activité "Live Activity Feed" — fusionne visites, loyers encaissés et
- *  biens en un flux chronologique unique, à partir des données déjà chargées
- *  pour le tableau de bord (aucun appel réseau supplémentaire). */
-function buildActivityFeed(biens: any[], visites: any[], loyersDash: any): ActivityItem[] {
-  const items: ActivityItem[] = []
-
-  for (const v of visites) {
-    const raw = v.created_at || v.date_souhaitee
-    if (!raw) continue
-    const dateMs = new Date(raw).getTime()
-    if (isNaN(dateMs)) continue
-    const bien = v.bien
-    const loc = bien?.localisation ? `${bien.localisation.quartier ? bien.localisation.quartier + ', ' : ''}${bien.localisation.ville || ''}` : ''
-    const subtitle = [typeLabel(bien?.type || ''), loc].filter(Boolean).join(' — ')
-    if (v.statut === 'confirmee')      items.push({ type: 'visite_confirmee', title: 'Visite confirmée',           subtitle, dateMs })
-    else if (v.statut === 'effectuee') items.push({ type: 'visite_effectuee', title: 'Visite effectuée',           subtitle, dateMs })
-    else if (v.statut === 'annulee')   items.push({ type: 'visite_annulee',   title: 'Visite annulée',             subtitle, dateMs })
-    else                                items.push({ type: 'visite_demande',  title: 'Nouvelle demande de visite', subtitle, dateMs })
-  }
-
-  for (const c of loyersDash?.contrats || []) {
-    for (const l of c.loyers || []) {
-      if (l.statut !== 'paye' || !l.date_paiement) continue
-      const dateMs = new Date(l.date_paiement).getTime()
-      if (isNaN(dateMs)) continue
-      items.push({ type: 'loyer_paye', title: 'Loyer encaissé', subtitle: `${Number(l.montant).toLocaleString('fr-FR')} FCFA`, dateMs })
-    }
-  }
-
-  for (const b of biens) {
-    if (!b.created_at) continue
-    const dateMs = new Date(b.created_at).getTime()
-    if (isNaN(dateMs)) continue
-    const loc = b.localisation ? `${b.localisation.quartier ? b.localisation.quartier + ', ' : ''}${b.localisation.ville || ''}` : ''
-    const subtitle = `${typeLabel(b.type)}${loc ? ' — ' + loc : ''}`
-    if (b.statut_moderation === 'approuve')    items.push({ type: 'bien_approuve', title: 'Annonce approuvée', subtitle, dateMs })
-    else if (b.statut_moderation === 'rejete') items.push({ type: 'bien_rejete',   title: 'Annonce rejetée',   subtitle, dateMs })
-    else                                        items.push({ type: 'bien_nouveau',  title: 'Bien ajouté',       subtitle, dateMs })
-  }
-
-  return items.sort((a, b) => b.dateMs - a.dateMs).slice(0, 8)
-}
-
-const ACTIVITY_META: Record<ActivityType, { icon: 'cal' | 'wallet' | 'home'; color: string }> = {
-  visite_demande:    { icon: 'cal',    color: '#F59E0B' },
-  visite_confirmee:  { icon: 'cal',    color: '#22C55E' },
-  visite_effectuee:  { icon: 'cal',    color: '#2E86C1' },
-  visite_annulee:    { icon: 'cal',    color: '#EF4444' },
-  loyer_paye:        { icon: 'wallet', color: '#22C55E' },
-  bien_approuve:     { icon: 'home',   color: '#22C55E' },
-  bien_rejete:       { icon: 'home',   color: '#EF4444' },
-  bien_nouveau:      { icon: 'home',   color: '#2E86C1' },
 }
 
 // ─── QuickAction ──────────────────────────────────────────────────────────────
@@ -665,6 +598,143 @@ function isDatePassee(v: any): boolean {
   return new Date(raw).getTime() < Date.now()
 }
 
+function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, cpId, setCpId, cpDate, setCpDate, cpTime, setCpTime, submitting, onContrePropose }: {
+  v: any
+  chatLoadingId: number | null
+  onChat: (v: any) => void
+  onConfirm: (id: number) => void
+  onMarquerEffectuee: (id: number) => void
+  cpId: number | null
+  setCpId: (id: number | null) => void
+  cpDate: string
+  setCpDate: (s: string) => void
+  cpTime: string
+  setCpTime: (s: string) => void
+  submitting: boolean
+  onContrePropose: () => void
+}) {
+  const echouee = isEchouee(v)
+  const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+  const nom = 'Client'
+  const init = 'C'
+  const bType = typeLabel(v.bien?.type || '')
+  const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
+  const dateStr = v.date_souhaitee
+    ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+      + ' à ' + new Date(v.date_souhaitee).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    : '—'
+  const contactNumero = v.client?.numero_whatsapp || v.client?.telephone
+  return (
+    <div className="card-soft rounded-2xl p-4">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+          style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>{init}</div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-text-dark text-sm">{nom}</p>
+          <p className="text-xs text-text-grey">Identité masquée avant confirmation</p>
+        </div>
+        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
+      </div>
+      <div className="bg-surface-g rounded-xl p-3 mb-3">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span style={{ color: BLUE }}><IcHome /></span>
+          <p className="text-xs font-medium text-text-dark truncate">{bType} — {bLoc}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-text-grey"><IcCal /></span>
+          <p className="text-xs text-text-grey">Demandé pour : {dateStr}</p>
+        </div>
+      </div>
+      {v.statut === 'contre_proposee' && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-medium" style={{ background: '#E67E2210', borderColor: '#E67E2240', color: '#E67E22' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Contre-proposition envoyée. En attente du client.
+        </div>
+      )}
+      {v.statut === 'effectuee' && v.feedback_donne && v.note_client != null && (
+        <div className="rounded-xl p-3 mb-3" style={{ background: '#F59E0B10', border: '1px solid #F59E0B30' }}>
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-xs font-bold" style={{ color: '#F59E0B' }}>Avis du client</p>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map(n => (
+                <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= v.note_client ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              ))}
+            </div>
+          </div>
+          {v.feedback_tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-1.5">
+              {v.feedback_tags.map((t: string) => (
+                <span key={t} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: '#F59E0B18', color: '#F59E0B' }}>{t}</span>
+              ))}
+            </div>
+          )}
+          {v.feedback_libre && (
+            <p className="text-xs text-text-grey italic">« {v.feedback_libre} »</p>
+          )}
+        </div>
+      )}
+      {v.paiement_effectue && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#4CAF5010', borderColor: '#4CAF5030', color: '#4CAF50' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Frais de visite payés
+        </div>
+      )}
+      {!echouee && v.statut === 'confirmee' && v.numeros_partages && contactNumero && (
+        <div className="flex items-center gap-3 p-3 rounded-xl mb-3" style={{ background: '#25D36614', border: '1px solid #25D36650' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#25D36626' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
+            <p className="text-sm font-bold text-text-dark">{contactNumero}</p>
+          </div>
+          <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#25D366' }}>
+            WhatsApp
+          </a>
+        </div>
+      )}
+      <div className="flex gap-2">
+        <button onClick={() => onChat(v)} disabled={chatLoadingId === v.id}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: BLUE + '50', color: BLUE, background: BLUE + '10' }}>
+          <IcChat /> {chatLoadingId === v.id ? '…' : 'Chat'}
+        </button>
+        {v.statut === 'en_attente' && <>
+          <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold text-center" style={{ borderColor: BLUE + '80', color: BLUE }}>Autre créneau</button>
+          <button onClick={() => onConfirm(v.id)} disabled={isDatePassee(v)}
+            className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:cursor-not-allowed"
+            style={{ background: isDatePassee(v) ? 'rgba(158,158,158,0.5)' : '#4CAF50' }}>
+            {isDatePassee(v) ? 'Date dépassée' : 'Confirmer'}
+          </button>
+        </>}
+        {v.statut === 'confirmee' && (
+          <button onClick={() => onMarquerEffectuee(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
+        )}
+      </div>
+      {cpId === v.id && (
+        <div className="mt-3 pt-3 border-t border-divider">
+          <p className="text-sm font-bold text-text-dark mb-3">Proposer un autre créneau</p>
+          <div className="space-y-2 mb-3">
+            <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
+              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+            <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
+              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setCpId(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
+            <button onClick={onContrePropose} disabled={!cpDate || !cpTime || submitting}
+              className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
+              {submitting ? 'Envoi…' : 'Envoyer'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ReservationsTab() {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<any[]>([])
@@ -676,6 +746,7 @@ function ReservationsTab() {
   const [cpTime, setCpTime] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -709,6 +780,10 @@ function ReservationsTab() {
     try { await visitesApi.confirmerVisite(id); load() } catch (_) {}
   }
 
+  const marquerEffectuee = async (id: number) => {
+    try { await visitesApi.marquerEffectuee(id); load() } catch (_) {}
+  }
+
   const ouvrirChat = async (v: any) => {
     const clientId = v.client?.id
     const bienId = v.bien?.id
@@ -740,6 +815,12 @@ function ReservationsTab() {
     setSubmitting(false)
   }
 
+  const selected = filtered.find(v => v.id === selectedId) || filtered[0] || null
+  useEffect(() => {
+    if (!filtered.some(v => v.id === selectedId)) setSelectedId(filtered[0]?.id ?? null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered.map(v => v.id).join(',')])
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="bg-white border-b border-divider flex flex-shrink-0">
@@ -767,12 +848,14 @@ function ReservationsTab() {
           ))}
         </div>
       )}
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-        {loading ? (
-          <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4">
+      {loading ? (
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             {[1,2].map(n => <div key={n} className="h-40 skeleton rounded-2xl mb-3 md:mb-0" />)}
           </div>
-        ) : filtered.length === 0 ? (
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -780,133 +863,61 @@ function ReservationsTab() {
             <p className="font-bold text-text-dark mb-1">Aucune réservation</p>
             <p className="text-sm text-text-grey text-center">Les demandes de visite apparaîtront ici</p>
           </div>
-        ) : (
-        <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:items-start">
-        {filtered.map((v, i) => {
-          const echouee = isEchouee(v)
-          const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
-          const nom = 'Client'
-          const init = 'C'
-          const bType = typeLabel(v.bien?.type || '')
-          const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
-          const dateStr = v.date_souhaitee
-            ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-              + ' à ' + new Date(v.date_souhaitee).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-            : '—'
-          const contactNumero = v.client?.numero_whatsapp || v.client?.telephone
-          return (
-            <div key={v.id || i} className="card-soft rounded-2xl mb-3 md:mb-0 p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>{init}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-text-dark text-sm">{nom}</p>
-                  <p className="text-xs text-text-grey">Identité masquée avant confirmation</p>
+        </div>
+      ) : (
+        <>
+          {/* Mobile / tablet: card grid */}
+          <div className="xl:hidden flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+            <div className="md:grid md:grid-cols-2 md:gap-4 md:items-start">
+              {filtered.map((v, i) => (
+                <div key={v.id || i} className="mb-3 md:mb-0">
+                  <VisiteCard v={v} chatLoadingId={chatLoadingId} onChat={ouvrirChat} onConfirm={confirmer} onMarquerEffectuee={marquerEffectuee}
+                    cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
+                    submitting={submitting} onContrePropose={contreProposer} />
                 </div>
-                <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
-              </div>
-              <div className="bg-surface-g rounded-xl p-3 mb-3">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span style={{ color: BLUE }}><IcHome /></span>
-                  <p className="text-xs font-medium text-text-dark truncate">{bType} — {bLoc}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-text-grey"><IcCal /></span>
-                  <p className="text-xs text-text-grey">Demandé pour : {dateStr}</p>
-                </div>
-              </div>
-              {v.statut === 'contre_proposee' && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-medium" style={{ background: '#E67E2210', borderColor: '#E67E2240', color: '#E67E22' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  Contre-proposition envoyée. En attente du client.
-                </div>
-              )}
-              {v.statut === 'effectuee' && v.feedback_donne && v.note_client != null && (
-                <div className="rounded-xl p-3 mb-3" style={{ background: '#F59E0B10', border: '1px solid #F59E0B30' }}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-xs font-bold" style={{ color: '#F59E0B' }}>Avis du client</p>
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map(n => (
-                        <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= v.note_client ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                      ))}
+              ))}
+            </div>
+          </div>
+          {/* Desktop: master-detail */}
+          <div className="hidden xl:flex flex-1 overflow-hidden">
+            <div className="w-[340px] 2xl:w-[380px] flex-shrink-0 border-r border-divider overflow-y-auto bg-white">
+              {filtered.map((v, i) => {
+                const echouee = isEchouee(v)
+                const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+                const bType = typeLabel(v.bien?.type || '')
+                const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
+                const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—'
+                const active = selected?.id === v.id
+                return (
+                  <button key={v.id || i} onClick={() => setSelectedId(v.id)}
+                    className="w-full flex items-center gap-3 px-4 py-3 border-b border-divider text-left relative transition-colors hover:bg-surface-g"
+                    style={active ? { background: BLUE + '0C' } : undefined}>
+                    {active && <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: BLUE }} />}
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                      style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>C</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-text-dark truncate">{bType} — {bLoc}</p>
+                      <p className="text-xs text-text-grey truncate">{dateStr}</p>
                     </div>
-                  </div>
-                  {v.feedback_tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-1.5">
-                      {v.feedback_tags.map((t: string) => (
-                        <span key={t} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: '#F59E0B18', color: '#F59E0B' }}>{t}</span>
-                      ))}
-                    </div>
-                  )}
-                  {v.feedback_libre && (
-                    <p className="text-xs text-text-grey italic">« {v.feedback_libre} »</p>
-                  )}
-                </div>
-              )}
-              {v.paiement_effectue && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#4CAF5010', borderColor: '#4CAF5030', color: '#4CAF50' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  Frais de visite payés
-                </div>
-              )}
-              {!echouee && v.statut === 'confirmee' && v.numeros_partages && contactNumero && (
-                <div className="flex items-center gap-3 p-3 rounded-xl mb-3" style={{ background: '#25D36614', border: '1px solid #25D36650' }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#25D36626' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
-                    <p className="text-sm font-bold text-text-dark">{contactNumero}</p>
-                  </div>
-                  <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#25D366' }}>
-                    WhatsApp
-                  </a>
-                </div>
-              )}
-              <div className="flex gap-2">
-                <button onClick={() => ouvrirChat(v)} disabled={chatLoadingId === v.id}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: BLUE + '50', color: BLUE, background: BLUE + '10' }}>
-                  <IcChat /> {chatLoadingId === v.id ? '…' : 'Chat'}
-                </button>
-                {v.statut === 'en_attente' && <>
-                  <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold text-center" style={{ borderColor: BLUE + '80', color: BLUE }}>Autre créneau</button>
-                  <button onClick={() => confirmer(v.id)} disabled={isDatePassee(v)}
-                    className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:cursor-not-allowed"
-                    style={{ background: isDatePassee(v) ? 'rgba(158,158,158,0.5)' : '#4CAF50' }}>
-                    {isDatePassee(v) ? 'Date dépassée' : 'Confirmer'}
+                    <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
                   </button>
-                </>}
-                {v.statut === 'confirmee' && (
-                  <button onClick={async () => { try { await visitesApi.marquerEffectuee(v.id); load() } catch (_) {} }} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
-                )}
-              </div>
-              {cpId === v.id && (
-                <div className="mt-3 pt-3 border-t border-divider">
-                  <p className="text-sm font-bold text-text-dark mb-3">Proposer un autre créneau</p>
-                  <div className="space-y-2 mb-3">
-                    <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
-                      className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
-                    <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
-                      className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setCpId(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-                    <button onClick={contreProposer} disabled={!cpDate || !cpTime || submitting}
-                      className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
-                      {submitting ? 'Envoi…' : 'Envoyer'}
-                    </button>
-                  </div>
+                )
+              })}
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {selected ? (
+                <div className="max-w-xl">
+                  <VisiteCard v={selected} chatLoadingId={chatLoadingId} onChat={ouvrirChat} onConfirm={confirmer} onMarquerEffectuee={marquerEffectuee}
+                    cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
+                    submitting={submitting} onContrePropose={contreProposer} />
                 </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-sm text-text-grey">Sélectionnez une réservation</div>
               )}
             </div>
-          )
-        })}
-        </div>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -1175,9 +1186,9 @@ function LoyersTab() {
   const sorted = [...loyers].sort((a, b) => new Date(b.date_echeance || 0).getTime() - new Date(a.date_echeance || 0).getTime())
 
   const loyerStatut = (s: string) =>
-    s === 'paye'      ? { label: 'Payé',       color: '#22C55E' } :
-    s === 'en_retard' ? { label: 'En retard',  color: '#EF4444' } :
-                         { label: 'En attente', color: '#F59E0B' }
+    s === 'paye'      ? { label: 'Payé',       color: '#4CAF50' } :
+    s === 'en_retard' ? { label: 'En retard',  color: '#F44336' } :
+                         { label: 'En attente', color: '#FF9800' }
 
   return (
     <div className="flex-1 overflow-y-auto px-4 md:px-8 xl:px-10 py-5 md:py-8">
@@ -1190,9 +1201,9 @@ function LoyersTab() {
 
         {/* Cartes KPI — détail du mois, en attente, en retard */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-7">
-          <StatCard icon={<IcWallet />} color="#22C55E" label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} FCFA`} />
-          <StatCard icon={<IcClock />} color="#F59E0B" label="En attente de paiement" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} FCFA`} />
-          <StatCard icon={<IcMoney />} color="#EF4444" label="Loyers en retard" value={`${enRetardCount}`} />
+          <StatCard icon={<IcWallet />} color="#4CAF50" label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} FCFA`} />
+          <StatCard icon={<IcClock />} color="#FF9800" label="En attente de paiement" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} FCFA`} />
+          <StatCard icon={<IcMoney />} color="#F44336" label="Loyers en retard" value={`${enRetardCount}`} />
         </div>
 
         <p className="text-[17px] font-bold text-text-dark mb-3.5">Historique des loyers</p>
@@ -1445,7 +1456,7 @@ function ProfilTab({ user, biens, visites, onOpenDelegations }: { user: any; bie
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function ProprietaireDashboard() {
-  const { user: authUser } = useAuth()
+  const { user: authUser, logout } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
   const [user, setUser] = useState<any>(null)
@@ -1527,8 +1538,6 @@ export default function ProprietaireDashboard() {
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
 
-  const activityFeed = buildActivityFeed(biens, visites, loyersDash)
-
   const lastUpdatedLabel = lastUpdated
     ? lastUpdated.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     : '—'
@@ -1590,6 +1599,14 @@ export default function ProprietaireDashboard() {
             <span style={{ color: BLUE }}><IcHome /></span>
             <span className="text-[11px] font-semibold" style={{ color: BLUE }}>Propriétaire</span>
           </div>
+          <button onClick={() => navigate('/conversations')} title="Messagerie"
+            className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0 transition-colors" style={{ background: BLUE + '10', color: BLUE }}>
+            <IcMessage />
+          </button>
+          <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
+            className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0 transition-colors" style={{ background: '#EF444410', color: '#EF4444' }}>
+            <IcLogout />
+          </button>
         </div>
       </div>
 
@@ -1670,16 +1687,18 @@ export default function ProprietaireDashboard() {
                     ))}
                   </ChartCard>
                 )}
-                <ChartCard title="Activité récente" subtitle="Derniers événements" icon={<IcClock />} color="#7B2FBE" className={biensParType.length > 0 ? 'xl:col-span-3' : 'xl:col-span-1'}>
-                  {activityFeed.length === 0 ? <EmptyChartState label="Aucune activité récente" /> : (
+                <ChartCard title="Mes biens récents" subtitle="Dernières publications" icon={<IcHome />} color={BLUE} className={biensParType.length > 0 ? 'xl:col-span-3' : 'xl:col-span-1'}
+                  headerRight={<button onClick={() => setTab('biens')} className="text-xs font-semibold flex-shrink-0" style={{ color: BLUE }}>Voir tout</button>}>
+                  {biens.length === 0 ? <EmptyChartState label="Aucun bien publié pour l'instant" /> : (
                     <div>
-                      {activityFeed.map((a, i) => {
-                        const meta = ACTIVITY_META[a.type]
-                        const icon = meta.icon === 'cal' ? <IcCal /> : meta.icon === 'wallet' ? <IcWallet /> : <IcHome />
+                      {biens.slice(0, 3).map((b, i) => {
+                        const { label, color } = statutBien(b.statut_moderation || 'en_attente')
+                        const loc = b.localisation
+                        const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
                         return (
-                          <HighlightRow key={i} icon={icon} color={meta.color} title={a.title}
-                            subtitle={`${a.subtitle}${a.subtitle ? ' · ' : ''}${timeAgo(a.dateMs)}`}
-                            last={i === activityFeed.length - 1} />
+                          <HighlightRow key={b.id} icon={<IcHome />} color={color} title={`${typeLabel(b.type)} — ${fmtPrix(b.prix)}`}
+                            subtitle={`${adresse} · ${label}`}
+                            last={i === Math.min(biens.length, 3) - 1} />
                         )
                       })}
                     </div>
@@ -1687,41 +1706,6 @@ export default function ProprietaireDashboard() {
                 </ChartCard>
               </div>
 
-              {/* Biens récents */}
-              <div className="flex items-center justify-between mb-3.5">
-                <p className="text-[17px] font-bold text-text-dark">Mes biens récents</p>
-                <button onClick={() => setTab('biens')} className="text-sm font-semibold" style={{ color: BLUE }}>Voir tout</button>
-              </div>
-              {loading ? (
-                [1,2].map(n => <div key={n} className="h-20 skeleton rounded-xl mb-2.5" />)
-              ) : biens.length === 0 ? (
-                <div className="card-soft rounded-xl p-5 text-center">
-                  <p className="text-text-grey text-sm">Aucun bien publié pour l'instant</p>
-                </div>
-              ) : biens.slice(0, 3).map(b => {
-                const { label, color } = statutBien(b.statut_moderation || 'en_attente')
-                const loc = b.localisation
-                const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                return (
-                  <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} role="button" tabIndex={0}
-                    className="card-soft rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
-                      <span style={{ color: BLUE }}><IcHome /></span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <span className="text-text-grey"><IcPin /></span>
-                        <p className="text-xs text-text-grey truncate">{adresse}</p>
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-text-dark text-xs">{fmtPrix(b.prix)}</p>
-                      <span className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
-                    </div>
-                  </div>
-                )
-              })}
               <div className="h-24" />
             </div>
           </div>
