@@ -460,9 +460,18 @@ export default function HomePage() {
               {TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </div>
+          <div className="w-32 flex-shrink-0 px-6 py-4">
+            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget min</p>
+            <input
+              type="number" min={0} value={prixMin}
+              onChange={e => setPrixMin(e.target.value)}
+              placeholder="0"
+              className="w-full bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+            />
+          </div>
           <div className="w-44 flex-shrink-0 px-6 py-4">
             <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget max</p>
-            <select value={prixMax} onChange={e => { setPrixMin(''); setPrixMax(e.target.value) }}
+            <select value={prixMax} onChange={e => setPrixMax(e.target.value)}
               className="w-full bg-transparent outline-none text-sm text-text-dark cursor-pointer">
               <option value="">Tous</option>
               {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{p.label}</option>)}
