@@ -54,9 +54,13 @@ const TYPES = [
   { key: 'maison',        label: 'Maison' },
   { key: 'appart_vide',   label: 'Appart. vide' },
   { key: 'appart_meuble', label: 'Appart. meublé' },
+  { key: 'chambre_salon', label: 'Chambre-Salon' },
   { key: 'terrain',       label: 'Terrain' },
   { key: 'guesthouse',    label: 'Guesthouse' },
 ]
+// "Chambre-Salon" est un sous-type (bien.amenites.sous_type), pas le champ
+// large bien.type — traité à part partout où `type` sert à filtrer/chercher.
+const isSousType = (t: string) => t === 'chambre_salon'
 
 const BUDGET_PRESETS = [
   { label: '< 50 000',      max: 50_000 },
@@ -187,7 +191,7 @@ export default function HomePage() {
   const maxVal = prixMax ? Number(prixMax) : null
   const displayedBiens = biens
     .filter(b => !transaction || b.transaction === transaction)
-    .filter(b => !type || b.type === type)
+    .filter(b => !type || (isSousType(type) ? b.amenites?.sous_type === type : b.type === type))
     .filter(b => !search.trim() || matchLoc(b, search.trim()))
     .filter(b => minVal == null || Number(b.prix) >= minVal)
     .filter(b => maxVal == null || Number(b.prix) <= maxVal)
@@ -203,8 +207,11 @@ export default function HomePage() {
 
   // Biens à louer les plus récemment publiés — section dédiée façon portails
   // immobiliers classiques (photo + nombre de photos + date d'ajout).
+  // Uniquement les biens publiés dans le dernier mois : au-delà, un bien
+  // reste visible mais seulement dans "Toutes les annonces" plus bas.
+  const UN_MOIS_MS = 30 * 24 * 60 * 60 * 1000
   const recentLocation = biens
-    .filter(b => b.transaction === 'location')
+    .filter(b => b.transaction === 'location' && b.created_at && (Date.now() - new Date(b.created_at).getTime()) <= UN_MOIS_MS)
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 3)
 
@@ -219,10 +226,6 @@ export default function HomePage() {
   const quartiersActifs = Array.from(new Set(
     biens.map(b => b.localisation?.quartier).filter((q): q is string => !!q?.trim())
   )).sort((a, b) => a.localeCompare(b, 'fr'))
-
-  const voirLesBiens = () => {
-    document.getElementById('location-biens')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -244,7 +247,7 @@ export default function HomePage() {
     const params = new URLSearchParams()
     if (search.trim()) params.set('q', search.trim())
     if (transaction) params.set('transaction', transaction)
-    if (type) params.set('type', type)
+    if (type) { isSousType(type) ? params.set('sous_type', type) : params.set('type', type) }
     if (minVal != null) params.set('prix_min', String(minVal))
     if (maxVal != null) params.set('prix_max', String(maxVal))
     const qs = params.toString()
@@ -463,11 +466,14 @@ export default function HomePage() {
           <div className="w-32 flex-shrink-0 px-6 py-4">
             <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget min</p>
             <input
-              type="number" min={0} value={prixMin}
+              type="number" min={0} list="budget-min-presets" value={prixMin}
               onChange={e => setPrixMin(e.target.value)}
               placeholder="0"
               className="w-full bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
             />
+            <datalist id="budget-min-presets">
+              {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{`≥ ${p.label.replace('< ', '')}`}</option>)}
+            </datalist>
           </div>
           <div className="w-36 flex-shrink-0 px-6 py-4">
             <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget max</p>
@@ -757,29 +763,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* ── Bannière CTA — voir les biens ── */}
-      <div className="hidden md:block relative w-full overflow-hidden mt-4" style={{ height: 340 }}>
-        <div className="absolute inset-0" style={{ clipPath: 'polygon(0 6%, 100% 0%, 100% 94%, 0% 100%)' }}>
-          <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: 'rgba(10,10,10,0.72)' }} />
-        </div>
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8">
-          <p className="text-white/70 text-sm font-semibold uppercase tracking-wide mb-3">
-            Trouver un bien
-          </p>
-          <h2 className="text-white font-bold text-3xl md:text-4xl max-w-3xl leading-snug mb-7">
-            {quartiersActifs.length > 0
-              ? <>Des biens disponibles à {quartiersActifs.slice(0, 5).join(', ')}{quartiersActifs.length > 5 ? '…' : ''}</>
-              : 'REFUGE, votre référence pour l’immobilier au Bénin'}
-          </h2>
-          <button onClick={voirLesBiens}
-            className="px-7 py-3.5 rounded-xl font-bold text-white text-sm hover:opacity-90 transition-opacity"
-            style={{ background: '#4B6BFF', boxShadow: '0 4px 16px rgba(75,107,255,0.4)' }}>
-            Voir les biens
-          </button>
-        </div>
-      </div>
-
       {/* ── Nos services — pourquoi choisir REFUGE ── */}
       <div className="hidden md:block w-full px-16 py-16">
         <div className="text-center max-w-2xl mx-auto mb-12">
@@ -834,7 +817,7 @@ export default function HomePage() {
       {quartiersActifs.length > 0 && (
         <div className="hidden md:block w-full px-16 py-12" style={{ background: '#1A1A1A' }}>
           <h2 className="text-white font-bold text-xl mb-5">Emplacements de bien</h2>
-          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
             {quartiersActifs.map(q => (
               <button
                 key={q}
@@ -852,8 +835,8 @@ export default function HomePage() {
       {/* ── Pied de page ── */}
       <footer className="hidden md:block w-full px-16 py-8"
         style={{ background: 'rgba(245,245,247,0.78)', backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-        <div className="flex items-center gap-2.5">
-          <img src={logoUrl} alt="REFUGE" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+        <div className="flex items-center gap-2.5" style={{ minHeight: 40 }}>
+          <img src={logoUrl} alt="REFUGE" style={{ height: 40, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
           <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
         </div>
         <p className="text-xs mt-4" style={{ color: 'rgba(0,0,0,0.4)' }}>

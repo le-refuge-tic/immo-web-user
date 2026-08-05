@@ -122,7 +122,7 @@ export default function SearchPage() {
   const [type,        setType]        = useState(initialParams.get('type') || '')
   const [prixMin,     setPrixMin]     = useState(initialParams.get('prix_min') || '')
   const [prixMax,     setPrixMax]     = useState(initialParams.get('prix_max') || '')
-  const [sousType,      setSousType]      = useState('')
+  const [sousType,      setSousType]      = useState(initialParams.get('sous_type') || '')
   const [chambresMin,   setChambresMin]   = useState('')
   const [salonsMin,     setSalonsMin]     = useState('')
   const [superficieMin, setSuperficieMin] = useState('')
