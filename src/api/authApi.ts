@@ -21,4 +21,9 @@ export const authApi = {
 
   refresh: (refresh_token: string, user_id: number) =>
     axios.post(`${BASE}/auth/refresh`, { refresh_token, user_id }).then(r => r.data),
+
+  // 2FA obligatoire à chaque connexion (loginPhone/loginEmail renvoient
+  // désormais { requires_otp, session_token } au lieu des tokens directs).
+  verifyOtp: (session_token: string, code: string) =>
+    axios.post(`${BASE}/auth/otp/verify`, { session_token, code }).then(r => r.data),
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
@@ -12,6 +12,9 @@ const COUNTRY_CODES = [
   { code: '+33',  label: 'FR +33'  },
 ]
 
+const OTP_LENGTH = 6
+const RESEND_COOLDOWN = 60
+
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -22,6 +25,30 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // ── 2FA obligatoire : après validation du mot de passe, un code SMS
+  // doit être vérifié avant d'obtenir les tokens de session. ──────────────
+  const [step, setStep] = useState<'credentials' | 'otp'>('credentials')
+  const [sessionToken, setSessionToken] = useState('')
+  const [otpDigits, setOtpDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''))
+  const [otpError, setOtpError] = useState('')
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setTimeout(() => setResendCooldown(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendCooldown])
+
+  const completeLogin = (data: any) => {
+    login(data)
+    const role = data.user?.role
+    if (role === 'proprietaire') navigate('/proprietaire', { replace: true })
+    else if (role === 'demarcheur') navigate('/demarcheur', { replace: true })
+    else navigate('/', { replace: true })
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!phone.trim() || !password) { setError('Remplissez tous les champs'); return }
@@ -30,16 +57,68 @@ export default function LoginPage() {
     try {
       const fullPhone = countryCode + phone.trim()
       const data = await authApi.loginPhone(fullPhone, password)
-      login(data)
-      const role = data.user?.role
-      if (role === 'proprietaire') navigate('/proprietaire', { replace: true })
-      else if (role === 'demarcheur') navigate('/demarcheur', { replace: true })
-      else navigate('/', { replace: true })
+      if (data.requires_otp && data.session_token) {
+        setSessionToken(data.session_token)
+        setOtpDigits(Array(OTP_LENGTH).fill(''))
+        setOtpError('')
+        setStep('otp')
+        setResendCooldown(RESEND_COOLDOWN)
+        setTimeout(() => otpRefs.current[0]?.focus(), 50)
+      } else {
+        completeLogin(data)
+      }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Identifiants incorrects')
     }
     setLoading(false)
   }
+
+  const resendOtp = async () => {
+    if (resendCooldown > 0) return
+    setLoading(true)
+    setOtpError('')
+    try {
+      const fullPhone = countryCode + phone.trim()
+      const data = await authApi.loginPhone(fullPhone, password)
+      if (data.requires_otp && data.session_token) {
+        setSessionToken(data.session_token)
+        setOtpDigits(Array(OTP_LENGTH).fill(''))
+        setResendCooldown(RESEND_COOLDOWN)
+      }
+    } catch (err: any) {
+      setOtpError(err?.response?.data?.message || "Impossible de renvoyer le code")
+    }
+    setLoading(false)
+  }
+
+  const verifyOtp = async (code: string) => {
+    if (code.length < OTP_LENGTH) return
+    setOtpLoading(true)
+    setOtpError('')
+    try {
+      const data = await authApi.verifyOtp(sessionToken, code)
+      completeLogin(data)
+    } catch (err: any) {
+      setOtpError(err?.response?.data?.message || 'Code incorrect')
+    }
+    setOtpLoading(false)
+  }
+
+  const handleOtpChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1)
+    const next = [...otpDigits]
+    next[index] = digit
+    setOtpDigits(next)
+    if (digit && index < OTP_LENGTH - 1) otpRefs.current[index + 1]?.focus()
+    const code = next.join('')
+    if (code.length === OTP_LENGTH) verifyOtp(code)
+  }
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) otpRefs.current[index - 1]?.focus()
+  }
+
+  const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
 
   return (
     <div className="min-h-dvh flex">
@@ -123,6 +202,7 @@ export default function LoginPage() {
             <p className="text-text-grey mt-2">Connectez-vous pour accéder à votre espace personnalisé.</p>
           </div>
 
+          {step === 'credentials' && (
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
               <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
@@ -212,11 +292,88 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+          )}
 
+          {step === 'otp' && (
+            <div>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 mx-auto" style={{ background: 'rgba(75,107,255,0.08)' }}>
+                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-text-dark text-center mb-2">Vérification</h3>
+              <p className="text-text-grey text-sm text-center leading-relaxed mb-7">
+                Entrez le code envoyé au numéro se terminant par{' '}
+                <span className="font-bold text-text-dark">{maskedPhone}</span>
+              </p>
+
+              {otpError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5">
+                  <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <p className="text-red-600 text-sm">{otpError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-center mb-7">
+                {otpDigits.map((d, i) => (
+                  <input
+                    key={i}
+                    ref={el => { otpRefs.current[i] = el }}
+                    value={d}
+                    onChange={e => handleOtpChange(i, e.target.value)}
+                    onKeyDown={e => handleOtpKeyDown(i, e)}
+                    inputMode="numeric"
+                    maxLength={1}
+                    disabled={otpLoading}
+                    className="w-11 h-14 text-center text-xl font-bold text-text-dark glass-input rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all disabled:opacity-60"
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => verifyOtp(otpDigits.join(''))}
+                disabled={otpLoading || otpDigits.some(d => !d)}
+                className="w-full py-4 rounded-xl font-bold text-white text-sm shadow-btn disabled:opacity-40 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
+              >
+                {otpLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Confirmer
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </>
+                )}
+              </button>
+
+              <p className="text-text-grey text-sm text-center mt-5">
+                {resendCooldown > 0 ? (
+                  <>Renvoyer le code dans <span className="font-bold text-text-dark">{resendCooldown}s</span></>
+                ) : (
+                  <button type="button" onClick={resendOtp} disabled={loading} className="text-primary font-bold hover:underline disabled:opacity-60">
+                    {loading ? 'Envoi…' : 'Renvoyer le code'}
+                  </button>
+                )}
+              </p>
+
+              <button type="button" onClick={() => { setStep('credentials'); setError('') }}
+                className="w-full text-center text-text-grey text-sm mt-4 hover:text-text-dark transition-colors">
+                Retour
+              </button>
+            </div>
+          )}
+
+          {step === 'credentials' && (
           <p className="text-text-grey text-sm text-center mt-8">
             Nouveau ici ?{' '}
             <Link to="/register" className="text-primary font-bold hover:underline">Créer un compte</Link>
           </p>
+          )}
 
           {/* Desktop back */}
           <button onClick={() => navigate(-1)} className="hidden md:flex items-center gap-2 text-text-grey hover:text-text-dark text-sm mt-8 mx-auto transition-colors">
