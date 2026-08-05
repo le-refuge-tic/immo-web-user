@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import logoUrl from '../../assets/REFUGE-ICON.png'
+import brandingImg from '../../assets/hero-interior.jpg'
 
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
@@ -161,18 +162,17 @@ export default function RegisterPage() {
     <div className="min-h-dvh flex">
 
       {/* ── Colonne gauche — branding (desktop uniquement) ── */}
-      <div
-        className="hidden md:flex flex-col justify-between w-1/2 p-12"
-        style={{ background: 'linear-gradient(160deg, #0D1B2A 0%, #0F3460 60%, #1a1a6e 100%)' }}
-      >
+      <div className="hidden md:flex relative overflow-hidden flex-col justify-between w-1/2 p-12">
+        <img src={brandingImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(13,27,42,0.92) 0%, rgba(15,52,96,0.88) 60%, rgba(26,26,110,0.92) 100%)' }} />
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <div className="relative flex items-center gap-3">
           <img src={logoUrl} alt="REFUGE" style={{ width: 64, height: 64, objectFit: 'contain' }} />
           <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
         </div>
 
         {/* Pitch */}
-        <div>
+        <div className="relative">
           <h1 className="text-white text-4xl font-bold leading-tight mb-5">
             Rejoignez<br />
             <span style={{ color: '#7B9BFF' }}>la communauté</span><br />
@@ -193,7 +193,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Footer tagline */}
-        <p className="text-white/30 text-xs">© 2025 REFUGE — Immobilier au Bénin</p>
+        <p className="relative text-white/30 text-xs">© 2025 REFUGE — Immobilier au Bénin</p>
       </div>
 
       {/* ── Colonne droite — formulaire ── */}

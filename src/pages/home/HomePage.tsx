@@ -9,13 +9,6 @@ import HERO_IMG from '../../assets/hero-interior.jpg'
 import logoUrl from '../../assets/REFUGE-ICON.png'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
 
-const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
-function resolveUrl(url: string) {
-  if (!url) return ''
-  if (url.startsWith('http')) return url
-  return BACKEND + url
-}
-
 function norm(s: string) {
   return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 }
@@ -196,15 +189,6 @@ export default function HomePage() {
     .filter(b => minVal == null || Number(b.prix) >= minVal)
     .filter(b => maxVal == null || Number(b.prix) <= maxVal)
 
-  // Biens avec photo — utilisés pour faire défiler le fond du hero desktop
-  // (comme les portails immobiliers classiques) au lieu d'une image fixe.
-  const [heroIndex, setHeroIndex] = useState(0)
-  const heroBiens = biens.filter(b => b.photos?.length > 0).slice(0, 8)
-  const heroBien = heroBiens.length > 0 ? heroBiens[heroIndex % heroBiens.length] : null
-  const heroCover = heroBien ? (heroBien.photos.find((p: any) => p.is_cover) || heroBien.photos[0]) : null
-  const heroPrev = () => setHeroIndex(i => (i - 1 + heroBiens.length) % heroBiens.length)
-  const heroNext = () => setHeroIndex(i => (i + 1) % heroBiens.length)
-
   // Biens à louer les plus récemment publiés — section dédiée façon portails
   // immobiliers classiques (photo + nombre de photos + date d'ajout).
   // Uniquement les biens publiés dans le dernier mois : au-delà, un bien
@@ -308,41 +292,9 @@ export default function HomePage() {
       </div>
 
       {/* ── DESKTOP hero image pleine largeur ── */}
-      <div className="hidden md:flex relative w-full flex-col justify-center group/hero" style={{ minHeight: '72vh' }}>
-        <img
-          key={heroBien?.id ?? 'default'}
-          src={heroCover ? resolveUrl(heroCover.url) : HERO_IMG}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover anim-fade-in"
-        />
+      <div className="hidden md:flex relative w-full flex-col justify-center" style={{ minHeight: '72vh' }}>
+        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.15) 100%)' }} />
-
-        {/* Flèches de navigation entre les photos des biens — visibles au survol
-            du hero, pour switcher vers la photo d'un autre bien publié. */}
-        {heroBiens.length > 1 && (
-          <>
-            <button
-              onClick={heroPrev}
-              aria-label="Bien précédent"
-              className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity"
-              style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)' }}
-            >
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={heroNext}
-              aria-label="Bien suivant"
-              className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity"
-              style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)' }}
-            >
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </>
-        )}
 
         <div className="relative z-10 w-full px-16 pb-20">
           <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4 anim-fade-up">
@@ -370,61 +322,14 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-
-        {/* Carte "bien à la une" — flottante sur le hero, inspirée des portails
-            immobiliers classiques ; n'apparaît qu'à partir de xl pour ne jamais
-            chevaucher le titre sur les largeurs desktop plus étroites. */}
-        {heroBien && (
-          <div key={heroBien.id} className="hidden xl:block absolute z-10 anim-scale-in" style={{ top: '18%', right: '4rem', width: 320 }}>
-            <button onClick={() => navigate(`/biens/${heroBien.id}`)} className="w-full text-left bg-white rounded-2xl overflow-hidden shadow-2xl hover:-translate-y-1 transition-transform">
-              <div className="px-3 pt-3">
-                <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold text-white" style={{ background: '#4B6BFF' }}>
-                  À la une
-                </span>
-              </div>
-              <div className="px-5 pt-3 pb-5">
-                <p className="font-bold text-text-dark text-[15px] leading-snug mb-2">
-                  {TYPES.find(t => t.key === heroBien.type)?.label || heroBien.type}
-                  {heroBien.localisation?.quartier ? ` — ${heroBien.localisation.quartier}` : ''}
-                </p>
-                <div className="flex items-center gap-1.5 text-text-grey text-xs mb-3">
-                  <PinIcon />
-                  <span>{heroBien.localisation?.ville || 'Bénin'}</span>
-                </div>
-                <div className="flex items-center justify-between pt-3 border-t border-divider">
-                  <span className="text-[11px] font-semibold text-text-grey uppercase tracking-wide">
-                    {heroBien.transaction === 'location' ? 'À louer' : 'À vendre'}
-                  </span>
-                  <p className="font-bold text-lg" style={{ color: '#4B6BFF' }}>
-                    {Number(heroBien.prix).toLocaleString('fr-FR')}
-                    <span className="text-xs font-medium text-text-grey"> FCFA{heroBien.transaction === 'location' ? '/mois' : ''}</span>
-                  </p>
-                </div>
-              </div>
-            </button>
-            {heroBiens.length > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mt-3">
-                {heroBiens.map((b, i) => (
-                  <button
-                    key={b.id}
-                    onClick={() => setHeroIndex(i)}
-                    aria-label={`Bien ${i + 1}`}
-                    className="h-1.5 rounded-full transition-all"
-                    style={{ width: i === heroIndex ? 20 : 6, background: i === heroIndex ? '#fff' : 'rgba(255,255,255,0.4)' }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* ── Barre de recherche structurée — ancrée à cheval sur le bas du hero,
           remplace l'ancienne barre mono-champ + panneau "Filtres" replié. ── */}
-      <div className="hidden md:block relative z-20 px-16" style={{ marginTop: -44 }}>
+      <div className="hidden md:block relative z-20 px-16" style={{ marginTop: -36 }}>
         <div className="bg-white rounded-2xl shadow-2xl flex items-stretch divide-x divide-divider anim-scale-in d-400">
-          <div className="flex-1 min-w-0 px-6 py-4 relative">
-            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Quartier</p>
+          <div className="flex-1 min-w-0 px-5 py-3 relative">
+            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Quartier</p>
             <div className="flex items-center gap-2">
               <span className="text-text-grey flex-shrink-0"><PinIcon /></span>
               <input
@@ -434,7 +339,7 @@ export default function HomePage() {
                 onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                 onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
                 placeholder="Où cherchez-vous ?"
-                className="flex-1 min-w-0 bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+                className="flex-1 min-w-0 bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
               />
             </div>
             {showSuggest && suggestions.length > 0 && (
@@ -449,46 +354,46 @@ export default function HomePage() {
               </div>
             )}
           </div>
-          <div className="w-48 flex-shrink-0 px-6 py-4">
-            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Opération</p>
+          <div className="w-40 flex-shrink-0 px-5 py-3">
+            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Opération</p>
             <select value={transaction} onChange={e => setTransaction(e.target.value)}
-              className="w-full bg-transparent outline-none text-sm text-text-dark cursor-pointer">
+              className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
               {TRANSACTIONS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </div>
-          <div className="w-48 flex-shrink-0 px-6 py-4">
-            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Type de bien</p>
+          <div className="w-40 flex-shrink-0 px-5 py-3">
+            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Type de bien</p>
             <select value={type} onChange={e => setType(e.target.value)}
-              className="w-full bg-transparent outline-none text-sm text-text-dark cursor-pointer">
+              className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
               {TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </div>
-          <div className="w-32 flex-shrink-0 px-6 py-4">
-            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget min</p>
+          <div className="w-28 flex-shrink-0 px-5 py-3">
+            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget min</p>
             <input
               type="number" min={0} list="budget-min-presets" value={prixMin}
               onChange={e => setPrixMin(e.target.value)}
               placeholder="0"
-              className="w-full bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+              className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
             />
             <datalist id="budget-min-presets">
               {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{`≥ ${p.label.replace('< ', '')}`}</option>)}
             </datalist>
           </div>
-          <div className="w-36 flex-shrink-0 px-6 py-4">
-            <p className="text-[11px] font-bold text-text-grey uppercase tracking-wide mb-1.5">Budget max</p>
+          <div className="w-32 flex-shrink-0 px-5 py-3">
+            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget max</p>
             <input
               type="number" min={0} list="budget-max-presets" value={prixMax}
               onChange={e => setPrixMax(e.target.value)}
               placeholder="Illimité"
-              className="w-full bg-transparent outline-none text-sm text-text-dark placeholder-gray-400"
+              className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
             />
             <datalist id="budget-max-presets">
               {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{p.label}</option>)}
             </datalist>
           </div>
           <button onClick={goToSearch}
-            className="flex-shrink-0 flex items-center gap-2 px-8 font-bold text-white text-sm rounded-r-2xl transition-opacity hover:opacity-90"
+            className="flex-shrink-0 flex items-center gap-2 px-6 font-bold text-white text-sm rounded-r-2xl transition-opacity hover:opacity-90"
             style={{ background: '#4B6BFF' }}>
             <SearchIcon />
             Rechercher
