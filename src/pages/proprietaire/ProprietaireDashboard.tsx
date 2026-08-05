@@ -56,6 +56,17 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'profil',        label: 'Profil',        icon: <IcPerson /> },
 ]
 
+// Regroupe la nav sous des libellés de section (comme "Main"/"Components"
+// dans le template Admindek) — la sidebar propriétaire n'a pas besoin de
+// sous-menus dépliables (pas assez d'onglets), mais le même principe de
+// hiérarchie visuelle par groupes s'applique.
+const TAB_GROUPS: { label: string; keys: Tab[] }[] = [
+  { label: 'Général',  keys: ['tableau'] },
+  { label: 'Gestion',  keys: ['biens', 'reservations', 'creneaux'] },
+  { label: 'Finances', keys: ['loyers', 'portefeuille'] },
+  { label: 'Compte',   keys: ['profil'] },
+]
+
 function typeLabel(t: string) {
   const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse' }
   return m[t] || t
@@ -1464,6 +1475,7 @@ export default function ProprietaireDashboard() {
   const [loading, setLoading] = useState(true)
   const [loyersDash, setLoyersDash] = useState<any>(null)
   const [visites, setVisites] = useState<any[]>([])
+  const [wallet, setWallet] = useState<any>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [chartPeriod, setChartPeriod] = useState<3 | 6 | 12>(6)
@@ -1471,13 +1483,14 @@ export default function ProprietaireDashboard() {
   const loadData = async (silent = false) => {
     if (silent) setRefreshing(true)
     try {
-      const [u, b, l, v] = await Promise.allSettled([
-        userApi.me(), biensApi.mesBiens(), loyersApi.dashboard(), visitesApi.reservationsRecues(),
+      const [u, b, l, v, w] = await Promise.allSettled([
+        userApi.me(), biensApi.mesBiens(), loyersApi.dashboard(), visitesApi.reservationsRecues(), walletApi.me(),
       ])
       if (u.status === 'fulfilled') setUser(u.value?.user || u.value)
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
       if (l.status === 'fulfilled') setLoyersDash(l.value)
       if (v.status === 'fulfilled') setVisites(Array.isArray(v.value) ? v.value : v.value.data || [])
+      if (w.status === 'fulfilled') setWallet(w.value)
       setLastUpdated(new Date())
     } catch (_) {}
     setLoading(false)
@@ -1503,6 +1516,8 @@ export default function ProprietaireDashboard() {
   const approuves = biens.filter(b => b.statut_moderation === 'approuve').length
   const enAttente = biens.filter(b => b.statut_moderation === 'en_attente').length
   const rejetes   = biens.filter(b => b.statut_moderation === 'rejete').length
+  const reservationsEnAttente = visites.filter(v => v.statut === 'en_attente').length
+  const soldeWallet = Number(wallet?.solde || 0)
 
   const biensParType = (() => {
     const counts: Record<string, number> = {}
@@ -1558,21 +1573,49 @@ export default function ProprietaireDashboard() {
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>Propriétaire</p>
           </div>
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {TABS.map(t => {
-            const active = tab === t.key
-            return (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors relative"
-                style={active ? { background: 'rgba(255,255,255,0.08)', color: '#fff' } : { color: 'rgba(255,255,255,0.55)' }}>
-                {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full" style={{ background: BLUE }} />}
-                <span style={{ color: active ? BLUE : 'rgba(255,255,255,0.4)' }}>{t.icon}</span>
-                {t.label}
-              </button>
-            )
-          })}
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          {TAB_GROUPS.map(group => (
+            <div key={group.label} className="mb-4 last:mb-0">
+              <p className="px-3.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                {group.label}
+              </p>
+              <div className="space-y-1">
+                {TABS.filter(t => group.keys.includes(t.key)).map(t => {
+                  const active = tab === t.key
+                  const badge = t.key === 'reservations' ? reservationsEnAttente : 0
+                  return (
+                    <button key={t.key} onClick={() => setTab(t.key)}
+                      className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors relative"
+                      style={active ? { background: 'rgba(255,255,255,0.08)', color: '#fff' } : { color: 'rgba(255,255,255,0.55)' }}>
+                      {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full" style={{ background: BLUE }} />}
+                      <span style={{ color: active ? BLUE : 'rgba(255,255,255,0.4)' }}>{t.icon}</span>
+                      <span className="flex-1 text-left">{t.label}</span>
+                      {badge > 0 && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE, color: '#fff' }}>
+                          {badge}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
-        <div className="px-3 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="px-3 pb-4 space-y-3">
+          {/* Aperçu portefeuille — solde réel, données déjà chargées pour l'onglet Portefeuille */}
+          <button onClick={() => setTab('portefeuille')}
+            className="w-full rounded-2xl p-4 text-center transition-colors hover:bg-white/[0.06]"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-2.5" style={{ background: BLUE + '25', color: BLUE }}>
+              <IcWallet />
+            </div>
+            <p className="font-bold text-white text-base">{loading ? '…' : `${soldeWallet.toLocaleString('fr-FR')} F`}</p>
+            <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.45)' }}>Solde disponible</p>
+            <span className="inline-block px-3.5 py-1.5 rounded-full text-[11px] font-bold" style={{ background: BLUE, color: '#fff' }}>
+              Voir mon portefeuille
+            </span>
+          </button>
           <button onClick={() => navigate('/nouveau-bien')}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity"
             style={{ background: BLUE }}>
