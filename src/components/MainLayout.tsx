@@ -8,9 +8,15 @@ import PushPrompt from './PushPrompt'
  *  qu'on y arrive en tant que client, propriétaire ou démarcheur. */
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
 
+/** Messagerie : plein écran sur desktop (le topbar mange de la hauteur utile
+ *  pour un panneau liste+fil de discussion) — mais garde la bottom nav
+ *  mobile, la messagerie reste une destination courante de la navigation. */
+const HIDE_TOPNAV_PREFIXES = ['/conversations']
+
 export default function MainLayout() {
   const location = useLocation()
   const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
+  const hideTopNav = hideChrome || HIDE_TOPNAV_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden" style={{ background: '#F5F5F7' }}>
@@ -30,7 +36,7 @@ export default function MainLayout() {
       </div>
 
       {/* Header desktop */}
-      {!hideChrome && <TopNav />}
+      {!hideTopNav && <TopNav />}
 
       {/* Contenu — pas de z-index ici : un z-index sur ce conteneur créerait
           un contexte d'empilement qui plafonnerait TOUT son contenu (y
@@ -40,7 +46,7 @@ export default function MainLayout() {
           toujours en dessous ; les rares barres `fixed` de page qui
           doivent apparaître au-dessus (ex. bouton de validation en bas
           d'écran) portent leur propre z-index supérieur (z-[60]). */}
-      <div className={`flex-1 overflow-y-auto relative ${hideChrome ? '' : 'pb-20 md:pb-0 md:pt-16'}`}>
+      <div className={`flex-1 overflow-y-auto relative ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : 'pb-20 md:pb-0 md:pt-16'}`}>
         <Outlet />
       </div>
 

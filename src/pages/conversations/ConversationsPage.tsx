@@ -185,7 +185,7 @@ export default function ConversationsPage() {
       </div>
 
       {/* ── DESKTOP : deux panneaux, façon immo-web-admin ── */}
-      <div className="hidden md:flex" style={{ height: 'calc(100vh - 64px)' }}>
+      <div className="hidden md:flex h-dvh">
 
         {/* Panneau gauche — liste */}
         <div className="w-72 lg:w-80 flex-shrink-0 flex flex-col bg-white border-r border-divider">
