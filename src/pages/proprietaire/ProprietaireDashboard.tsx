@@ -1576,7 +1576,44 @@ export default function ProprietaireDashboard() {
     : '—'
 
   return (
-    <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] relative">
+    <div className="flex flex-col h-full bg-[#F4F6FA] relative">
+
+      {/* Header — topbar façon admin, pleine largeur (au-dessus de la sidebar) */}
+      <div className="flex-shrink-0 px-4 md:px-8 xl:px-10 h-16 bg-white border-b border-divider">
+        <div className="h-full flex items-center gap-3.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img src={logoUrl} alt="REFUGE" className="w-9 h-9 rounded-[10px] object-contain flex-shrink-0" />
+            <span className="hidden sm:block font-extrabold text-base tracking-tight flex-shrink-0" style={{ color: '#00AEEF' }}>REFUGE</span>
+          </div>
+
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-2.5">
+            <div className="text-right hidden sm:block">
+              <p className="font-bold text-text-dark text-[13px] leading-tight truncate max-w-[160px]">
+                {loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}
+              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#8A93A3' }}>Propriétaire</p>
+            </div>
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ background: BLUE }}>
+              {loading ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : initials}
+            </div>
+            <button onClick={() => navigate('/conversations')} title="Messagerie"
+              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
+              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: BLUE }}>
+              <IcMessage />
+            </button>
+            <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
+              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
+              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: '#EF4444' }}>
+              <IcLogout />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Shell — sidebar + contenu, sous le topbar pleine largeur */}
+      <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
 
       {/* Sidebar (desktop only) */}
       <aside className="hidden xl:flex xl:flex-col xl:w-64 2xl:w-72 flex-shrink-0"
@@ -1643,40 +1680,6 @@ export default function ProprietaireDashboard() {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-
-      {/* Header — topbar façon admin : logo à gauche, identité + actions à droite */}
-      <div className="flex-shrink-0 px-4 md:px-8 xl:px-10 h-16 bg-white border-b border-divider">
-        <div className="h-full md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0 flex items-center gap-3.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <img src={logoUrl} alt="REFUGE" className="w-9 h-9 rounded-[10px] object-contain flex-shrink-0" />
-            <span className="hidden sm:block font-extrabold text-base tracking-tight flex-shrink-0" style={{ color: '#00AEEF' }}>REFUGE</span>
-          </div>
-
-          <div className="flex-1" />
-
-          <div className="flex items-center gap-2.5">
-            <div className="text-right hidden sm:block">
-              <p className="font-bold text-text-dark text-[13px] leading-tight truncate max-w-[160px]">
-                {loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}
-              </p>
-              <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#8A93A3' }}>Propriétaire</p>
-            </div>
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ background: BLUE }}>
-              {loading ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : initials}
-            </div>
-            <button onClick={() => navigate('/conversations')} title="Messagerie"
-              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
-              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: BLUE }}>
-              <IcMessage />
-            </button>
-            <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
-              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
-              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: '#EF4444' }}>
-              <IcLogout />
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Content */}
       <div className="flex-1 overflow-hidden flex flex-col md:max-w-5xl md:mx-auto md:w-full xl:max-w-none xl:mx-0">
@@ -1815,6 +1818,7 @@ export default function ProprietaireDashboard() {
             })}
           </div>
         </div>
+      </div>
       </div>
       </div>
     </div>
