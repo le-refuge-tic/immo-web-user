@@ -770,7 +770,94 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
   )
 }
 
-function ReservationsTab() {
+/** Carte compacte (grille) — aperçu d'une réservation, ouvre le détail complet au clic. */
+function ReservationCard({ v, bien, onClick }: { v: any; bien?: any; onClick: () => void }) {
+  const echouee = isEchouee(v)
+  const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+  const bType = typeLabel(v.bien?.type || '')
+  const loc = v.bien?.localisation
+  const bLoc = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+  const clientNom = v.client?.prenom || v.client?.nom || 'Client'
+  const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—'
+  const heureStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+  const cover = bien?.photos?.find((p: any) => p.is_cover) || bien?.photos?.[0]
+
+  return (
+    <div onClick={onClick} role="button" tabIndex={0}
+      className="card-soft rounded-2xl overflow-hidden cursor-pointer transition-transform hover:-translate-y-0.5">
+      <div className="relative h-32">
+        {cover?.url
+          ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
+          : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}cc, ${BLUE}aa)` }}>
+              {clientNom[0]?.toUpperCase() || '?'}
+            </div>}
+        <div className="absolute inset-0 bg-black/10" />
+        <span className="absolute top-2.5 left-2.5 px-2 py-1 rounded-lg bg-white/95 text-text-dark text-[10px] font-bold uppercase tracking-wide">{bType}</span>
+        <span className="absolute bottom-2.5 right-2.5 px-2 py-1 rounded-lg text-white text-[10px] font-bold" style={{ background: color }}>{label}</span>
+      </div>
+      <div className="p-3.5">
+        <div className="flex items-start justify-between gap-2 mb-1.5">
+          <p className="font-bold text-text-dark text-sm truncate">{clientNom}</p>
+          <div className="text-right flex-shrink-0">
+            <p className="font-extrabold text-sm leading-none" style={{ color: BLUE }}>{dateStr}</p>
+            {heureStr && <p className="text-[10px] text-text-grey mt-0.5">{heureStr}</p>}
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-text-grey mb-2.5">
+          <IcPin /><span className="text-xs truncate">{bLoc}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 pt-2.5" style={{ borderTop: '1px solid #F1F3F6' }}>
+          <div>
+            <p className="text-[9px] font-semibold text-text-grey uppercase tracking-wide">Frais visite</p>
+            <p className="text-xs font-semibold text-text-dark mt-0.5">{Number(v.frais_visite) > 0 ? fmtPrix(v.frais_visite) : 'Gratuit'}</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-semibold text-text-grey uppercase tracking-wide">Paiement</p>
+            <p className="text-xs font-semibold mt-0.5" style={{ color: v.paiement_effectue ? '#22C55E' : '#9E9E9E' }}>{v.paiement_effectue ? 'Payé ✓' : '—'}</p>
+          </div>
+        </div>
+        <p className="text-right text-[11px] font-bold mt-2.5" style={{ color: BLUE }}>Voir le détail →</p>
+      </div>
+    </div>
+  )
+}
+
+/** Modal de détail — reprend VisiteCard (chat, confirmer, contre-proposer, marquer effectuée…) en plein. */
+function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, cpId, setCpId, cpDate, setCpDate, cpTime, setCpTime, submitting, onContrePropose }: {
+  v: any
+  onClose: () => void
+  chatLoadingId: number | null
+  onChat: (v: any) => void
+  onConfirm: (id: number) => void
+  onMarquerEffectuee: (id: number) => void
+  cpId: number | null
+  setCpId: (id: number | null) => void
+  cpDate: string
+  setCpDate: (s: string) => void
+  cpTime: string
+  setCpTime: (s: string) => void
+  submitting: boolean
+  onContrePropose: () => void
+}) {
+  const clientNom = v.client?.prenom || v.client?.nom || 'Réservation'
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[88vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white z-10">
+          <h2 className="font-bold text-text-dark">Réservation — {clientNom}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey flex-shrink-0">✕</button>
+        </div>
+        <div className="p-5">
+          <VisiteCard v={v} chatLoadingId={chatLoadingId} onChat={onChat} onConfirm={onConfirm} onMarquerEffectuee={onMarquerEffectuee}
+            cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
+            submitting={submitting} onContrePropose={onContrePropose} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ReservationsTab({ biens }: { biens: any[] }) {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -781,7 +868,7 @@ function ReservationsTab() {
   const [cpTime, setCpTime] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [modalVisiteId, setModalVisiteId] = useState<number | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -850,25 +937,21 @@ function ReservationsTab() {
     setSubmitting(false)
   }
 
-  const selected = filtered.find(v => v.id === selectedId) || filtered[0] || null
-  useEffect(() => {
-    if (!filtered.some(v => v.id === selectedId)) setSelectedId(filtered[0]?.id ?? null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered.map(v => v.id).join(',')])
+  const modalVisite = modalVisiteId ? visites.find(v => v.id === modalVisiteId) || null : null
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white border-b border-divider flex flex-shrink-0">
+      <div className="bg-white border-b border-divider flex flex-shrink-0 px-1">
         {['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Annulées', 'Échouées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
+            className="flex-1 py-3.5 text-xs font-bold border-b-2 transition-colors"
             style={filter === f ? { borderColor: BLUE, color: BLUE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
             {f}
           </button>
         ))}
       </div>
       {biensUniques.length >= 2 && (
-        <div className="bg-white px-4 pb-2.5 flex gap-2 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
+        <div className="bg-white px-4 pb-3 pt-0.5 flex gap-2 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => setBienIdFilter(null)}
             className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border"
             style={bienIdFilter === null ? { background: DARK_BLUE, color: '#fff', borderColor: DARK_BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
@@ -885,8 +968,8 @@ function ReservationsTab() {
       )}
       {loading ? (
         <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-          <div className="md:grid md:grid-cols-2 md:gap-4">
-            {[1,2].map(n => <div key={n} className="h-40 skeleton rounded-2xl mb-3 md:mb-0" />)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            {[1, 2, 3].map(n => <div key={n} className="h-64 skeleton rounded-2xl" />)}
           </div>
         </div>
       ) : filtered.length === 0 ? (
@@ -900,59 +983,19 @@ function ReservationsTab() {
           </div>
         </div>
       ) : (
-        <>
-          {/* Mobile / tablet: card grid */}
-          <div className="xl:hidden flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-            <div className="md:grid md:grid-cols-2 md:gap-4 md:items-start">
-              {filtered.map((v, i) => (
-                <div key={v.id || i} className="mb-3 md:mb-0">
-                  <VisiteCard v={v} chatLoadingId={chatLoadingId} onChat={ouvrirChat} onConfirm={confirmer} onMarquerEffectuee={marquerEffectuee}
-                    cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
-                    submitting={submitting} onContrePropose={contreProposer} />
-                </div>
-              ))}
-            </div>
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            {filtered.map((v, i) => (
+              <ReservationCard key={v.id || i} v={v} bien={biens?.find(b => b.id === v.bien?.id)} onClick={() => setModalVisiteId(v.id)} />
+            ))}
           </div>
-          {/* Desktop: master-detail */}
-          <div className="hidden xl:flex flex-1 overflow-hidden">
-            <div className="w-[340px] 2xl:w-[380px] flex-shrink-0 border-r border-divider overflow-y-auto bg-white">
-              {filtered.map((v, i) => {
-                const echouee = isEchouee(v)
-                const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
-                const bType = typeLabel(v.bien?.type || '')
-                const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
-                const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—'
-                const clientNom = v.client?.prenom || v.client?.nom || 'Client'
-                const active = selected?.id === v.id
-                return (
-                  <button key={v.id || i} onClick={() => setSelectedId(v.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3 border-b border-divider text-left relative transition-colors hover:bg-surface-g"
-                    style={active ? { background: BLUE + '0C' } : undefined}>
-                    {active && <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: BLUE }} />}
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                      style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>{clientNom[0].toUpperCase()}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-text-dark truncate">{bType} — {bLoc}</p>
-                      <p className="text-xs text-text-grey truncate">{dateStr}</p>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
-                  </button>
-                )
-              })}
-            </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              {selected ? (
-                <div className="max-w-xl">
-                  <VisiteCard v={selected} chatLoadingId={chatLoadingId} onChat={ouvrirChat} onConfirm={confirmer} onMarquerEffectuee={marquerEffectuee}
-                    cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
-                    submitting={submitting} onContrePropose={contreProposer} />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-sm text-text-grey">Sélectionnez une réservation</div>
-              )}
-            </div>
-          </div>
-        </>
+        </div>
+      )}
+      {modalVisite && (
+        <ReservationDetailModal v={modalVisite} onClose={() => setModalVisiteId(null)}
+          chatLoadingId={chatLoadingId} onChat={ouvrirChat} onConfirm={confirmer} onMarquerEffectuee={marquerEffectuee}
+          cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
+          submitting={submitting} onContrePropose={contreProposer} />
       )}
     </div>
   )
@@ -1676,7 +1719,7 @@ export default function ProprietaireDashboard() {
           </div>
         )}
         {tab === 'biens'        && <MesBiensTab />}
-        {tab === 'reservations' && <ReservationsTab />}
+        {tab === 'reservations' && <ReservationsTab biens={biens} />}
         {tab === 'loyers'       && <LoyersTab />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
         {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
