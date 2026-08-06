@@ -1375,13 +1375,13 @@ function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
   )
 }
 
-// Moyens de retrait Mobile Money proposés côté mobile (retrait_screen.dart) —
-// puces de couleur + initiales plutôt que les logos officiels MTN/Moov/Celtiis
-// (marques déposées de tiers, on ne les reproduit pas ici).
-const RETRAIT_METHODES: { key: string; label: string; short: string; sub: string; bg: string; fg: string }[] = [
-  { key: 'MTN MoMo',     label: 'MTN MoMo',     short: 'MTN',  sub: 'Retrait via MTN Mobile Money',     bg: '#FFCC00', fg: '#3D2E00' },
-  { key: 'Moov Flooz',   label: 'Moov Flooz',   short: 'MOOV', sub: 'Retrait via Moov Mobile Money',    bg: '#0066CC', fg: '#FFFFFF' },
-  { key: 'Celtiis Cash', label: 'Celtiis Cash', short: 'CEL',  sub: 'Retrait via Celtiis Mobile Money', bg: '#E63946', fg: '#FFFFFF' },
+// Moyens de retrait proposés — logos fournis dans /public pour Moov, Celtiis
+// et FedaPay ; MTN reste en puce de couleur (pas de logo fourni pour celui-ci).
+const RETRAIT_METHODES: { key: string; label: string; short: string; sub: string; bg: string; fg: string; logo?: string }[] = [
+  { key: 'MTN MoMo',     label: 'MTN MoMo',     short: 'MTN',  sub: 'Retrait via MTN Mobile Money',      bg: '#FFCC00', fg: '#3D2E00' },
+  { key: 'Moov Flooz',   label: 'Moov Flooz',   short: 'MOOV', sub: 'Retrait via Moov Mobile Money',     bg: '#0066CC', fg: '#FFFFFF', logo: '/logo-moov.png' },
+  { key: 'Celtiis Cash', label: 'Celtiis Cash', short: 'CEL',  sub: 'Retrait via Celtiis Mobile Money',  bg: '#E63946', fg: '#FFFFFF', logo: '/logo-celtis.webp' },
+  { key: 'FedaPay',      label: 'FedaPay',      short: 'FP',   sub: 'Retrait via FedaPay (Mobile Money / Carte)', bg: '#0B4F6C', fg: '#FFFFFF', logo: '/logo-fedapay.jpg' },
 ]
 
 function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: () => void; onSuccess: () => void }) {
@@ -1467,10 +1467,16 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
                   <button key={m.key} onClick={() => setMethode(m.key)}
                     className="w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors"
                     style={{ borderColor: selected ? BLUE : '#E8EAED', background: selected ? BLUE + '0A' : '#fff' }}>
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 font-extrabold text-[11px]"
-                      style={{ background: m.bg, color: m.fg }}>
-                      {m.short}
-                    </div>
+                    {m.logo ? (
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-white border border-divider p-1.5">
+                        <img src={m.logo} alt={m.label} className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 font-extrabold text-[11px]"
+                        style={{ background: m.bg, color: m.fg }}>
+                        {m.short}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm" style={{ color: selected ? BLUE : '#1D1D1F' }}>{m.label}</p>
                       <p className="text-xs text-text-grey">{m.sub}</p>
