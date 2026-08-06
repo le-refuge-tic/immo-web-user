@@ -72,7 +72,8 @@
   flex: 1;
   position: relative;
   z-index: 1;
-  min-height: 14rem;
+  min-height: 12rem;
+  margin-bottom: 0.5rem;
 }
 
 .lp-img {
@@ -85,9 +86,39 @@
 }
 .lp-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.lp-img--1 { width: 52%; height: 38%; top: 6%;    left: 4%;  transform: rotate(-7deg); z-index: 1; }
-.lp-img--2 { width: 42%; height: 62%; top: 8%;    right: 3%; transform: rotate(6deg);  z-index: 2; }
-.lp-img--3 { width: 56%; height: 40%; bottom: 4%; left: 12%; transform: rotate(-4deg); z-index: 3; }
+/* Légèrement remontées par rapport à l'original (plus de marge sous le
+   collage pour l'accroche + la liste de points, désormais plus haute). */
+.lp-img--1 { width: 52%; height: 36%; top: 2%;    left: 4%;  transform: rotate(-7deg); z-index: 1; }
+.lp-img--2 { width: 42%; height: 58%; top: 3%;    right: 3%; transform: rotate(6deg);  z-index: 2; }
+.lp-img--3 { width: 56%; height: 38%; bottom: 10%; left: 12%; transform: rotate(-4deg); z-index: 3; }
+
+/* Liste de points sous l'accroche (repris du pitch marketing d'origine,
+   adapté au fond clair du panneau gauche). */
+.lp-pitch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  position: relative;
+  z-index: 1;
+}
+.lp-pitch-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.lp-pitch-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--c-blue);
+  flex-shrink: 0;
+}
+.lp-pitch-text {
+  font-size: 0.8125rem;
+  color: var(--c-blue-dark);
+  opacity: 0.75;
+}
 
 .lp-tagline {
   font-size: 2rem;

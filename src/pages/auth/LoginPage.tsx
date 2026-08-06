@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
+import { SKIP_OTP_UI, DUMMY_OTP_CODE } from '../../utils/otpBypass'
 import './authLayout.css'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 import terrainImg from '../../assets/login/terrain.jpg'
@@ -68,6 +69,18 @@ export default function LoginPage() {
       setError('')
       if (data.requires_otp && data.session_token) {
         setSessionToken(data.session_token)
+
+        if (SKIP_OTP_UI) {
+          try {
+            const otpData = await withColdStartRetry(() => authApi.verifyOtp(data.session_token, DUMMY_OTP_CODE))
+            completeLogin(otpData)
+            setLoading(false)
+            return
+          } catch (_) {
+            // Le bypass backend n'est plus actif — on retombe sur le vrai parcours OTP.
+          }
+        }
+
         setOtpDigits(Array(OTP_LENGTH).fill(''))
         setOtpError('')
         setStep('otp')
@@ -104,12 +117,12 @@ export default function LoginPage() {
     setLoading(false)
   }
 
-  const verifyOtp = async (code: string) => {
+  const verifyOtp = async (code: string, tokenOverride?: string) => {
     if (code.length < OTP_LENGTH) return
     setOtpLoading(true)
     setOtpError('')
     try {
-      const data = await withColdStartRetry(() => authApi.verifyOtp(sessionToken, code))
+      const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
     } catch (err: any) {
       setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code incorrect'))
@@ -150,8 +163,21 @@ export default function LoginPage() {
         </div>
 
         <div className="lp-tagline">
-          Trouvez la propriété<br />
-          <span>que vous aimez.</span>
+          Trouvez votre<br />
+          <span>logement idéal</span><br />
+          au Bénin
+        </div>
+        <div className="lp-pitch-list">
+          {[
+            'Maisons, appartements, terrains vérifiés',
+            'Réservez des visites en quelques clics',
+            'Échangez directement avec les propriétaires',
+          ].map(text => (
+            <div key={text} className="lp-pitch-item">
+              <span className="lp-pitch-dot" />
+              <span className="lp-pitch-text">{text}</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -168,7 +194,7 @@ export default function LoginPage() {
 
           {step === 'credentials' ? (
             <>
-              <h2 className="lp-form-title">Bon retour !</h2>
+              <h2 className="lp-form-title">Bienvenue</h2>
               <p className="lp-form-sub">Connectez-vous pour accéder à votre espace</p>
 
               {error && (
