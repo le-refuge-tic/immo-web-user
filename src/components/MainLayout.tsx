@@ -8,10 +8,14 @@ import PushPrompt from './PushPrompt'
  *  qu'on y arrive en tant que client, propriétaire ou démarcheur. */
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
 
-/** Messagerie : plein écran sur desktop (le topbar mange de la hauteur utile
- *  pour un panneau liste+fil de discussion) — mais garde la bottom nav
- *  mobile, la messagerie reste une destination courante de la navigation. */
-const HIDE_TOPNAV_PREFIXES = ['/conversations']
+/** Pages atteintes depuis un dashboard rôle (propriétaire/démarcheur/locataire,
+ *  qui n'utilisent pas ce layout) via un lien interne (ex. la cloche Alertes) :
+ *  le topbar client (Accueil/Favoris/Messages/Profil) n'a pas de sens dans ce
+ *  contexte — la page garde son propre en-tête + bouton retour. Messagerie :
+ *  aussi plein écran sur desktop (le topbar mange de la hauteur utile pour un
+ *  panneau liste+fil de discussion) — mais garde la bottom nav mobile, la
+ *  messagerie reste une destination courante de la navigation. */
+const HIDE_TOPNAV_PREFIXES = ['/conversations', '/notifications']
 
 export default function MainLayout() {
   const location = useLocation()

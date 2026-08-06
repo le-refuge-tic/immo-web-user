@@ -183,6 +183,11 @@ export default function NotificationsPage() {
 
         {/* Header */}
         <div className="pt-12 md:pt-10 pb-4">
+          <button onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-sm font-semibold text-text-grey mb-3 hover:text-text-dark transition-colors">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Retour
+          </button>
           <div className="flex items-end justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-text-dark">Notifications</h1>
