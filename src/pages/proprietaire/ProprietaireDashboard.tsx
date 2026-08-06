@@ -1492,7 +1492,27 @@ function TransactionsTab() {
   const largest = transactions.reduce((m, t) => Math.max(m, Math.abs(Number(t.montant))), 0)
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+    <div className="flex flex-col flex-1 overflow-hidden">
+      {/* Topbar de section — titre + filtres (l'entête général de l'app reste au-dessus) */}
+      <div className="bg-white border-b border-divider flex items-center gap-3 px-4 md:px-6 py-3 flex-shrink-0 flex-wrap">
+        <h1 className="text-[17px] font-bold uppercase tracking-wide" style={{ color: BLUE }}>Historique des transactions</h1>
+        <div className="flex-1" />
+        <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+          className="bg-white border border-divider rounded-lg px-2.5 py-1.5 text-sm outline-none">
+          {categories.map(c => <option key={c} value={c}>{c === 'Tous' ? 'Toutes les catégories' : c}</option>)}
+        </select>
+        <div className="flex items-center rounded-lg border border-divider p-0.5">
+          {(['tous', 'credit', 'debit'] as const).map(f => (
+            <button key={f} onClick={() => setTypeFilter(f)}
+              className="rounded-md px-3 py-1 text-xs font-semibold transition-colors"
+              style={typeFilter === f ? { background: BLUE, color: '#fff' } : { color: '#8A93A3' }}>
+              {f === 'tous' ? 'Tous' : f === 'credit' ? 'Entrées' : 'Sorties'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
       {/* Cartes de synthèse */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
@@ -1533,28 +1553,13 @@ function TransactionsTab() {
         </div>
       </div>
 
-      {/* Recherche + filtres */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="relative flex-1 min-w-[200px]">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-grey">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-          </span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une transaction…"
-            className="w-full bg-white border border-divider rounded-lg pl-8 pr-3 py-2 text-sm outline-none focus:border-primary" />
-        </div>
-        <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-          className="bg-white border border-divider rounded-lg px-2.5 py-2 text-sm outline-none">
-          {categories.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <div className="flex items-center rounded-lg border border-divider p-0.5">
-          {(['tous', 'credit', 'debit'] as const).map(f => (
-            <button key={f} onClick={() => setTypeFilter(f)}
-              className="rounded-md px-3 py-1 text-xs font-semibold transition-colors"
-              style={typeFilter === f ? { background: BLUE, color: '#fff' } : { color: '#8A93A3' }}>
-              {f === 'tous' ? 'Tous' : f === 'credit' ? 'Entrées' : 'Sorties'}
-            </button>
-          ))}
-        </div>
+      {/* Recherche */}
+      <div className="relative mb-4">
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-grey">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        </span>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une transaction…"
+          className="w-full bg-white border border-divider rounded-lg pl-8 pr-3 py-2 text-sm outline-none focus:border-primary" />
       </div>
 
       {/* Tableau */}
@@ -1616,6 +1621,7 @@ function TransactionsTab() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </div>
   )
