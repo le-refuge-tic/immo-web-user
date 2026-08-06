@@ -11,6 +11,7 @@ import { loyersApi } from '../../api/loyersApi'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
+import logoUrl from '../../assets/REFUGE-LOGO.png'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -1643,26 +1644,37 @@ export default function ProprietaireDashboard() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
 
-      {/* Header — bandeau fin, sans gros aplat de couleur */}
-      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 py-3.5 bg-white border-b border-divider">
-        <div className="md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
-            {loading
-              ? <div className="w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: BLUE, borderTopColor: 'transparent' }} />
-              : <span className="font-bold text-xs" style={{ color: BLUE }}>{initials}</span>}
+      {/* Header — topbar façon admin : logo à gauche, identité + actions à droite */}
+      <div className="flex-shrink-0 px-4 md:px-8 xl:px-10 h-16 bg-white border-b border-divider">
+        <div className="h-full md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0 flex items-center gap-3.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img src={logoUrl} alt="REFUGE" className="w-9 h-9 rounded-[10px] object-contain flex-shrink-0" />
+            <span className="hidden sm:block font-extrabold text-base tracking-tight flex-shrink-0" style={{ color: '#00AEEF' }}>REFUGE</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-text-grey text-[11px] leading-none">Bonjour 👋</p>
-            <p className="font-bold text-text-dark text-sm truncate mt-0.5">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
+
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-2.5">
+            <div className="text-right hidden sm:block">
+              <p className="font-bold text-text-dark text-[13px] leading-tight truncate max-w-[160px]">
+                {loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}
+              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#8A93A3' }}>Propriétaire</p>
+            </div>
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ background: BLUE }}>
+              {loading ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : initials}
+            </div>
+            <button onClick={() => navigate('/conversations')} title="Messagerie"
+              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
+              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: BLUE }}>
+              <IcMessage />
+            </button>
+            <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
+              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
+              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: '#EF4444' }}>
+              <IcLogout />
+            </button>
           </div>
-          <button onClick={() => navigate('/conversations')} title="Messagerie"
-            className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0 transition-colors" style={{ background: BLUE + '10', color: BLUE }}>
-            <IcMessage />
-          </button>
-          <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
-            className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0 transition-colors" style={{ background: '#EF444410', color: '#EF4444' }}>
-            <IcLogout />
-          </button>
         </div>
       </div>
 
