@@ -1913,110 +1913,133 @@ function RolesTab() {
   })
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-8">
-      <div className="xl:max-w-4xl xl:mx-auto">
-        <div className="mb-5">
-          <p className="text-lg font-bold text-text-dark">Mes espaces &amp; rôles</p>
-          <p className="text-sm text-text-grey mt-0.5">Basculez entre vos espaces ou activez-en un nouveau — jusqu'à 3 rôles actifs simultanément.</p>
+    <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-8" style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F4F6FA 260px)' }}>
+      <div className="flex items-start justify-between flex-wrap gap-3 mb-6">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-white"
+            style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 6px 16px ${BLUE}40` }}>
+            <MaskIcon role="proprietaire" size={22} />
+          </div>
+          <div>
+            <p className="text-xl font-extrabold text-text-dark tracking-tight">Mes espaces &amp; rôles</p>
+            <p className="text-sm text-text-grey mt-0.5">Basculez entre vos espaces ou activez-en un nouveau.</p>
+          </div>
         </div>
-
-        {error && (
-          <div className="px-4 py-3 rounded-xl mb-4" style={{ background: '#EF444414', border: '1px solid #EF444430' }}>
-            <p className="text-danger text-sm">{error}</p>
+        <div className="flex items-center gap-2.5 card-soft rounded-2xl px-4 py-2.5 flex-shrink-0">
+          <div className="flex gap-1">
+            {[0, 1, 2].map(i => (
+              <span key={i} className="w-6 h-1.5 rounded-full" style={{ background: i < actifs.length ? BLUE : '#E8EAED' }} />
+            ))}
           </div>
-        )}
-        {success && (
-          <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: '#22C55E14', border: '1px solid #22C55E30' }}>
-            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-            <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>{success}</p>
-          </div>
-        )}
+          <span className="text-xs font-bold text-text-dark whitespace-nowrap">{actifs.length}/3 actifs</span>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {ordered.map(r => {
-            const isActiveNow = r.key === activeRole
-            const isPrincipal = r.key === rolePrincipal
-            const isActif = actifs.includes(r.key)
-            const isDisponible = !isActif
-            const busy = loadingRole === r.key
-            const statusLabel = isActiveNow ? 'Espace actuel' : isPrincipal ? 'Rôle principal' : isActif ? 'Actif' : null
+      {error && (
+        <div className="px-4 py-3 rounded-xl mb-4 flex items-center gap-2" style={{ background: '#EF444414', border: '1px solid #EF444430' }}>
+          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <p className="text-danger text-sm font-medium">{error}</p>
+        </div>
+      )}
+      {success && (
+        <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: '#22C55E14', border: '1px solid #22C55E30' }}>
+          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>{success}</p>
+        </div>
+      )}
 
-            return (
-              <div key={r.key} className="rounded-2xl overflow-hidden bg-white transition-shadow hover:shadow-md"
-                style={{
-                  border: isActiveNow ? `1.5px solid ${r.color}` : '1px solid rgba(0,0,0,0.07)',
-                  boxShadow: isActiveNow ? `0 4px 16px ${r.color}25` : '0 1px 3px rgba(0,0,0,0.03)',
-                }}>
-                <div className="p-4 flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{
-                      background: isDisponible ? '#F1F3F6' : `linear-gradient(135deg, ${r.color}, ${shade(r.color, 0.3)})`,
-                      color: isDisponible ? '#8A93A3' : '#fff',
-                      boxShadow: isDisponible ? undefined : `0 4px 10px ${r.color}40`,
-                    }}>
-                    <MaskIcon role={r.key} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-bold text-text-dark text-sm">{r.label}</p>
-                      {statusLabel && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                          style={{ background: isActiveNow ? r.color : r.color + '18', color: isActiveNow ? '#fff' : r.color }}>
-                          {statusLabel}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-text-grey mt-0.5 leading-relaxed">{r.desc}</p>
-                  </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        {ordered.map(r => {
+          const isActiveNow = r.key === activeRole
+          const isPrincipal = r.key === rolePrincipal
+          const isActif = actifs.includes(r.key)
+          const isDisponible = !isActif
+          const busy = loadingRole === r.key
+          const statusLabel = isActiveNow ? 'Espace actuel' : isPrincipal ? 'Rôle principal' : isActif ? 'Actif' : null
+
+          return (
+            <div key={r.key}
+              className="relative rounded-[28px] overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 flex flex-col"
+              style={{
+                border: isActiveNow ? `1.5px solid ${r.color}55` : '1px solid rgba(15,23,42,0.06)',
+                boxShadow: isActiveNow ? `0 16px 32px -8px ${r.color}45` : '0 2px 8px rgba(15,23,42,0.04)',
+                background: isActiveNow ? `linear-gradient(165deg, ${r.color}0F, #fff 45%)` : '#fff',
+              }}>
+              {isActiveNow && (
+                <div className="absolute top-3.5 right-3.5 w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ background: r.color, boxShadow: `0 3px 8px ${r.color}60` }}>
+                  <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                </div>
+              )}
+
+              <div className="p-5 pb-4 flex-1">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                  style={{
+                    background: isDisponible ? '#F1F3F6' : `linear-gradient(135deg, ${r.color}, ${shade(r.color, 0.32)})`,
+                    color: isDisponible ? '#B0B8C4' : '#fff',
+                    boxShadow: isDisponible ? undefined : `0 8px 18px -4px ${r.color}70`,
+                  }}>
+                  <MaskIcon role={r.key} size={24} />
                 </div>
 
-                <div className="px-4 pb-4 flex gap-2">
-                  {isDisponible ? (
-                    <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
-                      className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-opacity hover:opacity-90"
-                      style={{ background: r.color }}>
-                      Activer ce rôle
-                    </button>
-                  ) : (
-                    <>
-                      {!isActiveNow && (
-                        <button onClick={() => goToRoleSpace(r.key)}
-                          className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-opacity hover:opacity-80"
-                          style={{ background: r.color + '18', color: r.color }}>
-                          Accéder à cet espace
-                        </button>
-                      )}
-                      {!isPrincipal && (
-                        <button onClick={() => desactiverRole(r.key)} disabled={busy}
-                          className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                          style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#EF4444', background: 'rgba(239,68,68,0.06)' }}>
-                          {busy ? '…' : 'Désactiver'}
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
+                <p className="font-extrabold text-text-dark text-[15px] mb-1.5">{r.label}</p>
+                {statusLabel && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-2"
+                    style={{ background: isActiveNow ? r.color : r.color + '15', color: isActiveNow ? '#fff' : r.color }}>
+                    {statusLabel}
+                  </span>
+                )}
+                <p className="text-xs text-text-grey leading-relaxed">{r.desc}</p>
+              </div>
 
-                {activating === r.key && (
-                  <div className="mx-4 mb-4 px-4 pt-3 pb-4 rounded-xl space-y-3" style={{ background: '#F8FAFC', border: '1px solid rgba(0,0,0,0.06)' }}>
-                    <p className="text-sm font-semibold text-text-dark">Justification (optionnelle)</p>
-                    <textarea value={justif} onChange={e => setJustif(e.target.value)} rows={2}
-                      placeholder="Ex: Je souhaite aussi proposer des biens à la vente"
-                      className="w-full border border-divider rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-primary bg-white" />
-                    <div className="flex gap-2">
-                      <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey bg-white">Annuler</button>
-                      <button onClick={() => activerRole(r.key)} disabled={busy}
-                        className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
-                        style={{ background: r.color }}>
-                        {busy ? 'Activation…' : 'Confirmer'}
+              <div className="px-5 pb-5 space-y-2">
+                {isDisponible ? (
+                  <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-transform active:scale-[0.98]"
+                    style={{ background: `linear-gradient(135deg, ${r.color}, ${shade(r.color, 0.2)})`, boxShadow: `0 6px 14px -4px ${r.color}70` }}>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                    Activer ce rôle
+                  </button>
+                ) : (
+                  <>
+                    {!isActiveNow && (
+                      <button onClick={() => goToRoleSpace(r.key)}
+                        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-colors hover:opacity-80"
+                        style={{ background: r.color + '15', color: r.color }}>
+                        Accéder à cet espace
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                       </button>
-                    </div>
-                  </div>
+                    )}
+                    {!isPrincipal && (
+                      <button onClick={() => desactiverRole(r.key)} disabled={busy}
+                        className="w-full py-2 rounded-xl text-[11px] font-bold border disabled:opacity-50 transition-colors hover:bg-red-50"
+                        style={{ borderColor: 'rgba(239,68,68,0.25)', color: '#EF4444', background: 'transparent' }}>
+                        {busy ? '…' : 'Désactiver'}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
-            )
-          })}
-        </div>
+
+              {activating === r.key && (
+                <div className="mx-5 mb-5 px-4 pt-3 pb-4 rounded-2xl space-y-3" style={{ background: '#F8FAFC', border: '1px solid rgba(0,0,0,0.06)' }}>
+                  <p className="text-xs font-bold text-text-dark">Justification (optionnelle)</p>
+                  <textarea value={justif} onChange={e => setJustif(e.target.value)} rows={2}
+                    placeholder="Ex: Je souhaite aussi proposer des biens à la vente"
+                    className="w-full border border-divider rounded-xl px-3 py-2.5 text-xs outline-none resize-none focus:border-primary bg-white" />
+                  <div className="flex gap-2">
+                    <button onClick={() => setActivating(null)} className="flex-1 py-2 rounded-xl border border-divider text-xs font-semibold text-text-grey bg-white">Annuler</button>
+                    <button onClick={() => activerRole(r.key)} disabled={busy}
+                      className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:opacity-60"
+                      style={{ background: r.color }}>
+                      {busy ? 'Activation…' : 'Confirmer'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -2400,8 +2423,8 @@ export default function ProprietaireDashboard() {
         {!sidebarCollapsed && (
           <div className="px-3 pb-4 pt-3 border-t border-divider">
             <button onClick={() => navigate('/nouveau-bien')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity"
-              style={{ background: BLUE }}>
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-transform active:scale-[0.98]"
+              style={{ background: `linear-gradient(135deg, ${BLUE}, ${shade(BLUE, 0.25)})`, boxShadow: `0 6px 16px -3px ${BLUE}70` }}>
               <IcPlus /> Nouveau bien
             </button>
           </div>
