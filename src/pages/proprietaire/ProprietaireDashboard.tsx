@@ -1375,14 +1375,150 @@ function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
   )
 }
 
+// Moyens de retrait Mobile Money proposés côté mobile (retrait_screen.dart) —
+// puces de couleur + initiales plutôt que les logos officiels MTN/Moov/Celtiis
+// (marques déposées de tiers, on ne les reproduit pas ici).
+const RETRAIT_METHODES: { key: string; label: string; short: string; sub: string; bg: string; fg: string }[] = [
+  { key: 'MTN MoMo',     label: 'MTN MoMo',     short: 'MTN',  sub: 'Retrait via MTN Mobile Money',     bg: '#FFCC00', fg: '#3D2E00' },
+  { key: 'Moov Flooz',   label: 'Moov Flooz',   short: 'MOOV', sub: 'Retrait via Moov Mobile Money',    bg: '#0066CC', fg: '#FFFFFF' },
+  { key: 'Celtiis Cash', label: 'Celtiis Cash', short: 'CEL',  sub: 'Retrait via Celtiis Mobile Money', bg: '#E63946', fg: '#FFFFFF' },
+]
+
+function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: () => void; onSuccess: () => void }) {
+  const [montant, setMontant] = useState('')
+  const [methode, setMethode] = useState<string | null>(null)
+  const [numero, setNumero] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
+
+  const montantNum = Number(montant)
+  const montantValide = montantNum >= 1000 && montantNum <= solde
+
+  const confirmer = async () => {
+    if (!methode) { setError('Choisissez un moyen de retrait.'); return }
+    if (!montant || !montantValide) { setError(montantNum > solde ? 'Montant supérieur à votre solde disponible.' : 'Montant minimum : 1 000 FCFA.'); return }
+    if (!numero.trim()) { setError('Entrez votre numéro Mobile Money.'); return }
+    setError('')
+    setSubmitting(true)
+    try {
+      const res = await walletApi.demandeRetrait(montantNum, methode, numero.trim())
+      setSuccessMsg(res?.message || 'Demande de retrait enregistrée.')
+      onSuccess()
+    } catch (e: any) {
+      setError(e?.response?.data?.message || "Impossible d'envoyer la demande. Réessayez.")
+    }
+    setSubmitting(false)
+  }
+
+  if (successMsg) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
+        <div className="bg-white rounded-2xl w-full max-w-sm p-7 text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'linear-gradient(135deg, #4CAF50, #2E7D32)', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }}>
+            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <p className="font-bold text-text-dark text-lg mb-2">Retrait initié !</p>
+          <p className="text-sm text-text-grey leading-relaxed mb-6">
+            Retrait de {montantNum.toLocaleString('fr-FR')} FCFA via {methode}. {successMsg}
+          </p>
+          <button onClick={onClose} className="w-full py-3 rounded-xl text-white font-bold text-sm" style={{ background: BLUE }}>Fermer</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white z-10">
+          <div>
+            <h2 className="font-bold text-text-dark">Demander un retrait</h2>
+            <p className="text-xs text-text-grey mt-0.5">Solde disponible : {solde.toLocaleString('fr-FR')} FCFA</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey flex-shrink-0">✕</button>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {error && (
+            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#EF4444', border: '1px solid #EF444430' }}>
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Montant à retirer</label>
+            <div className="relative">
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
+              <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={1000} max={solde}
+                className="w-full bg-surface-g border border-divider rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none focus:border-primary" />
+              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-text-grey">FCFA</span>
+            </div>
+            <p className="text-[11px] text-text-grey mt-1.5">Minimum 1 000 FCFA — traitement sous 48 heures ouvrées.</p>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Choisir le mode de retrait</label>
+            <div className="space-y-2">
+              {RETRAIT_METHODES.map(m => {
+                const selected = methode === m.key
+                return (
+                  <button key={m.key} onClick={() => setMethode(m.key)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors"
+                    style={{ borderColor: selected ? BLUE : '#E8EAED', background: selected ? BLUE + '0A' : '#fff' }}>
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 font-extrabold text-[11px]"
+                      style={{ background: m.bg, color: m.fg }}>
+                      {m.short}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm" style={{ color: selected ? BLUE : '#1D1D1F' }}>{m.label}</p>
+                      <p className="text-xs text-text-grey">{m.sub}</p>
+                    </div>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border-2"
+                      style={{ borderColor: selected ? BLUE : '#E8EAED', background: selected ? BLUE : 'transparent' }}>
+                      {selected && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {methode && (
+            <div>
+              <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Numéro {methode}</label>
+              <div className="relative">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                <input type="tel" value={numero} onChange={e => setNumero(e.target.value)} placeholder="Ex: 97000000"
+                  className="w-full bg-surface-g border border-divider rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-primary" />
+              </div>
+            </div>
+          )}
+
+          <button onClick={confirmer} disabled={submitting}
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60"
+            style={{ background: BLUE }}>
+            {submitting ? (
+              <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                Confirmer le retrait
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => void }) {
   const [wallet, setWallet] = useState<any>(null)
   const [transactions, setTrans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
-  const [montant, setMontant] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [retraitOk, setRetraitOk] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -1393,12 +1529,6 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
     setLoading(false)
   }
   useEffect(() => { load() }, [])
-
-  const demanderRetrait = async () => {
-    setSubmitting(true)
-    try { await walletApi.demandeRetrait(Number(montant)); setRetraitOk(true); setShowRetrait(false); setMontant(''); load() } catch (_) {}
-    setSubmitting(false)
-  }
 
   const solde = Number(wallet?.solde || 0)
 
@@ -1419,14 +1549,7 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
 
   return (
     <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-8">
-      <div className="xl:max-w-3xl xl:mx-auto">
-        {retraitOk && (
-          <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: '#22C55E10', border: '1px solid #22C55E30' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée.</p>
-          </div>
-        )}
-
+      <div>
         {/* Carte solde — style carte bancaire, motif décoratif discret */}
         <div className="relative overflow-hidden rounded-2xl p-6 mb-5 text-white"
           style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 12px 30px ${BLUE}40` }}>
@@ -1455,20 +1578,6 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
             </button>
           </div>
         </div>
-
-        {showRetrait && (
-          <div className="mb-5 card-soft rounded-2xl p-4">
-            <p className="font-bold text-text-dark mb-3">Montant à retirer</p>
-            <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={1} max={solde}
-              className="w-full bg-surface-g border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-3" />
-            <div className="flex gap-2">
-              <button onClick={() => setShowRetrait(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-              <button onClick={demanderRetrait} disabled={submitting || !montant} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
-                {submitting ? 'Envoi…' : 'Envoyer'}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Mini-stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -1520,6 +1629,9 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
           )
         })}
       </div>
+      {showRetrait && (
+        <RetraitModal solde={solde} onClose={() => setShowRetrait(false)} onSuccess={load} />
+      )}
     </div>
   )
 }
