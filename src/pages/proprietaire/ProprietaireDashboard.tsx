@@ -1362,7 +1362,20 @@ function LoyersTab() {
 }
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
-function PortefeuilleTab() {
+function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
+  const url = svgMaskUrl(path)
+  return (
+    <span aria-hidden="true" style={{
+      display: 'inline-block', width: size, height: size, background: 'currentColor', flexShrink: 0,
+      WebkitMaskImage: url, maskImage: url,
+      WebkitMaskSize: 'contain', maskSize: 'contain',
+      WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+      WebkitMaskPosition: 'center', maskPosition: 'center',
+    }} />
+  )
+}
+
+function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => void }) {
   const [wallet, setWallet] = useState<any>(null)
   const [transactions, setTrans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -1389,60 +1402,124 @@ function PortefeuilleTab() {
 
   const solde = Number(wallet?.solde || 0)
 
+  const now = new Date()
+  const recuCeMois = transactions
+    .filter(t => {
+      const d = new Date(t.created_at)
+      return (t.type === 'credit' || Number(t.montant) > 0) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    })
+    .reduce((s, t) => s + Number(t.montant), 0)
+  const derniereTx = transactions[0]
+  const derniereLabel = derniereTx
+    ? new Date(derniereTx.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+    : '—'
+  const updatedLabel = wallet?.updated_at
+    ? new Date(wallet.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—'
+
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-5">
-      {retraitOk && (
-        <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: '#22C55E10', border: '1px solid #22C55E30' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée.</p>
-        </div>
-      )}
-      <div className="rounded-2xl p-5 mb-5 text-white" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
-        <p className="text-white/70 text-sm mb-1">Solde disponible</p>
-        <p className="text-2xl font-bold mb-4">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
-        <button onClick={() => setShowRetrait(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm" style={{ background: 'rgba(255,255,255,0.2)' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8 8-8-8"/></svg>
-          Demander un retrait
-        </button>
-      </div>
-      {showRetrait && (
-        <div className="mb-4 card-soft rounded-2xl p-4">
-          <p className="font-bold text-text-dark mb-3">Montant à retirer</p>
-          <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={1} max={solde}
-            className="w-full bg-surface-g border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-3" />
-          <div className="flex gap-2">
-            <button onClick={() => setShowRetrait(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-            <button onClick={demanderRetrait} disabled={submitting || !montant} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
-              {submitting ? 'Envoi…' : 'Envoyer'}
+    <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-8">
+      <div className="xl:max-w-3xl xl:mx-auto">
+        {retraitOk && (
+          <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: '#22C55E10', border: '1px solid #22C55E30' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée.</p>
+          </div>
+        )}
+
+        {/* Carte solde — style carte bancaire, motif décoratif discret */}
+        <div className="relative overflow-hidden rounded-2xl p-6 mb-5 text-white"
+          style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 12px 30px ${BLUE}40` }}>
+          <div className="absolute rounded-full pointer-events-none" style={{ width: 220, height: 220, top: -110, right: -60, background: 'rgba(255,255,255,0.06)' }} />
+          <div className="absolute rounded-full pointer-events-none" style={{ width: 140, height: 140, bottom: -70, right: 40, background: 'rgba(255,255,255,0.05)' }} />
+          <div className="relative flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2 text-white/70">
+              <WalletMaskIcon path='<rect x="2" y="6" width="20" height="14" rx="3"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.4" fill="white"/>' />
+              <span className="text-sm">Solde disponible</span>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(255,255,255,0.16)' }}>PROPRIÉTAIRE</span>
+          </div>
+          <p className="relative text-[32px] font-extrabold tracking-tight mb-1">{loading ? '…' : solde.toLocaleString('fr-FR')} <span className="text-lg font-bold">FCFA</span></p>
+          <p className="relative text-white/50 text-xs mb-6">Mis à jour le {updatedLabel}</p>
+          <div className="relative flex flex-wrap gap-2.5">
+            <button onClick={() => setShowRetrait(o => !o)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white transition-opacity hover:opacity-90"
+              style={{ background: 'rgba(255,255,255,0.16)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8 8-8-8" /></svg>
+              Demander un retrait
+            </button>
+            <button onClick={onOpenTransactions}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-white transition-opacity hover:opacity-90" style={{ color: BLUE }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 7h6m-6 4h6" /></svg>
+              Historique complet
             </button>
           </div>
         </div>
-      )}
-      <p className="font-bold text-text-dark mb-3">Transactions</p>
-      {loading ? [1,2,3].map(n => <div key={n} className="h-14 skeleton rounded-xl mb-2" />) : transactions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
-          <p className="text-sm text-text-grey">Vos commissions apparaîtront ici.</p>
-        </div>
-      ) : transactions.map((t: any, i: number) => {
-        const isCredit = t.type === 'credit' || Number(t.montant) > 0
-        return (
-          <div key={i} className="flex items-center gap-3 p-3.5 card-soft rounded-xl mb-2">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: isCredit ? '#22C55E15' : '#EF444415' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#22C55E' : '#EF4444'} strokeWidth={2.5} className="w-4 h-4">
-                {isCredit ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8-8-8 8"/> : <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m8 8l-8 8-8-8"/>}
-              </svg>
+
+        {showRetrait && (
+          <div className="mb-5 card-soft rounded-2xl p-4">
+            <p className="font-bold text-text-dark mb-3">Montant à retirer</p>
+            <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={1} max={solde}
+              className="w-full bg-surface-g border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-3" />
+            <div className="flex gap-2">
+              <button onClick={() => setShowRetrait(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
+              <button onClick={demanderRetrait} disabled={submitting || !montant} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
+                {submitting ? 'Envoi…' : 'Envoyer'}
+              </button>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-text-dark text-xs truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
-              <p className="text-[10px] text-text-grey">{new Date(t.created_at).toLocaleDateString('fr-FR')}</p>
-            </div>
-            <p className="font-bold text-xs flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
-              {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
-            </p>
           </div>
-        )
-      })}
+        )}
+
+        {/* Mini-stats */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="card-soft rounded-2xl p-3.5 min-w-0">
+            <p className="text-[10px] font-semibold text-text-grey uppercase tracking-wide mb-1">Reçu ce mois</p>
+            <p className="text-sm font-bold text-text-dark truncate">{recuCeMois.toLocaleString('fr-FR')} F</p>
+          </div>
+          <div className="card-soft rounded-2xl p-3.5">
+            <p className="text-[10px] font-semibold text-text-grey uppercase tracking-wide mb-1">Transactions</p>
+            <p className="text-sm font-bold text-text-dark">{transactions.length}</p>
+          </div>
+          <div className="card-soft rounded-2xl p-3.5">
+            <p className="text-[10px] font-semibold text-text-grey uppercase tracking-wide mb-1">Dernière</p>
+            <p className="text-sm font-bold text-text-dark">{derniereLabel}</p>
+          </div>
+        </div>
+
+        {/* Transactions récentes */}
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-bold text-text-dark">Transactions récentes</p>
+          {transactions.length > 0 && (
+            <button onClick={onOpenTransactions} className="text-xs font-semibold" style={{ color: BLUE }}>Voir tout →</button>
+          )}
+        </div>
+        {loading ? [1, 2, 3].map(n => <div key={n} className="h-16 skeleton rounded-xl mb-2" />) : transactions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center card-soft rounded-2xl">
+            <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
+            <p className="text-sm text-text-grey">Vos loyers, frais de visite et intégrations apparaîtront ici.</p>
+          </div>
+        ) : transactions.slice(0, 5).map((t: any, i: number) => {
+          const isCredit = t.type === 'credit' || Number(t.montant) > 0
+          const cat = categorieTransaction(t.description)
+          return (
+            <div key={t.id || i} className="flex items-center gap-3 p-3.5 card-soft rounded-xl mb-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>
+                <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-text-dark text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
+                  <span className="text-[10px] text-text-grey">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                </div>
+              </div>
+              <p className="font-bold text-sm flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+                {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
+              </p>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -2325,7 +2402,7 @@ export default function ProprietaireDashboard() {
         {tab === 'reservations' && <ReservationsTab biens={biens} />}
         {tab === 'messages'     && <MessagesTab />}
         {tab === 'loyers'       && <LoyersTab />}
-        {tab === 'portefeuille' && <PortefeuilleTab />}
+        {tab === 'portefeuille' && <PortefeuilleTab onOpenTransactions={() => setTab('transactions')} />}
         {tab === 'transactions' && <TransactionsTab />}
         {tab === 'roles'        && <RolesTab />}
         {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
