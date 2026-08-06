@@ -1136,7 +1136,7 @@ function ReservationsTab({ biens }: { biens: any[] }) {
 function loyerStatut(s: string): { label: string; color: string } {
   if (s === 'paye')      return { label: 'Payé',       color: '#4CAF50' }
   if (s === 'en_retard') return { label: 'En retard',  color: '#F44336' }
-  if (s === 'impaye')    return { label: 'Impayé',     color: '#9C27B0' }
+  if (s === 'impaye')    return { label: 'Impayé',     color: '#C62828' }
   return { label: 'En attente', color: '#FF9800' }
 }
 const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
@@ -1207,10 +1207,10 @@ function LoyersTab() {
 
         {/* Cartes KPI — détail du mois, en attente, en retard, impayés */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <StatCard icon={<IcWallet />} color="#4CAF50" label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`} />
-          <StatCard icon={<IcClock />} color="#FF9800" label="En attente" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} F`} />
+          <StatCard icon={<IcWallet />} color={BLUE} label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`} />
+          <StatCard icon={<IcClock />} color={DARK_BLUE} label="En attente" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} F`} />
           <StatCard icon={<IcMoney />} color="#F44336" label="Loyers en retard" value={`${enRetardCount}`} />
-          <StatCard icon={<IcShield />} color="#9C27B0" label="Impayés escaladés" value={`${impayesCount}`} />
+          <StatCard icon={<IcShield />} color="#C62828" label="Impayés escaladés" value={`${impayesCount}`} />
         </div>
 
         <div className="flex items-center justify-between mb-3.5">
