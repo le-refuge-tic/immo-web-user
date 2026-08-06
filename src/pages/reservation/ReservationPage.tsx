@@ -62,6 +62,7 @@ export default function ReservationPage() {
   const [travelers, setTravelers] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     if (!bienId) return
@@ -88,22 +89,32 @@ export default function ReservationPage() {
 
   const handleSubmit = async () => {
     if (!selectedTime) { setError('Choisissez une heure pour la visite'); return }
+    if (!bienId) { setError("Impossible d'envoyer la demande : bien non identifié"); return }
     setError('')
     setSubmitting(true)
     try {
       const [h, m] = selectedTime.split(':').map(Number)
       const dt = new Date(selectedDate); dt.setHours(h, m, 0, 0)
       await visitesApi.reserverVisite(Number(bienId), dt.toISOString())
+
+      // Miroir du mobile : "Demande envoyée ! Démarrez la conversation ci-dessous."
+      // s'affiche toujours, qu'une conversation ait pu être créée ou non, avant
+      // d'enchaîner sur la navigation.
+      setSuccess(true)
+      await new Promise(r => setTimeout(r, 700))
+
       try {
         const convData = await chatApi.creerConversation(Number(bienId))
         navigate(`/conversations/${convData.conversationId}`, { replace: true })
         return
       } catch (_) {}
-      navigate('/mes-visites', { replace: true })
+      // Échec de la création de conversation : retour à l'écran d'origine
+      // (fiche bien), comme le pop() du mobile — pas de redirection forcée.
+      navigate(-1)
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Erreur lors de la réservation')
+      setSubmitting(false)
     }
-    setSubmitting(false)
   }
 
   const cover = bien?.photos?.[0]?.url
@@ -158,7 +169,13 @@ export default function ReservationPage() {
               if (past) return
               setSelectedDate(date)
               setSelectedTime('')
-              setTimeout(() => timeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+              // Miroir du mobile : après avoir choisi une date, on scrolle vers
+              // les créneaux ET on ouvre directement le sélecteur d'heure —
+              // pas seulement un défilement passif.
+              setTimeout(() => {
+                timeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                timeInputRef.current?.showPicker?.()
+              }, 100)
             }} disabled={past}
               className="aspect-square flex flex-col items-center justify-center rounded-[10px] transition-all"
               style={{
@@ -351,6 +368,17 @@ export default function ReservationPage() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white border-t border-divider px-5 py-3 safe-bottom">
         <SubmitBtn />
       </div>
+
+      {/* ── Confirmation d'envoi — équivalent web du snackbar mobile ── */}
+      {success && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg anim-fade-in"
+          style={{ background: '#22C55E', maxWidth: 'calc(100% - 32px)' }}>
+          <svg className="w-4 h-4 text-white flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <p className="text-white text-sm font-semibold">Demande envoyée ! Démarrez la conversation ci-dessous.</p>
+        </div>
+      )}
     </div>
   )
 }
