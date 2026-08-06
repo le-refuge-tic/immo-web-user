@@ -161,12 +161,14 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <p className="text-xs truncate" style={{ color: 'rgba(0,0,0,0.42)' }}>
+          <p className="text-xs truncate min-w-0 flex-1" style={{ color: 'rgba(0,0,0,0.42)' }}>
             {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || '—'}
-            {distanceKm != null && (
-              <span style={{ color: '#4B6BFF', fontWeight: 600 }}> · à {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}</span>
-            )}
           </p>
+          {distanceKm != null && (
+            <span className="flex-shrink-0 text-[11px] font-semibold" style={{ color: '#4B6BFF' }}>
+              à {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
+            </span>
+          )}
         </div>
         {Number(bien.frais_visite) > 0 && (
           <p className="hidden md:block text-xs mt-2 pt-2" style={{ color: 'rgba(0,0,0,0.30)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>

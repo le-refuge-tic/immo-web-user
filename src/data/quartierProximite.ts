@@ -26,6 +26,11 @@ function findCoords(quartierName: string): QCoords | null {
     if (c.nom_normalise.startsWith(norm) || norm.startsWith(c.nom_normalise)) return c
   }
 
+  // Le jeu de coordonnées ne couvre qu'Abomey-Calavi : un quartier de Cotonou
+  // (ex: "Sègbeya-Nord") n'y figure jamais, mais un simple mot générique
+  // partagé ("nord", "centre"…) suffisait à faire "matcher" un quartier
+  // d'Abomey-Calavi sans rapport — d'où l'exigence d'une majorité de mots
+  // en commun plutôt qu'un seul, pour ne pas afficher une fausse distance.
   const queryWords = new Set(norm.split(' ').filter(w => w.length >= 3))
   if (queryWords.size === 0) return null
   let best: QCoords | null = null
@@ -36,7 +41,7 @@ function findCoords(quartierName: string): QCoords | null {
     queryWords.forEach(w => { if (words.has(w)) overlap++ })
     if (overlap > bestScore) { bestScore = overlap; best = c }
   }
-  return bestScore > 0 ? best : null
+  return bestScore > 0 && bestScore / queryWords.size > 0.5 ? best : null
 }
 
 /** Coordonnées (lat, lng) du centroïde d'un quartier, ou null si introuvable (data Abomey-Calavi uniquement). */

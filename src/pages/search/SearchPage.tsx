@@ -5,8 +5,8 @@ import { favoritesApi } from '../../api/favoritesApi'
 import { useAuth } from '../../context/AuthContext'
 import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
-import { rechercherQuartiers, type Quartier, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
-import { getQuartierCoords, haversineKm } from '../../data/quartierProximite'
+import { rechercherQuartiers, trouverQuartierExact, type Quartier, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
+import { getQuartierCoords, haversineKm, distanceEntreQuartiers } from '../../data/quartierProximite'
 
 /* ── Normalisation accent-insensible ─────────────────────────────
    "adovié" → "adovie"  /  "Cotonou" → "cotonou"
@@ -25,6 +25,28 @@ function matchLoc(bien: any, query: string) {
     bien.localisation?.adresse,
   ].filter(Boolean).map((f: string) => norm(f))
   return fields.some(f => f.includes(q))
+}
+
+/* ── Recherche guidée ────────────────────────────────────────────
+   Quand un quartier précis ne renvoie aucun résultat (ou pour élargir
+   discrètement le choix), on propose 3 pistes au lieu d'une simple liste
+   vide : le voisinage immédiat (< 3 km), une tolérance de budget de
+   ± 10 000 FCFA, et le reste des biens disponibles. */
+const BUDGET_TOLERANCE = 10_000
+const PROXIMITY_MAX_KM = 3
+
+function inBudgetRange(bien: any, prixMin: string, prixMax: string) {
+  const p = Number(bien.prix)
+  if (prixMin && p < Number(prixMin)) return false
+  if (prixMax && p > Number(prixMax)) return false
+  return true
+}
+
+function isBudgetVoisin(bien: any, prixMin: string, prixMax: string) {
+  const p = Number(bien.prix)
+  if (prixMin && p < Number(prixMin) && p >= Number(prixMin) - BUDGET_TOLERANCE) return true
+  if (prixMax && p > Number(prixMax) && p <= Number(prixMax) + BUDGET_TOLERANCE) return true
+  return false
 }
 
 /* ── Types / constantes ─────────────────────────────────────────── */
@@ -135,7 +157,10 @@ export default function SearchPage() {
   const [loading,     setLoading]     = useState(false)
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [showSuggest, setShowSuggest] = useState(false)
+  const [showAllAutres, setShowAllAutres] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => { setShowAllAutres(false) }, [allBiens])
 
   const suggestions: Quartier[] = query.trim().length >= 1 ? rechercherQuartiers(query) : []
   const pickSuggestion = (q: Quartier) => { setQuery(q.nom); setShowSuggest(false) }
@@ -151,14 +176,13 @@ export default function SearchPage() {
       .catch(() => {})
   }, [isLoggedIn])
 
-  /* ── Filtrage (localisation + sous-type + pièces + superficie) + tri ──
-     Par défaut : quartier correspondant en tête, puis ville, puis adresse.
-     Le tri par prix (comme le "Trier par" de search_results_screen.dart
-     sur mobile) prend le pas sur le tri de pertinence quand actif. */
+  /* ── Filtrage (sous-type + pièces + superficie), indépendant de la
+     localisation et du budget — sert de socle à la fois aux résultats
+     principaux et aux pistes de recherche guidée ci-dessous. */
   const countPiece = (bien: any, nom: string) => (bien.pieces || []).filter((p: any) => p.nom === nom).length
 
-  const applyClientFilter = useCallback((biens: any[], q: string) => {
-    let filtered = biens.filter(b => matchLoc(b, q))
+  const nonLocationFilters = useCallback((biens: any[]) => {
+    let filtered = biens
     if (sousType) filtered = filtered.filter(b => b.amenites?.sous_type === sousType)
     if (chambresMin) filtered = filtered.filter(b => countPiece(b, 'Chambre') >= Number(chambresMin))
     if (salonsMin) filtered = filtered.filter(b => countPiece(b, 'Salon') >= Number(salonsMin))
@@ -171,11 +195,13 @@ export default function SearchPage() {
         return true
       })
     }
+    return filtered
+  }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax])
 
-    if (sortBy === 'prix_asc')  return [...filtered].sort((a, b) => Number(a.prix) - Number(b.prix))
-    if (sortBy === 'prix_desc') return [...filtered].sort((a, b) => Number(b.prix) - Number(a.prix))
-
-    if (!q) return filtered
+  const applySort = useCallback((biens: any[], q: string) => {
+    if (sortBy === 'prix_asc')  return [...biens].sort((a, b) => Number(a.prix) - Number(b.prix))
+    if (sortBy === 'prix_desc') return [...biens].sort((a, b) => Number(b.prix) - Number(a.prix))
+    if (!q) return biens
     const nq = norm(q)
     const score = (b: any) => {
       const quartier = b.localisation?.quartier
@@ -183,15 +209,87 @@ export default function SearchPage() {
       if (b.localisation?.ville && norm(b.localisation.ville).includes(nq)) return 1
       return 0
     }
-    return [...filtered].sort((a, b) => score(b) - score(a))
-  }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy])
+    return [...biens].sort((a, b) => score(b) - score(a))
+  }, [sortBy])
 
-  const results = useMemo(() => applyClientFilter(allBiens, query.trim()), [allBiens, query, applyClientFilter])
+  /* ── Recherche guidée ────────────────────────────────────────────
+     Quand la saisie correspond exactement à un quartier connu, on
+     reproduit la logique de repli de l'app mobile — mais restituée comme
+     des sections web classiques plutôt que des blocs empilés façon liste
+     mobile : proximité (< 3 km) ou repli ville si le quartier exact est
+     vide, tolérance de budget (± 10 000 FCFA), et le reste des biens. */
+  const matchedQuartier = useMemo(() => {
+    const q = query.trim()
+    return q.length >= 2 ? trouverQuartierExact(q) : undefined
+  }, [query])
 
-  /* ── Distance GPS depuis le quartier recherché ──────────────────
-     Disponible uniquement pour les quartiers d'Abomey-Calavi (données
-     de coordonnées actuellement limitées à cette ville, comme sur mobile). */
-  const refCoords = query.trim().length >= 2 ? getQuartierCoords(query.trim()) : null
+  const search = useMemo(() => {
+    const base = nonLocationFilters(allBiens)
+    const inBudget = base.filter(b => inBudgetRange(b, prixMin, prixMax))
+
+    let mainResults: any[] = []
+    let environs: any[] = []
+    let environsLabel = ''
+    const environsDist = new Map<number, number>()
+
+    if (matchedQuartier) {
+      const qn = norm(matchedQuartier.nom)
+      const exact = inBudget.filter(b => norm(b.localisation?.quartier || '') === qn)
+
+      if (exact.length > 0) {
+        mainResults = applySort(exact, '')
+        const restVille = inBudget.filter(b =>
+          norm(b.localisation?.ville || '') === norm(matchedQuartier.ville) &&
+          norm(b.localisation?.quartier || '') !== qn
+        )
+        environs = applySort(restVille, '')
+        environsLabel = `Autres biens à ${matchedQuartier.ville}`
+      } else {
+        const withDist: { bien: any; km: number }[] = []
+        for (const b of inBudget) {
+          const bq = b.localisation?.quartier
+          if (!bq) continue
+          const km = distanceEntreQuartiers(matchedQuartier.nom, bq)
+          if (km != null && km <= PROXIMITY_MAX_KM) withDist.push({ bien: b, km })
+        }
+        withDist.sort((a, z) => a.km - z.km)
+
+        if (withDist.length > 0) {
+          environs = withDist.map(x => x.bien)
+          withDist.forEach(x => environsDist.set(x.bien.id, x.km))
+          environsLabel = `Biens à proximité de « ${matchedQuartier.nom} » (< ${PROXIMITY_MAX_KM} km)`
+        } else {
+          const cityFallback = inBudget.filter(b => norm(b.localisation?.ville || '') === norm(matchedQuartier.ville))
+          environs = applySort(cityFallback, '')
+          environsLabel = cityFallback.length > 0 ? `Biens à ${matchedQuartier.ville}` : ''
+        }
+      }
+    } else {
+      mainResults = applySort(base.filter(b => matchLoc(b, query.trim())).filter(b => inBudgetRange(b, prixMin, prixMax)), query.trim())
+    }
+
+    const shownIds = new Set([...mainResults, ...environs].map((b: any) => b.id))
+    const pool = base.filter(b => !shownIds.has(b.id))
+
+    const budgetSimilar = (prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax)) : []
+    const budgetSimilarIds = new Set(budgetSimilar.map(b => b.id))
+    const autres = pool.filter(b => !budgetSimilarIds.has(b.id))
+
+    const distFromQuartier = (b: any): number | null => {
+      if (!matchedQuartier) return null
+      const bq = b.localisation?.quartier
+      if (!bq) return null
+      return distanceEntreQuartiers(matchedQuartier.nom, bq)
+    }
+
+    return { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier }
+  }, [allBiens, matchedQuartier, query, prixMin, prixMax, nonLocationFilters, applySort])
+
+  const results = search.mainResults
+
+  /* ── Distance GPS depuis le quartier recherché (repli pour une saisie
+     libre non reconnue comme quartier exact — ex: nom de ville). ──── */
+  const refCoords = !matchedQuartier && query.trim().length >= 2 ? getQuartierCoords(query.trim()) : null
   const distanceFor = (bien: any): number | null => {
     if (!refCoords) return null
     const q = bien.localisation?.quartier
@@ -217,11 +315,13 @@ export default function SearchPage() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      const params: any = { limit: 100 }
+      // Le prix n'est plus envoyé au serveur : la recherche guidée a besoin
+      // du pool complet (toutes fourchettes de prix) pour pouvoir proposer
+      // des biens légèrement hors budget — le filtrage prix se fait donc
+      // entièrement côté client (voir `search` ci-dessus).
+      const params: any = { limit: 150 }
       if (transaction) params.transaction = transaction
       if (type)        params.type        = type
-      if (prixMin)     params.prix_min    = Number(prixMin)
-      if (prixMax)     params.prix_max    = Number(prixMax)
       /* On n'envoie "ville" au serveur que si le texte tapé est vraiment le nom
          d'une ville connue — sinon (un quartier, ex: "Godomey") le serveur ne
          trouverait aucune correspondance puisque le champ ville du bien ne
@@ -233,7 +333,7 @@ export default function SearchPage() {
       fetchBiens(params)
     }, 420)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [query, transaction, type, prixMin, prixMax, fetchBiens])
+  }, [query, transaction, type, fetchBiens])
 
   /* ── Réinitialisation ────────────────────────────────────────── */
   const reset = () => {
@@ -378,9 +478,11 @@ export default function SearchPage() {
         {/* Résultats */}
         <div className="px-4 md:px-8 py-4 md:py-6">
           <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} sortBy={sortBy} setSortBy={setSortBy} />
-          <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
+          <GuidedResults search={search} loading={loading} favIds={favIds}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
             cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+            showAllAutres={showAllAutres} setShowAllAutres={setShowAllAutres}
+            mainDistanceFor={distanceFor}
           />
         </div>
       </div>
@@ -508,9 +610,11 @@ export default function SearchPage() {
             <ResultHeader count={results.length} loading={loading} hasFilters={hasFilters} reset={reset} sortBy={sortBy} setSortBy={setSortBy} inline />
           </div>
 
-          <ResultGrid biens={results} loading={loading} favIds={favIds} distanceFor={distanceFor}
+          <GuidedResults search={search} loading={loading} favIds={favIds}
             onFavToggle={(id, added) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })}
             cols="grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            showAllAutres={showAllAutres} setShowAllAutres={setShowAllAutres}
+            mainDistanceFor={distanceFor}
           />
         </div>
       </div>
@@ -852,6 +956,97 @@ function ResultGrid({ biens, loading, favIds, onFavToggle, cols, distanceFor }: 
           <BienCard bien={b} favoriteIds={favIds} onFavoriteToggle={onFavToggle} distanceKm={distanceFor?.(b) ?? null} />
         </Reveal>
       ))}
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Recherche guidée — au lieu d'une simple liste vide, on propose ce qui
+   se rapproche le plus : proximité géographique, tolérance de budget,
+   puis le reste des biens. Restitué en sections web classiques (titre +
+   grille), pas en écran empilé façon mobile.
+   ═════════════════════════════════════════════════════════════════ */
+const AUTRES_PAGE_SIZE = 12
+
+function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="mb-3 md:mb-4">
+      <h2 className="text-base md:text-lg font-bold text-text-dark">{title}</h2>
+      {subtitle && <p className="text-xs text-text-grey mt-0.5">{subtitle}</p>}
+    </div>
+  )
+}
+
+type GuidedSearch = {
+  mainResults: any[]
+  environs: any[]
+  environsLabel: string
+  environsDist: Map<number, number>
+  budgetSimilar: any[]
+  autres: any[]
+  distFromQuartier: (bien: any) => number | null
+}
+
+function GuidedResults({
+  search, loading, favIds, onFavToggle, cols, showAllAutres, setShowAllAutres, mainDistanceFor,
+}: {
+  search: GuidedSearch
+  loading: boolean
+  favIds: Set<number>
+  onFavToggle: (id: number, added: boolean) => void
+  cols: string
+  showAllAutres: boolean
+  setShowAllAutres: (v: boolean) => void
+  /** Distance approximative pour les résultats principaux d'une recherche libre
+   *  (ville/texte) non reconnue comme quartier exact — absent pour un quartier
+   *  exact, puisque ces biens SONT au bon endroit. */
+  mainDistanceFor?: (bien: any) => number | null
+}) {
+  if (loading) return <ResultGrid biens={[]} loading favIds={favIds} onFavToggle={onFavToggle} cols={cols} />
+
+  const { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier } = search
+  const hasMain = mainResults.length > 0
+  const nothingAtAll = !hasMain && environs.length === 0 && budgetSimilar.length === 0 && autres.length === 0
+  const autresToShow = showAllAutres ? autres : autres.slice(0, AUTRES_PAGE_SIZE)
+
+  return (
+    <div className="space-y-9 md:space-y-10">
+      {hasMain ? (
+        <ResultGrid biens={mainResults} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols} distanceFor={mainDistanceFor} />
+      ) : nothingAtAll ? (
+        <ResultGrid biens={[]} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols} />
+      ) : (
+        <p className="text-sm text-text-grey">Aucun bien ne correspond exactement à votre recherche — voici ce qui s'en rapproche.</p>
+      )}
+
+      {environs.length > 0 && (
+        <section>
+          <SectionHeader title={environsLabel} />
+          <ResultGrid biens={environs} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols}
+            distanceFor={b => environsDist.get(b.id) ?? distFromQuartier(b)} />
+        </section>
+      )}
+
+      {budgetSimilar.length > 0 && (
+        <section>
+          <SectionHeader title="Légèrement hors budget" subtitle={`À ± ${BUDGET_TOLERANCE.toLocaleString('fr-FR')} FCFA de votre budget défini`} />
+          <ResultGrid biens={budgetSimilar} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols} distanceFor={distFromQuartier} />
+        </section>
+      )}
+
+      {autres.length > 0 && (
+        <section>
+          <SectionHeader title="Autres biens disponibles" />
+          <ResultGrid biens={autresToShow} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols} distanceFor={distFromQuartier} />
+          {!showAllAutres && autres.length > AUTRES_PAGE_SIZE && (
+            <button onClick={() => setShowAllAutres(true)}
+              className="mt-4 w-full py-3 rounded-xl border text-sm font-semibold transition-colors hover:bg-primary/5"
+              style={{ borderColor: 'rgba(75,107,255,0.35)', color: '#4B6BFF' }}>
+              Voir plus ({autres.length - AUTRES_PAGE_SIZE} autres)
+            </button>
+          )}
+        </section>
+      )}
     </div>
   )
 }
