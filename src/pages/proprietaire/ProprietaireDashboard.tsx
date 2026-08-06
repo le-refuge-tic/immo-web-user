@@ -2428,6 +2428,12 @@ export default function ProprietaireDashboard() {
   const visitesSeries = buildCountSeries(visites, v => v.date_souhaitee, chartPeriod)
   const hasVisites = visitesSeries6.some(m => m.value > 0)
 
+  // Alerte loyers — réutilise les données déjà chargées (loyersDash), sans
+  // appel réseau supplémentaire ; masquée si rien à signaler.
+  const loyersDashList = (loyersDash?.contrats || []).flatMap((c: any) => c.loyers || [])
+  const loyersEnRetardCount = loyersDash?.stats?.loyers_en_retard ?? loyersDashList.filter((l: any) => l.statut === 'en_retard').length
+  const loyersImpayesCount = loyersDashList.filter((l: any) => l.statut === 'impaye').length
+
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
 
@@ -2588,6 +2594,25 @@ export default function ProprietaireDashboard() {
                 <MiniStatCard icon={<IcStar />} value={`${me?.nb_etoiles ?? 0}`} label="Étoiles" color="#F59E0B" />
                 <MiniStatCard icon={<IcShield />} value={`${score}`} label="Score" color="#22C55E" />
               </div>
+
+              {(loyersImpayesCount > 0 || loyersEnRetardCount > 0) && (
+                <button onClick={() => setTab('loyers')}
+                  className="w-full flex items-center gap-3 rounded-2xl mb-6 p-4 border text-left transition-shadow hover:shadow-sm"
+                  style={{ background: '#F4433608', borderColor: '#F4433628' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#F4433618' }}>
+                    <span style={{ color: '#F44336' }}><IcClock /></span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-text-dark text-sm">
+                      {loyersImpayesCount > 0 && `${loyersImpayesCount} loyer${loyersImpayesCount > 1 ? 's' : ''} impayé${loyersImpayesCount > 1 ? 's' : ''}`}
+                      {loyersImpayesCount > 0 && loyersEnRetardCount > 0 && ' · '}
+                      {loyersEnRetardCount > 0 && `${loyersEnRetardCount} en retard`}
+                    </p>
+                    <p className="text-xs text-text-grey mt-0.5">Nécessite votre attention</p>
+                  </div>
+                  <span className="text-text-grey flex-shrink-0"><IcChevron /></span>
+                </button>
+              )}
 
               <div className="flex items-center justify-between mb-3.5">
                 <p className="text-[17px] md:text-lg font-bold text-text-dark">Actions rapides</p>
