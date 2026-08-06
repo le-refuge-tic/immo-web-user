@@ -205,11 +205,25 @@ export default function HomePage() {
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 3)
 
-  // Quartiers où des biens sont actuellement publiés — liste complète pour la
-  // section "Emplacements de bien", tronquée pour le titre de la bannière CTA.
-  const quartiersActifs = Array.from(new Set(
-    biens.map(b => b.localisation?.quartier).filter((q): q is string => !!q?.trim())
-  )).sort((a, b) => a.localeCompare(b, 'fr'))
+  // Quartiers où des biens sont actuellement publiés, avec le nombre réel de
+  // biens par quartier — sert à la fois à la bannière CTA et au nuage de mots
+  // "Emplacements de bien" (taille proportionnelle au nombre de biens, comme
+  // un tag cloud classique).
+  const quartierCounts: Record<string, number> = {}
+  for (const b of biens) {
+    const q = b.localisation?.quartier?.trim()
+    if (q) quartierCounts[q] = (quartierCounts[q] || 0) + 1
+  }
+  const quartiersActifs = Object.keys(quartierCounts).sort((a, b) => a.localeCompare(b, 'fr'))
+  const quartierCountValues = Object.values(quartierCounts)
+  const quartierCountMin = quartierCountValues.length ? Math.min(...quartierCountValues) : 1
+  const quartierCountMax = quartierCountValues.length ? Math.max(...quartierCountValues) : 1
+  /** Taille de tag (rem) proportionnelle au nombre de biens, façon nuage de mots. */
+  const tagSize = (count: number) => {
+    if (quartierCountMax === quartierCountMin) return 1.05
+    const t = (count - quartierCountMin) / (quartierCountMax - quartierCountMin)
+    return 0.85 + t * (1.55 - 0.85)
+  }
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -718,21 +732,27 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── Emplacements de bien — tous les quartiers actuellement publiés ── */}
+      {/* ── Emplacements de bien — nuage de quartiers, taille proportionnelle
+           au nombre de biens publiés (comme un tag cloud classique) ── */}
       {quartiersActifs.length > 0 && (
         <div className="hidden md:block w-full px-16 py-12" style={{ background: '#1A1A1A' }}>
-          <h2 className="text-white font-bold text-xl mb-5">Emplacements de bien</h2>
-          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-            {quartiersActifs.map(q => (
-              <button
-                key={q}
-                onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)}
-                className="px-3 py-1.5 rounded-md text-white text-xs font-semibold text-left truncate transition-opacity hover:opacity-85"
-                style={{ background: '#4B6BFF' }}
-              >
-                {q}
-              </button>
-            ))}
+          <h2 className="text-white font-bold text-xl mb-6">Emplacements de bien</h2>
+          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-3">
+            {quartiersActifs.map(q => {
+              const count = quartierCounts[q]
+              const size = tagSize(count)
+              return (
+                <button
+                  key={q}
+                  onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)}
+                  title={`${count} bien${count > 1 ? 's' : ''}`}
+                  className="transition-opacity hover:opacity-70"
+                  style={{ color: '#4B6BFF', fontSize: `${size}rem`, fontWeight: size > 1.2 ? 700 : 600, lineHeight: 1.3 }}
+                >
+                  {q}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
