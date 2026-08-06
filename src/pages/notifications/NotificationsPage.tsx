@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { notificationsApi } from '../../api/notificationsApi'
+import { visitesApi } from '../../api/visitesApi'
+import { chatApi } from '../../api/chatApi'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -72,7 +74,9 @@ function getTypeConfig(type?: string): TypeCfg {
 
 const VISITE_TYPES = new Set([
   'visite_demande', 'visite_confirmee', 'visite_contre_proposee',
-  'visite_effectuee', 'visite_annulee', 'rappel_visite', 'paiement_visite',
+  'visite_client_recontrepropose', 'visite_proposition_envoyee',
+  'visite_effectuee', 'visite_echouee', 'visite_annulee',
+  'rappel_visite', 'paiement_visite',
 ])
 const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
@@ -86,7 +90,7 @@ function chipLabel(n: any): string | null {
 }
 
 export default function NotificationsPage() {
-  const { isLoggedIn, hasRole } = useAuth()
+  const { isLoggedIn, hasRole, user } = useAuth()
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -114,12 +118,39 @@ export default function NotificationsPage() {
     } catch (_) {}
   }
 
-  const openNotif = (n: any) => {
+  // Les échanges autour d'une visite (proposition/réponse de créneau) se
+  // passent dans le chat — on retrouve donc la conversation liée à cette
+  // visite (même bien + l'autre participant) pour y accéder en un clic,
+  // plutôt que de renvoyer vers le tableau de bord général.
+  const ouvrirConversationPourVisite = async (visiteId: number): Promise<boolean> => {
+    if (!user) return false
+    try {
+      const [visitesData, convsData] = await Promise.all([visitesApi.mesVisites(), chatApi.conversations()])
+      const visites = Array.isArray(visitesData) ? visitesData : visitesData.data || []
+      const visite = visites.find((v: any) => v.id === visiteId)
+      const bienId = visite?.bien?.id
+      const otherId = visite?.client?.id === user.id ? visite?.gestionnaire?.id : visite?.client?.id
+      if (!bienId || !otherId) return false
+      const convs = Array.isArray(convsData) ? convsData : convsData.data || []
+      const match = convs.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === otherId))
+      if (!match) return false
+      navigate(`/conversations/${match.id}`)
+      return true
+    } catch { return false }
+  }
+
+  const openNotif = async (n: any) => {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
     if (n.type === 'nouveau_message' && meta.conversation_id) {
       navigate(`/conversations/${meta.conversation_id}`)
-    } else if (VISITE_TYPES.has(n.type)) {
+      return
+    }
+    if (VISITE_TYPES.has(n.type) && meta.visite_id) {
+      const opened = await ouvrirConversationPourVisite(meta.visite_id)
+      if (opened) return
+    }
+    if (VISITE_TYPES.has(n.type)) {
       if (hasRole('demarcheur')) navigate('/demarcheur')
       else if (hasRole('proprietaire')) navigate('/proprietaire')
       else navigate('/mes-visites')
