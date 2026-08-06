@@ -1963,6 +1963,21 @@ export default function ProprietaireDashboard() {
   const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
   const [rolesMenuOpen, setRolesMenuOpen] = useState<'sidebar' | 'topbar' | null>(null)
+  // Le trigger et le panneau du menu ne se touchent pas (marge de quelques px
+  // entre les deux) : sans délai, quitter le trigger pour aller vers le
+  // panneau traverse un instant une zone hors des deux éléments et ferme le
+  // menu avant même de l'atteindre. On referme donc après un court délai,
+  // annulé si le pointeur ré-entre sur le trigger OU le panneau entre-temps.
+  const rolesMenuCloseTimer = useRef<number | null>(null)
+  const openRolesMenu = (which: 'sidebar' | 'topbar') => {
+    if (rolesMenuCloseTimer.current != null) { clearTimeout(rolesMenuCloseTimer.current); rolesMenuCloseTimer.current = null }
+    setRolesMenuOpen(which)
+  }
+  const scheduleCloseRolesMenu = () => {
+    if (rolesMenuCloseTimer.current != null) clearTimeout(rolesMenuCloseTimer.current)
+    rolesMenuCloseTimer.current = window.setTimeout(() => setRolesMenuOpen(null), 250)
+  }
+  useEffect(() => () => { if (rolesMenuCloseTimer.current != null) clearTimeout(rolesMenuCloseTimer.current) }, [])
   // Le flyout sidebar utilise position:fixed avec des coordonnées calculées
   // au survol — la <nav> du menu est overflow-y-auto, ce qui rend son
   // overflow-x implicitement non "visible" (spec CSS) et couperait un
@@ -1972,7 +1987,7 @@ export default function ProprietaireDashboard() {
   const openSidebarRolesMenu = () => {
     const rect = sidebarRolesRef.current?.getBoundingClientRect()
     if (rect) setSidebarMenuPos({ top: rect.top, left: rect.right + 8 })
-    setRolesMenuOpen('sidebar')
+    openRolesMenu('sidebar')
   }
   const goToRoleSpace = (role: string) => {
     setActiveRole(role)
@@ -2085,8 +2100,8 @@ export default function ProprietaireDashboard() {
 
           <div className="flex items-center gap-2.5">
             <div className="relative flex items-center gap-2.5"
-              onMouseEnter={() => setRolesMenuOpen('topbar')}
-              onMouseLeave={() => setRolesMenuOpen(null)}>
+              onMouseEnter={() => openRolesMenu('topbar')}
+              onMouseLeave={scheduleCloseRolesMenu}>
               <button onClick={() => setTab('profil')} title="Mon profil"
                 className="flex items-center gap-2.5 rounded-[10px] transition-colors hover:bg-surface-g px-1.5 py-1 -mx-1.5 -my-1">
                 <div className="text-right hidden sm:block">
@@ -2100,7 +2115,9 @@ export default function ProprietaireDashboard() {
                 </div>
               </button>
               {rolesMenuOpen === 'topbar' && rolesActifs.length > 1 && (
-                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-white shadow-lg border border-divider py-1.5 z-30">
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-white shadow-lg border border-divider py-1.5 z-30"
+                  onMouseEnter={() => openRolesMenu('topbar')}
+                  onMouseLeave={scheduleCloseRolesMenu}>
                   <p className="px-3.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-text-grey">Mes espaces actifs</p>
                   {rolesActifs.map(r => (
                     <button key={r} onClick={() => goToRoleSpace(r)}
@@ -2166,7 +2183,7 @@ export default function ProprietaireDashboard() {
               return (
                 <div key={item.key} ref={sidebarRolesRef} className="relative"
                   onMouseEnter={openSidebarRolesMenu}
-                  onMouseLeave={() => setRolesMenuOpen(null)}>
+                  onMouseLeave={scheduleCloseRolesMenu}>
                   {button}
                 </div>
               )
@@ -2176,8 +2193,8 @@ export default function ProprietaireDashboard() {
           {rolesMenuOpen === 'sidebar' && sidebarMenuPos && (
             <div className="fixed w-56 rounded-xl bg-white shadow-lg border border-divider py-1.5 z-30"
               style={{ top: sidebarMenuPos.top, left: sidebarMenuPos.left }}
-              onMouseEnter={() => setRolesMenuOpen('sidebar')}
-              onMouseLeave={() => setRolesMenuOpen(null)}>
+              onMouseEnter={() => openRolesMenu('sidebar')}
+              onMouseLeave={scheduleCloseRolesMenu}>
               <p className="px-3.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-text-grey">Mes espaces actifs</p>
               {rolesActifs.map(r => (
                 <button key={r} onClick={() => goToRoleSpace(r)}
