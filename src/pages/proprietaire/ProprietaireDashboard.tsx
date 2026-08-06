@@ -1291,23 +1291,71 @@ function DelegationsTab({ onBack }: { onBack: () => void }) {
 }
 
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
+// Statut d'un loyer — couvre les 4 valeurs réelles du backend (`en_attente`,
+// `en_retard`, `paye`, `impaye`). `impaye` correspond à un loyer escaladé à
+// l'administration (`escalade_admin`) : distingué du simple retard.
+function loyerStatut(s: string): { label: string; color: string } {
+  if (s === 'paye')      return { label: 'Payé',       color: '#4CAF50' }
+  if (s === 'en_retard') return { label: 'En retard',  color: '#F44336' }
+  if (s === 'impaye')    return { label: 'Impayé',     color: '#9C27B0' }
+  return { label: 'En attente', color: '#FF9800' }
+}
+const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
+  actif:   { label: 'Actif',   color: '#4CAF50' },
+  resilie: { label: 'Résilié', color: '#9E9E9E' },
+  expire:  { label: 'Expiré',  color: '#F44336' },
+}
+function moisLabel(d: any) {
+  if (!d) return '—'
+  const date = new Date(d)
+  if (isNaN(date.getTime())) return '—'
+  const s = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+function dateLabel(d: any) {
+  if (!d) return '—'
+  const date = new Date(d)
+  return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
 function LoyersTab() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<'tous' | 'actif' | 'resilie' | 'expire'>('tous')
+  const [detailContrat, setDetailContrat] = useState<any>(null)
   useEffect(() => { loyersApi.dashboard().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
   if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
 
   const stats = data?.stats || {}
   const contrats: any[] = data?.contrats || []
-  const loyers: any[] = contrats.flatMap((c: any) => (c.loyers || []).map((l: any) => ({ ...l, bien: c.bien, locataire: c.locataire })))
-  const enAttenteMontant = loyers.filter(l => l.statut === 'en_attente' || l.statut === 'en_retard').reduce((s, l) => s + Number(l.montant || 0), 0)
-  const enRetardCount = stats.loyers_en_retard ?? loyers.filter(l => l.statut === 'en_retard').length
-  const sorted = [...loyers].sort((a, b) => new Date(b.date_echeance || 0).getTime() - new Date(a.date_echeance || 0).getTime())
+  const allLoyers: any[] = contrats.flatMap((c: any) => c.loyers || [])
+  const enAttenteMontant = allLoyers.filter(l => l.statut === 'en_attente' || l.statut === 'en_retard').reduce((s, l) => s + Number(l.montant || 0), 0)
+  const enRetardCount = stats.loyers_en_retard ?? allLoyers.filter(l => l.statut === 'en_retard').length
+  const impayesCount = allLoyers.filter(l => l.statut === 'impaye').length
 
-  const loyerStatut = (s: string) =>
-    s === 'paye'      ? { label: 'Payé',       color: '#4CAF50' } :
-    s === 'en_retard' ? { label: 'En retard',  color: '#F44336' } :
-                         { label: 'En attente', color: '#FF9800' }
+  // Un loyer par contrat, groupés façon "carte contrat" (comme le mobile) —
+  // avec en plus, ici, le détail par échéance au clic (non présent côté mobile).
+  const contratsResume = contrats.map((c: any) => {
+    const loyersTries = [...(c.loyers || [])].sort((a: any, b: any) => new Date(a.date_echeance || a.mois || 0).getTime() - new Date(b.date_echeance || b.mois || 0).getTime())
+    const impayesOuAttente = loyersTries.filter((l: any) => l.statut !== 'paye')
+    const prochain = impayesOuAttente[0] || null
+    const payesCount = loyersTries.filter((l: any) => l.statut === 'paye').length
+    const enProblemeCount = loyersTries.filter((l: any) => l.statut === 'en_retard' || l.statut === 'impaye').length
+    return { ...c, loyersTries, prochain, payesCount, enProblemeCount }
+  })
+
+  const filtered = filter === 'tous' ? contratsResume : contratsResume.filter((c: any) => c.statut === filter)
+  const sorted = [...filtered].sort((a: any, b: any) => {
+    const urg = (c: any) => c.prochain?.statut === 'impaye' ? 0 : c.prochain?.statut === 'en_retard' ? 1 : c.prochain ? 2 : 3
+    return urg(a) - urg(b)
+  })
+
+  const FILTERS: { key: typeof filter; label: string }[] = [
+    { key: 'tous', label: 'Tous les contrats' },
+    { key: 'actif', label: 'Actifs' },
+    { key: 'resilie', label: 'Résiliés' },
+    { key: 'expire', label: 'Expirés' },
+  ]
 
   return (
     <div className="flex-1 overflow-y-auto px-4 md:px-8 xl:px-10 py-5 md:py-8">
@@ -1318,44 +1366,157 @@ function LoyersTab() {
           <p className="text-2xl md:text-3xl font-extrabold">{Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} FCFA</p>
         </div>
 
-        {/* Cartes KPI — détail du mois, en attente, en retard */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-7">
-          <StatCard icon={<IcWallet />} color="#4CAF50" label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} FCFA`} />
-          <StatCard icon={<IcClock />} color="#FF9800" label="En attente de paiement" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} FCFA`} />
+        {/* Cartes KPI — détail du mois, en attente, en retard, impayés */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <StatCard icon={<IcWallet />} color="#4CAF50" label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`} />
+          <StatCard icon={<IcClock />} color="#FF9800" label="En attente" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} F`} />
           <StatCard icon={<IcMoney />} color="#F44336" label="Loyers en retard" value={`${enRetardCount}`} />
+          <StatCard icon={<IcShield />} color="#9C27B0" label="Impayés escaladés" value={`${impayesCount}`} />
         </div>
 
-        <p className="text-[17px] font-bold text-text-dark mb-3.5">Historique des loyers</p>
+        <div className="flex items-center justify-between mb-3.5">
+          <p className="text-[17px] font-bold text-text-dark">Mes contrats de location</p>
+        </div>
+
+        {/* Filtre par statut de contrat — pill row aérée, scrollable */}
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-4" style={{ scrollbarWidth: 'none' }}>
+          {FILTERS.map(f => (
+            <button key={f.key} onClick={() => setFilter(f.key)}
+              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors"
+              style={filter === f.key ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#5F6B7A', borderColor: '#E8EAED' }}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         {sorted.length === 0 ? (
           <div className="card-soft rounded-2xl flex flex-col items-center justify-center py-12">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <p className="font-bold text-text-dark mb-1">Aucun loyer</p>
-            <p className="text-sm text-text-grey">Les loyers apparaîtront ici</p>
+            <p className="font-bold text-text-dark mb-1">Aucun contrat</p>
+            <p className="text-sm text-text-grey">Vos contrats de location apparaîtront ici</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {sorted.map((l: any, i: number) => {
-              const { label, color } = loyerStatut(l.statut)
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {sorted.map((c: any) => {
+              const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: '#9E9E9E' }
+              const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
+              const aJour = !c.prochain
+              const prochainStatut = c.prochain ? loyerStatut(c.prochain.statut) : null
               return (
-                <div key={l.id || i} className="card-soft rounded-[14px] p-3.5 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + '15' }}>
-                    <span style={{ color }}><IcWallet /></span>
+                <button key={c.id} onClick={() => setDetailContrat(c)} className="card-soft rounded-2xl p-4 text-left hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 mb-3.5">
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-white text-sm" style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>
+                      {initiale}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-text-dark text-sm truncate">{c.locataire?.prenom} {c.locataire?.nom}</p>
+                      <p className="text-xs text-text-grey mt-0.5 truncate">{typeLabel(c.bien?.type || '')} — {c.bien?.localisation?.ville || '—'}</p>
+                    </div>
+                    <span className="flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: cStatut.color + '18', color: cStatut.color }}>{cStatut.label}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-text-dark text-sm truncate">{typeLabel(l.bien?.type || '')} — {l.bien?.localisation?.ville || '—'}</p>
-                    <p className="text-xs text-text-grey mt-0.5 truncate">{l.locataire?.prenom} {l.locataire?.nom}</p>
+
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs text-text-grey">Loyer mensuel</span>
+                    <span className="text-sm font-bold text-text-dark">{fmtPrix(c.loyer_mensuel)}</span>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-text-dark text-xs">{Number(l.montant).toLocaleString('fr-FR')} FCFA</p>
-                    <span className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
-                  </div>
-                </div>
+
+                  {aJour ? (
+                    <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5" style={{ background: '#4CAF5012' }}>
+                      <span style={{ color: '#4CAF50' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      </span>
+                      <span className="text-xs font-bold" style={{ color: '#4CAF50' }}>À jour — aucun loyer en attente</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: prochainStatut!.color + '12' }}>
+                      <div className="min-w-0">
+                        <p className="text-[11px] text-text-grey">Prochain loyer dû</p>
+                        <p className="text-xs font-bold text-text-dark truncate">{moisLabel(c.prochain.mois)}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: prochainStatut!.color + '22', color: prochainStatut!.color }}>{prochainStatut!.label}</span>
+                        {c.prochain.jours_retard > 0 && <p className="text-[10px] font-bold mt-1" style={{ color: prochainStatut!.color }}>{c.prochain.jours_retard} j de retard</p>}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[11px] text-text-grey mt-3">{c.payesCount} loyer{c.payesCount > 1 ? 's' : ''} payé{c.payesCount > 1 ? 's' : ''}{c.enProblemeCount > 0 && <> · <span className="font-bold" style={{ color: '#F44336' }}>{c.enProblemeCount} en difficulté</span></>}</p>
+                </button>
               )
             })}
           </div>
         )}
+      </div>
+
+      {detailContrat && <ContratDetailModal contrat={detailContrat} onClose={() => setDetailContrat(null)} />}
+    </div>
+  )
+}
+
+function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () => void }) {
+  const c = contrat
+  const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: '#9E9E9E' }
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[88vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white z-10">
+          <div>
+            <h2 className="font-bold text-text-dark">{c.locataire?.prenom} {c.locataire?.nom}</h2>
+            <p className="text-xs text-text-grey mt-0.5">{typeLabel(c.bien?.type || '')} — {c.bien?.localisation?.ville || '—'}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey flex-shrink-0">✕</button>
+        </div>
+
+        <div className="p-5">
+          {/* Infos contrat */}
+          <div className="rounded-xl p-3.5 mb-5" style={{ background: '#F6F8FA' }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-text-grey">Statut du contrat</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: cStatut.color + '18', color: cStatut.color }}>{cStatut.label}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5 text-xs">
+              <div><p className="text-text-grey mb-0.5">Début</p><p className="font-semibold text-text-dark">{dateLabel(c.date_debut)}</p></div>
+              <div><p className="text-text-grey mb-0.5">Fin</p><p className="font-semibold text-text-dark">{c.date_fin ? dateLabel(c.date_fin) : 'En cours'}</p></div>
+              <div><p className="text-text-grey mb-0.5">Échéance mensuelle</p><p className="font-semibold text-text-dark">Le {c.jour_echeance ?? 10} du mois</p></div>
+              <div><p className="text-text-grey mb-0.5">Loyer prépayé</p><p className="font-semibold text-text-dark">{c.loyer_prepaye_mois > 0 ? `${c.loyer_prepaye_mois} mois` : 'Aucun'}</p></div>
+            </div>
+            {c.gestion_via_app === false && (
+              <p className="text-[10px] text-text-grey mt-2.5 italic">Bien en gestion déléguée (hors application)</p>
+            )}
+          </div>
+
+          <p className="text-sm font-bold text-text-dark mb-3">Historique des échéances</p>
+          {(!c.loyersTries || c.loyersTries.length === 0) ? (
+            <p className="text-xs text-text-grey py-6 text-center">Aucune échéance générée pour ce contrat.</p>
+          ) : (
+            <div className="space-y-2">
+              {[...c.loyersTries].reverse().map((l: any) => {
+                const { label, color } = loyerStatut(l.statut)
+                return (
+                  <div key={l.id} className="flex items-center gap-3 rounded-xl p-3" style={{ background: color + '0A' }}>
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + '18' }}>
+                      <span style={{ color }}><IcMoney /></span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-text-dark truncate">{moisLabel(l.mois)}</p>
+                      <p className="text-[10px] text-text-grey mt-0.5">
+                        Échéance {dateLabel(l.date_echeance)}
+                        {l.statut === 'paye' && l.date_paiement && ` · payé le ${dateLabel(l.date_paiement)}`}
+                        {l.jours_retard > 0 && l.statut !== 'paye' && ` · ${l.jours_retard} j de retard`}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xs font-bold text-text-dark">{fmtPrix(l.montant)}</p>
+                      <span className="mt-0.5 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
