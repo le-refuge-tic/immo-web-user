@@ -10,10 +10,14 @@ function avatarColor(id: number): string {
   return AVATAR_COLORS[Math.abs(id || 0) % AVATAR_COLORS.length]
 }
 
-function getInitiales(other: any): string {
-  const a = (other?.nom?.[0] || '').toUpperCase()
-  const b = (other?.prenom?.[0] || '').toUpperCase()
-  return (a + b) || '?'
+// Le nom affiché dans l'app mobile (conversations_screen.dart) n'est que le
+// prénom du contact (nom complet seulement si le prénom est vide) — on
+// reprend exactement cette convention ici plutôt que "Prénom NOM".
+function displayName(other: any): string {
+  return other?.prenom || other?.pseudonyme || other?.nom || 'Contact'
+}
+function getInitiale(other: any): string {
+  return (displayName(other)[0] || '?').toUpperCase()
 }
 
 function formatConvTime(iso?: string): string {
@@ -114,7 +118,7 @@ export default function ConversationsPage() {
       <div>
         {list.map((conv, idx) => {
           const other = getOther(conv)
-          const name = other?.prenom ? `${other.prenom} ${other?.nom || ''}`.trim() : (other?.pseudonyme || 'Contact')
+          const name = displayName(other)
           const lastMsg = conv.dernierMessage
           const lastContenu = lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : 'Nouvelle conversation')
           const unread = conv.nonLus || 0
@@ -134,7 +138,7 @@ export default function ConversationsPage() {
               >
                 <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ background: avatarColor(other?.id ?? conv.id) }}>
-                  <span className="text-white font-bold text-xs">{getInitiales(other)}</span>
+                  <span className="text-white font-bold text-xs">{getInitiale(other)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-0.5">

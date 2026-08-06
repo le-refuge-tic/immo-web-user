@@ -11,6 +11,7 @@ import { loyersApi } from '../../api/loyersApi'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
+import ChatThread from '../conversations/ChatThread'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -41,7 +42,7 @@ const IcLink = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const BLUE      = '#2E86C1'
 const DARK_BLUE = '#0F3460'
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'loyers' | 'portefeuille' | 'profil' | 'delegations'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
   en_attente: { label: 'En attente',  color: '#F59E0B' },
@@ -62,16 +63,20 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
 ]
 
 // Sidebar desktop (xl+) — liste plate façon immo-web-admin (icône + libellé,
-// sans sous-groupes) : tous les onglets internes, plus "Messages" qui pointe
-// vers la page /conversations (route à part, comme "Nouveau bien").
+// sans sous-groupes). Tous les onglets internes (`tab`) restent dans le
+// dashboard (sidebar/topbar visibles) ; seuls "Gérer mes rôles" et
+// "Historique des transactions" pointent vers des pages à part (`to`),
+// comme "Nouveau bien".
 const SIDEBAR_NAV: { key: string; label: string; icon: React.ReactNode; tab?: Tab; to?: string }[] = [
   { key: 'tableau',       label: 'Tableau de bord', icon: <IcDash />,        tab: 'tableau' },
   { key: 'biens',         label: 'Mes biens',       icon: <IcHome />,        tab: 'biens' },
   { key: 'reservations',  label: 'Réservations',    icon: <IcCal />,         tab: 'reservations' },
-  { key: 'messages',      label: 'Messages',        icon: <IcMessagesNav />, to: '/conversations' },
+  { key: 'messages',      label: 'Messages',        icon: <IcMessagesNav />, tab: 'messages' },
   { key: 'loyers',        label: 'Loyers',          icon: <IcMoney />,       tab: 'loyers' },
   { key: 'delegations',   label: 'Liaisons gestion', icon: <IcLink />,       tab: 'delegations' },
   { key: 'portefeuille',  label: 'Portefeuille',    icon: <IcWallet />,      tab: 'portefeuille' },
+  { key: 'mes-roles',     label: 'Gérer mes rôles', icon: <IcShield />,      to: '/mes-roles' },
+  { key: 'transactions',  label: 'Historique des transactions', icon: <IcMoney />, to: '/portefeuille' },
   { key: 'profil',        label: 'Mon profil',      icon: <IcPerson />,      tab: 'profil' },
 ]
 
@@ -596,6 +601,130 @@ function MesBiensTab() {
               </table>
             </div>
           </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Tab: Messages ────────────────────────────────────────────────────────────
+// Reprend chatApi + ChatThread directement (au lieu de naviguer vers la page
+// /conversations globale) pour que la sidebar et le topbar du dashboard
+// propriétaire restent affichés pendant la messagerie.
+const MSG_AVATAR_COLORS = ['#2563EB', '#7C3AED', '#DB2777', '#D97706', '#16A34A', '#0891B2']
+function formatConvTime(iso?: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const diff = Date.now() - d.getTime()
+  if (diff < 86_400_000) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  if (diff < 604_800_000) return d.toLocaleDateString('fr-FR', { weekday: 'short' })
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}
+
+function MessagesTab() {
+  const { user } = useAuth()
+  const [convs, setConvs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [activeConvId, setActiveConvId] = useState<number | null>(null)
+
+  useEffect(() => {
+    setLoading(true)
+    chatApi.conversations()
+      .then(d => setConvs(Array.isArray(d) ? d : d.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const getOther = (conv: any) => {
+    if (!user || !Array.isArray(conv.participants)) return null
+    return conv.participants.find((p: any) => p.id !== user.id) || conv.participants[0] || null
+  }
+
+  const filtered = (() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return convs
+    return convs.filter(conv => {
+      const other = getOther(conv)
+      const name = `${other?.prenom || ''} ${other?.nom || ''} ${other?.pseudonyme || ''}`.toLowerCase()
+      return name.includes(q)
+    })
+  })()
+
+  return (
+    <div className="flex flex-1 overflow-hidden bg-white">
+      {/* Liste — masquée sur mobile/tablette quand une conversation est ouverte */}
+      <div className={`w-full md:w-[320px] flex-shrink-0 md:border-r border-divider flex-col overflow-hidden ${activeConvId != null ? 'hidden md:flex' : 'flex'}`}>
+        <div className="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0 border-b border-divider">
+          <h2 className="text-[15px] font-extrabold text-text-dark">Messages</h2>
+          {!loading && (
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white" style={{ background: BLUE }}>{convs.length}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-divider flex-shrink-0 text-text-grey">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une conversation…"
+            className="flex-1 min-w-0 border-none outline-none bg-transparent text-[13px] text-text-dark placeholder:text-[#94A3B8]" />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="p-4 space-y-2">{[1, 2, 3].map(n => <div key={n} className="skeleton h-[64px] rounded-xl" />)}</div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3" style={{ background: BLUE + '15' }}>
+                <span style={{ color: BLUE }}><IcMessagesNav /></span>
+              </div>
+              <p className="text-sm font-bold text-text-dark mb-1">{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
+              <p className="text-xs text-text-grey">{search ? `Rien ne correspond à « ${search} ».` : 'Vos échanges avec vos clients apparaîtront ici.'}</p>
+            </div>
+          ) : filtered.map(conv => {
+            const other = getOther(conv)
+            const name = other?.prenom || other?.pseudonyme || other?.nom || 'Contact'
+            const initiale = (name[0] || '?').toUpperCase()
+            const lastMsg = conv.dernierMessage
+            const lastContenu = lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : 'Nouvelle conversation')
+            const unread = conv.nonLus || 0
+            const hasUnread = unread > 0
+            const timeStr = formatConvTime(lastMsg?.created_at)
+            const isActive = conv.id === activeConvId
+            return (
+              <button key={conv.id} onClick={() => setActiveConvId(conv.id)}
+                className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
+                style={{ background: isActive ? BLUE + '0C' : 'transparent', borderLeft: isActive ? `3px solid ${BLUE}` : '3px solid transparent' }}>
+                <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: MSG_AVATAR_COLORS[Math.abs(other?.id ?? conv.id) % MSG_AVATAR_COLORS.length] }}>
+                  <span className="text-white font-bold text-xs">{initiale}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <p className={`text-[13px] truncate ${hasUnread ? 'font-bold text-text-dark' : 'font-semibold text-text-dark'}`}>{name}</p>
+                    {timeStr && <p className="text-[11px] text-text-grey flex-shrink-0">{timeStr}</p>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className={`text-xs truncate flex-1 ${hasUnread ? 'text-text-dark font-medium' : 'text-text-grey'}`}>{lastContenu}</p>
+                    {hasUnread && (
+                      <div className="min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BLUE }}>
+                        <span className="text-white text-[10px] font-bold">{unread}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Fil de discussion */}
+      <div className={`flex-1 flex-col overflow-hidden ${activeConvId != null ? 'flex' : 'hidden md:flex'}`}>
+        {activeConvId != null ? (
+          <ChatThread convId={activeConvId} onBack={() => setActiveConvId(null)} />
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-8" style={{ background: '#F8FAFC' }}>
+            <div className="text-5xl mb-3" style={{ opacity: 0.25 }}>💬</div>
+            <p className="text-[15px] font-bold text-text-dark mb-1.5">Sélectionnez une conversation</p>
+            <p className="text-text-grey text-[13px] max-w-xs">Choisissez un contact dans la liste pour afficher les messages.</p>
+          </div>
         )}
       </div>
     </div>
@@ -1559,7 +1688,7 @@ export default function ProprietaireDashboard() {
             <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ background: BLUE }}>
               {loading ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : initials}
             </div>
-            <button onClick={() => navigate('/conversations')} title="Messagerie"
+            <button onClick={() => setTab('messages')} title="Messagerie"
               className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
               style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: BLUE }}>
               <IcMessage />
@@ -1637,7 +1766,7 @@ export default function ProprietaireDashboard() {
               <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={BLUE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
                 <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
-                <QuickAction icon={<IcMessagesNav />} color="#FF6B35" label="Messages" onClick={() => navigate('/conversations')} />
+                <QuickAction icon={<IcMessagesNav />} color="#FF6B35" label="Messages" onClick={() => setTab('messages')} />
               </div>
 
               {/* Stat cards */}
@@ -1720,6 +1849,7 @@ export default function ProprietaireDashboard() {
         )}
         {tab === 'biens'        && <MesBiensTab />}
         {tab === 'reservations' && <ReservationsTab biens={biens} />}
+        {tab === 'messages'     && <MessagesTab />}
         {tab === 'loyers'       && <LoyersTab />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
         {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
