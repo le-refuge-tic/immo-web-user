@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
@@ -41,6 +41,9 @@ const IcLink = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BLUE      = '#2E86C1'
 const DARK_BLUE = '#0F3460'
+
+const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Agent', locataire: 'Locataire' }
+const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
 
 type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'profil' | 'delegations'
 
@@ -1755,8 +1758,24 @@ function ProfilTab({ user, biens, visites, onOpenDelegations, onOpenTransactions
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function ProprietaireDashboard() {
-  const { user: authUser, logout } = useAuth()
+  const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
+  const [rolesMenuOpen, setRolesMenuOpen] = useState<'sidebar' | 'topbar' | null>(null)
+  // Le flyout sidebar utilise position:fixed avec des coordonnées calculées
+  // au survol — la <nav> du menu est overflow-y-auto, ce qui rend son
+  // overflow-x implicitement non "visible" (spec CSS) et couperait un
+  // absolute positionné "left-full" en dehors de sa boîte.
+  const [sidebarMenuPos, setSidebarMenuPos] = useState<{ top: number; left: number } | null>(null)
+  const sidebarRolesRef = useRef<HTMLDivElement>(null)
+  const openSidebarRolesMenu = () => {
+    const rect = sidebarRolesRef.current?.getBoundingClientRect()
+    if (rect) setSidebarMenuPos({ top: rect.top, left: rect.right + 8 })
+    setRolesMenuOpen('sidebar')
+  }
+  const goToRoleSpace = (role: string) => {
+    setActiveRole(role)
+    navigate(ROLE_ROUTES[role] || '/')
+  }
   const [tab, setTab] = useState<Tab>('tableau')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -1863,14 +1882,32 @@ export default function ProprietaireDashboard() {
           <div className="flex-1" />
 
           <div className="flex items-center gap-2.5">
-            <div className="text-right hidden sm:block">
-              <p className="font-bold text-text-dark text-[13px] leading-tight truncate max-w-[160px]">
-                {loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}
-              </p>
-              <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#8A93A3' }}>Propriétaire</p>
-            </div>
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ background: BLUE }}>
-              {loading ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : initials}
+            <div className="relative flex items-center gap-2.5"
+              onMouseEnter={() => setRolesMenuOpen('topbar')}
+              onMouseLeave={() => setRolesMenuOpen(null)}>
+              <div className="text-right hidden sm:block">
+                <p className="font-bold text-text-dark text-[13px] leading-tight truncate max-w-[160px]">
+                  {loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}
+                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#8A93A3' }}>Propriétaire</p>
+              </div>
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ background: BLUE }}>
+                {loading ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : initials}
+              </div>
+              {rolesMenuOpen === 'topbar' && rolesActifs.length > 1 && (
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-white shadow-lg border border-divider py-1.5 z-30">
+                  <p className="px-3.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-text-grey">Mes espaces actifs</p>
+                  {rolesActifs.map(r => (
+                    <button key={r} onClick={() => goToRoleSpace(r)}
+                      className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left hover:bg-surface-g transition-colors">
+                      <span style={{ color: r === activeRole ? BLUE : '#374151', fontWeight: r === activeRole ? 700 : 500 }}>{ROLE_LABELS[r] || r}</span>
+                      {r === activeRole && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE + '15', color: BLUE }}>Actuel</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <button onClick={() => setTab('messages')} title="Messagerie"
               className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
@@ -1896,8 +1933,8 @@ export default function ProprietaireDashboard() {
           {SIDEBAR_NAV.map(item => {
             const active = item.tab != null && tab === item.tab
             const badge = item.key === 'reservations' ? reservationsEnAttente : 0
-            return (
-              <button key={item.key} onClick={() => item.tab ? setTab(item.tab) : navigate(item.to!)}
+            const button = (
+              <button onClick={() => item.tab ? setTab(item.tab) : navigate(item.to!)}
                 title={sidebarCollapsed ? item.label : undefined}
                 className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-sm transition-colors relative ${sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'}`}
                 style={active ? { background: BLUE + '15', color: BLUE, fontWeight: 600 } : { color: '#5F6B7A', fontWeight: 500 }}>
@@ -1916,7 +1953,38 @@ export default function ProprietaireDashboard() {
                 )}
               </button>
             )
+
+            // "Gérer mes rôles" : survol → menu déroulant des espaces déjà
+            // actifs, clic sur un espace = bascule directe (comme dans
+            // ManageRolesPage.goToDashboard).
+            if (item.key === 'mes-roles' && rolesActifs.length > 1) {
+              return (
+                <div key={item.key} ref={sidebarRolesRef} className="relative"
+                  onMouseEnter={openSidebarRolesMenu}
+                  onMouseLeave={() => setRolesMenuOpen(null)}>
+                  {button}
+                </div>
+              )
+            }
+            return <div key={item.key}>{button}</div>
           })}
+          {rolesMenuOpen === 'sidebar' && sidebarMenuPos && (
+            <div className="fixed w-56 rounded-xl bg-white shadow-lg border border-divider py-1.5 z-30"
+              style={{ top: sidebarMenuPos.top, left: sidebarMenuPos.left }}
+              onMouseEnter={() => setRolesMenuOpen('sidebar')}
+              onMouseLeave={() => setRolesMenuOpen(null)}>
+              <p className="px-3.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-text-grey">Mes espaces actifs</p>
+              {rolesActifs.map(r => (
+                <button key={r} onClick={() => goToRoleSpace(r)}
+                  className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left hover:bg-surface-g transition-colors">
+                  <span style={{ color: r === activeRole ? BLUE : '#374151', fontWeight: r === activeRole ? 700 : 500 }}>{ROLE_LABELS[r] || r}</span>
+                  {r === activeRole && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE + '15', color: BLUE }}>Actuel</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </nav>
         {!sidebarCollapsed && (
           <div className="px-3 pb-4 pt-3 border-t border-divider">
