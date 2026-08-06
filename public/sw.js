@@ -18,8 +18,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: '/REFUGE-LOGO.png',
-      badge: '/REFUGE-LOGO.png',
+      icon: '/admin-notif-icon.png',
+      badge: '/admin-notif-icon.png',
       data: payload.data || {},
       tag: payload.data?.visite_id ? `visite-${payload.data.visite_id}` : undefined,
     })
@@ -29,11 +29,16 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
-  const type = event.notification.data?.type
+  const data = event.notification.data || {}
+  const type = data.type
   let path = '/notifications'
   if (type === 'NOUVELLE_VISITE' || type === 'visite_demande' || type === 'visite_confirmee' ||
       type === 'visite_contre_proposee' || type === 'visite_annulee') {
     path = '/mes-visites'
+  } else if (type === 'nouveau_message' || type === 'NOUVEAU_MESSAGE') {
+    // Même route que le clic sur une alerte "nouveau message" dans
+    // NotificationsPage — ouvre directement le fil concerné.
+    path = data.conversation_id ? `/conversations/${data.conversation_id}` : '/conversations'
   }
 
   event.waitUntil(

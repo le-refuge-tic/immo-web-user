@@ -16,7 +16,9 @@ const NotificationsContext = createContext<NotifCtx>({
   refresh: () => {},
 })
 
-const POLL_MS = 30000
+// 15s — aligné sur le rythme de rafraîchissement du badge "Messages" côté
+// mobile (Timer.periodic 15s tant que l'écran conversations est monté).
+const POLL_MS = 15000
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { isLoggedIn } = useAuth()

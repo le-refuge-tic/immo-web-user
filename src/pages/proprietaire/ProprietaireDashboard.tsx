@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useNotifications } from '../../context/NotificationsContext'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
 import { walletApi } from '../../api/walletApi'
-import { delegationApi } from '../../api/delegationApi'
 import { chatApi } from '../../api/chatApi'
 import { loyersApi } from '../../api/loyersApi'
 import { rolesApi } from '../../api/rolesApi'
@@ -37,7 +37,6 @@ const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcChevronLeft = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6"/></svg>
 const IcChevronRight = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6"/></svg>
 const IcMessagesNav = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-const IcLink = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BLUE      = '#2E86C1'
@@ -46,15 +45,7 @@ const DARK_BLUE = '#0F3460'
 const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Agent', locataire: 'Locataire' }
 const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil' | 'delegations'
-
-const DELEG_STATUT: Record<string, { label: string; color: string }> = {
-  en_attente: { label: 'En attente',  color: '#F59E0B' },
-  active:     { label: 'Active',      color: '#22C55E' },
-  revoquee:   { label: 'Révoquée',    color: '#EF4444' },
-  expiree:    { label: 'Expirée',     color: '#9CA3AF' },
-  refusee:    { label: 'Refusée',     color: '#EF4444' },
-}
+type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 
 // Bottom nav (mobile/tablette, < xl) — jeu réduit d'onglets les plus utilisés.
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -77,7 +68,6 @@ const SIDEBAR_NAV: { key: string; label: string; icon: React.ReactNode; tab?: Ta
   { key: 'reservations',  label: 'Réservations',    icon: <IcCal />,         tab: 'reservations' },
   { key: 'messages',      label: 'Messages',        icon: <IcMessagesNav />, tab: 'messages' },
   { key: 'loyers',        label: 'Loyers',          icon: <IcMoney />,       tab: 'loyers' },
-  { key: 'delegations',   label: 'Liaisons gestion', icon: <IcLink />,       tab: 'delegations' },
   { key: 'portefeuille',  label: 'Portefeuille',    icon: <IcWallet />,      tab: 'portefeuille' },
   { key: 'mes-roles',     label: 'Gérer mes rôles', icon: <IcShield />,      tab: 'roles' },
   { key: 'transactions',  label: 'Historique des transactions', icon: <IcMoney />, tab: 'transactions' },
@@ -146,11 +136,16 @@ function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | u
 }
 
 // ─── QuickAction ──────────────────────────────────────────────────────────────
-function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
+function QuickAction({ icon, color, label, onClick, badge }: { icon: React.ReactNode; color: string; label: string; onClick: () => void; badge?: number }) {
   return (
     <button onClick={onClick} className="flex-1 card-soft rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform">
-      <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
+      <div className="relative w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
         <span style={{ color }}>{icon}</span>
+        {!!badge && badge > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white" style={{ background: '#FF3B30' }}>
+            {badge > 9 ? '9+' : badge}
+          </span>
+        )}
       </div>
       <span className="text-[11px] font-semibold text-text-dark text-center leading-tight">{label}</span>
     </button>
@@ -1134,162 +1129,6 @@ function ReservationsTab({ biens }: { biens: any[] }) {
   )
 }
 
-// ─── Tab: Délégations ─────────────────────────────────────────────────────────
-function DelegationsTab({ onBack }: { onBack: () => void }) {
-  const [delegations, setDelegations] = useState<any[]>([])
-  const [biens, setBiens] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [search, setSearch] = useState('')
-  const [results, setResults] = useState<any[]>([])
-  const [searching, setSearching] = useState(false)
-  const [demarcheur, setDemarcheur] = useState<any>(null)
-  const [bienId, setBienId] = useState('')
-  const [commission, setCommission] = useState('50')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      const [d, b] = await Promise.allSettled([delegationApi.emises(), biensApi.mesBiens()])
-      if (d.status === 'fulfilled') setDelegations(Array.isArray(d.value) ? d.value : d.value.data || [])
-      if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
-    } catch (_) {}
-    setLoading(false)
-  }
-  useEffect(() => { load() }, [])
-
-  useEffect(() => {
-    if (search.trim().length < 2) { setResults([]); return }
-    setSearching(true)
-    const t = setTimeout(() => {
-      delegationApi.rechercherDemarcheur(search.trim())
-        .then(d => setResults(Array.isArray(d) ? d : d.data || []))
-        .catch(() => setResults([]))
-        .finally(() => setSearching(false))
-    }, 350)
-    return () => clearTimeout(t)
-  }, [search])
-
-  const proposer = async () => {
-    if (!demarcheur) return
-    setSaving(true)
-    setError('')
-    try {
-      await delegationApi.proposer({
-        demarcheur_id: demarcheur.id,
-        bien_id: bienId === 'tous' ? undefined : Number(bienId),
-        taux_commission_demarcheur: Number(commission) || 0,
-      })
-      setShowForm(false); setDemarcheur(null); setSearch(''); setBienId(''); setCommission('50')
-      load()
-    } catch (e: any) {
-      setError(e?.response?.data?.message || 'Impossible de créer la délégation')
-    }
-    setSaving(false)
-  }
-
-  const revoquer = async (id: number) => {
-    try { await delegationApi.revoquer(id); load() } catch (_) {}
-  }
-
-  return (
-    <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white px-4 py-3 border-b border-divider flex items-center justify-between flex-shrink-0">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-text-grey text-sm font-semibold">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          Délégations
-        </button>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: BLUE }}>
-          <IcPlus /> Déléguer
-        </button>
-      </div>
-
-      {showForm && (
-        <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
-          {error && <p className="text-danger text-xs">{error}</p>}
-          {demarcheur ? (
-            <div className="flex items-center justify-between bg-surface-g rounded-xl px-3 py-2.5 border border-divider">
-              <span className="text-sm font-semibold text-text-dark">{demarcheur.prenom} {demarcheur.nom}</span>
-              <button onClick={() => { setDemarcheur(null); setSearch('') }} className="text-danger text-xs font-bold">Changer</button>
-            </div>
-          ) : (
-            <div className="relative">
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Rechercher un démarcheur (nom, téléphone)…"
-                className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider"
-              />
-              {search.trim().length >= 2 && (
-                <div className="mt-1 card-soft rounded-xl border border-divider max-h-40 overflow-y-auto">
-                  {searching ? (
-                    <p className="px-3 py-2.5 text-xs text-text-grey">Recherche…</p>
-                  ) : results.length === 0 ? (
-                    <p className="px-3 py-2.5 text-xs text-text-grey">Aucun démarcheur trouvé.</p>
-                  ) : results.map(r => (
-                    <button key={r.id} onClick={() => { setDemarcheur(r); setResults([]) }}
-                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0">
-                      {r.prenom} {r.nom} <span className="text-text-grey text-xs">{r.telephone}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          <select value={bienId} onChange={e => setBienId(e.target.value)}
-            className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
-            <option value="" disabled>-- Choisir un bien --</option>
-            <option value="tous">Tous mes biens</option>
-            {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
-          </select>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-text-grey flex-shrink-0">Commission démarcheur</span>
-            <input type="number" min={0} max={100} value={commission} onChange={e => setCommission(e.target.value)}
-              className="flex-1 bg-surface-g rounded-xl px-3 py-2 text-sm outline-none border border-divider" />
-            <span className="text-xs text-text-grey">%</span>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-            <button onClick={proposer} disabled={!demarcheur || !bienId || saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
-              {saving ? 'Envoi…' : 'Envoyer la proposition'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {loading ? [1, 2].map(n => <div key={n} className="h-20 skeleton rounded-xl mb-3" />) : delegations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
-              <IcPerson />
-            </div>
-            <p className="font-bold text-text-dark mb-1">Aucune délégation</p>
-            <p className="text-sm text-text-grey text-center px-6">Confiez la gestion d'un bien à un démarcheur de confiance.</p>
-          </div>
-        ) : delegations.map(d => {
-          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#9CA3AF' }
-          return (
-            <div key={d.id} className="card-soft rounded-xl p-4 mb-3">
-              <div className="flex items-center justify-between mb-1">
-                <p className="font-semibold text-text-dark text-sm">{d.demarcheur?.prenom} {d.demarcheur?.nom}</p>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
-              </div>
-              <p className="text-xs text-text-grey mb-2">
-                {d.bien ? `${typeLabel(d.bien.type)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'}
-              </p>
-              {d.statut === 'active' && (
-                <button onClick={() => revoquer(d.id)} className="text-xs font-bold text-danger">Révoquer</button>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
 // Statut d'un loyer — couvre les 4 valeurs réelles du backend (`en_attente`,
 // `en_retard`, `paye`, `impaye`). `impaye` correspond à un loyer escaladé à
@@ -2189,7 +2028,7 @@ function RolesTab() {
   )
 }
 
-function ProfilTab({ user, biens, visites, onOpenDelegations, onOpenTransactions, onOpenRoles }: { user: any; biens: any[]; visites: any[]; onOpenDelegations: () => void; onOpenTransactions: () => void; onOpenRoles: () => void }) {
+function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles }: { user: any; biens: any[]; visites: any[]; onOpenTransactions: () => void; onOpenRoles: () => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)
@@ -2248,10 +2087,6 @@ function ProfilTab({ user, biens, visites, onOpenDelegations, onOpenTransactions
               </button>
               <button onClick={() => setPasswordOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
                 <span className="text-sm font-semibold text-text-dark">Changer le mot de passe</span>
-                <IcChevron />
-              </button>
-              <button onClick={onOpenDelegations} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-                <span className="text-sm font-semibold text-text-dark">Délégations de gestion</span>
                 <IcChevron />
               </button>
               <button onClick={onOpenRoles} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
@@ -2317,6 +2152,7 @@ function ProfilTab({ user, biens, visites, onOpenDelegations, onOpenTransactions
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function ProprietaireDashboard() {
   const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
+  const { unreadMessages, refresh: refreshNotifications } = useNotifications()
   const navigate = useNavigate()
   const [rolesMenuOpen, setRolesMenuOpen] = useState<'sidebar' | 'topbar' | null>(null)
   // Le trigger et le panneau du menu ne se touchent pas (marge de quelques px
@@ -2493,10 +2329,15 @@ export default function ProprietaireDashboard() {
                 </div>
               )}
             </div>
-            <button onClick={() => setTab('messages')} title="Messagerie"
-              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
+            <button onClick={() => { setTab('messages'); refreshNotifications() }} title="Messagerie"
+              className="relative w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
               style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: BLUE }}>
               <IcMessage />
+              {unreadMessages > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                  {unreadMessages > 9 ? '9+' : unreadMessages}
+                </span>
+              )}
             </button>
             <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
               className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
@@ -2516,9 +2357,9 @@ export default function ProprietaireDashboard() {
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
           {SIDEBAR_NAV.map(item => {
             const active = item.tab != null && tab === item.tab
-            const badge = item.key === 'reservations' ? reservationsEnAttente : 0
+            const badge = item.key === 'reservations' ? reservationsEnAttente : item.key === 'messages' ? unreadMessages : 0
             const button = (
-              <button onClick={() => item.tab ? setTab(item.tab) : navigate(item.to!)}
+              <button onClick={() => { if (item.tab) { setTab(item.tab); if (item.tab === 'messages') refreshNotifications() } else navigate(item.to!) }}
                 title={sidebarCollapsed ? item.label : undefined}
                 className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-sm transition-colors relative ${sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'}`}
                 style={active ? { background: BLUE + '15', color: BLUE, fontWeight: 600 } : { color: '#5F6B7A', fontWeight: 500 }}>
@@ -2621,7 +2462,7 @@ export default function ProprietaireDashboard() {
               <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={BLUE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
                 <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
-                <QuickAction icon={<IcMessagesNav />} color="#FF6B35" label="Messages" onClick={() => setTab('messages')} />
+                <QuickAction icon={<IcMessagesNav />} color="#FF6B35" label="Messages" badge={unreadMessages} onClick={() => { setTab('messages'); refreshNotifications() }} />
               </div>
 
               {/* Stat cards */}
@@ -2709,8 +2550,7 @@ export default function ProprietaireDashboard() {
         {tab === 'portefeuille' && <PortefeuilleTab onOpenTransactions={() => setTab('transactions')} />}
         {tab === 'transactions' && <TransactionsTab />}
         {tab === 'roles'        && <RolesTab />}
-        {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
-        {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenDelegations={() => setTab('delegations')} onOpenTransactions={() => setTab('transactions')} onOpenRoles={() => setTab('roles')} />}
+        {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenTransactions={() => setTab('transactions')} onOpenRoles={() => setTab('roles')} />}
       </div>
 
       {/* Footer — desktop uniquement (façon immo-web-admin), sous le contenu,
@@ -2747,11 +2587,19 @@ export default function ProprietaireDashboard() {
           <div className="flex items-center justify-around px-2 py-2 md:max-w-lg md:mx-auto">
             {TABS.map(t => {
               const active = tab === t.key
+              const badge = t.key === 'messages' ? unreadMessages : 0
               return (
-                <button key={t.key} onClick={() => setTab(t.key)}
-                  className="flex items-center gap-1.5 px-2 py-2 rounded-[14px] transition-all"
+                <button key={t.key} onClick={() => { setTab(t.key); if (t.key === 'messages') refreshNotifications() }}
+                  className="relative flex items-center gap-1.5 px-2 py-2 rounded-[14px] transition-all"
                   style={active ? { background: BLUE + '18' } : {}}>
-                  <span style={{ color: active ? BLUE : '#9E9E9E' }}>{t.icon}</span>
+                  <span className="relative" style={{ color: active ? BLUE : '#9E9E9E' }}>
+                    {t.icon}
+                    {badge > 0 && (
+                      <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                        {badge > 9 ? '9+' : badge}
+                      </span>
+                    )}
+                  </span>
                   {active && <span className="text-xs font-bold" style={{ color: BLUE }}>{t.label}</span>}
                 </button>
               )
