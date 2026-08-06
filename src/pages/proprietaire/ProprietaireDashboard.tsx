@@ -32,6 +32,8 @@ const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcLogout  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
 const IcMessage = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+const IcChevronLeft = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6"/></svg>
+const IcChevronRight = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6"/></svg>
 const IcMessagesNav = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcLink = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
 
@@ -1400,6 +1402,7 @@ export default function ProprietaireDashboard() {
   const { user: authUser, logout } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -1493,6 +1496,12 @@ export default function ProprietaireDashboard() {
           <div className="flex items-center gap-2.5 min-w-0">
             <img src={logoUrl} alt="REFUGE" className="w-9 h-9 rounded-[10px] object-contain flex-shrink-0" />
             <span className="hidden sm:block font-extrabold text-base tracking-tight flex-shrink-0" style={{ color: '#00AEEF' }}>REFUGE</span>
+            <button onClick={() => setSidebarCollapsed(c => !c)}
+              title={sidebarCollapsed ? 'Agrandir le menu' : 'Réduire le menu'}
+              className="hidden xl:flex w-8 h-8 rounded-lg border items-center justify-center flex-shrink-0 transition-colors hover:bg-surface-g"
+              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: '#5F6B7A' }}>
+              {sidebarCollapsed ? <IcChevronRight /> : <IcChevronLeft />}
+            </button>
           </div>
 
           <div className="flex-1" />
@@ -1526,19 +1535,25 @@ export default function ProprietaireDashboard() {
 
       {/* Sidebar (desktop only) — liste plate façon immo-web-admin : fond blanc,
           items icône+libellé, item actif en fond teinté + barre d'accent à gauche. */}
-      <aside className="hidden xl:flex xl:flex-col xl:w-64 2xl:w-72 flex-shrink-0 bg-white border-r border-divider">
+      <aside className={`hidden xl:flex xl:flex-col flex-shrink-0 bg-white border-r border-divider transition-[width] duration-200 ${sidebarCollapsed ? 'xl:w-[4.5rem]' : 'xl:w-64 2xl:w-72'}`}>
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
           {SIDEBAR_NAV.map(item => {
             const active = item.tab != null && tab === item.tab
             const badge = item.key === 'reservations' ? reservationsEnAttente : 0
             return (
               <button key={item.key} onClick={() => item.tab ? setTab(item.tab) : navigate(item.to!)}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-colors relative"
+                title={sidebarCollapsed ? item.label : undefined}
+                className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-sm transition-colors relative ${sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'}`}
                 style={active ? { background: BLUE + '15', color: BLUE, fontWeight: 600 } : { color: '#5F6B7A', fontWeight: 500 }}>
-                {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full" style={{ background: BLUE }} />}
-                <span style={{ color: active ? BLUE : '#8A93A3' }}>{item.icon}</span>
-                <span className="flex-1 text-left">{item.label}</span>
-                {badge > 0 && (
+                {active && !sidebarCollapsed && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full" style={{ background: BLUE }} />}
+                <span className="relative flex-shrink-0" style={{ color: active ? BLUE : '#8A93A3' }}>
+                  {item.icon}
+                  {sidebarCollapsed && badge > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: BLUE }} />
+                  )}
+                </span>
+                {!sidebarCollapsed && <span className="flex-1 text-left">{item.label}</span>}
+                {!sidebarCollapsed && badge > 0 && (
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE, color: '#fff' }}>
                     {badge}
                   </span>
@@ -1547,13 +1562,15 @@ export default function ProprietaireDashboard() {
             )
           })}
         </nav>
-        <div className="px-3 pb-4 pt-3 border-t border-divider">
-          <button onClick={() => navigate('/nouveau-bien')}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity"
-            style={{ background: BLUE }}>
-            <IcPlus /> Nouveau bien
-          </button>
-        </div>
+        {!sidebarCollapsed && (
+          <div className="px-3 pb-4 pt-3 border-t border-divider">
+            <button onClick={() => navigate('/nouveau-bien')}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity"
+              style={{ background: BLUE }}>
+              <IcPlus /> Nouveau bien
+            </button>
+          </div>
+        )}
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
