@@ -26,6 +26,8 @@ const SANITAIRE_OPTS = [
 ]
 
 const FINITION_OPTS = [
+  { value: 'ordinaire', label: 'Ordinaire', sub: '' },
+  { value: 'semi_staffe', label: 'Semi-Staffé', sub: '' },
   { value: 'staffe', label: 'Staffé', sub: '' },
   { value: 'haut_standing', label: 'Haut Standing', sub: 'Baies vitrées, douche moderne, climatisation.' },
 ]
@@ -261,6 +263,8 @@ export default function NouveauBienPage() {
   const [showMoreOptions, setShowMoreOptions] = useState(false)
 
   // Terrain
+  const [titreTerrain, setTitreTerrain] = useState('')
+  const [titreFoncier, setTitreFoncier] = useState<boolean | null>(null)
   const [superficieTerrain, setSuperficieTerrain] = useState('')
   const [superficieUnite, setSuperficieUnite] = useState<'m2' | 'ha'>('m2')
   const [documentTerrain, setDocumentTerrain] = useState<string | null>(null)
@@ -323,6 +327,7 @@ export default function NouveauBienPage() {
       if (isMeuble && !hasAtLeastOneTarif) { setError('Renseignez au moins un tarif'); return }
     }
     if (step === 1 && !quartier.trim()) { setError('Veuillez sélectionner un quartier'); return }
+    if (step === 2 && isTerrain && !titreTerrain.trim()) { setError('Veuillez donner un nom à ce bien'); return }
     if (step === 2 && isTerrain && !superficieM2) { setError('Veuillez indiquer la superficie du terrain'); return }
     setError('')
     if (step === 4) { handleCreate(); return }
@@ -349,6 +354,7 @@ export default function NouveauBienPage() {
       a.permission_construire = permissionConstruire
       if (permissionConstruire && descriptionConstruction.trim()) a.description_construction = descriptionConstruction.trim()
       if (estLoti !== null) a.loti = estLoti
+      if (titreFoncier !== null) a.titre_foncier = titreFoncier
       const details = detailsSupplementaires.filter(d => d.label.trim() && d.valeur.trim())
       if (details.length) a.details_supplementaires = details.map(d => ({ label: d.label.trim(), valeur: d.valeur.trim() }))
       return a
@@ -433,7 +439,9 @@ export default function NouveauBienPage() {
         prixFinal = parsePrix(prix) ?? 0
       }
 
-      const descFull = description.trim()
+      const notes = description.trim()
+      const titre = isTerrain ? titreTerrain.trim() : ''
+      const descFull = titre ? (notes ? `${titre}\n\n${notes}` : titre) : notes
 
       const body: any = {
         type: typeBackend,
@@ -658,6 +666,12 @@ export default function NouveauBienPage() {
         {step === 2 && isTerrain && (
           <div className="space-y-5">
             <div>
+              <Section title="Nom du bien" required />
+              <textarea value={titreTerrain} onChange={e => setTitreTerrain(e.target.value)} rows={2} maxLength={120}
+                placeholder="Ex: Parcelle bâtie à vendre en angle de rue à Cotonou Saint Jean"
+                className="w-full bg-white border border-divider rounded-xl px-4 py-3 text-sm outline-none resize-none focus:border-primary" />
+            </div>
+            <div>
               <Section title="Superficie" required />
               <div className="flex gap-2.5">
                 <input type="number" value={superficieTerrain} onChange={e => setSuperficieTerrain(e.target.value)}
@@ -714,6 +728,13 @@ export default function NouveauBienPage() {
                 <Chip label="Lotie" active={estLoti === 'lotie'} onClick={() => setEstLoti('lotie')} />
                 <Chip label="Non lotie" active={estLoti === 'non_lotie'} onClick={() => setEstLoti('non_lotie')} />
                 <Chip label="Autre" active={estLoti === 'autre'} onClick={() => setEstLoti('autre')} />
+              </div>
+            </div>
+            <div>
+              <Section title="Titre foncier ?" />
+              <div className="grid grid-cols-2 gap-2.5">
+                <Chip label="Oui" active={titreFoncier === true} onClick={() => setTitreFoncier(true)} />
+                <Chip label="Non" active={titreFoncier === false} onClick={() => setTitreFoncier(false)} />
               </div>
             </div>
             <div>
