@@ -1683,6 +1683,23 @@ export default function ProprietaireDashboard() {
         {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenDelegations={() => setTab('delegations')} />}
       </div>
 
+      {/* Footer — desktop uniquement (façon immo-web-admin), sous le contenu,
+          largeur de la colonne (pas sous la sidebar) */}
+      <div className="hidden xl:flex items-center flex-shrink-0 px-6 border-t border-divider bg-white text-xs"
+        style={{ height: '2.75rem', color: '#64748B' }}>
+        <div className="flex items-center gap-1.5">
+          <div className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ background: '#22C55E' }} />
+          <span>Plateforme <strong style={{ color: '#00AEEF' }}>REFUGE</strong> — opérationnelle</span>
+        </div>
+        <div className="ml-auto flex items-center gap-5">
+          <span>{new Date().toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+          {me && <span className="text-text-dark font-semibold">{me.prenom} {me.nom}</span>}
+          <span className="font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: BLUE + '18', color: BLUE, fontSize: '10px' }}>
+            Propriétaire
+          </span>
+        </div>
+      </div>
+
       {/* FAB */}
       {(tab === 'tableau' || tab === 'biens') && (
         <div className="xl:hidden absolute bottom-20 right-4 md:bottom-24 md:right-8 z-20">
