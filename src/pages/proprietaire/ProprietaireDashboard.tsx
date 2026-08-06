@@ -1074,25 +1074,25 @@ function ReservationsTab({ biens }: { biens: any[] }) {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white border-b border-divider flex flex-shrink-0 px-1">
+      <div className="bg-white border-b border-divider px-4 pt-3.5 pb-2.5 flex gap-2.5 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
         {['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Annulées', 'Échouées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className="flex-1 py-3.5 text-xs font-bold border-b-2 transition-colors"
-            style={filter === f ? { borderColor: BLUE, color: BLUE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
+            className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors"
+            style={filter === f ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#5F6B7A', borderColor: '#E8EAED' }}>
             {f}
           </button>
         ))}
       </div>
       {biensUniques.length >= 2 && (
-        <div className="bg-white px-4 pb-3 pt-0.5 flex gap-2 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
+        <div className="bg-white border-b border-divider px-4 pt-2.5 pb-3.5 flex gap-2.5 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => setBienIdFilter(null)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border"
+            className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold border transition-colors"
             style={bienIdFilter === null ? { background: DARK_BLUE, color: '#fff', borderColor: DARK_BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
             Tous les biens
           </button>
           {biensUniques.map(b => (
             <button key={b.id} onClick={() => setBienIdFilter(b.id)}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border"
+              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold border transition-colors"
               style={bienIdFilter === b.id ? { background: DARK_BLUE, color: '#fff', borderColor: DARK_BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
               {b.label}
             </button>
