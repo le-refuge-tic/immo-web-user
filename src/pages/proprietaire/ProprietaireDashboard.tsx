@@ -32,12 +32,14 @@ const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcLogout  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
 const IcMessage = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+const IcMessagesNav = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+const IcLink = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BLUE      = '#2E86C1'
 const DARK_BLUE = '#0F3460'
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'loyers' | 'portefeuille' | 'profil' | 'delegations'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'loyers' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
   en_attente: { label: 'En attente',  color: '#F59E0B' },
@@ -47,25 +49,28 @@ const DELEG_STATUT: Record<string, { label: string; color: string }> = {
   refusee:    { label: 'Refusée',     color: '#EF4444' },
 }
 
+// Bottom nav (mobile/tablette, < xl) — jeu réduit d'onglets les plus utilisés.
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',       label: 'Tableau',       icon: <IcDash /> },
   { key: 'biens',         label: 'Mes biens',     icon: <IcHome /> },
   { key: 'reservations',  label: 'Réservations',  icon: <IcCal /> },
-  { key: 'creneaux',      label: 'Créneaux',      icon: <IcClock /> },
   { key: 'loyers',        label: 'Loyers',        icon: <IcMoney /> },
   { key: 'portefeuille',  label: 'Portefeuille',  icon: <IcWallet /> },
   { key: 'profil',        label: 'Profil',        icon: <IcPerson /> },
 ]
 
-// Regroupe la nav sous des libellés de section (comme "Main"/"Components"
-// dans le template Admindek) — la sidebar propriétaire n'a pas besoin de
-// sous-menus dépliables (pas assez d'onglets), mais le même principe de
-// hiérarchie visuelle par groupes s'applique.
-const TAB_GROUPS: { label: string; keys: Tab[] }[] = [
-  { label: 'Général',  keys: ['tableau'] },
-  { label: 'Gestion',  keys: ['biens', 'reservations', 'creneaux'] },
-  { label: 'Finances', keys: ['loyers', 'portefeuille'] },
-  { label: 'Compte',   keys: ['profil'] },
+// Sidebar desktop (xl+) — liste plate façon immo-web-admin (icône + libellé,
+// sans sous-groupes) : tous les onglets internes, plus "Messages" qui pointe
+// vers la page /conversations (route à part, comme "Nouveau bien").
+const SIDEBAR_NAV: { key: string; label: string; icon: React.ReactNode; tab?: Tab; to?: string }[] = [
+  { key: 'tableau',       label: 'Tableau de bord', icon: <IcDash />,        tab: 'tableau' },
+  { key: 'biens',         label: 'Mes biens',       icon: <IcHome />,        tab: 'biens' },
+  { key: 'reservations',  label: 'Réservations',    icon: <IcCal />,         tab: 'reservations' },
+  { key: 'messages',      label: 'Messages',        icon: <IcMessagesNav />, to: '/conversations' },
+  { key: 'loyers',        label: 'Loyers',          icon: <IcMoney />,       tab: 'loyers' },
+  { key: 'delegations',   label: 'Liaisons gestion', icon: <IcLink />,       tab: 'delegations' },
+  { key: 'portefeuille',  label: 'Portefeuille',    icon: <IcWallet />,      tab: 'portefeuille' },
+  { key: 'profil',        label: 'Mon profil',      icon: <IcPerson />,      tab: 'profil' },
 ]
 
 function typeLabel(t: string) {
@@ -951,99 +956,6 @@ function ReservationsTab() {
   )
 }
 
-// ─── Tab: Créneaux ────────────────────────────────────────────────────────────
-function CreneauxTab() {
-  const [creneaux, setCreneaux] = useState<any[]>([])
-  const [biens, setBiens] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ bien_id: '', date: '', heure: '' })
-  const [saving, setSaving] = useState(false)
-
-  const load = async () => {
-    setLoading(true)
-    try {
-      const [c, b] = await Promise.allSettled([visitesApi.mesCreneaux(), biensApi.mesBiens()])
-      if (c.status === 'fulfilled') setCreneaux(Array.isArray(c.value) ? c.value : c.value.data || [])
-      if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
-    } catch (_) {}
-    setLoading(false)
-  }
-  useEffect(() => { load() }, [])
-
-  const save = async () => {
-    if (!form.date || !form.heure || !form.bien_id) return
-    setSaving(true)
-    try {
-      await visitesApi.creerCreneau({ bien_id: Number(form.bien_id), debut: `${form.date}T${form.heure}:00`, duree_minutes: 60 })
-      setShowForm(false); setForm({ bien_id: '', date: '', heure: '' }); load()
-    } catch (_) {}
-    setSaving(false)
-  }
-
-  const del = async (id: number) => {
-    try { await visitesApi.supprimerCreneau(id); load() } catch (_) {}
-  }
-
-  return (
-    <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white px-4 py-3 border-b border-divider flex items-center justify-between flex-shrink-0">
-        <p className="font-bold text-text-dark">{creneaux.length} créneau{creneaux.length > 1 ? 'x' : ''}</p>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: BLUE }}>
-          <IcPlus /> Ajouter
-        </button>
-      </div>
-      {showForm && (
-        <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
-          <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
-            className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
-            <option value="">Choisir un bien</option>
-            {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
-          </select>
-          <div className="flex gap-2">
-            <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
-              className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider" />
-            <input type="time" value={form.heure} onChange={e => setForm({ ...form, heure: e.target.value })}
-              className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider" />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-            <button onClick={save} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
-              {saving ? 'Enregistrement…' : 'Créer'}
-            </button>
-          </div>
-        </div>
-      )}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {loading ? [1,2].map(n => <div key={n} className="h-20 skeleton rounded-xl mb-3" />) : creneaux.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <p className="font-bold text-text-dark mb-1">Aucun créneau</p>
-            <p className="text-sm text-text-grey">Créez des créneaux pour recevoir des visites</p>
-          </div>
-        ) : creneaux.map((c, i) => (
-          <div key={c.id || i} className="card-soft rounded-xl p-4 mb-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
-              <span style={{ color: BLUE }}><IcClock /></span>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-text-dark text-sm">
-                {c.debut ? new Date(c.debut).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) : '—'}
-              </p>
-              <p className="text-xs text-text-grey">
-                {c.debut ? new Date(c.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}{c.duree_minutes ? ` · ${c.duree_minutes} min` : ''}
-              </p>
-            </div>
-            <button onClick={() => del(c.id)} className="text-danger p-1"><IcTrash /></button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─── Tab: Délégations ─────────────────────────────────────────────────────────
 function DelegationsTab({ onBack }: { onBack: () => void }) {
   const [delegations, setDelegations] = useState<any[]>([])
@@ -1493,7 +1405,6 @@ export default function ProprietaireDashboard() {
   const [loading, setLoading] = useState(true)
   const [loyersDash, setLoyersDash] = useState<any>(null)
   const [visites, setVisites] = useState<any[]>([])
-  const [wallet, setWallet] = useState<any>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [chartPeriod, setChartPeriod] = useState<3 | 6 | 12>(6)
@@ -1501,14 +1412,13 @@ export default function ProprietaireDashboard() {
   const loadData = async (silent = false) => {
     if (silent) setRefreshing(true)
     try {
-      const [u, b, l, v, w] = await Promise.allSettled([
-        userApi.me(), biensApi.mesBiens(), loyersApi.dashboard(), visitesApi.reservationsRecues(), walletApi.me(),
+      const [u, b, l, v] = await Promise.allSettled([
+        userApi.me(), biensApi.mesBiens(), loyersApi.dashboard(), visitesApi.reservationsRecues(),
       ])
       if (u.status === 'fulfilled') setUser(u.value?.user || u.value)
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
       if (l.status === 'fulfilled') setLoyersDash(l.value)
       if (v.status === 'fulfilled') setVisites(Array.isArray(v.value) ? v.value : v.value.data || [])
-      if (w.status === 'fulfilled') setWallet(w.value)
       setLastUpdated(new Date())
     } catch (_) {}
     setLoading(false)
@@ -1535,7 +1445,6 @@ export default function ProprietaireDashboard() {
   const enAttente = biens.filter(b => b.statut_moderation === 'en_attente').length
   const rejetes   = biens.filter(b => b.statut_moderation === 'rejete').length
   const reservationsEnAttente = visites.filter(v => v.statut === 'en_attente').length
-  const soldeWallet = Number(wallet?.solde || 0)
 
   const biensParType = (() => {
     const counts: Record<string, number> = {}
@@ -1615,62 +1524,30 @@ export default function ProprietaireDashboard() {
       {/* Shell — sidebar + contenu, sous le topbar pleine largeur */}
       <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
 
-      {/* Sidebar (desktop only) */}
-      <aside className="hidden xl:flex xl:flex-col xl:w-64 2xl:w-72 flex-shrink-0"
-        style={{ background: `linear-gradient(180deg, ${DARK_BLUE}, #0A1F38)` }}>
-        <div className="px-6 pt-8 pb-6 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0 text-white font-bold text-sm"
-            style={{ background: BLUE }}>
-            {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : initials}
-          </div>
-          <div className="min-w-0">
-            <p className="font-bold text-white text-sm truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>Propriétaire</p>
-          </div>
-        </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {TAB_GROUPS.map(group => (
-            <div key={group.label} className="mb-4 last:mb-0">
-              <p className="px-3.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                {group.label}
-              </p>
-              <div className="space-y-1">
-                {TABS.filter(t => group.keys.includes(t.key)).map(t => {
-                  const active = tab === t.key
-                  const badge = t.key === 'reservations' ? reservationsEnAttente : 0
-                  return (
-                    <button key={t.key} onClick={() => setTab(t.key)}
-                      className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors relative"
-                      style={active ? { background: 'rgba(255,255,255,0.08)', color: '#fff' } : { color: 'rgba(255,255,255,0.55)' }}>
-                      {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full" style={{ background: BLUE }} />}
-                      <span style={{ color: active ? BLUE : 'rgba(255,255,255,0.4)' }}>{t.icon}</span>
-                      <span className="flex-1 text-left">{t.label}</span>
-                      {badge > 0 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE, color: '#fff' }}>
-                          {badge}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
+      {/* Sidebar (desktop only) — liste plate façon immo-web-admin : fond blanc,
+          items icône+libellé, item actif en fond teinté + barre d'accent à gauche. */}
+      <aside className="hidden xl:flex xl:flex-col xl:w-64 2xl:w-72 flex-shrink-0 bg-white border-r border-divider">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+          {SIDEBAR_NAV.map(item => {
+            const active = item.tab != null && tab === item.tab
+            const badge = item.key === 'reservations' ? reservationsEnAttente : 0
+            return (
+              <button key={item.key} onClick={() => item.tab ? setTab(item.tab) : navigate(item.to!)}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-colors relative"
+                style={active ? { background: BLUE + '15', color: BLUE, fontWeight: 600 } : { color: '#5F6B7A', fontWeight: 500 }}>
+                {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full" style={{ background: BLUE }} />}
+                <span style={{ color: active ? BLUE : '#8A93A3' }}>{item.icon}</span>
+                <span className="flex-1 text-left">{item.label}</span>
+                {badge > 0 && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE, color: '#fff' }}>
+                    {badge}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </nav>
-        <div className="px-3 pb-4 space-y-3">
-          {/* Aperçu portefeuille — solde réel, données déjà chargées pour l'onglet Portefeuille */}
-          <button onClick={() => setTab('portefeuille')}
-            className="w-full rounded-2xl p-4 text-center transition-colors hover:bg-white/[0.06]"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-2.5" style={{ background: BLUE + '25', color: BLUE }}>
-              <IcWallet />
-            </div>
-            <p className="font-bold text-white text-base">{loading ? '…' : `${soldeWallet.toLocaleString('fr-FR')} F`}</p>
-            <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.45)' }}>Solde disponible</p>
-            <span className="inline-block px-3.5 py-1.5 rounded-full text-[11px] font-bold" style={{ background: BLUE, color: '#fff' }}>
-              Voir mon portefeuille
-            </span>
-          </button>
+        <div className="px-3 pb-4 pt-3 border-t border-divider">
           <button onClick={() => navigate('/nouveau-bien')}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity"
             style={{ background: BLUE }}>
@@ -1700,7 +1577,7 @@ export default function ProprietaireDashboard() {
               <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={BLUE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
                 <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
-                <QuickAction icon={<IcClock />} color="#FF6B35" label="Créneaux" onClick={() => setTab('creneaux')} />
+                <QuickAction icon={<IcMessagesNav />} color="#FF6B35" label="Messages" onClick={() => navigate('/conversations')} />
               </div>
 
               {/* Stat cards */}
@@ -1783,7 +1660,6 @@ export default function ProprietaireDashboard() {
         )}
         {tab === 'biens'        && <MesBiensTab />}
         {tab === 'reservations' && <ReservationsTab />}
-        {tab === 'creneaux'     && <CreneauxTab />}
         {tab === 'loyers'       && <LoyersTab />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
         {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
