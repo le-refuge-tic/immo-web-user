@@ -42,7 +42,7 @@ const IcLink = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const BLUE      = '#2E86C1'
 const DARK_BLUE = '#0F3460'
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'profil' | 'delegations'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
   en_attente: { label: 'En attente',  color: '#F59E0B' },
@@ -76,7 +76,7 @@ const SIDEBAR_NAV: { key: string; label: string; icon: React.ReactNode; tab?: Ta
   { key: 'delegations',   label: 'Liaisons gestion', icon: <IcLink />,       tab: 'delegations' },
   { key: 'portefeuille',  label: 'Portefeuille',    icon: <IcWallet />,      tab: 'portefeuille' },
   { key: 'mes-roles',     label: 'Gérer mes rôles', icon: <IcShield />,      to: '/mes-roles' },
-  { key: 'transactions',  label: 'Historique des transactions', icon: <IcMoney />, to: '/portefeuille' },
+  { key: 'transactions',  label: 'Historique des transactions', icon: <IcMoney />, tab: 'transactions' },
   { key: 'profil',        label: 'Mon profil',      icon: <IcPerson />,      tab: 'profil' },
 ]
 
@@ -1443,8 +1443,186 @@ function PortefeuilleTab() {
   )
 }
 
+// ─── Tab: Historique des transactions ──────────────────────────────────────────
+// Seules 3 catégories existent réellement côté backend (wallets.service.ts /
+// paiements.service.ts) : loyers encaissés, frais de visite, intégrations
+// locataires — le "statut" n'existe pas comme champ (une ligne = un mouvement
+// déjà survenu, donc toujours "Complété" ; les retraits ne créent pas encore
+// de ligne débit côté serveur, "Total sorties" reflète honnêtement ce vide).
+function categorieTransaction(description: string): { label: string; color: string } {
+  const d = (description || '').toLowerCase()
+  if (d.startsWith('loyer')) return { label: 'Loyer', color: BLUE }
+  if (d.startsWith('frais de visite')) return { label: 'Visite', color: '#7B2FBE' }
+  if (d.startsWith('intégration') || d.startsWith('integration')) return { label: 'Intégration', color: '#F59E0B' }
+  return { label: 'Autre', color: '#6B7280' }
+}
+
+function TransactionsTab() {
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState<'tous' | 'credit' | 'debit'>('tous')
+  const [catFilter, setCatFilter] = useState('Tous')
+
+  useEffect(() => {
+    setLoading(true)
+    walletApi.transactions()
+      .then(t => setTransactions(Array.isArray(t) ? t : t.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const categories = ['Tous', ...Array.from(new Set(transactions.map(t => categorieTransaction(t.description).label)))]
+
+  const filtered = transactions.filter(t => {
+    const isCredit = t.type === 'credit' || Number(t.montant) > 0
+    if (typeFilter === 'credit' && !isCredit) return false
+    if (typeFilter === 'debit' && isCredit) return false
+    const cat = categorieTransaction(t.description).label
+    if (catFilter !== 'Tous' && cat !== catFilter) return false
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      if (!`${t.description || ''} ${t.reference || ''}`.toLowerCase().includes(q)) return false
+    }
+    return true
+  })
+
+  const totalIn = transactions.filter(t => t.type === 'credit' || Number(t.montant) > 0).reduce((s, t) => s + Number(t.montant), 0)
+  const totalOut = transactions.filter(t => t.type === 'debit' && Number(t.montant) < 0).reduce((s, t) => s + Math.abs(Number(t.montant)), 0)
+  const largest = transactions.reduce((m, t) => Math.max(m, Math.abs(Number(t.montant))), 0)
+
+  return (
+    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+      {/* Cartes de synthèse */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#22C55E18' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 7 7 17M17 17H7V7" /></svg>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-text-grey">Total entrées</p>
+            <p className="text-base font-bold text-text-dark truncate">{fmtPrix(totalIn)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#EF444418' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h10v10M7 17 17 7" /></svg>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-text-grey">Total sorties</p>
+            <p className="text-base font-bold text-text-dark truncate">{fmtPrix(totalOut)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '18' }}>
+            <span style={{ color: BLUE }}><IcTrendUp /></span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-text-grey">Plus grosse</p>
+            <p className="text-base font-bold text-text-dark truncate">{fmtPrix(largest)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#F1F3F6' }}>
+            <span className="text-text-grey font-bold text-sm">#</span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-text-grey">Nombre</p>
+            <p className="text-base font-bold text-text-dark truncate">{transactions.length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recherche + filtres */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-grey">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          </span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une transaction…"
+            className="w-full bg-white border border-divider rounded-lg pl-8 pr-3 py-2 text-sm outline-none focus:border-primary" />
+        </div>
+        <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+          className="bg-white border border-divider rounded-lg px-2.5 py-2 text-sm outline-none">
+          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <div className="flex items-center rounded-lg border border-divider p-0.5">
+          {(['tous', 'credit', 'debit'] as const).map(f => (
+            <button key={f} onClick={() => setTypeFilter(f)}
+              className="rounded-md px-3 py-1 text-xs font-semibold transition-colors"
+              style={typeFilter === f ? { background: BLUE, color: '#fff' } : { color: '#8A93A3' }}>
+              {f === 'tous' ? 'Tous' : f === 'credit' ? 'Entrées' : 'Sorties'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tableau */}
+      <div className="rounded-xl overflow-hidden card-soft">
+        {loading ? (
+          <div className="p-4 space-y-2">{[1, 2, 3, 4].map(n => <div key={n} className="h-14 skeleton rounded-xl" />)}</div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-14 text-center">
+            <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
+            <p className="text-sm text-text-grey px-6">{search || catFilter !== 'Tous' || typeFilter !== 'tous' ? 'Rien ne correspond à ces filtres.' : 'Vos revenus (loyers, frais de visite, intégrations) apparaîtront ici.'}</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #EEF1F5' }}>
+                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5">Transaction</th>
+                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5 hidden sm:table-cell">Référence</th>
+                  <th className="text-right font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5">Montant</th>
+                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5 hidden md:table-cell">Date</th>
+                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5 hidden lg:table-cell">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((t, i) => {
+                  const isCredit = t.type === 'credit' || Number(t.montant) > 0
+                  const cat = categorieTransaction(t.description)
+                  return (
+                    <tr key={t.id || i} style={{ borderBottom: i < filtered.length - 1 ? '1px solid #F1F3F6' : undefined }}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>
+                            <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-text-dark text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
+                            <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        <span className="font-mono text-xs text-text-grey">{t.reference || '—'}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+                          {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span className="text-xs text-text-grey">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: '#22C55E18', color: '#22C55E' }}>Complété</span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Tab: Profil ──────────────────────────────────────────────────────────────
-function ProfilTab({ user, biens, visites, onOpenDelegations }: { user: any; biens: any[]; visites: any[]; onOpenDelegations: () => void }) {
+function ProfilTab({ user, biens, visites, onOpenDelegations, onOpenTransactions }: { user: any; biens: any[]; visites: any[]; onOpenDelegations: () => void; onOpenTransactions: () => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)
@@ -1513,7 +1691,7 @@ function ProfilTab({ user, biens, visites, onOpenDelegations }: { user: any; bie
                 <span className="text-sm font-semibold text-text-dark">Gérer mes rôles</span>
                 <IcChevron />
               </button>
-              <button onClick={() => navigate('/portefeuille')} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
+              <button onClick={onOpenTransactions} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
                 <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
                 <IcChevron />
               </button>
@@ -1852,8 +2030,9 @@ export default function ProprietaireDashboard() {
         {tab === 'messages'     && <MessagesTab />}
         {tab === 'loyers'       && <LoyersTab />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
+        {tab === 'transactions' && <TransactionsTab />}
         {tab === 'delegations'  && <DelegationsTab onBack={() => setTab('profil')} />}
-        {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenDelegations={() => setTab('delegations')} />}
+        {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenDelegations={() => setTab('delegations')} onOpenTransactions={() => setTab('transactions')} />}
       </div>
 
       {/* Footer — desktop uniquement (façon immo-web-admin), sous le contenu,
