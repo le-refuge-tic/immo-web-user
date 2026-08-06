@@ -626,8 +626,11 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
 }) {
   const echouee = isEchouee(v)
   const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
-  const nom = 'Client'
-  const init = 'C'
+  // L'identité du client n'est jamais masquée côté API (nom/prénom toujours
+  // renvoyés) — miroir exact de proprietaire_reservations.dart, qui affiche
+  // le prénom réel sans condition de statut.
+  const nom = v.client?.prenom || v.client?.nom || 'Client'
+  const init = nom ? nom[0].toUpperCase() : 'C'
   const bType = typeLabel(v.bien?.type || '')
   const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
   const dateStr = v.date_souhaitee
@@ -642,7 +645,17 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
           style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>{init}</div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-text-dark text-sm">{nom}</p>
-          <p className="text-xs text-text-grey">Identité masquée avant confirmation</p>
+          {v.numeros_partages ? (
+            <div className="flex items-center gap-1">
+              <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <p className="text-xs" style={{ color: '#25D366' }}>Infos de visite disponibles</p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <svg className="w-2.5 h-2.5 flex-shrink-0 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><rect x="5" y="11" width="14" height="9" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0v4" /></svg>
+              <p className="text-xs text-text-grey">Contact partagé à -30min</p>
+            </div>
+          )}
         </div>
         <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
       </div>
@@ -721,7 +734,8 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
           </button>
         </>}
         {v.statut === 'confirmee' && (
-          <button onClick={() => onMarquerEffectuee(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
+          <button onClick={() => { if (confirm('Confirmez-vous que la visite a bien eu lieu ?')) onMarquerEffectuee(v.id) }}
+            className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
         )}
       </div>
       {cpId === v.id && (
@@ -729,6 +743,8 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
           <p className="text-sm font-bold text-text-dark mb-3">Proposer un autre créneau</p>
           <div className="space-y-2 mb-3">
             <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
+              min={new Date().toISOString().slice(0, 10)}
+              max={new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)}
               className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
             <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
               className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
@@ -835,7 +851,7 @@ function ReservationsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="bg-white border-b border-divider flex flex-shrink-0">
-        {['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Échouées', 'Annulées'].map(f => (
+        {['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Annulées', 'Échouées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
             style={filter === f ? { borderColor: BLUE, color: BLUE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
@@ -898,6 +914,7 @@ function ReservationsTab() {
                 const bType = typeLabel(v.bien?.type || '')
                 const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
                 const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—'
+                const clientNom = v.client?.prenom || v.client?.nom || 'Client'
                 const active = selected?.id === v.id
                 return (
                   <button key={v.id || i} onClick={() => setSelectedId(v.id)}
@@ -905,7 +922,7 @@ function ReservationsTab() {
                     style={active ? { background: BLUE + '0C' } : undefined}>
                     {active && <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: BLUE }} />}
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                      style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>C</div>
+                      style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>{clientNom[0].toUpperCase()}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-text-dark truncate">{bType} — {bLoc}</p>
                       <p className="text-xs text-text-grey truncate">{dateStr}</p>
