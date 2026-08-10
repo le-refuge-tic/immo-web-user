@@ -18,6 +18,9 @@
     color: #1D1D1F;
     -webkit-font-smoothing: antialiased;
   }
+  /* Luxury dashboard fonts (Cinzel display + Josefin Sans body) */
+  .font-cinzel   { font-family: 'Cinzel', Georgia, serif; }
+  .font-josefin  { font-family: 'Josefin Sans', 'Plus Jakarta Sans', sans-serif; }
   input, textarea, select, button { font-family: inherit; }
   ::selection { background: rgba(75,107,255,0.2); color: #1D1D1F; }
 }
@@ -170,6 +173,99 @@
     border-color: rgba(0,0,0,0.08);
   }
 
+  /* ── Proprio dashboard — CSS custom properties ──────────────────────────── */
+  /* Default: dark navy theme */
+  .proprio-root {
+    --p-deep:         #060D1A;
+    --p-surface:      #0B1C30;
+    --p-surface-glass: rgba(11, 28, 48, 0.85);
+    --p-card:         #112440;
+    --p-border:       #1A3355;
+    --p-text:         #F0EDE8;
+    --p-muted:        #8A9BB5;
+  }
+  /* Light mode — calqué sur AppColors mobile */
+  .proprio-root.proprio-light {
+    --p-deep:         #F4F6FA;
+    --p-surface:      #FFFFFF;
+    --p-surface-glass: rgba(255, 255, 255, 0.92);
+    --p-card:         #FFFFFF;
+    --p-border:       #E8EAED;
+    --p-text:         #1A1A2E;
+    --p-muted:        #9E9E9E;
+  }
+
+  /* Smooth transition on ALL elements inside the dashboard root */
+  .proprio-root,
+  .proprio-root * {
+    transition:
+      background-color 0.45s ease,
+      color 0.45s ease,
+      border-color 0.45s ease,
+      box-shadow 0.45s ease !important;
+  }
+  /* Navbar — transition sur les propriétés de forme (pas couvertes par la règle globale) */
+  .proprio-root header nav {
+    transition:
+      background 0.35s ease,
+      border-radius 0.35s ease,
+      margin-top 0.35s ease,
+      max-width 0.35s ease,
+      box-shadow 0.35s ease,
+      padding-left 0.35s ease,
+      padding-right 0.35s ease !important;
+  }
+
+  /* Laisser les arcs SVG animer librement (stroke-dashoffset) */
+  .proprio-root circle {
+    transition:
+      stroke-dashoffset 1.8s cubic-bezier(0.16,1,0.3,1),
+      stroke-width 0.25s ease,
+      filter 0.25s ease !important;
+  }
+
+  /* Except animations — don't override keyframe-driven animations */
+  .proprio-root .skeleton-dark,
+  .proprio-root .anim-fade-up,
+  .proprio-root .anim-bounce-in { transition: none !important; }
+
+  /* Light mode — Tailwind class overrides */
+  .proprio-root.proprio-light .bg-\[#060D1A\]  { background-color: #F4F6FA !important; }
+  .proprio-root.proprio-light .bg-\[#0B1C30\]  { background-color: #FFFFFF !important; }
+  .proprio-root.proprio-light .bg-\[#112440\]  { background-color: #FFFFFF !important; }
+  .proprio-root.proprio-light .border-\[#1A3355\] { border-color: #E8EAED !important; }
+  .proprio-root.proprio-light .text-\[#F0EDE8\] { color: #1A1A2E !important; }
+  .proprio-root.proprio-light .text-\[#8A9BB5\] { color: #9E9E9E !important; }
+  .proprio-root.proprio-light .card-navy {
+    background: #FFFFFF !important;
+    border-color: rgba(0,0,0,0.08) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05) !important;
+  }
+  .proprio-root.proprio-light .skeleton-dark {
+    background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%) !important;
+    background-size: 400% 100% !important;
+  }
+
+  /* Dark navy card — used in Proprio dashboard */
+  .card-navy {
+    background: #112440;
+    border: 1px solid rgba(212,168,71,0.10);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.18);
+    transition: transform 0.22s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.22s ease, border-color 0.22s ease;
+  }
+  .card-navy:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 16px 32px rgba(0,0,0,0.22);
+    border-color: rgba(212,168,71,0.22);
+  }
+
+  /* Dark skeleton for navy-bg loading states */
+  .skeleton-dark {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 400% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
   .btn-glow { transition: box-shadow 0.22s ease, opacity 0.15s ease, transform 0.15s ease; }
   .btn-glow:hover { box-shadow: 0 0 0 3px rgba(75,107,255,0.2), 0 6px 24px rgba(75,107,255,0.4); transform: translateY(-1px); }
 
@@ -205,5 +301,7 @@
     .anim-fade-up,.anim-blur-up,.anim-slide-down,.anim-scale-in,
     .anim-bounce-in,.anim-fade-in,.anim-slide-right,.anim-slide-left,
     .orb,.orb-2,.orb-3 { animation: none; }
+    /* Suppress framer-motion & inline hover transitions for motion-sensitive users */
+    .proprio-root *, .proprio-root { transition-duration: 0ms !important; }
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationsContext'
 import { biensApi } from '../../api/biensApi'
@@ -14,6 +14,11 @@ import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
 import ChatThread from '../conversations/ChatThread'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
+import villaImg from '../../assets/login/villa.jpg'
+import { CoverflowCarousel } from '../../components/ui/coverflow-carousel'
+import { AnimatedGroup } from '../../components/ui/animated-group'
+import { motion, AnimatePresence } from 'framer-motion'
+import PropertyStatsCard from '../../components/PropertyStatsCard'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -21,6 +26,7 @@ const IcHome    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcCal     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
 const IcClock   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
 const IcMoney   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+const IcPayments = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><path strokeLinejoin="round" strokeLinecap="round" d="M21 7H7a2 2 0 00-2 2v9"/><rect x="2" y="7" width="17" height="11" rx="2"/><circle cx="10.5" cy="12.5" r="2.5"/></svg>
 const IcWallet  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
 const IcPerson  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
 const IcPlus    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -34,13 +40,12 @@ const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcLogout  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
 const IcMessage = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-const IcChevronLeft = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6"/></svg>
-const IcChevronRight = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6"/></svg>
+
 const IcMessagesNav = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const BLUE      = '#2E86C1'
-const DARK_BLUE = '#0F3460'
+const BLUE      = '#4B6BFF'   // bleu principal (propriétaire)
+const DARK_BLUE = '#0B1C30'   // navy
 
 const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Agent', locataire: 'Locataire' }
 const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
@@ -52,7 +57,7 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',       label: 'Tableau',       icon: <IcDash /> },
   { key: 'biens',         label: 'Mes biens',     icon: <IcHome /> },
   { key: 'reservations',  label: 'Réservations',  icon: <IcCal /> },
-  { key: 'loyers',        label: 'Loyers',        icon: <IcMoney /> },
+  { key: 'loyers',        label: 'Loyers',        icon: <IcPayments /> },
   { key: 'portefeuille',  label: 'Portefeuille',  icon: <IcWallet /> },
   { key: 'profil',        label: 'Profil',        icon: <IcPerson /> },
 ]
@@ -62,21 +67,40 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
 // dashboard (sidebar/topbar visibles) ; seuls "Gérer mes rôles" et
 // "Historique des transactions" pointent vers des pages à part (`to`),
 // comme "Nouveau bien".
-const SIDEBAR_NAV: { key: string; label: string; icon: React.ReactNode; tab?: Tab; to?: string }[] = [
-  { key: 'tableau',       label: 'Tableau de bord', icon: <IcDash />,        tab: 'tableau' },
-  { key: 'biens',         label: 'Mes biens',       icon: <IcHome />,        tab: 'biens' },
-  { key: 'reservations',  label: 'Réservations',    icon: <IcCal />,         tab: 'reservations' },
-  { key: 'messages',      label: 'Messages',        icon: <IcMessagesNav />, tab: 'messages' },
-  { key: 'loyers',        label: 'Loyers',          icon: <IcMoney />,       tab: 'loyers' },
-  { key: 'portefeuille',  label: 'Portefeuille',    icon: <IcWallet />,      tab: 'portefeuille' },
-  { key: 'mes-roles',     label: 'Gérer mes rôles', icon: <IcShield />,      tab: 'roles' },
-  { key: 'transactions',  label: 'Historique des transactions', icon: <IcMoney />, tab: 'transactions' },
-  { key: 'profil',        label: 'Mon profil',      icon: <IcPerson />,      tab: 'profil' },
+
+const NAV_ITEMS: { key: Tab; label: string; icon: React.ReactNode }[] = [
+  { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
+  { key: 'biens',        label: 'Mes biens',    icon: <IcHome /> },
+  { key: 'reservations', label: 'Réservations', icon: <IcCal /> },
+  { key: 'loyers',       label: 'Loyers',       icon: <IcPayments /> },
+  { key: 'messages',     label: 'Messages',     icon: <IcMessagesNav /> },
+  { key: 'portefeuille', label: 'Portefeuille', icon: <IcWallet /> },
+  { key: 'profil',       label: 'Profil',       icon: <IcPerson /> },
 ]
 
 function typeLabel(t: string) {
   const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse' }
   return m[t] || t
+}
+const SOUS_TYPE_LABELS: Record<string, string> = {
+  entree_coucher: 'Entrée-Coucher', chambre_salon: 'Chambre-Salon',
+  appartement: 'Appartement', villa: 'Villa', maison_individuelle: 'Maison',
+  villa_maison: 'Villa / Maison', boutique: 'Boutique / Local', terrain: 'Terrain',
+}
+function bienLabel(b: any): string {
+  const sous = b?.amenites?.sous_type
+  if (sous && SOUS_TYPE_LABELS[sous]) {
+    if (sous === 'appartement' && b.type === 'appart_meuble') return 'Appartement meublé'
+    return SOUS_TYPE_LABELS[sous]
+  }
+  return typeLabel(b?.type || '')
+}
+function bienComposition(b: any): string {
+  const pieces: any[] = b?.pieces || []
+  if (!pieces.length) return ''
+  const counts: Record<string, number> = {}
+  for (const p of pieces) counts[p.nom] = (counts[p.nom] || 0) + 1
+  return Object.entries(counts).map(([nom, n]) => `${n} ${nom}${n > 1 ? 's' : ''}`).join(' · ')
 }
 function fmtPrix(p: any) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
@@ -138,7 +162,7 @@ function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | u
 // ─── QuickAction ──────────────────────────────────────────────────────────────
 function QuickAction({ icon, color, label, onClick, badge }: { icon: React.ReactNode; color: string; label: string; onClick: () => void; badge?: number }) {
   return (
-    <button onClick={onClick} className="flex-1 card-soft rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform">
+    <button onClick={onClick} className="flex-1 card-navy rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform">
       <div className="relative w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
         <span style={{ color }}>{icon}</span>
         {!!badge && badge > 0 && (
@@ -147,7 +171,7 @@ function QuickAction({ icon, color, label, onClick, badge }: { icon: React.React
           </span>
         )}
       </div>
-      <span className="text-[11px] font-semibold text-text-dark text-center leading-tight">{label}</span>
+      <span className="text-[11px] font-semibold text-[#F0EDE8] text-center leading-tight">{label}</span>
     </button>
   )
 }
@@ -193,31 +217,32 @@ function MiniSparkline({ data, color }: { data: { value: number }[]; color: stri
   )
 }
 
-/** Carte KPI pleine couleur avec courbe intégrée — inspirée des cartes
- *  "Total Revenue / Active Users / Orders" du template Admindek. */
 function StatCard({ icon, color, label, value, trendPct, trendCaption, sparkline }: { icon: React.ReactNode; color: string; label: string; value: string; trendPct?: number; trendCaption?: string; sparkline?: { value: number }[] }) {
   const up = (trendPct ?? 0) >= 0
   return (
-    <div className="rounded-2xl p-5 flex-1 min-w-0 relative overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${color}, ${shade(color, 0.28)})`, boxShadow: `0 8px 20px ${color}40` }}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.18)' }}>
-          <span className="text-white">{icon}</span>
-        </div>
+    <div className="rounded-2xl p-5 flex-1 min-w-0 relative overflow-hidden flex flex-col"
+      style={{ background: 'var(--p-card)', borderLeft: `3px solid ${color}`, boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-bold text-[#8A9BB5] uppercase tracking-widest">{label}</p>
         {trendPct != null && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: 'rgba(255,255,255,0.18)' }}>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+            style={{ background: up ? '#22C55E18' : '#EF444418', color: up ? '#22C55E' : '#EF4444' }}>
             {up ? <IcTrendUp /> : <IcTrendDown />} {Math.abs(trendPct)}%
           </span>
         )}
       </div>
-      <p className="text-white/75 text-xs font-semibold mb-1 truncate">{label}</p>
-      <p className="text-[26px] font-extrabold text-white leading-none mb-1.5 truncate">{value}</p>
-      {trendCaption && <p className="text-white/60 text-[11px] truncate">{trendCaption}</p>}
-      {sparkline && sparkline.some(s => s.value > 0) && (
-        <div className="mt-3 -mx-1 opacity-90">
-          <MiniSparkline data={sparkline} color="#ffffff" />
+      <p className="text-[30px] font-black leading-none tracking-tight truncate" style={{ color }}>{value}</p>
+      {trendCaption && <p className="text-[11px] text-[#8A9BB5] mt-2">{trendCaption}</p>}
+      <div className="flex items-end justify-between mt-auto pt-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center opacity-60" style={{ background: color + '18' }}>
+          <span style={{ color }}>{icon}</span>
         </div>
-      )}
+        {sparkline && sparkline.some(s => s.value > 0) && (
+          <div className="flex-1 ml-3 -mb-1">
+            <MiniSparkline data={sparkline} color={color} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -227,14 +252,13 @@ function StatCard({ icon, color, label, value, trendPct, trendCaption, sparkline
  *  sur le bandeau du header. */
 function MiniStatCard({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) {
   return (
-    <div className="rounded-2xl px-3 py-3.5 md:px-4 flex flex-col items-center text-center gap-1.5 md:flex-row md:items-center md:text-left md:gap-3 flex-1 min-w-0 border transition-shadow hover:shadow-sm"
-      style={{ background: `linear-gradient(155deg, ${color}12, ${color}05)`, borderColor: color + '22' }}>
-      <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + '20' }}>
-        <span style={{ color }}>{icon}</span>
-      </div>
-      <div className="min-w-0">
-        <p className="text-base md:text-lg font-bold text-text-dark leading-none">{value}</p>
-        <p className="text-[11px] text-text-grey mt-1 truncate">{label}</p>
+    <div className="flex-1 min-w-0 rounded-xl px-3 py-2.5 flex items-center gap-2.5 relative overflow-hidden"
+      style={{ background: 'var(--p-card)', border: `1px solid ${color}22` }}>
+      <div className="absolute inset-0 opacity-10" style={{ background: `radial-gradient(circle at 0% 50%, ${color}, transparent 70%)` }} />
+      <span className="relative z-10 flex-shrink-0" style={{ color }}>{icon}</span>
+      <div className="relative z-10 min-w-0">
+        <p className="text-lg font-black leading-none" style={{ color }}>{value}</p>
+        <p className="text-[10px] text-[#8A9BB5] mt-0.5 truncate">{label}</p>
       </div>
     </div>
   )
@@ -248,13 +272,13 @@ function RadialGauge({ value, size = 132, thickness = 12, color = BLUE }: { valu
   const dash = (pct / 100) * circumference
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#F1F3F6" strokeWidth={thickness} />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1A3355" strokeWidth={thickness} />
       {pct > 0 && (
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={thickness}
           strokeDasharray={`${dash} ${circumference - dash}`} strokeLinecap="round"
           transform={`rotate(-90 ${size / 2} ${size / 2})`} />
       )}
-      <text x="50%" y="52%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: size * 0.26, fontWeight: 800 }} className="fill-text-dark">{Math.round(pct)}</text>
+      <text x="50%" y="52%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: size * 0.26, fontWeight: 800 }} className="fill-[#F0EDE8]">{Math.round(pct)}</text>
     </svg>
   )
 }
@@ -263,20 +287,20 @@ function PercentCard({ value, label, color }: { value: number; label: string; co
   return (
     <div className="card-soft rounded-2xl p-4 flex-1 min-w-0">
       <p className="text-2xl font-extrabold leading-none" style={{ color }}>{value}%</p>
-      <p className="text-xs text-text-grey mt-2">{label}</p>
+      <p className="text-xs text-[#8A9BB5] mt-2">{label}</p>
     </div>
   )
 }
 
 function HighlightRow({ icon, color, title, subtitle, last }: { icon: React.ReactNode; color: string; title: string; subtitle: string; last?: boolean }) {
   return (
-    <div className={`flex items-center gap-3 py-2.5 ${last ? '' : 'border-b border-divider'}`}>
+    <div className={`flex items-center gap-3 py-2.5 ${last ? '' : 'border-b border-[#1A3355]'}`}>
       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + '18' }}>
         <span style={{ color }}>{icon}</span>
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-text-dark truncate">{title}</p>
-        <p className="text-[11px] text-text-grey truncate">{subtitle}</p>
+        <p className="text-sm font-semibold text-[#F0EDE8] truncate">{title}</p>
+        <p className="text-[11px] text-[#8A9BB5] truncate">{subtitle}</p>
       </div>
     </div>
   )
@@ -285,8 +309,8 @@ function HighlightRow({ icon, color, title, subtitle, last }: { icon: React.Reac
 function ActivityStat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="flex-1 min-w-0 text-center">
-      <p className="text-xl font-bold text-text-dark">{value}</p>
-      <p className="text-[11px] text-text-grey mt-0.5 truncate">{label}</p>
+      <p className="text-xl font-bold text-[#F0EDE8]">{value}</p>
+      <p className="text-[11px] text-[#8A9BB5] mt-0.5 truncate">{label}</p>
       <div className="h-1 rounded-full mt-2.5" style={{ background: color }} />
     </div>
   )
@@ -300,7 +324,7 @@ function DonutChart({ segments, size = 108, thickness = 16 }: { segments: { labe
   return (
     <div className="flex items-center gap-5">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="flex-shrink-0">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#F1F3F6" strokeWidth={thickness} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1A3355" strokeWidth={thickness} />
         {total > 0 && segments.filter(s => s.value > 0).map((s, i) => {
           const frac = s.value / total
           const dash = frac * circumference
@@ -312,15 +336,15 @@ function DonutChart({ segments, size = 108, thickness = 16 }: { segments: { labe
           offset += dash
           return el
         })}
-        <text x="50%" y="47%" textAnchor="middle" className="fill-text-dark" style={{ fontSize: 20, fontWeight: 800 }}>{total}</text>
-        <text x="50%" y="63%" textAnchor="middle" className="fill-text-grey" style={{ fontSize: 9 }}>biens</text>
+        <text x="50%" y="47%" textAnchor="middle" className="fill-[#F0EDE8]" style={{ fontSize: 20, fontWeight: 800 }}>{total}</text>
+        <text x="50%" y="63%" textAnchor="middle" className="fill-[#8A9BB5]" style={{ fontSize: 9 }}>biens</text>
       </svg>
       <div className="flex-1 min-w-0 space-y-2">
         {segments.map((s, i) => (
           <div key={i} className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
-            <span className="text-xs text-text-grey flex-1 truncate">{s.label}</span>
-            <span className="text-xs font-bold text-text-dark">{s.value}</span>
+            <span className="text-xs text-[#8A9BB5] flex-1 truncate">{s.label}</span>
+            <span className="text-xs font-bold text-[#F0EDE8]">{s.value}</span>
           </div>
         ))}
       </div>
@@ -333,10 +357,10 @@ function BarRow({ label, value, max, color }: { label: string; value: number; ma
   return (
     <div className="mb-3.5 last:mb-0">
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-medium text-text-grey">{label}</span>
-        <span className="text-xs font-bold text-text-dark">{value}</span>
+        <span className="text-xs font-medium text-[#8A9BB5]">{label}</span>
+        <span className="text-xs font-bold text-[#F0EDE8]">{value}</span>
       </div>
-      <div className="h-2 rounded-full overflow-hidden" style={{ background: '#F1F3F6' }}>
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: '#1A3355' }}>
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
@@ -366,7 +390,7 @@ function AreaChart({ data, color = '#2E86C1', height = 130 }: { data: { label: s
         {points.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={1.8} fill={color} />)}
       </svg>
       <div className="flex justify-between mt-1.5">
-        {data.map((d, i) => <span key={i} className="text-[10px] text-text-grey">{d.label}</span>)}
+        {data.map((d, i) => <span key={i} className="text-[10px] text-[#8A9BB5]">{d.label}</span>)}
       </div>
     </div>
   )
@@ -382,8 +406,8 @@ function ChartCard({ title, subtitle, icon, color, className = '', headerRight, 
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-text-dark text-sm">{title}</p>
-          {subtitle && <p className="text-[11px] text-text-grey">{subtitle}</p>}
+          <p className="font-bold text-[#F0EDE8] text-sm">{title}</p>
+          {subtitle && <p className="text-[11px] text-[#8A9BB5]">{subtitle}</p>}
         </div>
         {headerRight}
       </div>
@@ -398,11 +422,11 @@ function ChartCard({ title, subtitle, icon, color, className = '', headerRight, 
  *  réellement branché sur les séries affichées (pas décoratif). */
 function PeriodToggle({ value, onChange, color }: { value: 3 | 6 | 12; onChange: (v: 3 | 6 | 12) => void; color: string }) {
   return (
-    <div className="flex-shrink-0 flex items-center gap-1 p-0.5 rounded-lg" style={{ background: '#F1F3F6' }}>
+    <div className="flex-shrink-0 flex items-center gap-1 p-0.5 rounded-lg" style={{ background: '#1A3355', border: '1px solid #2A4570' }}>
       {([3, 6, 12] as const).map(n => (
         <button key={n} onClick={() => onChange(n)}
           className="px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors"
-          style={value === n ? { background: color, color: '#fff' } : { color: '#8A93A3' }}>
+          style={value === n ? { background: color, color: '#060D1A', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
           {n}M
         </button>
       ))}
@@ -413,10 +437,10 @@ function PeriodToggle({ value, onChange, color }: { value: 3 | 6 | 12; onChange:
 function EmptyChartState({ label, height = 130 }: { label: string; height?: number }) {
   return (
     <div className="flex flex-col items-center justify-center text-center" style={{ height }}>
-      <svg className="w-7 h-7 text-text-grey/40 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-7 h-7 text-[#8A9BB5]/40 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
-      <p className="text-xs text-text-grey">{label}</p>
+      <p className="text-xs text-[#8A9BB5]">{label}</p>
     </div>
   )
 }
@@ -429,18 +453,19 @@ function LiveIndicator({ label, refreshing }: { label: string; refreshing: boole
         {!refreshing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#22C55E' }} />}
         <span className="relative inline-flex rounded-full w-2 h-2" style={{ background: refreshing ? '#F59E0B' : '#22C55E' }} />
       </span>
-      <span className="text-[11px] text-text-grey">{refreshing ? 'Synchronisation…' : `À jour · ${label}`}</span>
+      <span className="text-[11px] text-[#8A9BB5]">{refreshing ? 'Synchronisation…' : `À jour · ${label}`}</span>
     </div>
   )
 }
 
 // ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
-function MesBiensTab() {
+function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('Tous')
   const [search, setSearch] = useState('')
   const [sortByVues, setSortByVues] = useState(false)
+  const [editingBien, setEditingBien] = useState<any>(null)
   const navigate = useNavigate()
 
   const load = async () => {
@@ -450,6 +475,7 @@ function MesBiensTab() {
   }
   useEffect(() => { load() }, [])
 
+  const FILTERS = ['Tous', 'Location', 'Vente', 'Publié', 'En attente', 'Rejeté', 'Occupé']
   const byFilter = filter === 'Tous' ? biens
     : filter === 'Location' ? biens.filter(b => b.transaction === 'location')
     : filter === 'Vente' ? biens.filter(b => b.transaction === 'vente')
@@ -458,222 +484,245 @@ function MesBiensTab() {
     : filter === 'Occupé' ? biens.filter(b => b.statut === 'occupe')
     : biens.filter(b => b.statut_moderation === 'rejete')
 
-  const bySearch = (() => {
+  const filtered = (() => {
     const q = search.trim().toLowerCase()
-    if (!q) return byFilter
-    return byFilter.filter(b => {
+    const searched = !q ? byFilter : byFilter.filter(b => {
       const loc = b.localisation
-      const hay = `${typeLabel(b.type)} ${loc?.quartier || ''} ${loc?.ville || ''}`.toLowerCase()
-      return hay.includes(q)
+      return `${bienLabel(b)} ${loc?.quartier || ''} ${loc?.ville || ''}`.toLowerCase().includes(q)
     })
+    return sortByVues ? [...searched].sort((a, b) => (b.nb_consultations || 0) - (a.nb_consultations || 0)) : searched
   })()
-
-  const filtered = sortByVues ? [...bySearch].sort((a, b) => (b.nb_consultations || 0) - (a.nb_consultations || 0)) : bySearch
-
-  const piecesEtSurface = (b: any) => {
-    const superficie = b.details_maison?.superficie ?? b.details_terrain?.superficie ?? null
-    const nbPieces = Array.isArray(b.pieces) ? b.pieces.length : 0
-    const chips: string[] = []
-    if (nbPieces > 0) chips.push(`${nbPieces} pièce${nbPieces > 1 ? 's' : ''}`)
-    if (superficie) chips.push(`${superficie} m²`)
-    return chips
-  }
 
   const del = async (id: number) => {
     if (!confirm('Supprimer ce bien ?')) return
     try { await biensApi.delete(id); load() } catch (_) {}
   }
 
-  const [editingBien, setEditingBien] = useState<any>(null)
+  const IcSearch = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  const IcEye = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
       {editingBien && (
         <EditBienModal bien={editingBien} onClose={() => setEditingBien(null)}
           onSaved={updated => { setBiens(prev => prev.map(b => b.id === updated.id ? updated : b)); setEditingBien(null) }} />
       )}
-      <div className="bg-white px-4 py-3 border-b border-divider flex-shrink-0">
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-text-dark">{biens.length} bien{biens.length > 1 ? 's' : ''}</p>
-          <div className="flex gap-2">
-            <button onClick={() => navigate('/nouveau-bien')} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: BLUE }}>
-              <IcPlus /> Ajouter
-            </button>
-            <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: BLUE + '15', color: BLUE }}>
-              <IcRefresh /> Actualiser
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 mb-3">
-          <div className="relative flex-1">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-grey">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-            </span>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un bien…"
-              className="w-full bg-surface-g border border-divider rounded-lg pl-8 pr-3 py-2 text-sm outline-none focus:border-primary" />
-          </div>
-          <button onClick={() => setSortByVues(s => !s)}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors"
-            style={sortByVues ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#5F6B7A', borderColor: '#E8EAED' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
-            Vues
-          </button>
-        </div>
-        <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {['Tous', 'Location', 'Vente', 'Publié', 'En attente', 'Rejeté', 'Occupé'].map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border"
-              style={filter === f ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-        {loading ? (
-          <div className="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-            {[1,2,3].map(n => <div key={n} className="h-48 skeleton rounded-2xl mb-3 sm:mb-0" />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-10 h-10"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+
+      <div className="flex-1 overflow-y-auto overflow-x-hidden"
+        onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
+        <div className="px-5 md:px-8 xl:px-10 pt-8 pb-4">
+
+          {/* ── En-tête ── */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Portefeuille</p>
+              <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
+                Mes biens
+                <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{biens.length}</span>
+              </h2>
             </div>
-            <p className="font-bold text-text-dark mb-1">Aucun bien trouvé</p>
-            <p className="text-sm text-text-grey mb-5">Publiez votre premier bien</p>
-            <button onClick={() => navigate('/nouveau-bien')} className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-bold text-sm" style={{ background: BLUE }}>
-              <IcPlus /> Ajouter un bien
+            <div className="flex gap-2">
+              <button onClick={load}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all"
+                style={{ color: 'var(--p-muted)', borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
+                <IcRefresh /> Actualiser
+              </button>
+              <button onClick={() => navigate('/nouveau-bien')}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)`, color: '#fff', boxShadow: `0 4px 14px ${BLUE}40` }}>
+                <IcPlus /> Nouveau bien
+              </button>
+            </div>
+          </div>
+
+          {/* ── Recherche + tri ── */}
+          <div className="flex gap-2 mb-4">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--p-muted)' }}><IcSearch /></span>
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un bien…"
+                className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none border transition-colors"
+                style={{ background: 'var(--p-card)', borderColor: 'var(--p-border)', color: 'var(--p-text)' }}
+                onFocus={e => (e.target.style.borderColor = BLUE)}
+                onBlur={e => (e.target.style.borderColor = 'var(--p-border)')} />
+            </div>
+            <button onClick={() => setSortByVues(s => !s)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all"
+              style={sortByVues
+                ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
+              <IcEye /> Vues
             </button>
           </div>
-        ) : (
-          <>
-            {/* Cartes — mobile/tablette/petit desktop */}
-            <div className="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 xl:hidden">
-              {filtered.map(b => {
-                const { label, color } = statutBien(b.statut_moderation || 'en_attente')
-                const loc = b.localisation
-                const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
-                return (
-                  <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} role="button" tabIndex={0}
-                    className="card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
-                    <div className="relative h-32">
-                      {cover?.url
-                        ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
-                        : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}cc, ${BLUE}aa)` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
-                      }
-                      <div className="absolute inset-0 bg-black/20" />
-                      <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
-                      <div className="absolute top-3 right-3 flex gap-1.5">
-                        <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
-                        <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
-                      </div>
-                      <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
-                      {b.nb_consultations > 0 && (
-                        <span className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-lg text-white text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.45)' }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
-                          {b.nb_consultations}
-                        </span>
-                      )}
-                    </div>
-                    <div className="p-3.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: '#F1F3F6', color: '#5F6B7A' }}>{b.transaction === 'vente' ? 'Vente' : 'Location'}</span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-0.5"><span className="text-text-grey"><IcPin /></span><span className="text-xs text-text-grey">{adresse}</span></div>
-                      {piecesEtSurface(b).length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {piecesEtSurface(b).map(c => (
-                            <span key={c} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: BLUE + '10', color: BLUE }}>{c}</span>
-                          ))}
-                        </div>
-                      )}
-                      {b.statut === 'occupe' && b.locataire && (
-                        <div className="mt-2 p-2 rounded-lg flex items-center gap-1.5" style={{ background: '#22C55E10', border: '1px solid #22C55E30' }}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2} className="flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                          <p className="text-xs font-semibold truncate" style={{ color: '#22C55E' }}>Occupé par {b.locataire.prenom} {b.locataire.nom}</p>
-                        </div>
-                      )}
-                      {b.statut_moderation === 'rejete' && b.motif_refus && (
-                        <div className="mt-2 p-2 rounded-lg bg-danger/5 border border-danger/20"><p className="text-danger text-xs">{b.motif_refus}</p></div>
-                      )}
-                      {b.statut_moderation === 'en_attente' && (
-                        <div className="mt-2 p-2 rounded-lg bg-warning/5 border border-warning/20"><p className="text-warning text-xs">En attente de validation par l'administrateur.</p></div>
-                      )}
-                    </div>
+
+          {/* ── Filtres ── */}
+          <div className="flex gap-2 overflow-x-auto pb-1 mb-6" style={{ scrollbarWidth: 'none' }}>
+            {FILTERS.map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                style={filter === f
+                  ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                  : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Contenu ── */}
+        <div className="px-5 md:px-8 xl:px-10 pb-24">
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1,2,3,4,5,6].map(n => (
+                <div key={n} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+                  <div className="h-48 w-full" style={{ background: 'var(--p-border)' }} />
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 rounded-full w-2/3" style={{ background: 'var(--p-border)' }} />
+                    <div className="h-3 rounded-full w-1/2" style={{ background: 'var(--p-border)' }} />
                   </div>
-                )
-              })}
+                </div>
+              ))}
             </div>
-
-            {/* Table — grand desktop, style admin */}
-            <div className="hidden xl:block card-soft rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #EEF1F5' }}>
-                    <th className="text-left font-semibold text-text-grey text-xs uppercase tracking-wide px-4 py-3">Bien</th>
-                    <th className="text-left font-semibold text-text-grey text-xs uppercase tracking-wide px-4 py-3">Emplacement</th>
-                    <th className="text-left font-semibold text-text-grey text-xs uppercase tracking-wide px-4 py-3">Prix</th>
-                    <th className="text-left font-semibold text-text-grey text-xs uppercase tracking-wide px-4 py-3">Statut</th>
-                    <th className="text-right font-semibold text-text-grey text-xs uppercase tracking-wide px-4 py-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((b, i) => {
-                    const { label, color } = statutBien(b.statut_moderation || 'en_attente')
-                    const loc = b.localisation
-                    const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                    const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
-                    return (
-                      <tr key={b.id} onClick={() => navigate(`/biens/${b.id}`)}
-                        className="cursor-pointer hover:bg-surface-g transition-colors"
-                        style={{ borderBottom: i < filtered.length - 1 ? '1px solid #F1F3F6' : undefined }}>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}cc, ${BLUE}aa)` }}>
-                              {cover?.url
-                                ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
-                                : <div className="w-full h-full flex items-center justify-center"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth={1.5} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
-                              }
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-text-dark">{typeLabel(b.type)}</p>
-                              {b.statut === 'occupe' && b.locataire ? (
-                                <p className="text-[11px] font-medium truncate" style={{ color: '#22C55E' }}>Occupé par {b.locataire.prenom} {b.locataire.nom}</p>
-                              ) : b.nb_consultations > 0 ? (
-                                <p className="text-[11px] text-text-grey">{b.nb_consultations} vue{b.nb_consultations > 1 ? 's' : ''}</p>
-                              ) : null}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-text-grey">
-                          <div className="flex items-center gap-1.5"><span className="text-text-grey/60"><IcPin /></span>{adresse}</div>
-                        </td>
-                        <td className="px-4 py-3 font-semibold text-text-dark">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: color + '18', color }}>{label}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style={{ color: BLUE, background: BLUE + '10' }}><IcEdit /></button>
-                            <button onClick={(e) => { e.stopPropagation(); del(b.id) }}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style={{ color: '#EF4444', background: '#EF444410' }}><IcTrash /></button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24">
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.4} className="w-10 h-10"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              </div>
+              <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun bien trouvé</p>
+              <p className="text-sm mb-6" style={{ color: 'var(--p-muted)' }}>
+                {search ? 'Essayez un autre terme de recherche' : 'Publiez votre premier bien dès maintenant'}
+              </p>
+              <button onClick={() => navigate('/nouveau-bien')}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
+                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)`, color: '#fff', boxShadow: `0 4px 16px ${BLUE}40` }}>
+                <IcPlus /> Ajouter un bien
+              </button>
             </div>
+          ) : (
+            <AnimatedGroup preset="blur-slide" stagger={0.06}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filtered.map(b => {
+                  const { label, color } = statutBien(b.statut_moderation || 'en_attente')
+                  const loc = b.localisation
+                  const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+                  const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  const nbPieces = Array.isArray(b.pieces) ? b.pieces.length : 0
+                  const superficie = b.details_maison?.superficie ?? b.details_terrain?.superficie ?? null
+                  const compo = bienComposition(b)
+                  return (
+                    <div key={b.id}
+                      onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
+                      role="button" tabIndex={0}
+                      className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                      style={{
+                        background: 'var(--p-card)',
+                        border: '1px solid var(--p-border)',
+                        boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 8px 32px rgba(75,107,255,0.12), 0 2px 8px rgba(15,23,42,0.08)`)}
+                      onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)')}>
 
-            {/* Dégagement sous le contenu — le FAB flottant "Nouveau bien"
-                (xl:hidden) ne doit pas recouvrir la dernière carte au scroll. */}
-            <div className="h-40 xl:h-0" />
-          </>
-        )}
+                      {/* Photo */}
+                      <div className="relative overflow-hidden" style={{ height: 192 }}>
+                        {cover?.url
+                          ? <img src={cover.url} alt={bienLabel(b)}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          : <div className="w-full h-full flex items-center justify-center"
+                              style={{ background: `linear-gradient(135deg, #EEF1FB, ${BLUE}18)` }}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-12 h-12 opacity-30"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </div>
+                        }
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)' }} />
+                        {/* Badge statut */}
+                        <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
+                          style={{ background: color, boxShadow: `0 2px 8px ${color}55` }}>
+                          {label}
+                        </span>
+                        {/* Badge transaction */}
+                        <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                          style={{ background: 'rgba(0,0,0,0.45)', color: '#fff', backdropFilter: 'blur(6px)' }}>
+                          {b.transaction === 'location' ? 'À louer' : 'À vendre'}
+                        </span>
+                        {/* Prix en bas de la photo */}
+                        <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                          <p className="text-white font-black text-[17px] leading-none drop-shadow">
+                            {fmtPrix(b.prix)}
+                            {b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70">/mois</span>}
+                          </p>
+                          {b.nb_consultations > 0 && (
+                            <span className="flex items-center gap-1 text-[10px] text-white/80">
+                              <IcEye /> {b.nb_consultations}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Corps */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
+                          {b.statut === 'occupe' && (
+                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#22C55E15', color: '#22C55E' }}>● Occupé</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1 mb-3">
+                          <span style={{ color: 'var(--p-muted)' }}><IcPin /></span>
+                          <span className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{adresse}</span>
+                        </div>
+
+                        {/* Chips pièces / surface / composition */}
+                        {(nbPieces > 0 || superficie || compo) && (
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            {nbPieces > 0 && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: BLUE + '10', color: BLUE }}>
+                                {nbPieces} pièce{nbPieces > 1 ? 's' : ''}
+                              </span>
+                            )}
+                            {superficie && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: 'var(--p-border)', color: 'var(--p-muted)' }}>
+                                {superficie} m²
+                              </span>
+                            )}
+                            {compo && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: 'var(--p-border)', color: 'var(--p-muted)' }}>
+                                {compo}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {b.statut_moderation === 'rejete' && b.motif_refus && (
+                          <p className="text-[10px] mb-3 truncate" style={{ color: '#EF4444' }}>⚠ {b.motif_refus}</p>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2 pt-3" style={{ borderTop: '1px solid var(--p-border)' }}
+                          onClick={e => e.stopPropagation()}>
+                          <button onClick={() => setEditingBien(b)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
+                            style={{ background: BLUE + '10', color: BLUE, border: `1px solid ${BLUE}20` }}
+                            onMouseEnter={e => { e.currentTarget.style.background = BLUE + '20' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = BLUE + '10' }}>
+                            <IcEdit /> Modifier
+                          </button>
+                          <button onClick={() => del(b.id)}
+                            className="flex items-center justify-center w-9 h-9 rounded-xl text-xs transition-all flex-shrink-0"
+                            style={{ background: '#EF444410', color: '#EF4444', border: '1px solid #EF444420' }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#EF444420' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#EF444410' }}>
+                            <IcTrash />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </AnimatedGroup>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -742,34 +791,40 @@ function MessagesTab() {
   })()
 
   return (
-    <div className="flex flex-1 overflow-hidden bg-white">
+    <div className="flex flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
       {/* Liste — masquée sur mobile/tablette quand une conversation est ouverte */}
-      <div className={`w-full md:w-[320px] flex-shrink-0 md:border-r border-divider flex-col overflow-hidden ${activeConvId != null ? 'hidden md:flex' : 'flex'}`}>
-        <div className="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0 border-b border-divider">
-          <h2 className="text-[15px] font-extrabold text-text-dark">Messages</h2>
-          {!loading && (
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white" style={{ background: BLUE }}>{convs.length}</span>
-          )}
+      <div className={`w-full md:w-[300px] flex-shrink-0 flex-col overflow-hidden ${activeConvId != null ? 'hidden md:flex' : 'flex'}`}
+        style={{ background: 'var(--p-card)', borderRight: '1px solid var(--p-border)' }}>
+        <div className="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--p-border)' }}>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-0.5" style={{ color: 'var(--p-muted)' }}>CHAT</p>
+            <h2 className="text-[20px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
+              Messages
+              {!loading && <span className="ml-2 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-bold text-white align-middle" style={{ background: BLUE }}>{convs.length}</span>}
+            </h2>
+          </div>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-divider flex-shrink-0 text-text-grey">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <div className="flex items-center gap-2 px-4 py-2.5 flex-shrink-0" style={{ borderBottom: '1px solid var(--p-border)' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--p-muted)', flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une conversation…"
-            className="flex-1 min-w-0 border-none outline-none bg-transparent text-[13px] text-text-dark placeholder:text-[#94A3B8]" />
+            className="flex-1 min-w-0 border-none outline-none bg-transparent text-[13px]"
+            style={{ color: 'var(--p-text)' }} />
         </div>
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-4 space-y-2">{[1, 2, 3].map(n => <div key={n} className="skeleton h-[64px] rounded-xl" />)}</div>
+            <div className="p-4 space-y-2">{[1, 2, 3].map(n => <div key={n} className="h-[64px] rounded-xl animate-pulse" style={{ background: 'var(--p-border)' }} />)}</div>
           ) : filtered.length === 0 && messageHits.length === 0 && !searchingMsgs ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3" style={{ background: BLUE + '15' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: BLUE + '14' }}>
                 <span style={{ color: BLUE }}><IcMessagesNav /></span>
               </div>
-              <p className="text-sm font-bold text-text-dark mb-1">{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
-              <p className="text-xs text-text-grey">{search ? `Rien ne correspond à « ${search} ».` : 'Vos échanges avec vos clients apparaîtront ici.'}</p>
+              <p className="text-sm font-bold mb-1" style={{ color: 'var(--p-text)' }}>{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
+              <p className="text-xs" style={{ color: 'var(--p-muted)' }}>{search ? `Rien ne correspond à « ${search} ».` : 'Vos échanges avec vos clients apparaîtront ici.'}</p>
             </div>
           ) : <>
           {search.trim().length >= 2 && filtered.length > 0 && (
-            <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wide text-text-grey">Conversations</p>
+            <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--p-muted)' }}>Conversations</p>
           )}
           {filtered.map(conv => {
             const other = getOther(conv)
@@ -791,11 +846,11 @@ function MessagesTab() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <p className={`text-[13px] truncate ${hasUnread ? 'font-bold text-text-dark' : 'font-semibold text-text-dark'}`}>{name}</p>
-                    {timeStr && <p className="text-[11px] text-text-grey flex-shrink-0">{timeStr}</p>}
+                    <p className={`text-[13px] truncate ${hasUnread ? 'font-bold' : 'font-semibold'}`} style={{ color: 'var(--p-text)' }}>{name}</p>
+                    {timeStr && <p className="text-[11px] flex-shrink-0" style={{ color: 'var(--p-muted)' }}>{timeStr}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className={`text-xs truncate flex-1 ${hasUnread ? 'text-text-dark font-medium' : 'text-text-grey'}`}>{lastContenu}</p>
+                    <p className={`text-xs truncate flex-1 ${hasUnread ? 'font-medium' : ''}`} style={{ color: hasUnread ? 'var(--p-text)' : 'var(--p-muted)' }}>{lastContenu}</p>
                     {hasUnread && (
                       <div className="min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BLUE }}>
                         <span className="text-white text-[10px] font-bold">{unread}</span>
@@ -808,26 +863,29 @@ function MessagesTab() {
           })}
           {search.trim().length >= 2 && (searchingMsgs || messageHits.length > 0) && (
             <>
-              <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wide text-text-grey">Messages</p>
+              <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--p-muted)' }}>Messages</p>
               {searchingMsgs ? (
-                <p className="px-4 py-2 text-xs text-text-grey">Recherche…</p>
+                <p className="px-4 py-2 text-xs" style={{ color: 'var(--p-muted)' }}>Recherche…</p>
               ) : messageHits.map(hit => {
                 const other = hit.conversation?.participants?.find((p: any) => p.id !== user?.id) || hit.conversation?.participants?.[0]
                 const name = other?.prenom || other?.pseudonyme || other?.nom || 'Contact'
                 const initiale = (name[0] || '?').toUpperCase()
                 return (
                   <button key={hit.id} onClick={() => setActiveConvId(hit.conversationId)}
-                    className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left hover:bg-surface-g">
+                    className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
+                    style={{ background: 'transparent' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--p-border)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                     <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: MSG_AVATAR_COLORS[Math.abs(other?.id ?? hit.conversationId) % MSG_AVATAR_COLORS.length] }}>
                       <span className="text-white font-bold text-xs">{initiale}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-0.5">
-                        <p className="text-[13px] truncate font-semibold text-text-dark">{name}</p>
-                        <p className="text-[11px] text-text-grey flex-shrink-0">{formatConvTime(hit.created_at)}</p>
+                        <p className="text-[13px] truncate font-semibold" style={{ color: 'var(--p-text)' }}>{name}</p>
+                        <p className="text-[11px] flex-shrink-0" style={{ color: 'var(--p-muted)' }}>{formatConvTime(hit.created_at)}</p>
                       </div>
-                      <p className="text-xs truncate text-text-grey">{hit.contenu}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{hit.contenu}</p>
                     </div>
                   </button>
                 )
@@ -843,10 +901,12 @@ function MessagesTab() {
         {activeConvId != null ? (
           <ChatThread convId={activeConvId} onBack={() => setActiveConvId(null)} />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-8" style={{ background: '#F8FAFC' }}>
-            <div className="text-5xl mb-3" style={{ opacity: 0.25 }}>💬</div>
-            <p className="text-[15px] font-bold text-text-dark mb-1.5">Sélectionnez une conversation</p>
-            <p className="text-text-grey text-[13px] max-w-xs">Choisissez un contact dans la liste pour afficher les messages.</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-8" style={{ background: 'var(--p-deep)' }}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '12' }}>
+              <span style={{ color: BLUE }}><IcMessagesNav /></span>
+            </div>
+            <p className="text-[15px] font-bold mb-1.5" style={{ color: 'var(--p-text)' }}>Sélectionnez une conversation</p>
+            <p className="text-[13px] max-w-xs" style={{ color: 'var(--p-muted)' }}>Choisissez un contact dans la liste pour afficher les messages.</p>
           </div>
         )}
       </div>
@@ -920,7 +980,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
         <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
           style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>{init}</div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-text-dark text-sm">{nom}</p>
+          <p className="font-bold text-[#F0EDE8] text-sm">{nom}</p>
           {v.numeros_partages ? (
             <div className="flex items-center gap-1">
               <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -928,8 +988,8 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
             </div>
           ) : (
             <div className="flex items-center gap-1">
-              <svg className="w-2.5 h-2.5 flex-shrink-0 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><rect x="5" y="11" width="14" height="9" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0v4" /></svg>
-              <p className="text-xs text-text-grey">Contact partagé à -30min</p>
+              <svg className="w-2.5 h-2.5 flex-shrink-0 text-[#8A9BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><rect x="5" y="11" width="14" height="9" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0v4" /></svg>
+              <p className="text-xs text-[#8A9BB5]">Contact partagé à -30min</p>
             </div>
           )}
         </div>
@@ -947,14 +1007,14 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
           Créneau dans {minutesAvant(v, now)} min — à traiter d'urgence
         </div>
       )}
-      <div className="bg-surface-g rounded-xl p-3 mb-3">
+      <div className="bg-[#0B1C30] rounded-xl p-3 mb-3">
         <div className="flex items-center gap-2 mb-1.5">
           <span style={{ color: BLUE }}><IcHome /></span>
-          <p className="text-xs font-medium text-text-dark truncate">{bType} — {bLoc}</p>
+          <p className="text-xs font-medium text-[#F0EDE8] truncate">{bType} — {bLoc}</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-text-grey"><IcCal /></span>
-          <p className="text-xs text-text-grey">Demandé pour : {dateStr}</p>
+          <span className="text-[#8A9BB5]"><IcCal /></span>
+          <p className="text-xs text-[#8A9BB5]">Demandé pour : {dateStr}</p>
         </div>
       </div>
       {v.statut === 'contre_proposee' && (
@@ -983,7 +1043,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
             </div>
           )}
           {v.feedback_libre && (
-            <p className="text-xs text-text-grey italic">« {v.feedback_libre} »</p>
+            <p className="text-xs text-[#8A9BB5] italic">« {v.feedback_libre} »</p>
           )}
         </div>
       )}
@@ -1002,7 +1062,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
             <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>
               {(() => { const m = minutesAvant(v, now); return m != null && m >= 0 ? `Visite dans ${m} min — Contact client` : 'Contact client' })()}
             </p>
-            <p className="text-sm font-bold text-text-dark">{contactNumero}</p>
+            <p className="text-sm font-bold text-[#F0EDE8]">{contactNumero}</p>
           </div>
           <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
             className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#25D366' }}>
@@ -1036,18 +1096,18 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
         </>}
       </div>
       {cpId === v.id && (
-        <div className="mt-3 pt-3 border-t border-divider">
-          <p className="text-sm font-bold text-text-dark mb-3">Proposer un autre créneau</p>
+        <div className="mt-3 pt-3 border-t border-[#1A3355]">
+          <p className="text-sm font-bold text-[#F0EDE8] mb-3">Proposer un autre créneau</p>
           <div className="space-y-2 mb-3">
             <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
               min={new Date().toISOString().slice(0, 10)}
               max={new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)}
-              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+              className="w-full bg-[#112440] rounded-xl px-3 py-2.5 text-sm outline-none border border-[#1A3355] text-[#F0EDE8] focus:border-[#4B6BFF]" />
             <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
-              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
+              className="w-full bg-[#112440] rounded-xl px-3 py-2.5 text-sm outline-none border border-[#1A3355] text-[#F0EDE8] focus:border-[#4B6BFF]" />
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setCpId(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
+            <button onClick={() => setCpId(null)} className="flex-1 py-2.5 rounded-xl border border-[#1A3355] text-sm font-semibold text-[#8A9BB5] bg-[#0B1C30]">Annuler</button>
             <button onClick={onContrePropose} disabled={!cpDate || !cpTime || submitting}
               className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
               {submitting ? 'Envoi…' : 'Envoyer'}
@@ -1060,64 +1120,13 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
 }
 
 /** Carte compacte (grille) — aperçu d'une réservation, ouvre le détail complet au clic. */
-function ReservationCard({ v, bien, onClick, now }: { v: any; bien?: any; onClick: () => void; now: number }) {
-  const echouee = isEchouee(v)
-  const urgente = !echouee && isUrgente(v, now)
-  const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
-  const bType = typeLabel(v.bien?.type || '')
-  const loc = v.bien?.localisation
-  const bLoc = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-  const clientNom = v.client?.prenom || v.client?.nom || 'Client'
-  const dateStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—'
-  const heureStr = v.date_souhaitee ? new Date(v.date_souhaitee).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
-  const cover = bien?.photos?.find((p: any) => p.is_cover) || bien?.photos?.[0]
-
-  return (
-    <div onClick={onClick} role="button" tabIndex={0}
-      className="card-soft rounded-2xl overflow-hidden cursor-pointer transition-transform hover:-translate-y-0.5">
-      <div className="relative h-32">
-        {cover?.url
-          ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
-          : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}cc, ${BLUE}aa)` }}>
-              {clientNom[0]?.toUpperCase() || '?'}
-            </div>}
-        <div className="absolute inset-0 bg-black/10" />
-        <span className="absolute top-2.5 left-2.5 px-2 py-1 rounded-lg bg-white/95 text-text-dark text-[10px] font-bold uppercase tracking-wide">{bType}</span>
-        <span className="absolute bottom-2.5 right-2.5 px-2 py-1 rounded-lg text-white text-[10px] font-bold" style={{ background: color }}>{label}</span>
-        {urgente && (
-          <span className="absolute top-2.5 right-2.5 px-2 py-1 rounded-lg text-white text-[10px] font-bold animate-pulse" style={{ background: '#F44336' }}>
-            Urgent — {minutesAvant(v, now)} min
-          </span>
-        )}
-      </div>
-      <div className="p-3.5">
-        <div className="flex items-start justify-between gap-2 mb-1.5">
-          <p className="font-bold text-text-dark text-sm truncate">{clientNom}</p>
-          <div className="text-right flex-shrink-0">
-            <p className="font-extrabold text-sm leading-none" style={{ color: BLUE }}>{dateStr}</p>
-            {heureStr && <p className="text-[10px] text-text-grey mt-0.5">{heureStr}</p>}
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 text-text-grey mb-2.5">
-          <IcPin /><span className="text-xs truncate">{bLoc}</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2 pt-2.5" style={{ borderTop: '1px solid #F1F3F6' }}>
-          <div>
-            <p className="text-[9px] font-semibold text-text-grey uppercase tracking-wide">Frais visite</p>
-            <p className="text-xs font-semibold text-text-dark mt-0.5">{Number(v.frais_visite) > 0 ? fmtPrix(v.frais_visite) : 'Gratuit'}</p>
-          </div>
-          <div>
-            <p className="text-[9px] font-semibold text-text-grey uppercase tracking-wide">Paiement</p>
-            <p className="text-xs font-semibold mt-0.5" style={{ color: v.paiement_effectue ? '#22C55E' : '#9E9E9E' }}>{v.paiement_effectue ? 'Payé ✓' : '—'}</p>
-          </div>
-        </div>
-        <p className="text-right text-[11px] font-bold mt-2.5" style={{ color: BLUE }}>Voir le détail →</p>
-      </div>
-    </div>
-  )
+/** Génère un placeholder SVG coloré pour une réservation sans photo. */
+function reservationPlaceholderSrc(letter: string, colorHex: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="${colorHex}"/><text x="200" y="230" text-anchor="middle" font-size="160" font-weight="800" fill="rgba(255,255,255,0.18)" font-family="sans-serif">${letter.toUpperCase()}</text></svg>`
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-/** Modal de détail — reprend VisiteCard (chat, confirmer, contre-proposer, marquer effectuée…) en plein. */
+/** Modal de détail — thème clair, sections bien délimitées. */
 function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, cpId, setCpId, cpDate, setCpDate, cpTime, setCpTime, submitting, onContrePropose, now }: {
   v: any
   onClose: () => void
@@ -1135,25 +1144,278 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
   onContrePropose: () => void
   now: number
 }) {
-  const clientNom = v.client?.prenom || v.client?.nom || 'Réservation'
+  const echouee = isEchouee(v)
+  const urgente = !echouee && isUrgente(v, now)
+  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+  const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
+  const initiale = clientNom[0]?.toUpperCase() || '?'
+  const bType = typeLabel(v.bien?.type || '')
+  const loc = v.bien?.localisation
+  const bLoc = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+  const dateRef = v.date_contre_proposee || v.date_souhaitee
+  const dateStr = dateRef
+    ? new Date(dateRef).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : '—'
+  const heureStr = dateRef
+    ? new Date(dateRef).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    : ''
+  const contactNumero = v.client?.numero_whatsapp || v.client?.telephone
+  const peutConfirmer = (v.statut === 'en_attente' || v.statut === 'contre_proposee') && !echouee && !isDatePassee(v)
+  const mins = urgente ? minutesAvant(v, now) : null
+
+  const [shown, setShown] = useState(false)
+  const [closing, setClosing] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)))
+    return () => cancelAnimationFrame(id)
+  }, [])
+  const handleClose = () => {
+    setShown(false)
+    setClosing(true)
+    setTimeout(onClose, 220)
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[88vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white z-10">
-          <h2 className="font-bold text-text-dark">Réservation — {clientNom}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey flex-shrink-0">✕</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background: shown ? 'rgba(10,16,30,0.45)' : 'rgba(10,16,30,0)',
+        backdropFilter: shown ? 'blur(6px)' : 'blur(0px)',
+        transition: 'background 0.25s ease, backdrop-filter 0.25s ease',
+        pointerEvents: closing ? 'none' : 'auto',
+      }}
+      onClick={handleClose}>
+      <div
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl"
+        style={{
+          background: '#F8FAFF',
+          boxShadow: '0 32px 96px rgba(10,16,30,0.32), 0 8px 24px rgba(10,16,30,0.12)',
+          transform: shown ? 'scale(1)' : 'scale(0.82)',
+          opacity: shown ? 1 : 0,
+          transition: shown
+            ? 'transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease'
+            : 'transform 0.2s cubic-bezier(0.4, 0, 1, 1), opacity 0.18s ease',
+          transformOrigin: 'center center',
+        }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* ── Header ── */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b"
+          style={{ background: '#F8FAFF', borderColor: '#E8EDFB' }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-base text-white flex-shrink-0"
+              style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>{initiale}</div>
+            <div>
+              <p className="font-bold text-[14px] text-gray-900 leading-tight">{clientNom}</p>
+              <p className="text-[11px] text-gray-400">{bType} · {bLoc}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
+              style={{ background: (urgente ? '#EF4444' : sColor) + '18', color: urgente ? '#EF4444' : sColor }}>
+              {urgente ? '⚡ Urgent' : sLabel}
+            </span>
+            <button onClick={handleClose}
+              className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-700 transition-colors"
+              style={{ background: '#EEF1FA' }}>✕</button>
+          </div>
         </div>
-        <div className="p-5">
-          <VisiteCard v={v} chatLoadingId={chatLoadingId} onChat={onChat} onConfirm={onConfirm} onMarquerEffectuee={onMarquerEffectuee}
-            cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
-            submitting={submitting} onContrePropose={onContrePropose} now={now} />
+
+        <div className="p-5 space-y-3">
+
+          {/* ── Bannière urgence / échouée ── */}
+          {urgente && mins !== null && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
+              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Créneau dans {mins < 60 ? `${mins} min` : `${Math.round(mins / 60)}h`} — à traiter d'urgence
+            </div>
+          )}
+          {echouee && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
+              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+              </svg>
+              Cette visite ne s'est pas tenue.
+            </div>
+          )}
+          {v.statut === 'contre_proposee' && !echouee && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
+              style={{ background: '#FFFBEB', borderColor: '#FDE68A', color: '#B45309' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Contre-proposition envoyée — en attente du client
+            </div>
+          )}
+
+          {/* ── Date ── */}
+          <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Créneau demandé</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: BLUE + '12' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={2} className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="font-bold text-gray-900 capitalize text-[15px]">{dateStr}</p>
+                {heureStr && <p className="text-sm text-gray-500">{heureStr}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Frais + paiement ── */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Frais de visite</p>
+              <p className="font-black text-[18px]" style={{ color: BLUE }}>
+                {Number(v.frais_visite) > 0 ? fmtPrix(v.frais_visite) : 'Gratuit'}
+              </p>
+            </div>
+            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Paiement</p>
+              <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? '#16A34A' : '#9CA3AF' }}>
+                {v.paiement_effectue ? '✓ Payé' : 'En attente'}
+              </p>
+            </div>
+          </div>
+
+          {/* ── Contact (si numeros_partages) ── */}
+          {!echouee && v.statut === 'confirmee' && v.numeros_partages && contactNumero && (
+            <div className="flex items-center gap-3 p-4 rounded-xl border"
+              style={{ background: '#F0FDF4', borderColor: '#BBF7D0' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: '#25D36620' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-semibold text-green-600">
+                  {mins != null && mins >= 0 ? `Visite dans ${mins} min — ` : ''}Contact client
+                </p>
+                <p className="font-bold text-gray-900">{contactNumero}</p>
+              </div>
+              <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
+                className="px-3 py-2 rounded-xl text-white text-xs font-bold flex-shrink-0"
+                style={{ background: '#25D366' }}>
+                WhatsApp
+              </a>
+            </div>
+          )}
+          {v.numeros_partages === false && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm"
+              style={{ background: '#F8FAFF', borderColor: '#E8EDFB', color: '#6B7280' }}>
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <rect x="5" y="11" width="14" height="9" rx="2"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0v4"/>
+              </svg>
+              Contact partagé 30 min avant la visite
+            </div>
+          )}
+
+          {/* ── Avis client (si effectuée) ── */}
+          {v.statut === 'effectuee' && v.feedback_donne && v.note_client != null && (
+            <div className="rounded-xl p-4 border" style={{ background: '#FFFBEB', borderColor: '#FDE68A' }}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-bold text-amber-600">Avis du client</p>
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map(n => (
+                    <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5"
+                      fill={n <= v.note_client ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                    </svg>
+                  ))}
+                </div>
+              </div>
+              {v.feedback_tags?.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {v.feedback_tags.map((t: string) => (
+                    <span key={t} className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                      style={{ background: '#F59E0B18', color: '#B45309' }}>{t}</span>
+                  ))}
+                </div>
+              )}
+              {v.feedback_libre && (
+                <p className="text-xs text-gray-500 italic">« {v.feedback_libre} »</p>
+              )}
+            </div>
+          )}
+
+          {/* ── Contre-proposition ── */}
+          {cpId === v.id && (
+            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+              <p className="font-bold text-gray-800 mb-3 text-sm">Proposer un autre créneau</p>
+              <div className="space-y-2 mb-3">
+                <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                  max={new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)}
+                  className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border text-gray-800"
+                  style={{ borderColor: '#CBD5E1', background: '#F8FAFF' }}
+                  onFocus={e => (e.target.style.borderColor = BLUE)}
+                  onBlur={e => (e.target.style.borderColor = '#CBD5E1')} />
+                <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
+                  className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border text-gray-800"
+                  style={{ borderColor: '#CBD5E1', background: '#F8FAFF' }}
+                  onFocus={e => (e.target.style.borderColor = BLUE)}
+                  onBlur={e => (e.target.style.borderColor = '#CBD5E1')} />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setCpId(null)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold border text-gray-600"
+                  style={{ borderColor: '#E2E8F0', background: '#F8FAFF' }}>Annuler</button>
+                <button onClick={onContrePropose} disabled={!cpDate || !cpTime || submitting}
+                  className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
+                  style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>
+                  {submitting ? 'Envoi…' : 'Envoyer'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Actions ── */}
+          <div className="flex gap-2 pt-1 pb-1 flex-wrap">
+            <button onClick={() => onChat(v)} disabled={chatLoadingId === v.id}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-semibold disabled:opacity-50 transition-all"
+              style={{ borderColor: BLUE + '40', color: BLUE, background: BLUE + '08' }}>
+              {chatLoadingId === v.id
+                ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                : <IcChat />}
+              Chat
+            </button>
+            {peutConfirmer && (
+              <button onClick={() => onConfirm(v.id)}
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-all"
+                style={{ background: 'linear-gradient(135deg, #16A34A, #15803D)', boxShadow: '0 4px 14px rgba(22,163,74,0.25)' }}>
+                Confirmer ✓
+              </button>
+            )}
+            {v.statut === 'en_attente' && !echouee && !isDatePassee(v) && cpId !== v.id && (
+              <button onClick={() => setCpId(v.id)}
+                className="flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all text-gray-700"
+                style={{ borderColor: '#CBD5E1', background: '#F8FAFF' }}>
+                Autre créneau
+              </button>
+            )}
+            {v.statut === 'confirmee' && !echouee && (
+              <button onClick={() => { if (confirm('Confirmez-vous que la visite a bien eu lieu ?')) onMarquerEffectuee(v.id) }}
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold"
+                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>
+                Marquer effectuée
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function ReservationsTab({ biens }: { biens: any[] }) {
+function ReservationsTab({ biens, onScrolled }: { biens: any[]; onScrolled?: (v: boolean) => void }) {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -1165,8 +1427,6 @@ function ReservationsTab({ biens }: { biens: any[] }) {
   const [submitting, setSubmitting] = useState(false)
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
   const [modalVisiteId, setModalVisiteId] = useState<number | null>(null)
-  // Horloge partagée (façon _urgenceTimer mobile) — rafraîchit chaque minute
-  // le compte à rebours "Visite dans X min" et le bandeau d'urgence.
   const [now, setNow] = useState(() => Date.now())
 
   const load = async () => {
@@ -1216,8 +1476,6 @@ function ReservationsTab({ biens }: { biens: any[] }) {
       const list = Array.isArray(convs) ? convs : convs.data || []
       const match = list.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === clientId))
       if (match) {
-        // Relance pré-remplie pour une visite échouée (même esprit que
-        // _ouvrirChatEchouee côté mobile) — ChatThread consomme ce draft.
         const draftMessage = isEchouee(v)
           ? `Bonjour, concernant votre visite du ${new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} qui ne s'est pas tenue, peut-on reprogrammer ?`
           : undefined
@@ -1246,58 +1504,235 @@ function ReservationsTab({ biens }: { biens: any[] }) {
 
   const modalVisite = modalVisiteId ? visites.find(v => v.id === modalVisiteId) || null : null
 
+  const STATUS_FILTERS = ['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Annulées', 'Échouées']
+
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white border-b border-divider px-4 pt-3.5 pb-2.5 flex gap-2.5 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
-        {['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Annulées', 'Échouées'].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors"
-            style={filter === f ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#5F6B7A', borderColor: '#E8EAED' }}>
-            {f}
+    <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
+
+      {/* ── En-tête + filtres ── */}
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-4 pb-0">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Agenda</p>
+            <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
+              Réservations
+              {!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{filtered.length}</span>}
+            </h2>
+          </div>
+          <button onClick={load}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all"
+            style={{ color: 'var(--p-muted)', borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
+            <IcRefresh /> Actualiser
           </button>
-        ))}
-      </div>
-      {biensUniques.length >= 2 && (
-        <div className="bg-white border-b border-divider px-4 pt-2.5 pb-3.5 flex gap-2.5 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
-          <button onClick={() => setBienIdFilter(null)}
-            className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold border transition-colors"
-            style={bienIdFilter === null ? { background: DARK_BLUE, color: '#fff', borderColor: DARK_BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
-            Tous les biens
-          </button>
-          {biensUniques.map(b => (
-            <button key={b.id} onClick={() => setBienIdFilter(b.id)}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold border transition-colors"
-              style={bienIdFilter === b.id ? { background: DARK_BLUE, color: '#fff', borderColor: DARK_BLUE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
-              {b.label}
+        </div>
+
+        {/* Filtre statut */}
+        <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+          {STATUS_FILTERS.map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all"
+              style={filter === f
+                ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
+              {f}
             </button>
           ))}
         </div>
-      )}
-      {loading ? (
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-            {[1, 2, 3].map(n => <div key={n} className="h-64 skeleton rounded-2xl" />)}
-          </div>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            </div>
-            <p className="font-bold text-text-dark mb-1">Aucune réservation</p>
-            <p className="text-sm text-text-grey text-center">Les demandes de visite apparaîtront ici</p>
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-            {filtered.map((v, i) => (
-              <ReservationCard key={v.id || i} v={v} bien={biens?.find(b => b.id === v.bien?.id)} onClick={() => setModalVisiteId(v.id)} now={now} />
+
+        {/* Filtre par bien (si plusieurs) */}
+        {biensUniques.length >= 2 && (
+          <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+            <button onClick={() => setBienIdFilter(null)}
+              className="flex-shrink-0 px-3.5 py-1 rounded-full text-[11px] font-semibold border transition-all"
+              style={bienIdFilter === null
+                ? { background: BLUE + '14', color: BLUE, borderColor: BLUE + '30' }
+                : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
+              Tous les biens
+            </button>
+            {biensUniques.map(b => (
+              <button key={b.id} onClick={() => setBienIdFilter(b.id)}
+                className="flex-shrink-0 px-3.5 py-1 rounded-full text-[11px] font-semibold border transition-all whitespace-nowrap"
+                style={bienIdFilter === b.id
+                  ? { background: BLUE + '14', color: BLUE, borderColor: BLUE + '30' }
+                  : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
+                {b.label}
+              </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* ── Contenu ── */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 md:px-8 xl:px-10 pb-24"
+        onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+            {[1,2,3,4,5,6].map(n => (
+              <div key={n} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+                <div className="h-40 w-full" style={{ background: 'var(--p-border)' }} />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 rounded-full w-2/3" style={{ background: 'var(--p-border)' }} />
+                  <div className="h-3 rounded-full w-1/2" style={{ background: 'var(--p-border)' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
+              style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.4} className="w-10 h-10">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucune réservation</p>
+            <p className="text-sm text-center max-w-xs" style={{ color: 'var(--p-muted)' }}>
+              {filter === 'Toutes' ? 'Les demandes de visite de vos clients apparaîtront ici' : `Aucune visite « ${filter} »`}
+            </p>
+          </div>
+        ) : (
+          <AnimatedGroup preset="blur-slide" stagger={0.055}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+              {filtered.map(v => {
+                const echouee = isEchouee(v)
+                const urgente = !echouee && isUrgente(v, now)
+                const mins = urgente ? minutesAvant(v, now) : null
+                const { label: sLabel, color: sColor } = echouee
+                  ? { label: 'Échouée', color: '#EF4444' }
+                  : statutVisite(v.statut)
+                const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
+                const initiale = clientNom[0]?.toUpperCase() || '?'
+                const bType = typeLabel(v.bien?.type || '')
+                const loc = v.bien?.localisation
+                const bLoc = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+                const dateRef = v.date_contre_proposee || v.date_souhaitee
+                const dateStr = dateRef
+                  ? new Date(dateRef).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                  : '—'
+                const heureStr = dateRef
+                  ? new Date(dateRef).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                  : ''
+                const peutConfirmer = (v.statut === 'en_attente' || v.statut === 'contre_proposee') && !echouee && !isDatePassee(v)
+                const bien = biens?.find((b: any) => b.id === v.bien?.id)
+                const cover = bien?.photos?.find((p: any) => p.is_cover) || bien?.photos?.[0]
+                const accentColor = urgente ? '#EF4444' : sColor
+
+                return (
+                  <div key={v.id}
+                    className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                    style={{
+                      background: 'var(--p-card)',
+                      border: '1px solid var(--p-border)',
+                      boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
+                    }}
+                    onClick={() => setModalVisiteId(v.id)}
+                    onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 8px 32px rgba(75,107,255,0.12), 0 2px 8px rgba(15,23,42,0.08)`)}
+                    onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)')}>
+
+                    {/* ── Photo / Avatar ── */}
+                    <div className="relative overflow-hidden" style={{ height: 156 }}>
+                      {cover?.url
+                        ? <img src={cover.url} alt={bType}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        : <div className="w-full h-full flex items-center justify-center"
+                            style={{ background: `linear-gradient(135deg, ${accentColor}18, ${BLUE}14)` }}>
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-4xl"
+                              style={{ background: accentColor + '20', color: accentColor }}>{initiale}</div>
+                          </div>
+                      }
+                      {/* Gradient bas */}
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.60) 0%, transparent 50%)' }} />
+
+                      {/* Badge statut haut-gauche */}
+                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
+                        style={{ background: accentColor, boxShadow: `0 2px 8px ${accentColor}55` }}>
+                        {urgente ? '⚡ Urgent' : sLabel}
+                      </span>
+
+                      {/* Badge heure haut-droite */}
+                      {heureStr && (
+                        <span className="absolute top-3 right-3 px-2 py-1 rounded-lg text-[10px] font-bold text-white"
+                          style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
+                          {heureStr}
+                        </span>
+                      )}
+
+                      {/* Date + frais bas */}
+                      <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                        <p className="text-white font-bold text-[13px] leading-none drop-shadow capitalize">{dateStr}</p>
+                        {Number(v.frais_visite) > 0 && (
+                          <p className="text-white font-black text-[14px] leading-none drop-shadow">{fmtPrix(v.frais_visite)}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Corps ── */}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{clientNom}</p>
+                        {v.paiement_effectue && (
+                          <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: '#22C55E15', color: '#22C55E' }}>✓ Payé</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1 mb-4">
+                        <span style={{ color: 'var(--p-muted)' }}><IcPin /></span>
+                        <p className="text-[12px] truncate" style={{ color: 'var(--p-muted)' }}>{bType} · {bLoc}</p>
+                      </div>
+
+                      {/* Urgence compte à rebours */}
+                      {urgente && mins !== null && (
+                        <div className="flex items-center gap-1.5 mb-3 px-3 py-2 rounded-lg text-xs font-bold animate-pulse"
+                          style={{ background: '#EF444412', color: '#EF4444' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                          Dans {mins < 60 ? `${mins} min` : `${Math.round(mins / 60)}h`}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={e => { e.stopPropagation(); setModalVisiteId(v.id) }}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+                          style={{ background: BLUE + '12', color: BLUE, border: `1px solid ${BLUE}20` }}
+                          onMouseEnter={e => { e.currentTarget.style.background = BLUE + '22' }}
+                          onMouseLeave={e => { e.currentTarget.style.background = BLUE + '12' }}>
+                          Voir le détail
+                        </button>
+                        {peutConfirmer && (
+                          <button
+                            onClick={e => { e.stopPropagation(); confirmer(v.id) }}
+                            className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+                            style={{ background: '#22C55E12', color: '#22C55E', border: '1px solid #22C55E20' }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#22C55E22' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#22C55E12' }}>
+                            Confirmer ✓
+                          </button>
+                        )}
+                        <button
+                          onClick={e => { e.stopPropagation(); ouvrirChat(v) }}
+                          disabled={chatLoadingId === v.id}
+                          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
+                          style={{ background: 'var(--p-border)', color: 'var(--p-muted)' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = BLUE + '18'; (e.currentTarget as HTMLElement).style.color = BLUE }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'var(--p-border)'; (e.currentTarget as HTMLElement).style.color = 'var(--p-muted)' }}>
+                          {chatLoadingId === v.id
+                            ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            : <IcChat />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </AnimatedGroup>
+        )}
+      </div>
+
       {modalVisite && (
         <ReservationDetailModal v={modalVisite} onClose={() => setModalVisiteId(null)}
           chatLoadingId={chatLoadingId} onChat={ouvrirChat} onConfirm={confirmer} onMarquerEffectuee={marquerEffectuee}
@@ -1320,7 +1755,7 @@ function loyerStatut(s: string): { label: string; color: string } {
 }
 const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
   actif:   { label: 'Actif',   color: '#4CAF50' },
-  resilie: { label: 'Résilié', color: '#9E9E9E' },
+  resilie: { label: 'Résilié', color: 'var(--p-muted)' },
   expire:  { label: 'Expiré',  color: '#F44336' },
 }
 function moisLabel(d: any) {
@@ -1336,13 +1771,12 @@ function dateLabel(d: any) {
   return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function LoyersTab() {
+function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'tous' | 'actif' | 'resilie' | 'expire'>('tous')
   const [detailContrat, setDetailContrat] = useState<any>(null)
   useEffect(() => { loyersApi.dashboard().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
-  if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
 
   const stats = data?.stats || {}
   const contrats: any[] = data?.contrats || []
@@ -1351,15 +1785,14 @@ function LoyersTab() {
   const enRetardCount = stats.loyers_en_retard ?? allLoyers.filter(l => l.statut === 'en_retard').length
   const impayesCount = allLoyers.filter(l => l.statut === 'impaye').length
 
-  // Un loyer par contrat, groupés façon "carte contrat" (comme le mobile) —
-  // avec en plus, ici, le détail par échéance au clic (non présent côté mobile).
   const contratsResume = contrats.map((c: any) => {
     const loyersTries = [...(c.loyers || [])].sort((a: any, b: any) => new Date(a.date_echeance || a.mois || 0).getTime() - new Date(b.date_echeance || b.mois || 0).getTime())
     const impayesOuAttente = loyersTries.filter((l: any) => l.statut !== 'paye')
     const prochain = impayesOuAttente[0] || null
     const payesCount = loyersTries.filter((l: any) => l.statut === 'paye').length
+    const totalCount = loyersTries.length
     const enProblemeCount = loyersTries.filter((l: any) => l.statut === 'en_retard' || l.statut === 'impaye').length
-    return { ...c, loyersTries, prochain, payesCount, enProblemeCount }
+    return { ...c, loyersTries, prochain, payesCount, totalCount, enProblemeCount }
   })
 
   const filtered = filter === 'tous' ? contratsResume : contratsResume.filter((c: any) => c.statut === filter)
@@ -1369,171 +1802,379 @@ function LoyersTab() {
   })
 
   const FILTERS: { key: typeof filter; label: string }[] = [
-    { key: 'tous', label: 'Tous les contrats' },
-    { key: 'actif', label: 'Actifs' },
+    { key: 'tous',    label: 'Tous' },
+    { key: 'actif',   label: 'Actifs' },
     { key: 'resilie', label: 'Résiliés' },
-    { key: 'expire', label: 'Expirés' },
+    { key: 'expire',  label: 'Expirés' },
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 md:px-8 xl:px-10 py-5 md:py-8">
-      <div className="xl:max-w-5xl xl:mx-auto">
-        {/* Hero — revenu total */}
-        <div className="rounded-2xl p-5 md:p-6 mb-5 text-white" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 8px 20px ${BLUE}4D` }}>
-          <p className="text-white/70 text-sm mb-1">Revenus totaux perçus</p>
-          <p className="text-2xl md:text-3xl font-extrabold">{Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} FCFA</p>
+    <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
+
+      {/* ── En-tête ── */}
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-4 pb-0">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Gestion</p>
+            <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
+              Loyers
+              {!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{sorted.length}</span>}
+            </h2>
+          </div>
         </div>
 
-        {/* Cartes KPI — détail du mois, en attente, en retard, impayés */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <StatCard icon={<IcWallet />} color={BLUE} label="Encaissé ce mois-ci" value={`${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`} />
-          <StatCard icon={<IcClock />} color={DARK_BLUE} label="En attente" value={`${Number(enAttenteMontant).toLocaleString('fr-FR')} F`} />
-          <StatCard icon={<IcMoney />} color="#F44336" label="Loyers en retard" value={`${enRetardCount}`} />
-          <StatCard icon={<IcShield />} color="#C62828" label="Impayés escaladés" value={`${impayesCount}`} />
-        </div>
+        {/* ── KPI cards ── */}
+        {!loading && data && (() => {
+          const kpis = [
+            { label: 'TOTAL PERÇU', value: `${Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} F`, color: BLUE,      icon: <IcWallet /> },
+            { label: 'CE MOIS',     value: `${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`,  color: '#16A34A', icon: <IcPayments /> },
+            { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: '#F59E0B', icon: <IcClock /> },
+            { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? '#EF4444' : '#16A34A', icon: <IcShield /> },
+          ] as { label: string; value: string; color: string; icon: React.ReactNode }[]
+          return (
+            <div className="rounded-2xl overflow-hidden mb-3"
+              style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+              {/* Mobile : grille 2×2 */}
+              <div className="grid grid-cols-2 sm:hidden">
+                {kpis.map((k, i) => (
+                  <div key={k.label} className="flex flex-col gap-2 p-3"
+                    style={{
+                      borderLeft: i % 2 === 1 ? '1px solid var(--p-border)' : undefined,
+                      borderTop: i >= 2 ? '1px solid var(--p-border)' : undefined,
+                    }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: k.color + '14', color: k.color }}>{k.icon}</div>
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold uppercase tracking-widest leading-none mb-1" style={{ color: 'var(--p-muted)' }}>{k.label}</p>
+                      <p className="text-[16px] font-black leading-none truncate" style={{ color: k.color }}>{k.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Tablette / desktop : ligne unique */}
+              <div className="hidden sm:flex">
+                {kpis.map((k, i) => (
+                  <div key={k.label} className="flex-1 flex items-center gap-2.5 px-2 py-6"
+                    style={{ borderLeft: i > 0 ? '1px solid var(--p-border)' : 'none' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: k.color + '14', color: k.color }}>{k.icon}</div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5" style={{ color: 'var(--p-muted)' }}>{k.label}</p>
+                      <p className="text-[23px] font-black leading-none truncate" style={{ color: k.color }}>{k.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
 
-        <div className="flex items-center justify-between mb-3.5">
-          <p className="text-[17px] font-bold text-text-dark">Mes contrats de location</p>
-        </div>
-
-        {/* Filtre par statut de contrat — pill row aérée, scrollable */}
-        <div className="flex gap-2 overflow-x-auto pb-1 mb-4" style={{ scrollbarWidth: 'none' }}>
+        {/* ── Filtres ── */}
+        <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
           {FILTERS.map(f => (
             <button key={f.key} onClick={() => setFilter(f.key)}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors"
-              style={filter === f.key ? { background: BLUE, color: '#fff', borderColor: BLUE } : { color: '#5F6B7A', borderColor: '#E8EAED' }}>
+              className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all"
+              style={filter === f.key
+                ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
               {f.label}
             </button>
           ))}
         </div>
+      </div>
 
-        {sorted.length === 0 ? (
-          <div className="card-soft rounded-2xl flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '15' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {/* ── Contenu ── */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 md:px-8 xl:px-10 pb-24"
+        onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+            {[1,2,3,4,5,6].map(n => (
+              <div key={n} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+                <div className="h-40 w-full" style={{ background: 'var(--p-border)' }} />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 rounded-full w-2/3" style={{ background: 'var(--p-border)' }} />
+                  <div className="h-3 rounded-full w-1/2" style={{ background: 'var(--p-border)' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : sorted.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
+              style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+              <IcPayments />
             </div>
-            <p className="font-bold text-text-dark mb-1">Aucun contrat</p>
-            <p className="text-sm text-text-grey">Vos contrats de location apparaîtront ici</p>
+            <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun contrat</p>
+            <p className="text-sm text-center max-w-xs" style={{ color: 'var(--p-muted)' }}>
+              {filter === 'tous' ? 'Vos contrats de location apparaîtront ici' : `Aucun contrat « ${filter} »`}
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {sorted.map((c: any) => {
-              const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: '#9E9E9E' }
-              const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
-              const aJour = !c.prochain
-              const prochainStatut = c.prochain ? loyerStatut(c.prochain.statut) : null
-              return (
-                <button key={c.id} onClick={() => setDetailContrat(c)} className="card-soft rounded-2xl p-4 text-left hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-3 mb-3.5">
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-white text-sm" style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK_BLUE})` }}>
-                      {initiale}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-text-dark text-sm truncate">{c.locataire?.prenom} {c.locataire?.nom}</p>
-                      <p className="text-xs text-text-grey mt-0.5 truncate">{typeLabel(c.bien?.type || '')} — {c.bien?.localisation?.ville || '—'}</p>
-                    </div>
-                    <span className="flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: cStatut.color + '18', color: cStatut.color }}>{cStatut.label}</span>
-                  </div>
+          <AnimatedGroup preset="blur-slide" stagger={0.055}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+              {sorted.map((c: any) => {
+                const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)' }
+                const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
+                const aJour = !c.prochain
+                const prochainStatut = c.prochain ? loyerStatut(c.prochain.statut) : null
+                const cover = c.bien?.photos?.find((p: any) => p.is_cover) || c.bien?.photos?.[0]
+                const progressPct = c.totalCount > 0 ? Math.round((c.payesCount / c.totalCount) * 100) : 0
+                const alertColor = aJour ? '#16A34A' : prochainStatut!.color
 
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-text-grey">Loyer mensuel</span>
-                    <span className="text-sm font-bold text-text-dark">{fmtPrix(c.loyer_mensuel)}</span>
-                  </div>
+                return (
+                  <div key={c.id}
+                    className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                    style={{
+                      background: 'var(--p-card)',
+                      border: '1px solid var(--p-border)',
+                      boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
+                    }}
+                    onClick={() => setDetailContrat(c)}
+                    onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 8px 32px rgba(75,107,255,0.12), 0 2px 8px rgba(15,23,42,0.08)`)}
+                    onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)')}>
 
-                  {aJour ? (
-                    <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5" style={{ background: '#4CAF5012' }}>
-                      <span style={{ color: '#4CAF50' }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    {/* ── Visuel haut ── */}
+                    <div className="relative overflow-hidden" style={{ height: 148 }}>
+                      {cover?.url
+                        ? <img src={cover.url} alt=""
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        : <div className="w-full h-full flex items-center justify-center"
+                            style={{ background: `linear-gradient(135deg, ${alertColor}14, ${BLUE}10)` }}>
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-4xl"
+                              style={{ background: alertColor + '20', color: alertColor }}>{initiale}</div>
+                          </div>
+                      }
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.62) 0%, transparent 52%)' }} />
+
+                      {/* Statut contrat haut-gauche */}
+                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
+                        style={{ background: cStatut.color, boxShadow: `0 2px 8px ${cStatut.color}55` }}>
+                        {cStatut.label}
                       </span>
-                      <span className="text-xs font-bold" style={{ color: '#4CAF50' }}>À jour — aucun loyer en attente</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: prochainStatut!.color + '12' }}>
-                      <div className="min-w-0">
-                        <p className="text-[11px] text-text-grey">Prochain loyer dû</p>
-                        <p className="text-xs font-bold text-text-dark truncate">{moisLabel(c.prochain.mois)}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0 ml-2">
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: prochainStatut!.color + '22', color: prochainStatut!.color }}>{prochainStatut!.label}</span>
-                        {c.prochain.jours_retard > 0 && <p className="text-[10px] font-bold mt-1" style={{ color: prochainStatut!.color }}>{c.prochain.jours_retard} j de retard</p>}
-                      </div>
-                    </div>
-                  )}
 
-                  <p className="text-[11px] text-text-grey mt-3">{c.payesCount} loyer{c.payesCount > 1 ? 's' : ''} payé{c.payesCount > 1 ? 's' : ''}{c.enProblemeCount > 0 && <> · <span className="font-bold" style={{ color: '#F44336' }}>{c.enProblemeCount} en difficulté</span></>}</p>
-                </button>
-              )
-            })}
-          </div>
+                      {/* Loyer mensuel haut-droite */}
+                      <span className="absolute top-3 right-3 px-2 py-1 rounded-lg text-[10px] font-bold text-white"
+                        style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
+                        {fmtPrix(c.loyer_mensuel)}<span className="font-normal opacity-70">/mois</span>
+                      </span>
+
+                      {/* Locataire bas-gauche */}
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <p className="text-white font-bold text-[14px] leading-tight drop-shadow truncate">
+                          {c.locataire?.prenom} {c.locataire?.nom}
+                        </p>
+                        <p className="text-white/70 text-[11px] truncate">
+                          {typeLabel(c.bien?.type || '')} · {c.bien?.localisation?.ville || '—'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* ── Corps ── */}
+                    <div className="p-4">
+                      {/* Statut du prochain loyer */}
+                      {aJour ? (
+                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-3"
+                          style={{ background: '#16A34A12' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth={2.5} className="w-4 h-4 flex-shrink-0">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                          </svg>
+                          <span className="text-xs font-bold" style={{ color: '#16A34A' }}>À jour</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between px-3 py-2.5 rounded-xl mb-3"
+                          style={{ background: prochainStatut!.color + '12' }}>
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-medium" style={{ color: 'var(--p-muted)' }}>Prochain dû</p>
+                            <p className="text-xs font-bold truncate" style={{ color: 'var(--p-text)' }}>
+                              {moisLabel(c.prochain.mois)}
+                              {c.prochain.jours_retard > 0 && <span className="font-bold ml-1.5" style={{ color: prochainStatut!.color }}>· {c.prochain.jours_retard} j</span>}
+                            </p>
+                          </div>
+                          <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                            style={{ background: prochainStatut!.color + '22', color: prochainStatut!.color }}>
+                            {prochainStatut!.label}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Barre de progression loyers */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--p-border)' }}>
+                          <div className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${progressPct}%`, background: progressPct === 100 ? '#16A34A' : BLUE }} />
+                        </div>
+                        <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: 'var(--p-muted)' }}>
+                          {c.payesCount}/{c.totalCount}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </AnimatedGroup>
         )}
       </div>
 
-      {detailContrat && <ContratDetailModal contrat={detailContrat} onClose={() => setDetailContrat(null)} />}
+      {detailContrat && (
+        <ContratDetailModal contrat={detailContrat} onClose={() => setDetailContrat(null)} />
+      )}
     </div>
   )
 }
 
 function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () => void }) {
   const c = contrat
-  const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: '#9E9E9E' }
+  const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)' }
+  const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
+  const cover = c.bien?.photos?.find((p: any) => p.is_cover) || c.bien?.photos?.[0]
+  const payesCount: number = c.payesCount ?? 0
+  const totalCount: number = c.totalCount ?? 0
+  const progressPct = totalCount > 0 ? Math.round((payesCount / totalCount) * 100) : 0
+
+  const [shown, setShown] = useState(false)
+  const [closing, setClosing] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)))
+    return () => cancelAnimationFrame(id)
+  }, [])
+  const handleClose = () => {
+    setShown(false)
+    setClosing(true)
+    setTimeout(onClose, 220)
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[88vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white z-10">
-          <div>
-            <h2 className="font-bold text-text-dark">{c.locataire?.prenom} {c.locataire?.nom}</h2>
-            <p className="text-xs text-text-grey mt-0.5">{typeLabel(c.bien?.type || '')} — {c.bien?.localisation?.ville || '—'}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background: shown ? 'rgba(10,16,30,0.45)' : 'rgba(10,16,30,0)',
+        backdropFilter: shown ? 'blur(6px)' : 'blur(0px)',
+        transition: 'background 0.25s ease, backdrop-filter 0.25s ease',
+        pointerEvents: closing ? 'none' : 'auto',
+      }}
+      onClick={handleClose}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl"
+        style={{
+          background: '#F8FAFF',
+          boxShadow: '0 32px 96px rgba(10,16,30,0.32), 0 8px 24px rgba(10,16,30,0.12)',
+          transform: shown ? 'scale(1)' : 'scale(0.82)',
+          opacity: shown ? 1 : 0,
+          transition: shown
+            ? 'transform 0.42s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease'
+            : 'transform 0.2s cubic-bezier(0.4,0,1,1), opacity 0.18s ease',
+          transformOrigin: 'center center',
+        }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* ── Photo banner ── */}
+        <div className="relative overflow-hidden rounded-t-2xl" style={{ height: 140 }}>
+          {cover?.url
+            ? <img src={cover.url} alt="" className="w-full h-full object-cover" />
+            : <div className="w-full h-full flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${BLUE}18, ${BLUE}08)` }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-4xl"
+                  style={{ background: BLUE + '20', color: BLUE }}>{initiale}</div>
+              </div>
+          }
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
+          <button onClick={handleClose}
+            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-xl text-white/80 hover:text-white transition-colors"
+            style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}>✕</button>
+          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
+            style={{ background: cStatut.color }}>
+            {cStatut.label}
+          </span>
+          <div className="absolute bottom-3 left-4 right-4">
+            <p className="text-white font-bold text-[16px] leading-tight drop-shadow">
+              {c.locataire?.prenom} {c.locataire?.nom}
+            </p>
+            <p className="text-white/70 text-[12px]">
+              {typeLabel(c.bien?.type || '')} · {c.bien?.localisation?.quartier ? `${c.bien.localisation.quartier}, ` : ''}{c.bien?.localisation?.ville || '—'}
+            </p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey flex-shrink-0">✕</button>
         </div>
 
-        <div className="p-5">
-          {/* Infos contrat */}
-          <div className="rounded-xl p-3.5 mb-5" style={{ background: '#F6F8FA' }}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-text-grey">Statut du contrat</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: cStatut.color + '18', color: cStatut.color }}>{cStatut.label}</span>
+        <div className="p-5 space-y-3">
+
+          {/* ── Loyer + progression ── */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Loyer mensuel</p>
+              <p className="font-black text-[20px]" style={{ color: BLUE }}>{fmtPrix(c.loyer_mensuel)}</p>
             </div>
-            <div className="grid grid-cols-2 gap-2.5 text-xs">
-              <div><p className="text-text-grey mb-0.5">Début</p><p className="font-semibold text-text-dark">{dateLabel(c.date_debut)}</p></div>
-              <div><p className="text-text-grey mb-0.5">Fin</p><p className="font-semibold text-text-dark">{c.date_fin ? dateLabel(c.date_fin) : 'En cours'}</p></div>
-              <div><p className="text-text-grey mb-0.5">Échéance mensuelle</p><p className="font-semibold text-text-dark">Le {c.jour_echeance ?? 10} du mois</p></div>
-              <div><p className="text-text-grey mb-0.5">Loyer prépayé</p><p className="font-semibold text-text-dark">{c.loyer_prepaye_mois > 0 ? `${c.loyer_prepaye_mois} mois` : 'Aucun'}</p></div>
+            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Progression</p>
+              <p className="font-black text-[20px]" style={{ color: progressPct === 100 ? '#16A34A' : BLUE }}>
+                {payesCount}<span className="text-sm font-medium text-gray-400">/{totalCount}</span>
+              </p>
+              <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: '#E8EDFB' }}>
+                <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: progressPct === 100 ? '#16A34A' : BLUE }} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Infos contrat ── */}
+          <div className="rounded-xl border overflow-hidden" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Détails du contrat</p>
+            </div>
+            <div className="grid grid-cols-2 divide-x divide-y" style={{ borderColor: '#E8EDFB' }}>
+              {[
+                { label: 'Début', value: dateLabel(c.date_debut) },
+                { label: 'Fin', value: c.date_fin ? dateLabel(c.date_fin) : 'En cours' },
+                { label: 'Échéance', value: `Le ${c.jour_echeance ?? 10} du mois` },
+                { label: 'Prépayé', value: c.loyer_prepaye_mois > 0 ? `${c.loyer_prepaye_mois} mois` : 'Aucun' },
+              ].map(row => (
+                <div key={row.label} className="px-4 py-3" style={{ borderColor: '#E8EDFB' }}>
+                  <p className="text-[10px] text-gray-400 mb-0.5">{row.label}</p>
+                  <p className="text-sm font-semibold text-gray-800">{row.value}</p>
+                </div>
+              ))}
             </div>
             {c.gestion_via_app === false && (
-              <p className="text-[10px] text-text-grey mt-2.5 italic">Bien en gestion déléguée (hors application)</p>
+              <div className="px-4 py-2.5 border-t text-xs text-gray-400 italic" style={{ borderColor: '#E8EDFB' }}>
+                Gestion déléguée (hors application)
+              </div>
             )}
           </div>
 
-          <p className="text-sm font-bold text-text-dark mb-3">Historique des échéances</p>
-          {(!c.loyersTries || c.loyersTries.length === 0) ? (
-            <p className="text-xs text-text-grey py-6 text-center">Aucune échéance générée pour ce contrat.</p>
-          ) : (
-            <div className="space-y-2">
-              {[...c.loyersTries].reverse().map((l: any) => {
-                const { label, color } = loyerStatut(l.statut)
-                return (
-                  <div key={l.id} className="flex items-center gap-3 rounded-xl p-3" style={{ background: color + '0A' }}>
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + '18' }}>
-                      <span style={{ color }}><IcMoney /></span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-text-dark truncate">{moisLabel(l.mois)}</p>
-                      <p className="text-[10px] text-text-grey mt-0.5">
-                        Échéance {dateLabel(l.date_echeance)}
-                        {l.statut === 'paye' && l.date_paiement && ` · payé le ${dateLabel(l.date_paiement)}`}
-                        {l.jours_retard > 0 && l.statut !== 'paye' && ` · ${l.jours_retard} j de retard`}
-                      </p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-xs font-bold text-text-dark">{fmtPrix(l.montant)}</p>
-                      <span className="mt-0.5 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
-                    </div>
-                  </div>
-                )
-              })}
+          {/* ── Historique des échéances ── */}
+          <div className="rounded-xl border overflow-hidden" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Historique des échéances</p>
             </div>
-          )}
+            {(!c.loyersTries || c.loyersTries.length === 0) ? (
+              <p className="text-xs text-gray-400 py-8 text-center">Aucune échéance générée</p>
+            ) : (
+              <div className="divide-y" style={{ borderColor: '#E8EDFB' }}>
+                {[...c.loyersTries].reverse().map((l: any) => {
+                  const { label, color } = loyerStatut(l.statut)
+                  return (
+                    <div key={l.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: color + '14', color }}>
+                        <IcPayments />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">{moisLabel(l.mois)}</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          Échéance {dateLabel(l.date_echeance)}
+                          {l.statut === 'paye' && l.date_paiement && ` · payé le ${dateLabel(l.date_paiement)}`}
+                          {l.jours_retard > 0 && l.statut !== 'paye' && ` · ${l.jours_retard} j de retard`}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-sm font-bold text-gray-800">{fmtPrix(l.montant)}</p>
+                        <span className="mt-1 inline-block px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          style={{ background: color + '18', color }}>{label}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1593,16 +2234,16 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
   if (successMsg) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
-        <div className="bg-white rounded-2xl w-full max-w-sm p-7 text-center">
+        <div className="bg-[#0B1C30] rounded-2xl w-full max-w-sm p-7 text-center border border-[#1A3355]">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
             style={{ background: 'linear-gradient(135deg, #4CAF50, #2E7D32)', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }}>
             <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           </div>
-          <p className="font-bold text-text-dark text-lg mb-2">Retrait initié !</p>
-          <p className="text-sm text-text-grey leading-relaxed mb-6">
+          <p className="font-bold text-[#F0EDE8] text-lg mb-2">Retrait initié !</p>
+          <p className="text-sm text-[#8A9BB5] leading-relaxed mb-6">
             Retrait de {montantNum.toLocaleString('fr-FR')} FCFA via {methode}. {successMsg}
           </p>
-          <button onClick={onClose} className="w-full py-3 rounded-xl text-white font-bold text-sm" style={{ background: BLUE }}>Fermer</button>
+          <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-sm" style={{ background: BLUE, color: '#060D1A' }}>Fermer</button>
         </div>
       </div>
     )
@@ -1610,13 +2251,13 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white z-10">
+      <div className="bg-[#0B1C30] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-[#1A3355]" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355] sticky top-0 bg-[#0B1C30] z-10">
           <div>
-            <h2 className="font-bold text-text-dark">Demander un retrait</h2>
-            <p className="text-xs text-text-grey mt-0.5">Solde disponible : {solde.toLocaleString('fr-FR')} FCFA</p>
+            <h2 className="font-bold text-[#F0EDE8]">Demander un retrait</h2>
+            <p className="text-xs text-[#8A9BB5] mt-0.5">Solde disponible : {solde.toLocaleString('fr-FR')} FCFA</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey flex-shrink-0">✕</button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0">✕</button>
         </div>
 
         <div className="p-5 space-y-5">
@@ -1627,27 +2268,27 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
           )}
 
           <div>
-            <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Montant à retirer</label>
+            <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Montant à retirer</label>
             <div className="relative">
-              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A9BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
               <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={1000} max={solde}
-                className="w-full bg-surface-g border border-divider rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none focus:border-primary" />
-              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-text-grey">FCFA</span>
+                className="w-full bg-[#112440] border border-[#1A3355] rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none text-[#F0EDE8] focus:border-[#4B6BFF]" />
+              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8A9BB5]">FCFA</span>
             </div>
-            <p className="text-[11px] text-text-grey mt-1.5">Minimum 1 000 FCFA — traitement sous 48 heures ouvrées.</p>
+            <p className="text-[11px] text-[#8A9BB5] mt-1.5">Minimum 1 000 FCFA — traitement sous 48 heures ouvrées.</p>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Choisir le mode de retrait</label>
+            <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Choisir le mode de retrait</label>
             <div className="space-y-2">
               {RETRAIT_METHODES.map(m => {
                 const selected = methode === m.key
                 return (
                   <button key={m.key} onClick={() => setMethode(m.key)}
                     className="w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors"
-                    style={{ borderColor: selected ? BLUE : '#E8EAED', background: selected ? BLUE + '0A' : '#fff' }}>
+                    style={{ borderColor: selected ? BLUE : '#1A3355', background: selected ? 'rgba(212,168,71,0.10)' : '#0B1C30' }}>
                     {m.logo ? (
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-white border border-divider p-1.5">
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#112440] border border-[#1A3355] p-1.5">
                         <img src={m.logo} alt={m.label} className="w-full h-full object-contain" />
                       </div>
                     ) : (
@@ -1657,12 +2298,12 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm" style={{ color: selected ? BLUE : '#1D1D1F' }}>{m.label}</p>
-                      <p className="text-xs text-text-grey">{m.sub}</p>
+                      <p className="font-bold text-sm" style={{ color: selected ? BLUE : '#F0EDE8' }}>{m.label}</p>
+                      <p className="text-xs text-[#8A9BB5]">{m.sub}</p>
                     </div>
                     <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border-2"
-                      style={{ borderColor: selected ? BLUE : '#E8EAED', background: selected ? BLUE : 'transparent' }}>
-                      {selected && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                      style={{ borderColor: selected ? BLUE : '#1A3355', background: selected ? BLUE : 'transparent' }}>
+                      {selected && <svg className="w-3 h-3" style={{ color: '#060D1A' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                     </div>
                   </button>
                 )
@@ -1672,11 +2313,11 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 
           {methode && (
             <div>
-              <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Numéro {methode}</label>
+              <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Numéro {methode}</label>
               <div className="relative">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A9BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                 <input type="tel" value={numero} onChange={e => setNumero(e.target.value)} placeholder="Ex: 97000000"
-                  className="w-full bg-surface-g border border-divider rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-[#112440] border border-[#1A3355] rounded-xl pl-10 pr-4 py-3 text-sm outline-none text-[#F0EDE8] focus:border-[#4B6BFF]" />
               </div>
             </div>
           )}
@@ -1758,7 +2399,7 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
               Demander un retrait
             </button>
             <button onClick={onOpenTransactions}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-white transition-opacity hover:opacity-90" style={{ color: BLUE }}>
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-[#112440] transition-opacity hover:opacity-90" style={{ color: BLUE }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 7h6m-6 4h6" /></svg>
               Historique complet
             </button>
@@ -1768,44 +2409,44 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
         {/* Mini-stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="card-soft rounded-2xl p-3.5 min-w-0">
-            <p className="text-[10px] font-semibold text-text-grey uppercase tracking-wide mb-1">Reçu ce mois</p>
-            <p className="text-sm font-bold text-text-dark truncate">{recuCeMois.toLocaleString('fr-FR')} F</p>
+            <p className="text-[10px] font-semibold text-[#8A9BB5] uppercase tracking-wide mb-1">Reçu ce mois</p>
+            <p className="text-sm font-bold text-[#F0EDE8] truncate">{recuCeMois.toLocaleString('fr-FR')} F</p>
           </div>
           <div className="card-soft rounded-2xl p-3.5">
-            <p className="text-[10px] font-semibold text-text-grey uppercase tracking-wide mb-1">Transactions</p>
-            <p className="text-sm font-bold text-text-dark">{transactions.length}</p>
+            <p className="text-[10px] font-semibold text-[#8A9BB5] uppercase tracking-wide mb-1">Transactions</p>
+            <p className="text-sm font-bold text-[#F0EDE8]">{transactions.length}</p>
           </div>
           <div className="card-soft rounded-2xl p-3.5">
-            <p className="text-[10px] font-semibold text-text-grey uppercase tracking-wide mb-1">Dernière</p>
-            <p className="text-sm font-bold text-text-dark">{derniereLabel}</p>
+            <p className="text-[10px] font-semibold text-[#8A9BB5] uppercase tracking-wide mb-1">Dernière</p>
+            <p className="text-sm font-bold text-[#F0EDE8]">{derniereLabel}</p>
           </div>
         </div>
 
         {/* Transactions récentes */}
         <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-text-dark">Transactions récentes</p>
+          <p className="font-bold text-[#F0EDE8]">Transactions récentes</p>
           {transactions.length > 0 && (
             <button onClick={onOpenTransactions} className="text-xs font-semibold" style={{ color: BLUE }}>Voir tout →</button>
           )}
         </div>
-        {loading ? [1, 2, 3].map(n => <div key={n} className="h-16 skeleton rounded-xl mb-2" />) : transactions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center card-soft rounded-2xl">
-            <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
-            <p className="text-sm text-text-grey">Vos loyers, frais de visite et intégrations apparaîtront ici.</p>
+        {loading ? [1, 2, 3].map(n => <div key={n} className="h-16 skeleton-dark rounded-xl mb-2" />) : transactions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center card-navy rounded-2xl">
+            <p className="font-bold text-[#F0EDE8] mb-1">Aucune transaction</p>
+            <p className="text-sm text-[#8A9BB5]">Vos loyers, frais de visite et intégrations apparaîtront ici.</p>
           </div>
         ) : transactions.slice(0, 5).map((t: any, i: number) => {
           const isCredit = t.type === 'credit' || Number(t.montant) > 0
           const cat = categorieTransaction(t.description)
           return (
-            <button key={t.id || i} onClick={() => setDetailTx(t)} className="w-full flex items-center gap-3 p-3.5 card-soft rounded-xl mb-2 text-left hover:shadow-sm transition-shadow">
+            <button key={t.id || i} onClick={() => setDetailTx(t)} className="w-full flex items-center gap-3 p-3.5 card-navy rounded-xl mb-2 text-left hover:shadow-sm transition-shadow">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>
                 <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-text-dark text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
+                <p className="font-semibold text-[#F0EDE8] text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
-                  <span className="text-[10px] text-text-grey">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                  <span className="text-[10px] text-[#8A9BB5]">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                 </div>
               </div>
               <p className="font-bold text-sm flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
@@ -1851,10 +2492,10 @@ function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void })
   const lien = t.visite_id ? `Visite #${t.visite_id}` : t.loyer_id ? `Loyer #${t.loyer_id}` : t.contrat_id ? `Contrat #${t.contrat_id}` : null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-divider">
-          <h2 className="font-bold text-text-dark">Détail de la transaction</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey flex-shrink-0">✕</button>
+      <div className="bg-[#0B1C30] rounded-2xl w-full max-w-md border border-[#1A3355]" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355]">
+          <h2 className="font-bold text-[#F0EDE8]">Détail de la transaction</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0">✕</button>
         </div>
         <div className="p-5">
           <div className="flex items-center gap-3 mb-5">
@@ -1862,7 +2503,7 @@ function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void })
               <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-bold text-text-dark truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
+              <p className="font-bold text-[#F0EDE8] truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
               <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
             </div>
             <p className="font-extrabold text-lg flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
@@ -1871,33 +2512,33 @@ function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void })
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-text-grey">Statut</span>
+              <span className="text-[#8A9BB5]">Statut</span>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ background: statut.color + '18', color: statut.color }}>{statut.label}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-text-grey">Date</span>
-              <span className="font-semibold text-text-dark">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="text-[#8A9BB5]">Date</span>
+              <span className="font-semibold text-[#F0EDE8]">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-text-grey">Référence</span>
-              <span className="font-mono text-xs text-text-dark">{t.reference || '—'}</span>
+              <span className="text-[#8A9BB5]">Référence</span>
+              <span className="font-mono text-xs text-[#F0EDE8]">{t.reference || '—'}</span>
             </div>
             {t.methode_paiement && (
               <div className="flex items-center justify-between">
-                <span className="text-text-grey">Moyen de paiement</span>
-                <span className="font-semibold text-text-dark">{METHODE_LABELS[t.methode_paiement] || t.methode_paiement}</span>
+                <span className="text-[#8A9BB5]">Moyen de paiement</span>
+                <span className="font-semibold text-[#F0EDE8]">{METHODE_LABELS[t.methode_paiement] || t.methode_paiement}</span>
               </div>
             )}
             {t.telephone_paiement && (
               <div className="flex items-center justify-between">
-                <span className="text-text-grey">Numéro utilisé</span>
-                <span className="font-semibold text-text-dark">{t.telephone_paiement}</span>
+                <span className="text-[#8A9BB5]">Numéro utilisé</span>
+                <span className="font-semibold text-[#F0EDE8]">{t.telephone_paiement}</span>
               </div>
             )}
             {lien && (
               <div className="flex items-center justify-between">
-                <span className="text-text-grey">Concerne</span>
-                <span className="font-semibold text-text-dark">{lien}</span>
+                <span className="text-[#8A9BB5]">Concerne</span>
+                <span className="font-semibold text-[#F0EDE8]">{lien}</span>
               </div>
             )}
           </div>
@@ -1945,18 +2586,18 @@ function TransactionsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Topbar de section — titre + filtres (l'entête général de l'app reste au-dessus) */}
-      <div className="bg-white border-b border-divider flex items-center gap-3 px-4 md:px-6 py-3 flex-shrink-0 flex-wrap">
+      <div className="bg-[#0B1C30] border-b border-[#1A3355] flex items-center gap-3 px-4 md:px-6 py-3 flex-shrink-0 flex-wrap">
         <h1 className="text-[17px] font-bold uppercase tracking-wide" style={{ color: BLUE }}>Historique des transactions</h1>
         <div className="flex-1" />
         <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-          className="bg-white border border-divider rounded-lg px-2.5 py-1.5 text-sm outline-none">
+          className="bg-[#112440] border border-[#1A3355] rounded-lg px-2.5 py-1.5 text-sm outline-none text-[#F0EDE8]">
           {categories.map(c => <option key={c} value={c}>{c === 'Tous' ? 'Toutes les catégories' : c}</option>)}
         </select>
-        <div className="flex items-center rounded-lg border border-divider p-0.5">
+        <div className="flex items-center rounded-lg border border-[#1A3355] p-0.5">
           {(['tous', 'credit', 'debit'] as const).map(f => (
             <button key={f} onClick={() => setTypeFilter(f)}
               className="rounded-md px-3 py-1 text-xs font-semibold transition-colors"
-              style={typeFilter === f ? { background: BLUE, color: '#fff' } : { color: '#8A93A3' }}>
+              style={typeFilter === f ? { background: BLUE, color: '#060D1A' } : { color: 'var(--p-muted)' }}>
               {f === 'tous' ? 'Tous' : f === 'credit' ? 'Entrées' : 'Sorties'}
             </button>
           ))}
@@ -1966,72 +2607,72 @@ function TransactionsTab() {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
       {/* Cartes de synthèse */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
+        <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
           <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#22C55E18' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 7 7 17M17 17H7V7" /></svg>
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-text-grey">Total entrées</p>
-            <p className="text-base font-bold text-text-dark truncate">{fmtPrix(totalIn)}</p>
+            <p className="text-xs text-[#8A9BB5]">Total entrées</p>
+            <p className="text-base font-bold text-[#F0EDE8] truncate">{fmtPrix(totalIn)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
+        <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
           <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#EF444418' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h10v10M7 17 17 7" /></svg>
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-text-grey">Total sorties</p>
-            <p className="text-base font-bold text-text-dark truncate">{fmtPrix(totalOut)}</p>
+            <p className="text-xs text-[#8A9BB5]">Total sorties</p>
+            <p className="text-base font-bold text-[#F0EDE8] truncate">{fmtPrix(totalOut)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
+        <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
           <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '18' }}>
             <span style={{ color: BLUE }}><IcTrendUp /></span>
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-text-grey">Plus grosse</p>
-            <p className="text-base font-bold text-text-dark truncate">{fmtPrix(largest)}</p>
+            <p className="text-xs text-[#8A9BB5]">Plus grosse</p>
+            <p className="text-base font-bold text-[#F0EDE8] truncate">{fmtPrix(largest)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl card-soft p-3.5">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#F1F3F6' }}>
-            <span className="text-text-grey font-bold text-sm">#</span>
+        <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#1A3355' }}>
+            <span className="text-[#8A9BB5] font-bold text-sm">#</span>
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-text-grey">Nombre</p>
-            <p className="text-base font-bold text-text-dark truncate">{transactions.length}</p>
+            <p className="text-xs text-[#8A9BB5]">Nombre</p>
+            <p className="text-base font-bold text-[#F0EDE8] truncate">{transactions.length}</p>
           </div>
         </div>
       </div>
 
       {/* Recherche */}
       <div className="relative mb-4">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-grey">
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8A9BB5]">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         </span>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une transaction…"
-          className="w-full bg-white border border-divider rounded-lg pl-8 pr-3 py-2 text-sm outline-none focus:border-primary" />
+          className="w-full bg-[#112440] border border-[#1A3355] rounded-lg pl-8 pr-3 py-2 text-sm outline-none text-[#F0EDE8] placeholder:text-[#8A9BB5] focus:border-[#4B6BFF]" />
       </div>
 
       {/* Tableau */}
       <div className="rounded-xl overflow-hidden card-soft">
         {loading ? (
-          <div className="p-4 space-y-2">{[1, 2, 3, 4].map(n => <div key={n} className="h-14 skeleton rounded-xl" />)}</div>
+          <div className="p-4 space-y-2">{[1, 2, 3, 4].map(n => <div key={n} className="h-14 skeleton-dark rounded-xl" />)}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 text-center">
-            <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
-            <p className="text-sm text-text-grey px-6">{search || catFilter !== 'Tous' || typeFilter !== 'tous' ? 'Rien ne correspond à ces filtres.' : 'Vos revenus (loyers, frais de visite, intégrations) apparaîtront ici.'}</p>
+            <p className="font-bold text-[#F0EDE8] mb-1">Aucune transaction</p>
+            <p className="text-sm text-[#8A9BB5] px-6">{search || catFilter !== 'Tous' || typeFilter !== 'tous' ? 'Rien ne correspond à ces filtres.' : 'Vos revenus (loyers, frais de visite, intégrations) apparaîtront ici.'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #EEF1F5' }}>
-                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5">Transaction</th>
-                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5 hidden sm:table-cell">Référence</th>
-                  <th className="text-right font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5">Montant</th>
-                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5 hidden md:table-cell">Date</th>
-                  <th className="text-left font-semibold text-text-grey text-[11px] uppercase tracking-wide px-4 py-2.5 hidden lg:table-cell">Statut</th>
+                <tr style={{ background: 'var(--p-surface)', borderBottom: `1px solid var(--p-border)` }}>
+                  <th className="text-left font-semibold text-[#8A9BB5] text-[11px] uppercase tracking-wide px-4 py-2.5">Transaction</th>
+                  <th className="text-left font-semibold text-[#8A9BB5] text-[11px] uppercase tracking-wide px-4 py-2.5 hidden sm:table-cell">Référence</th>
+                  <th className="text-right font-semibold text-[#8A9BB5] text-[11px] uppercase tracking-wide px-4 py-2.5">Montant</th>
+                  <th className="text-left font-semibold text-[#8A9BB5] text-[11px] uppercase tracking-wide px-4 py-2.5 hidden md:table-cell">Date</th>
+                  <th className="text-left font-semibold text-[#8A9BB5] text-[11px] uppercase tracking-wide px-4 py-2.5 hidden lg:table-cell">Statut</th>
                 </tr>
               </thead>
               <tbody>
@@ -2040,21 +2681,21 @@ function TransactionsTab() {
                   const cat = categorieTransaction(t.description)
                   const statut = txStatutMeta(t.statut)
                   return (
-                    <tr key={t.id || i} onClick={() => setDetailTx(t)} className="cursor-pointer hover:bg-surface-g transition-colors"
-                      style={{ borderBottom: i < filtered.length - 1 ? '1px solid #F1F3F6' : undefined }}>
+                    <tr key={t.id || i} onClick={() => setDetailTx(t)} className="cursor-pointer hover:bg-[#0B1C30] transition-colors"
+                      style={{ borderBottom: i < filtered.length - 1 ? `1px solid var(--p-border)` : undefined }}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>
                             <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-text-dark text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
+                            <p className="font-semibold text-[#F0EDE8] text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
                             <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className="font-mono text-xs text-text-grey">{t.reference || '—'}</span>
+                        <span className="font-mono text-xs text-[#8A9BB5]">{t.reference || '—'}</span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
@@ -2062,7 +2703,7 @@ function TransactionsTab() {
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-xs text-text-grey">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        <span className="text-xs text-[#8A9BB5]">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: statut.color + '18', color: statut.color }}>{statut.label}</span>
@@ -2177,8 +2818,8 @@ function RolesTab() {
     <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-8">
       <div className="xl:max-w-4xl xl:mx-auto">
         <div className="mb-5">
-          <p className="text-lg font-bold text-text-dark">Mes espaces &amp; rôles</p>
-          <p className="text-sm text-text-grey mt-0.5">Basculez entre vos espaces ou activez-en un nouveau — jusqu'à 3 rôles actifs simultanément.</p>
+          <p className="text-lg font-bold text-[#F0EDE8]">Mes espaces &amp; rôles</p>
+          <p className="text-sm text-[#8A9BB5] mt-0.5">Basculez entre vos espaces ou activez-en un nouveau — jusqu'à 3 rôles actifs simultanément.</p>
         </div>
 
         {error && (
@@ -2208,7 +2849,7 @@ function RolesTab() {
             const statusLabel = isActiveNow ? 'Espace actuel' : isPrincipal ? 'Rôle principal' : isActif ? 'Actif' : null
 
             return (
-              <div key={r.key} className="rounded-2xl overflow-hidden bg-white transition-shadow hover:shadow-md"
+              <div key={r.key} className="rounded-2xl overflow-hidden bg-[#112440] transition-shadow hover:shadow-md"
                 style={{
                   border: isActiveNow ? `1.5px solid ${r.color}` : '1px solid rgba(0,0,0,0.07)',
                   boxShadow: isActiveNow ? `0 4px 16px ${r.color}25` : '0 1px 3px rgba(0,0,0,0.03)',
@@ -2216,7 +2857,7 @@ function RolesTab() {
                 <div className="p-4 flex items-start gap-3">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{
-                      background: isDisponible ? '#F1F3F6' : `linear-gradient(135deg, ${r.color}, ${shade(r.color, 0.3)})`,
+                      background: isDisponible ? '#1A3355' : `linear-gradient(135deg, ${r.color}, ${shade(r.color, 0.3)})`,
                       color: isDisponible ? '#8A93A3' : '#fff',
                       boxShadow: isDisponible ? undefined : `0 4px 10px ${r.color}40`,
                     }}>
@@ -2224,7 +2865,7 @@ function RolesTab() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-bold text-text-dark text-sm">{r.label}</p>
+                      <p className="font-bold text-[#F0EDE8] text-sm">{r.label}</p>
                       {statusLabel && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
                           style={{ background: isActiveNow ? r.color : r.color + '18', color: isActiveNow ? '#fff' : r.color }}>
@@ -2232,7 +2873,7 @@ function RolesTab() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-text-grey mt-0.5 leading-relaxed">{r.desc}</p>
+                    <p className="text-xs text-[#8A9BB5] mt-0.5 leading-relaxed">{r.desc}</p>
                   </div>
                 </div>
 
@@ -2244,7 +2885,7 @@ function RolesTab() {
                       Activer ce rôle
                     </button>
                   ) : isDisponible ? (
-                    <p className="flex-1 py-2.5 text-center text-[11px] text-text-grey">Non disponible pour un compte propriétaire</p>
+                    <p className="flex-1 py-2.5 text-center text-[11px] text-[#8A9BB5]">Non disponible pour un compte propriétaire</p>
                   ) : (
                     <>
                       {!isActiveNow && (
@@ -2266,13 +2907,13 @@ function RolesTab() {
                 </div>
 
                 {activating === r.key && (
-                  <div className="mx-4 mb-4 px-4 pt-3 pb-4 rounded-xl space-y-3" style={{ background: '#F8FAFC', border: '1px solid rgba(0,0,0,0.06)' }}>
-                    <p className="text-sm font-semibold text-text-dark">Justification (optionnelle)</p>
+                  <div className="mx-4 mb-4 px-4 pt-3 pb-4 rounded-xl space-y-3" style={{ background: 'var(--p-card)', border: `1px solid var(--p-border)` }}>
+                    <p className="text-sm font-semibold text-[#F0EDE8]">Justification (optionnelle)</p>
                     <textarea value={justif} onChange={e => setJustif(e.target.value)} rows={2}
                       placeholder="Ex: Je souhaite aussi proposer des biens à la vente"
-                      className="w-full border border-divider rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-primary bg-white" />
+                      className="w-full border border-[#1A3355] rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-[#4B6BFF] bg-[#0B1C30] text-[#F0EDE8] placeholder:text-[#8A9BB5]" />
                     <div className="flex gap-2">
-                      <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey bg-white">Annuler</button>
+                      <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-[#1A3355] text-sm font-semibold text-[#8A9BB5] bg-[#0B1C30]">Annuler</button>
                       <button onClick={() => activerRole(r.key)} disabled={busy}
                         className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
                         style={{ background: r.color }}>
@@ -2290,7 +2931,7 @@ function RolesTab() {
   )
 }
 
-function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles }: { user: any; biens: any[]; visites: any[]; onOpenTransactions: () => void; onOpenRoles: () => void }) {
+function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onScrolled }: { user: any; biens: any[]; visites: any[]; onOpenTransactions: () => void; onOpenRoles: () => void; onScrolled?: (v: boolean) => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)
@@ -2302,7 +2943,6 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles }: { 
   const tauxPublication = biens.length > 0 ? Math.round((approuves / biens.length) * 100) : 0
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
-  const typesUniques = Array.from(new Set(biens.map(b => typeLabel(b.type))))
 
   const visitesConfirmees = visites.filter(v => v.statut === 'confirmee').length
   const visitesEnAttente = visites.filter(v => v.statut === 'en_attente').length
@@ -2312,99 +2952,151 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles }: { 
     ? new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
     : null
 
+  const kpis = [
+    { label: 'Score', value: `${Math.round(score)}`, color: BLUE },
+    { label: 'Occupation', value: `${tauxOccupation}%`, color: '#16A34A' },
+    { label: 'Publiés', value: `${tauxPublication}%`, color: '#F59E0B' },
+  ]
+
+  const menuItems = [
+    { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE, onClick: () => setEditOpen(true) },
+    { icon: <IcShield />, label: 'Changer le mot de passe', color: '#7B2FBE', onClick: () => setPasswordOpen(true) },
+    { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#F59E0B', onClick: onOpenRoles },
+    { icon: <IcPayments />, label: 'Historique des transactions', color: '#16A34A', onClick: onOpenTransactions },
+  ]
+
   return (
-    <div className="flex-1 overflow-y-auto pb-10">
-      <div className="px-4 md:px-8 xl:px-10 py-5 md:py-8 xl:max-w-5xl xl:mx-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-5 items-start">
+    <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
+      <div className="flex-1 overflow-y-auto pb-10"
+        onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="px-5 pt-4 pb-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>COMPTE</p>
+            <h2 className="text-[24px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>Mon profil</h2>
+          </div>
 
-          {/* ── Colonne gauche : carte profil + menu ── */}
-          <div className="space-y-5">
-            <div className="card-soft rounded-2xl overflow-hidden">
-              <div className="h-16" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }} />
-              <div className="px-5 pb-5">
-                <div className="-mt-10 mb-3">
+          <div className="px-4 space-y-3">
+            {/* Carte hero — version claire du gradient mobile [#0D1117→#1A1F5E→#0F3460] */}
+            <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 20px rgba(99,102,241,0.14)' }}>
+              <div className="relative px-5 pt-5 pb-7"
+                style={{ background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 55%, #DBEAFE 100%)' }}>
+                {/* Cercles décoratifs */}
+                <div className="absolute top-0 right-0 w-52 h-52 rounded-full pointer-events-none"
+                  style={{ background: 'rgba(99,102,241,0.08)', transform: 'translate(35%, -35%)' }} />
+                <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none"
+                  style={{ background: 'rgba(59,130,246,0.07)', transform: 'translate(-35%, 35%)' }} />
+                {/* Badge rôle */}
+                <div className="flex justify-end mb-5">
+                  <span className="px-3 py-1.5 rounded-full text-[11px] font-bold"
+                    style={{ background: 'rgba(99,102,241,0.14)', color: '#3730A3' }}>Propriétaire</span>
+                </div>
+                {/* Avatar + infos */}
+                <div className="flex flex-col items-center text-center">
                   {user?.photo_profil
-                    ? <img src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md" />
-                    : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-md" style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})` }}>{initials}</div>}
+                    ? <img src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-lg mb-3"
+                        style={{ border: '3px solid rgba(255,255,255,0.9)' }} />
+                    : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg"
+                        style={{ background: 'linear-gradient(135deg, #4B6BFF, #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
+                        {initials}
+                      </div>
+                  }
+                  <p className="font-black text-[19px] leading-tight" style={{ color: '#1E1B4B' }}>{user?.prenom} {user?.nom}</p>
+                  <p className="text-[13px] mt-1" style={{ color: '#4338CA' }}>{user?.email || user?.telephone}</p>
+                  {memberSince && (
+                    <p className="text-[12px] mt-2" style={{ color: '#6366F1' }}>Membre depuis {memberSince}</p>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-bold text-text-dark text-lg truncate">{user?.prenom} {user?.nom}</p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0" style={{ background: BLUE + '15', color: BLUE }}>Propriétaire</span>
-                </div>
-                <p className="text-sm text-text-grey mt-0.5 truncate">{user?.email || user?.telephone}</p>
-                {typesUniques.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3.5">
-                    {typesUniques.map(t => (
-                      <span key={t} className="px-2.5 py-1 rounded-full text-[11px] font-semibold" style={{ background: '#F1F3F6', color: '#5F6B7A' }}>{t}</span>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <button onClick={() => setEditOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-                <span className="text-sm font-semibold text-text-dark">Modifier le profil</span>
-                <IcChevron />
+          {/* KPI strip */}
+          <div className="flex rounded-2xl overflow-hidden"
+            style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            {kpis.map((k, i) => (
+              <div key={k.label} className="flex-1 flex flex-col items-center justify-center py-5 px-2 text-center"
+                style={{ borderLeft: i > 0 ? '1px solid var(--p-border)' : 'none' }}>
+                <p className="text-[26px] font-black leading-none" style={{ color: k.color }}>{k.value}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest mt-1.5" style={{ color: 'var(--p-muted)' }}>{k.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Menu actions */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            {menuItems.map((item, i) => (
+              <button key={i} onClick={item.onClick}
+                className="w-full flex items-center gap-3.5 px-4 py-4 text-left transition-colors"
+                style={{ borderTop: i > 0 ? '1px solid var(--p-border)' : 'none' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--p-deep)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: item.color + '14', color: item.color }}>
+                  {item.icon}
+                </div>
+                <p className="flex-1 text-[14px] font-semibold" style={{ color: 'var(--p-text)' }}>{item.label}</p>
+                <span style={{ color: 'var(--p-muted)' }}><IcChevron /></span>
               </button>
-              <button onClick={() => setPasswordOpen(true)} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-                <span className="text-sm font-semibold text-text-dark">Changer le mot de passe</span>
-                <IcChevron />
-              </button>
-              <button onClick={onOpenRoles} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-                <span className="text-sm font-semibold text-text-dark">Gérer mes rôles</span>
-                <IcChevron />
-              </button>
-              <button onClick={onOpenTransactions} className="w-full card-soft rounded-xl px-4 py-3.5 flex items-center justify-between">
-                <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
-                <IcChevron />
-              </button>
-              <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
-                Se déconnecter
-              </button>
+            ))}
+          </div>
+
+          {/* Visites */}
+          <div className="rounded-2xl p-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] mb-4" style={{ color: 'var(--p-muted)' }}>MES RÉSERVATIONS</p>
+            <div className="flex">
+              {[
+                { label: 'Total', value: visites.length, color: BLUE },
+                { label: 'Confirmées', value: visitesConfirmees, color: '#16A34A' },
+                { label: 'En attente', value: visitesEnAttente, color: '#F59E0B' },
+                { label: 'Effectuées', value: visitesEffectuees, color: '#7B2FBE' },
+              ].map((s, i) => (
+                <div key={s.label} className="flex-1 min-w-0 flex flex-col items-center justify-center"
+                  style={{ borderLeft: i > 0 ? '1px solid var(--p-border)' : 'none' }}>
+                  <p className="text-[22px] font-black leading-none" style={{ color: s.color }}>{s.value}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mt-1.5 truncate px-1 text-center" style={{ color: 'var(--p-muted)' }}>{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* ── Colonne droite : indicateurs ── */}
-          <div className="space-y-5">
-            <div className="flex gap-3">
-              <PercentCard value={score} label="Score de crédibilité" color={BLUE} />
-              <PercentCard value={tauxOccupation} label="Taux d'occupation" color="#22C55E" />
-              <PercentCard value={tauxPublication} label="Biens publiés" color="#F59E0B" />
+          {/* Biens */}
+          <div className="rounded-2xl p-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] mb-4" style={{ color: 'var(--p-muted)' }}>MES BIENS</p>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Total', value: biens.length, color: BLUE },
+                { label: 'Publiés', value: approuves, color: '#16A34A' },
+                { label: 'Occupés', value: biensOccupes, color: '#F59E0B' },
+              ].map(s => (
+                <div key={s.label} className="flex flex-col items-center justify-center py-3 rounded-xl"
+                  style={{ background: s.color + '0E' }}>
+                  <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: 'var(--p-muted)' }}>{s.label}</p>
+                </div>
+              ))}
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="card-soft rounded-2xl p-5 flex flex-col items-center text-center">
-                <p className="font-bold text-text-dark text-sm self-start">Score de crédibilité</p>
-                <p className="text-xs text-text-grey self-start mb-4">Sur 100 points</p>
-                <RadialGauge value={score} color={BLUE} />
+            {user?.nb_etoiles != null && (
+              <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid var(--p-border)' }}>
+                <span style={{ color: '#F59E0B' }}><IcStar /></span>
+                <p className="text-[13px] font-bold" style={{ color: 'var(--p-text)' }}>
+                  {user.nb_etoiles} étoile{user.nb_etoiles !== 1 ? 's' : ''}
+                </p>
+                <p className="text-[12px]" style={{ color: 'var(--p-muted)' }}>note moyenne clients</p>
               </div>
-              <div className="card-soft rounded-2xl p-5">
-                <p className="font-bold text-text-dark text-sm">Vue d'ensemble</p>
-                <p className="text-xs text-text-grey mb-1">Points clés de votre profil</p>
-                <HighlightRow icon={<IcHome />} color={BLUE}
-                  title={`${approuves} bien${approuves > 1 ? 's' : ''} publié${approuves > 1 ? 's' : ''}`}
-                  subtitle={`Sur ${biens.length} au total`} />
-                <HighlightRow icon={<IcStar />} color="#F59E0B"
-                  title={`${user?.nb_etoiles ?? 0} étoile${(user?.nb_etoiles ?? 0) > 1 ? 's' : ''}`}
-                  subtitle="Note moyenne reçue des clients" />
-                <HighlightRow icon={<IcCal />} color="#7B2FBE" title="Membre REFUGE"
-                  subtitle={memberSince ? `Depuis ${memberSince}` : 'Bienvenue !'} last />
-              </div>
-            </div>
-
-            <div className="card-soft rounded-2xl p-5">
-              <p className="font-bold text-text-dark text-sm mb-4">Mes visites</p>
-              <div className="flex">
-                <ActivityStat label="Toutes" value={visites.length} color={BLUE} />
-                <ActivityStat label="Confirmées" value={visitesConfirmees} color="#22C55E" />
-                <ActivityStat label="En attente" value={visitesEnAttente} color="#F59E0B" />
-                <ActivityStat label="Effectuées" value={visitesEffectuees} color="#7B2FBE" />
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
+
+          {/* Déconnexion */}
+          <button onClick={() => { logout(); navigate('/login') }}
+            className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
+            style={{ background: '#FFF0F0', color: '#EF4444', border: '1px solid #EF444422' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#FFE4E4')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#FFF0F0')}>
+            Se déconnecter
+          </button>
+          </div>{/* /space-y-3 */}
+        </div>{/* /max-w-2xl */}
+      </div>{/* /overflow-y-auto */}
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
       <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
     </div>
@@ -2416,6 +3108,12 @@ export default function ProprietaireDashboard() {
   const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const { unreadMessages, unreadAlertes, refresh: refreshNotifications } = useNotifications()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [isDark, setIsDark] = useState(false)
+  const fromDetail = !!(location.state as any)?.fromDetail
+  const [isScrolled, setIsScrolled] = useState(fromDetail)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const tabMounted = useRef(false)
   const [rolesMenuOpen, setRolesMenuOpen] = useState<'sidebar' | 'topbar' | null>(null)
   // Le trigger et le panneau du menu ne se touchent pas (marge de quelques px
   // entre les deux) : sans délai, quitter le trigger pour aller vers le
@@ -2436,19 +3134,30 @@ export default function ProprietaireDashboard() {
   // au survol — la <nav> du menu est overflow-y-auto, ce qui rend son
   // overflow-x implicitement non "visible" (spec CSS) et couperait un
   // absolute positionné "left-full" en dehors de sa boîte.
-  const [sidebarMenuPos, setSidebarMenuPos] = useState<{ top: number; left: number } | null>(null)
-  const sidebarRolesRef = useRef<HTMLDivElement>(null)
-  const openSidebarRolesMenu = () => {
-    const rect = sidebarRolesRef.current?.getBoundingClientRect()
-    if (rect) setSidebarMenuPos({ top: rect.top, left: rect.right + 8 })
-    openRolesMenu('sidebar')
-  }
   const goToRoleSpace = (role: string) => {
     setActiveRole(role)
     navigate(ROLE_ROUTES[role] || '/')
   }
-  const [tab, setTab] = useState<Tab>('tableau')
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [tab, setTab] = useState<Tab>((location.state as any)?.tab ?? 'tableau')
+  // Ignore le premier montage : isScrolled est déjà à la bonne valeur initiale
+  // (pill si on vient du détail, false sinon). Les changements de tab suivants
+  // remettent bien à zéro.
+  useEffect(() => {
+    if (!tabMounted.current) { tabMounted.current = true; return }
+    setIsScrolled(false)
+    setMenuOpen(false)
+  }, [tab])
+
+  // Animation pill → pleine largeur à l'arrivée depuis la page détail
+  useEffect(() => {
+    if (!fromDetail) return
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setIsScrolled(false))
+    })
+    return () => cancelAnimationFrame(id)
+  }, [])
+  const [selectedBienIdx, setSelectedBienIdx] = useState(0)
+
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -2535,346 +3244,436 @@ export default function ProprietaireDashboard() {
 
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
+  const biensApprouves = biens.filter(b => b.statut_moderation === 'approuve').length
+  const biensEnAttente = biens.filter(b => b.statut_moderation === 'en_attente').length
+  const biensRejetes   = biens.filter(b => b.statut_moderation === 'rejete').length
 
   const lastUpdatedLabel = lastUpdated
     ? lastUpdated.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     : '—'
 
   return (
-    <div className="flex flex-col h-full bg-[#F4F6FA] relative">
+    <div className={`proprio-root${isDark ? '' : ' proprio-light'} flex flex-col h-full`}
+      style={{ background: 'var(--p-deep)' }}>
 
-      {/* Header — topbar façon admin, pleine largeur (au-dessus de la sidebar) */}
-      <div className="flex-shrink-0 px-4 md:px-8 xl:px-10 h-16 bg-white border-b border-divider">
-        <div className="h-full flex items-center gap-3.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <img src={logoUrl} alt="REFUGE" className="w-9 h-9 rounded-[10px] object-contain flex-shrink-0" />
-            <span className="hidden sm:block font-extrabold text-base tracking-tight flex-shrink-0" style={{ color: '#00AEEF' }}>REFUGE</span>
-            <button onClick={() => setSidebarCollapsed(c => !c)}
-              title={sidebarCollapsed ? 'Agrandir le menu' : 'Réduire le menu'}
-              className="hidden xl:flex w-8 h-8 rounded-lg border items-center justify-center flex-shrink-0 transition-colors hover:bg-surface-g"
-              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: '#5F6B7A' }}>
-              {sidebarCollapsed ? <IcChevronRight /> : <IcChevronLeft />}
+      {/* ── Navbar animée (HeroHeader pattern) ── */}
+      <header className={`fixed top-0 left-0 right-0 z-50 pointer-events-none transition-[padding] duration-300${isScrolled ? ' px-2' : ''}`}>
+        <nav
+          className="mx-auto pointer-events-auto border backdrop-blur-xl transition-all duration-300"
+          style={{
+            background: isScrolled ? 'var(--p-surface-glass)' : 'var(--p-surface)',
+            borderColor: 'var(--p-border)',
+            borderBottomWidth: isScrolled ? '1px' : '1px',
+            borderTopWidth: isScrolled ? '1px' : '0px',
+            borderLeftWidth: isScrolled ? '1px' : '0px',
+            borderRightWidth: isScrolled ? '1px' : '0px',
+            borderRadius: isScrolled ? '1rem' : '0px',
+            marginTop: isScrolled ? '8px' : '0px',
+            maxWidth: isScrolled ? '72rem' : '100%',
+            paddingLeft: isScrolled ? '1rem' : '0.75rem',
+            paddingRight: isScrolled ? '1rem' : '0.75rem',
+            boxShadow: isScrolled ? '0 8px 32px rgba(0,0,0,0.14)' : '0 1px 0 rgba(212,168,71,0.15)',
+          }}>
+          <div className="flex items-center gap-3 py-3">
+
+            {/* Logo */}
+            <button onClick={() => { setTab('tableau'); setIsScrolled(false) }} className="flex items-center gap-2 flex-shrink-0">
+              <img src={logoUrl} alt="REFUGE" className="w-8 h-8 rounded-[8px] object-contain" />
+              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE }}>REFUGE</span>
             </button>
-          </div>
 
-          <div className="flex-1" />
+            {/* Nav tabs — desktop */}
+            <div className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
+              {NAV_ITEMS.map(item => {
+                const active = tab === item.key
+                const badge = item.key === 'messages' ? unreadMessages : item.key === 'reservations' ? reservationsEnAttente : 0
+                return (
+                  <button key={item.key}
+                    onClick={() => { setTab(item.key); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
+                    className="relative whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
+                    style={{
+                      ...(active ? { color: BLUE, background: BLUE + '14' } : { color: 'var(--p-muted)' }),
+                      minHeight: '36px',
+                      transition: 'color 0.2s ease, background 0.2s ease',
+                    }}>
+                    {item.label}
+                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: '#FF3B30' }} />}
+                  </button>
+                )
+              })}
+            </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="relative flex items-center gap-2.5"
-              onMouseEnter={() => openRolesMenu('topbar')}
-              onMouseLeave={scheduleCloseRolesMenu}>
-              <button onClick={() => setTab('profil')} title="Mon profil"
-                className="flex items-center gap-2.5 rounded-[10px] transition-colors hover:bg-surface-g px-1.5 py-1 -mx-1.5 -my-1">
-                <div className="text-right hidden sm:block">
-                  <p className="font-bold text-text-dark text-[13px] leading-tight truncate max-w-[160px]">
-                    {loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}
-                  </p>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#8A93A3' }}>Propriétaire</p>
-                </div>
-                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ background: BLUE }}>
-                  {loading ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : initials}
+            {/* Right actions */}
+            <div className="flex items-center gap-2 ml-auto">
+              {/* Theme toggle */}
+              <button onClick={() => setIsDark(d => !d)} title={isDark ? 'Mode clair' : 'Mode sombre'} aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+                className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: BLUE, minWidth: '32px', minHeight: '32px' }}>
+                {isDark
+                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m8.66-9h-1M4.34 12H3.34m14.66-6.34-.7.7M6.7 17.3l-.7.7m12.02.02-.7-.7M6.7 6.7 6 6m6 3a3 3 0 110 6 3 3 0 010-6z"/></svg>
+                  : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                }
+              </button>
+              {/* Alertes */}
+              <button onClick={() => navigate('/notifications')} title="Alertes"
+                className="relative w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+              </button>
+              {/* Profile + roles flyout */}
+              <div className="relative" onMouseEnter={() => openRolesMenu('topbar')} onMouseLeave={scheduleCloseRolesMenu}>
+                <button onClick={() => setTab('profil')}
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 border transition-colors"
+                  style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
+                  <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style={{ background: BLUE }}>
+                    {loading ? '…' : initials}
+                  </div>
+                  <span className="hidden lg:block text-[13px] font-semibold truncate max-w-[96px]" style={{ color: 'var(--p-text)' }}>
+                    {loading ? '…' : me?.prenom || ''}
+                  </span>
+                </button>
+                {rolesMenuOpen === 'topbar' && rolesActifs.length > 1 && (
+                  <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border py-1.5 z-30"
+                    style={{ background: 'var(--p-card)', borderColor: 'var(--p-border)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
+                    onMouseEnter={() => openRolesMenu('topbar')} onMouseLeave={scheduleCloseRolesMenu}>
+                    <p className="px-3.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--p-muted)' }}>Mes espaces</p>
+                    {rolesActifs.map(r => (
+                      <button key={r} onClick={() => goToRoleSpace(r)}
+                        className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left transition-colors"
+                        style={{ color: r === activeRole ? BLUE : 'var(--p-text)', fontWeight: r === activeRole ? 700 : 500 }}>
+                        {ROLE_LABELS[r] || r}
+                        {r === activeRole && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE + '22', color: BLUE }}>Actuel</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Logout — desktop */}
+              <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
+                className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: '#EF4444' }}>
+                <IcLogout />
+              </button>
+              {/* Hamburger — mobile */}
+              <button onClick={() => setMenuOpen(o => !o)}
+                className="xl:hidden w-8 h-8 rounded-lg flex items-center justify-center border"
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
+                <div style={{ width: 18, height: 14, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <motion.span animate={menuOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }} transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }} style={{ display: 'block', height: 2, borderRadius: 2, background: 'currentColor', transformOrigin: 'center' }} />
+                  <motion.span animate={menuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }} transition={{ duration: 0.22, ease: 'easeInOut' }} style={{ display: 'block', height: 2, borderRadius: 2, background: 'currentColor' }} />
+                  <motion.span animate={menuOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }} transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }} style={{ display: 'block', height: 2, borderRadius: 2, background: 'currentColor', transformOrigin: 'center' }} />
                 </div>
               </button>
-              {rolesMenuOpen === 'topbar' && rolesActifs.length > 1 && (
-                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-white shadow-lg border border-divider py-1.5 z-30"
-                  onMouseEnter={() => openRolesMenu('topbar')}
-                  onMouseLeave={scheduleCloseRolesMenu}>
-                  <p className="px-3.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-text-grey">Mes espaces actifs</p>
-                  {rolesActifs.map(r => (
-                    <button key={r} onClick={() => goToRoleSpace(r)}
-                      className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left hover:bg-surface-g transition-colors">
-                      <span style={{ color: r === activeRole ? BLUE : '#374151', fontWeight: r === activeRole ? 700 : 500 }}>{ROLE_LABELS[r] || r}</span>
-                      {r === activeRole && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE + '15', color: BLUE }}>Actuel</span>
-                      )}
+            </div>
+          </div>
+
+          {/* Mobile dropdown */}
+          <AnimatePresence initial={false}>
+            {menuOpen && (
+              <motion.div
+                className="xl:hidden overflow-hidden"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <div className="border-t pb-4 pt-3" style={{ borderColor: 'var(--p-border)' }}>
+                  <div className="grid grid-cols-4 gap-1">
+                    {NAV_ITEMS.map(item => {
+                      const active = tab === item.key
+                      return (
+                        <button key={item.key}
+                          onClick={() => { setTab(item.key); setMenuOpen(false); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
+                          className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium transition-all"
+                          style={active ? { color: BLUE, background: BLUE + '14', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
+                          {item.icon}
+                          <span className="truncate w-full text-center px-1">{item.label}</span>
+                        </button>
+                      )
+                    })}
+                    <button onClick={() => { logout(); navigate('/login') }}
+                      className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium"
+                      style={{ color: '#EF4444' }}>
+                      <IcLogout />
+                      <span>Quitter</span>
                     </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </nav>
+      </header>
+
+      {/* ── Content area ── */}
+      <div className="flex-1 overflow-hidden flex flex-col" style={{ paddingTop: '4rem' }}>
+        <div className="flex-1 overflow-hidden flex flex-col">
+        {tab === 'tableau' && (
+          <div className="flex-1 overflow-y-auto overflow-x-hidden" onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 50)}>
+            {/* ── Hero photo ── */}
+            <div className="relative overflow-hidden" style={{ minHeight: '380px' }}>
+              <img src={villaImg} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} />
+              {/* Dégradé sombre — lisibilité texte + fondu vers le fond */}
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(6,13,26,0.45) 0%, rgba(6,13,26,0.72) 50%, #060D1A 100%)' }} />
+              {/* Accent gold ambiant en haut-gauche */}
+              <div className="absolute -top-10 -left-10 w-72 h-72 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: BLUE }} />
+
+              <div className="relative px-5 md:px-8 xl:px-10 pt-10 pb-12">
+                {/* Eyebrow */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-px w-6" style={{ background: '#fff' }} />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ color: '#fff' }}>Espace propriétaire</p>
+                </div>
+
+                <h1 className="text-[32px] md:text-[40px] font-black tracking-tight leading-[1.1] text-white">
+                  Bonjour{me?.prenom ? `,` : ''}<br />
+                  {me?.prenom && <span style={{ color: '#fff' }}>{me.prenom}</span>}
+                  {!me?.prenom && <span style={{ color: '#fff' }}>Propriétaire</span>}
+                </h1>
+                <p className="text-[12px] mt-2.5 text-white/50 font-medium">
+                  {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+
+                {/* Mini stats pills glassmorphic */}
+                <div className="flex gap-3 mt-7 overflow-x-auto scrollbar-hide pb-0.5">
+                  {[
+                    { icon: <IcHome />, value: `${biens.length}`, label: 'Biens', color: BLUE },
+                    { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: '#F59E0B' },
+                    { icon: <IcShield />, value: `${score}`, label: 'Score', color: '#22C55E' },
+                    { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>, value: `${totalVues}`, label: 'Vues', color: '#A78BFA' },
+                  ].map(s => (
+                    <div key={s.label} className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3"
+                      style={{ background: 'rgba(6,13,26,0.55)', border: `1px solid ${BLUE}28`, backdropFilter: 'blur(16px)', minWidth: '68px', minHeight: '44px' }}>
+                      <span style={{ color: s.color }}>{s.icon}</span>
+                      <p className="font-black text-[18px] leading-none text-white">{s.value}</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>{s.label}</p>
+                    </div>
                   ))}
                 </div>
-              )}
-            </div>
-            <button onClick={() => navigate('/notifications')} title="Alertes"
-              className="relative w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
-              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: BLUE }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-              {unreadAlertes > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white" style={{ background: '#FF3B30' }}>
-                  {unreadAlertes > 9 ? '9+' : unreadAlertes}
-                </span>
-              )}
-            </button>
-            <button onClick={() => { setTab('messages'); refreshNotifications() }} title="Messagerie"
-              className="relative w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
-              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: BLUE }}>
-              <IcMessage />
-              {unreadMessages > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white" style={{ background: '#FF3B30' }}>
-                  {unreadMessages > 9 ? '9+' : unreadMessages}
-                </span>
-              )}
-            </button>
-            <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
-              className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 border transition-colors hover:bg-surface-g"
-              style={{ borderColor: '#E8EAED', background: '#F8FAFC', color: '#EF4444' }}>
-              <IcLogout />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Shell — sidebar + contenu, sous le topbar pleine largeur */}
-      <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
-
-      {/* Sidebar (desktop only) — liste plate façon immo-web-admin : fond blanc,
-          items icône+libellé, item actif en fond teinté + barre d'accent à gauche. */}
-      <aside className={`hidden xl:flex xl:flex-col flex-shrink-0 bg-white border-r border-divider transition-[width] duration-200 ${sidebarCollapsed ? 'xl:w-[4.5rem]' : 'xl:w-64 2xl:w-72'}`}>
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-          {SIDEBAR_NAV.map(item => {
-            const active = item.tab != null && tab === item.tab
-            const badge = item.key === 'reservations' ? reservationsEnAttente : item.key === 'messages' ? unreadMessages : 0
-            const button = (
-              <button onClick={() => { if (item.tab) { setTab(item.tab); if (item.tab === 'messages') refreshNotifications() } else navigate(item.to!) }}
-                title={sidebarCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-sm transition-colors relative ${sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'}`}
-                style={active ? { background: BLUE + '15', color: BLUE, fontWeight: 600 } : { color: '#5F6B7A', fontWeight: 500 }}>
-                {active && !sidebarCollapsed && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full" style={{ background: BLUE }} />}
-                <span className="relative flex-shrink-0" style={{ color: active ? BLUE : '#8A93A3' }}>
-                  {item.icon}
-                  {sidebarCollapsed && badge > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: BLUE }} />
-                  )}
-                </span>
-                {!sidebarCollapsed && <span className="flex-1 text-left">{item.label}</span>}
-                {!sidebarCollapsed && badge > 0 && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE, color: '#fff' }}>
-                    {badge}
-                  </span>
-                )}
-              </button>
-            )
-
-            // "Gérer mes rôles" : survol → menu déroulant des espaces déjà
-            // actifs, clic sur un espace = bascule directe (comme dans
-            // ManageRolesPage.goToDashboard).
-            if (item.key === 'mes-roles' && rolesActifs.length > 1) {
-              return (
-                <div key={item.key} ref={sidebarRolesRef} className="relative"
-                  onMouseEnter={openSidebarRolesMenu}
-                  onMouseLeave={scheduleCloseRolesMenu}>
-                  {button}
-                </div>
-              )
-            }
-            return <div key={item.key}>{button}</div>
-          })}
-          {rolesMenuOpen === 'sidebar' && sidebarMenuPos && (
-            <div className="fixed w-56 rounded-xl bg-white shadow-lg border border-divider py-1.5 z-30"
-              style={{ top: sidebarMenuPos.top, left: sidebarMenuPos.left }}
-              onMouseEnter={() => openRolesMenu('sidebar')}
-              onMouseLeave={scheduleCloseRolesMenu}>
-              <p className="px-3.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-text-grey">Mes espaces actifs</p>
-              {rolesActifs.map(r => (
-                <button key={r} onClick={() => goToRoleSpace(r)}
-                  className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left hover:bg-surface-g transition-colors">
-                  <span style={{ color: r === activeRole ? BLUE : '#374151', fontWeight: r === activeRole ? 700 : 500 }}>{ROLE_LABELS[r] || r}</span>
-                  {r === activeRole && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE + '15', color: BLUE }}>Actuel</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </nav>
-        {!sidebarCollapsed && (
-          <div className="px-3 pb-4 pt-3 border-t border-divider">
-            <button onClick={() => navigate('/nouveau-bien')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-transform active:scale-[0.98]"
-              style={{ background: `linear-gradient(135deg, ${BLUE}, ${shade(BLUE, 0.25)})`, boxShadow: `0 6px 16px -3px ${BLUE}70` }}>
-              <IcPlus /> Nouveau bien
-            </button>
-          </div>
-        )}
-      </aside>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col md:max-w-5xl md:mx-auto md:w-full xl:max-w-none xl:mx-0">
-        {tab === 'tableau' && (
-          <div className="flex-1 overflow-y-auto">
-            <div className="px-5 md:px-8 xl:px-10 py-5 md:py-8">
-              {/* Profil — petites cartes distinctes (remplace les pastilles du bandeau) */}
-              <div className="flex gap-3 mb-6">
-                <MiniStatCard icon={<IcHome />} value={`${biens.length}`} label="Biens" color={BLUE} />
-                <MiniStatCard icon={<IcStar />} value={`${me?.nb_etoiles ?? 0}`} label="Étoiles" color="#F59E0B" />
-                <MiniStatCard icon={<IcShield />} value={`${score}`} label="Score" color="#22C55E" />
-                <MiniStatCard icon={
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
-                } value={`${totalVues}`} label="Vues" color="#7B2FBE" />
               </div>
+            </div>
 
+            {/* ── Contenu sous le hero ── */}
+            <div className="px-5 md:px-8 xl:px-10 py-6">
+              <AnimatedGroup
+                preset="blur-slide"
+                stagger={0.08}
+                variants={{
+                  container: { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } },
+                  item: { hidden: { opacity: 0, scale: 0.92, y: 16 }, visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 22 } } },
+                }}>
+
+              {/* Alert loyers */}
               {(loyersImpayesCount > 0 || loyersEnRetardCount > 0) && (
-                <button onClick={() => setTab('loyers')}
-                  className="w-full flex items-center gap-3 rounded-2xl mb-6 p-4 border text-left transition-shadow hover:shadow-sm"
-                  style={{ background: '#F4433608', borderColor: '#F4433628' }}>
+                <button onClick={() => setTab('loyers')} aria-label="Voir les loyers en retard"
+                  className="w-full flex items-center gap-3 rounded-2xl mb-5 p-4 border text-left cursor-pointer"
+                  style={{ background: '#F4433608', borderColor: '#F4433628', transition: 'transform 200ms ease, box-shadow 200ms ease', minHeight: '56px' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.01)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(244,67,54,0.12)' }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#F4433618' }}>
                     <span style={{ color: '#F44336' }}><IcClock /></span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-text-dark text-sm">
+                    <p className="font-bold text-sm" style={{ color: 'var(--p-text)' }}>
                       {loyersImpayesCount > 0 && `${loyersImpayesCount} loyer${loyersImpayesCount > 1 ? 's' : ''} impayé${loyersImpayesCount > 1 ? 's' : ''}`}
                       {loyersImpayesCount > 0 && loyersEnRetardCount > 0 && ' · '}
                       {loyersEnRetardCount > 0 && `${loyersEnRetardCount} en retard`}
                     </p>
-                    <p className="text-xs text-text-grey mt-0.5">Nécessite votre attention</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--p-muted)' }}>Nécessite votre attention</p>
                   </div>
-                  <span className="text-text-grey flex-shrink-0"><IcChevron /></span>
+                  <span style={{ color: 'var(--p-muted)' }}><IcChevron /></span>
                 </button>
               )}
 
-              <div className="flex items-center justify-between mb-3.5">
-                <p className="text-[17px] md:text-lg font-bold text-text-dark">Actions rapides</p>
+              {/* ── Actions rapides — chips scrollables ── */}
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Actions rapides</p>
                 <LiveIndicator label={lastUpdatedLabel} refreshing={refreshing} />
               </div>
-              <div className="flex gap-3 mb-7 md:max-w-lg">
-                <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={BLUE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
-                <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
-                <QuickAction icon={<IcMoney />} color="#22C55E" label="Loyers" badge={loyersImpayesCount + loyersEnRetardCount} onClick={() => setTab('loyers')} />
-                <QuickAction icon={<IcMessagesNav />} color="#FF6B35" label="Messages" badge={unreadMessages} onClick={() => { setTab('messages'); refreshNotifications() }} />
+              <div className="flex gap-2.5 mb-7 overflow-x-auto scrollbar-hide pb-1">
+                {[
+                  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
+                  { icon: <IcCal />, color: '#4B6BFF', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
+                  { icon: <IcPayments />, color: '#22C55E', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
+                  { icon: <IcMessagesNav />, color: '#FF6B35', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
+                  { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
+                ].map(q => (
+                  <button key={q.label} onClick={q.action} aria-label={q.label}
+                    className="relative flex-shrink-0 flex items-center gap-2.5 rounded-full px-4 py-2.5"
+                    style={{ background: q.color + '12', border: `1.5px solid ${q.color}30`, minHeight: '44px', transition: 'all 180ms ease' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = q.color + '22'; e.currentTarget.style.boxShadow = `0 4px 16px ${q.color}25` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = q.color + '12'; e.currentTarget.style.boxShadow = '' }}>
+                    <span style={{ color: q.color }}>{q.icon}</span>
+                    <span className="text-[12px] font-semibold whitespace-nowrap" style={{ color: 'var(--p-text)' }}>{q.label}</span>
+                    {(q.badge ?? 0) > 0 && (
+                      <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-black text-white" style={{ background: '#FF3B30' }}>
+                        {(q.badge ?? 0) > 9 ? '9+' : q.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
 
-              {/* Stat cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                <StatCard icon={<IcWallet />} color={BLUE} label="Revenus ce mois" value={fmtPrix(revenusMoisActuel)} trendPct={hasRevenus ? revenusTrendPct : undefined} trendCaption={hasRevenus ? 'vs mois dernier' : undefined} sparkline={hasRevenus ? revenusSeries6 : undefined} />
-                <StatCard icon={<IcCal />} color="#7B2FBE" label="Visites ce mois" value={`${visitesMoisActuel}`} trendPct={hasVisites ? visitesTrendPct : undefined} trendCaption={hasVisites ? 'vs mois dernier' : undefined} sparkline={hasVisites ? visitesSeries6 : undefined} />
-                <StatCard icon={<IcHome />} color="#22C55E" label="Taux d'occupation" value={`${tauxOccupation}%`} trendCaption={`${biensOccupes}/${biens.length} biens occupés`} />
+              {/* ── Carte portefeuille biens — PropertyStatsCard ── */}
+              <div className="sticky top-0 z-10 flex items-center justify-between py-2 mb-2 -mx-1 px-1" style={{ background: 'var(--p-deep)' }}>
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens</p>
+                <span className="text-[13px] font-black" style={{ color: BLUE }}>{biens.length}</span>
+              </div>
+              <div className="mb-5 mx-auto w-full px-2" style={{ maxWidth: '72rem' }}>
+                <PropertyStatsCard
+                  title="Mes biens"   
+                  total={biens.length}
+                  dark={isDark}
+                  stats={[
+                    { label: 'Total',       value: biens.length,   color: BLUE      },
+                    { label: 'Publiés',     value: biensApprouves, color: '#22C55E' },
+                    { label: 'En attente',  value: biensEnAttente, color: '#F59E0B' },
+                    { label: 'Rejetés',     value: biensRejetes,   color: '#EF4444' },
+                  ]}
+                />
               </div>
 
-              {/* Charts — mise en page bento : le graphique principal prend le double de place */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
-                <ChartCard title="Revenus locatifs" subtitle={`${chartPeriod} derniers mois`} icon={<IcWallet />} color={BLUE} className="xl:col-span-2"
-                  headerRight={<PeriodToggle value={chartPeriod} onChange={setChartPeriod} color={BLUE} />}>
-                  <div className="flex items-center gap-6 mb-5 pb-5" style={{ borderBottom: '1px solid #F1F3F6' }}>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15' }}>
-                        <span style={{ color: BLUE }}><IcWallet /></span>
-                      </div>
-                      <div>
-                        <p className="text-[11px] text-text-grey">Revenus ce mois</p>
-                        <p className="font-bold text-text-dark text-sm">{fmtPrix(revenusMoisActuel)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#7B2FBE15' }}>
-                        <span style={{ color: '#7B2FBE' }}><IcCal /></span>
-                      </div>
-                      <div>
-                        <p className="text-[11px] text-text-grey">Visites ce mois</p>
-                        <p className="font-bold text-text-dark text-sm">{visitesMoisActuel}</p>
-                      </div>
+              {/* Activité — visites + occupation */}
+              <div className="flex gap-3 mb-7">
+                {[
+                  {
+                    label: 'Visites ce mois',
+                    value: `${visitesMoisActuel}`,
+                    sub: hasVisites && visitesTrendPct !== undefined
+                      ? `${visitesTrendPct >= 0 ? '↑' : '↓'} ${Math.abs(visitesTrendPct)}% vs mois dernier`
+                      : 'ce mois',
+                    subColor: hasVisites && visitesTrendPct !== undefined
+                      ? (visitesTrendPct >= 0 ? '#22C55E' : '#EF4444')
+                      : undefined,
+                    color: '#7B2FBE',
+                    icon: <IcCal />,
+                  },
+                  {
+                    label: "Taux d'occupation",
+                    value: `${tauxOccupation}%`,
+                    sub: `${biensOccupes} / ${biens.length} biens`,
+                    color: '#22C55E',
+                    icon: <IcHome />,
+                  },
+                ].map(card => (
+                  <div key={card.label} className="flex-1 flex justify-center">
+                    <div className="flex flex-col items-center text-center rounded-2xl px-8 py-5 flex-shrink-0"
+                      style={{
+                        background: 'var(--p-card)',
+                        border: '1px solid var(--p-border)',
+                        boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
+                      }}>
+                      <span className="flex items-center justify-center w-10 h-10 rounded-full mb-2.5 flex-shrink-0"
+                        style={{ background: card.color + '18', color: card.color }}>
+                        {card.icon}
+                      </span>
+                      <p className="font-black text-[26px] leading-none mb-1" style={{ color: card.color }}>
+                        {card.value}
+                      </p>
+                      <p className="text-[11px] font-semibold mb-1" style={{ color: 'var(--p-muted)' }}>
+                        {card.label}
+                      </p>
+                      {card.sub && (
+                        <p className="text-[10px]" style={{ color: card.subColor ?? 'var(--p-muted)' }}>
+                          {card.sub}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  {hasRevenus ? <AreaChart data={revenusSeries} color={BLUE} /> : <EmptyChartState label="Aucun loyer encaissé pour l'instant" />}
-                </ChartCard>
-                <ChartCard title="Répartition de mes biens" subtitle="Par statut de modération" icon={<IcDash />} color="#7B2FBE">
-                  {biens.length > 0
-                    ? <DonutChart segments={[
-                        { label: 'Publiés',    value: approuves, color: '#22C55E' },
-                        { label: 'En attente', value: enAttente, color: '#F59E0B' },
-                        { label: 'Rejetés',    value: rejetes,   color: '#EF4444' },
-                      ]} />
-                    : <EmptyChartState label="Publiez votre premier bien pour voir vos statistiques" />}
-                </ChartCard>
-                <ChartCard title="Visites reçues" subtitle={`${chartPeriod} derniers mois`} icon={<IcCal />} color="#4B6BFF" className={biensParType.length > 0 ? 'xl:col-span-2' : 'xl:col-span-3'}>
-                  {hasVisites
-                    ? visitesSeries.map((v, i) => <BarRow key={i} label={v.label} value={v.value} max={Math.max(...visitesSeries.map(x => x.value), 1)} color="#4B6BFF" />)
-                    : <EmptyChartState label="Aucune visite reçue pour l'instant" />}
-                </ChartCard>
-                {biensParType.length > 0 && (
-                  <ChartCard title="Biens par type" subtitle="Répartition par catégorie" icon={<IcHome />} color="#FF6B35">
-                    {biensParType.map((b, i) => (
-                      <BarRow key={b.label} label={b.label} value={b.value} max={biensParType[0].value}
-                        color={[BLUE, '#7B2FBE', '#FF6B35', '#22C55E', '#E67E22'][i % 5]} />
-                    ))}
-                  </ChartCard>
-                )}
-                <ChartCard title="Mes biens récents" subtitle="Dernières publications" icon={<IcHome />} color={BLUE} className={biensParType.length > 0 ? 'xl:col-span-3' : 'xl:col-span-1'}
-                  headerRight={<button onClick={() => setTab('biens')} className="text-xs font-semibold flex-shrink-0" style={{ color: BLUE }}>Voir tout</button>}>
-                  {biens.length === 0 ? <EmptyChartState label="Aucun bien publié pour l'instant" /> : (
-                    <div>
-                      {biens.slice(0, 3).map((b, i) => {
-                        const { label, color } = statutBien(b.statut_moderation || 'en_attente')
-                        const loc = b.localisation
-                        const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                        return (
-                          <HighlightRow key={b.id} icon={<IcHome />} color={color} title={`${typeLabel(b.type)} — ${fmtPrix(b.prix)}`}
-                            subtitle={`${adresse} · ${label}`}
-                            last={i === Math.min(biens.length, 3) - 1} />
-                        )
-                      })}
-                    </div>
-                  )}
-                </ChartCard>
+                ))}
               </div>
 
-              {/* Dégagement sous le contenu — évite que le FAB flottant
-                  "Nouveau bien" (xl:hidden, position bas-droite) ne recouvre
-                  la dernière carte quand on scrolle jusqu'en bas : le FAB fait
-                  ~56px de haut et flotte à bottom-20/24, donc il faut plus que
-                  ces seuls 80-96px de décalage pour le dégager complètement. */}
-              <div className="h-40 xl:h-6" />
+              {/* ── 5 derniers biens en carousel ── */}
+              {biens.length > 0 && (() => {
+                const recentBiens = [...biens]
+                  .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+                  .slice(0, 5)
+                const selectedBien = recentBiens[selectedBienIdx]
+                const bienSlides = recentBiens.map(b => {
+                  const loc = b.localisation
+                  const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+                  const coverPhoto = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  const { label: sLabel } = statutBien(b.statut_moderation || 'en_attente')
+                  const nbPieces = b.pieces?.length || b.nb_pieces
+                  const compo = bienComposition(b)
+                  return {
+                    src: coverPhoto?.url || villaImg,
+                    alt: bienLabel(b),
+                    title: `${bienLabel(b)} — ${fmtPrix(b.prix)}`,
+                    subtitle: adresse,
+                    meta: [
+                      { label: 'Statut',      value: sLabel },
+                      { label: 'Pièces',      value: nbPieces ? `${nbPieces}` : '—' },
+                      { label: 'Composition', value: compo || '—' },
+                    ],
+                  }
+                })
+                const selStatut = selectedBien ? statutBien(selectedBien.statut_moderation || 'en_attente') : null
+                return (
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens récents</p>
+                      <button onClick={() => setTab('biens')} className="text-xs font-bold" style={{ color: BLUE }}>Voir tout →</button>
+                    </div>
+                    <CoverflowCarousel
+                      slides={bienSlides}
+                      cardWidth="clamp(220px, 42vw, 380px)"
+                      rotate={60}
+                      depth={1.1}
+                      perspective={2.4}
+                      showCaption
+                      showPagination
+                      showNavigation={recentBiens.length > 1}
+                      loop={recentBiens.length > 2}
+                      label="Mes biens récents"
+                      onSelectionChange={setSelectedBienIdx}
+                      onSlideClick={() => setTab('biens')}
+                    />
+                  </div>
+                )
+              })()}
+
+              </AnimatedGroup>
+              <div className="h-24 xl:h-8" />
             </div>
           </div>
         )}
-        {tab === 'biens'        && <MesBiensTab />}
-        {tab === 'reservations' && <ReservationsTab biens={biens} />}
+        {tab === 'biens'        && <MesBiensTab onScrolled={setIsScrolled} />}
+        {tab === 'reservations' && <ReservationsTab biens={biens} onScrolled={setIsScrolled} />}
         {tab === 'messages'     && <MessagesTab />}
-        {tab === 'loyers'       && <LoyersTab />}
+        {tab === 'loyers'       && <LoyersTab onScrolled={setIsScrolled} />}
         {tab === 'portefeuille' && <PortefeuilleTab onOpenTransactions={() => setTab('transactions')} />}
         {tab === 'transactions' && <TransactionsTab />}
         {tab === 'roles'        && <RolesTab />}
-        {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenTransactions={() => setTab('transactions')} onOpenRoles={() => setTab('roles')} />}
+        {tab === 'profil'       && <ProfilTab user={me} biens={biens} visites={visites} onOpenTransactions={() => setTab('transactions')} onOpenRoles={() => setTab('roles')} onScrolled={setIsScrolled} />}
       </div>
 
-      {/* Footer — desktop uniquement (façon immo-web-admin), sous le contenu,
-          largeur de la colonne (pas sous la sidebar) */}
-      <div className="hidden xl:flex items-center flex-shrink-0 px-6 border-t border-divider bg-white text-xs"
-        style={{ height: '2.75rem', color: '#64748B' }}>
-        <div className="flex items-center gap-1.5">
-          <div className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ background: '#22C55E' }} />
-          <span>Plateforme <strong style={{ color: '#00AEEF' }}>REFUGE</strong> — opérationnelle</span>
-        </div>
-        <div className="ml-auto flex items-center gap-5">
-          <span>{new Date().toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-          {me && <span className="text-text-dark font-semibold">{me.prenom} {me.nom}</span>}
-          <span className="font-bold uppercase tracking-wide px-2 py-0.5 rounded" style={{ background: BLUE + '18', color: BLUE, fontSize: '10px' }}>
-            Propriétaire
-          </span>
-        </div>
       </div>
 
       {/* FAB */}
       {(tab === 'tableau' || tab === 'biens') && (
         <div className="xl:hidden fixed bottom-20 right-4 md:bottom-24 md:right-8 z-20">
           <button onClick={() => navigate('/nouveau-bien')}
-            className="flex items-center gap-2 px-5 py-3.5 rounded-full text-white font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
-            style={{ background: BLUE, boxShadow: `0 4px 15px ${BLUE}60` }}>
+            className="flex items-center gap-2 px-5 py-3.5 rounded-full font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
+            style={{ background: 'linear-gradient(135deg, #4B6BFF, #3A5AEE)', color: '#fff', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
             <IcPlus /> Nouveau bien
           </button>
         </div>
       )}
 
-      {/* Bottom Nav (mobile & tablet only — desktop uses the sidebar) */}
-      <div className="xl:hidden flex-shrink-0 md:px-6 md:pb-4">
-        <div className="bg-white border-t border-divider md:border md:rounded-2xl" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
-          <div className="flex items-center justify-around px-2 py-2 md:max-w-lg md:mx-auto">
+      {/* Bottom Nav — fixed, mobile & tablet */}
+      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div style={{ background: 'var(--p-surface)', borderTop: '1px solid var(--p-border)', boxShadow: '0 -4px 24px rgba(0,0,0,0.30)' }}>
+          <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
             {TABS.map(t => {
               const active = tab === t.key
               const badge = t.key === 'messages' ? unreadMessages : 0
               return (
                 <button key={t.key} onClick={() => { setTab(t.key); if (t.key === 'messages') refreshNotifications() }}
                   className="relative flex items-center gap-1.5 px-2 py-2 rounded-[14px] transition-all"
-                  style={active ? { background: BLUE + '18' } : {}}>
-                  <span className="relative" style={{ color: active ? BLUE : '#9E9E9E' }}>
+                  style={active ? { background: BLUE + '14' } : {}}>
+                  <span className="relative" style={{ color: active ? BLUE : 'var(--p-muted)' }}>
                     {t.icon}
                     {badge > 0 && (
                       <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
@@ -2888,8 +3687,6 @@ export default function ProprietaireDashboard() {
             })}
           </div>
         </div>
-      </div>
-      </div>
       </div>
     </div>
   )

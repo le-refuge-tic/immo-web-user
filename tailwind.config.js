@@ -17,6 +17,16 @@ export default {
         success:       '#34C759',
         warning:       '#FF9800',
         danger:        '#FF3B30',
+        // Proprio dark navy/gold theme
+        'navy-950':    '#060D1A',
+        'navy-900':    '#0B1C30',
+        'navy-800':    '#112440',
+        'navy-700':    '#1A3355',
+        'gold-400':    '#D4A847',
+        'gold-300':    '#E2C070',
+        'gold-200':    '#F0D898',
+        'proprio-text': '#F0EDE8',
+        'proprio-muted': '#8A9BB5',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'sans-serif'],

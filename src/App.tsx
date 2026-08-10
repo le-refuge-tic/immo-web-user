@@ -21,6 +21,7 @@ import ProprietaireDashboard from './pages/proprietaire/ProprietaireDashboard'
 import DemarcheurDashboard from './pages/demarcheur/DemarcheurDashboard'
 import LocataireDashboard from './pages/locataire/LocataireDashboard'
 import NouveauBienPage from './pages/bien/NouveauBienPage'
+import ProprietaireBienWrapper from './pages/bien/ProprietaireBienWrapper'
 import ReservationPage from './pages/reservation/ReservationPage'
 import ContratBailPage from './pages/integration/ContratBailPage'
 import PaiementIntegrationPage from './pages/integration/PaiementIntegrationPage'
@@ -74,6 +75,9 @@ function App() {
         {/* Dashboards rôle : sans MainLayout (ont leur propre nav interne) */}
         <Route path="/proprietaire" element={
           <PrivateRoute><ProprietaireDashboard /></PrivateRoute>
+        } />
+        <Route path="/proprietaire/biens/:id" element={
+          <PrivateRoute><ProprietaireBienWrapper /></PrivateRoute>
         } />
         <Route path="/demarcheur" element={
           <PrivateRoute><DemarcheurDashboard /></PrivateRoute>

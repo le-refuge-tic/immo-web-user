@@ -176,7 +176,7 @@ function buildComposition(bien: any): { icon: IconType; label: string }[] | null
   return chips.length > 0 ? chips : null
 }
 
-export default function BienDetailPage() {
+export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: boolean }) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { isLoggedIn, user } = useAuth()
@@ -346,9 +346,11 @@ export default function BienDetailPage() {
             </svg>
           </div>
         )}
-        <button onClick={() => navigate(-1)} className="absolute top-12 left-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-        </button>
+        {showOwnBack && (
+          <button onClick={() => navigate(-1)} className="absolute top-12 left-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+        )}
         {allUrls.length > 1 && (
           <>
             <button onClick={() => setPhotoIdx(i => (i - 1 + allUrls.length) % allUrls.length)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
@@ -366,10 +368,12 @@ export default function BienDetailPage() {
 
       {/* ── DESKTOP layout ── */}
       <div className="hidden lg:block w-full px-6 md:px-16 py-8">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-text-grey hover:text-primary transition-colors mb-6 group text-sm font-medium">
-          <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          Retour aux annonces
-        </button>
+        {showOwnBack && (
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-text-grey hover:text-primary transition-colors mb-6 group text-sm font-medium">
+            <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Retour aux annonces
+          </button>
+        )}
 
         <div className="grid grid-cols-[1fr_400px] gap-8 items-start">
           <div>
