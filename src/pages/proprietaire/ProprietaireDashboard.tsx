@@ -551,8 +551,8 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                   return (
                     <div
                       key={b.id}
-                      className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
-                      style={{ width: 'calc(33.333% - 14px)', background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+                      className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
+                      style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
                       onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
                       onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(75,107,255,0.14)'}
                       onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = ''}
@@ -3728,8 +3728,8 @@ export default function ProprietaireDashboard() {
                         return (
                           <div
                             key={b.id}
-                            className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
-                            style={{ width: 'calc(33.333% - 14px)', background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+                            className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
+                            style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
                             onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
                             onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(75,107,255,0.14)'}
                             onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = ''}
