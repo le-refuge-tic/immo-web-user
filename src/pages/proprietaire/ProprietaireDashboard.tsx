@@ -15,10 +15,9 @@ import EditBienModal from '../bien/EditBienModal'
 import ChatThread from '../conversations/ChatThread'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 import villaImg from '../../assets/login/villa.jpg'
-import { CoverflowCarousel } from '../../components/ui/coverflow-carousel'
+import PropertyStatsCard from '../../components/PropertyStatsCard'
 import { AnimatedGroup } from '../../components/ui/animated-group'
 import { motion, AnimatePresence } from 'framer-motion'
-import PropertyStatsCard from '../../components/PropertyStatsCard'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -466,7 +465,9 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [search, setSearch] = useState('')
   const [sortByVues, setSortByVues] = useState(false)
   const [editingBien, setEditingBien] = useState<any>(null)
-  const [selectedBienIdx, setSelectedBienIdx] = useState(0)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [carouselPaused, setCarouselPaused] = useState(false)
+  const [carouselIdx, setCarouselIdx] = useState(0)
   const navigate = useNavigate()
 
   const load = async () => {
@@ -475,6 +476,22 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
     setLoading(false)
   }
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (carouselPaused || biens.length === 0) return
+    const id = setInterval(() => {
+      const el = carouselRef.current
+      if (!el || carouselPaused) return
+      const count = Math.min(5, biens.length)
+      const cardW = el.scrollWidth / count
+      const maxScroll = el.scrollWidth - el.clientWidth
+      const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
+      const next = isAtEnd ? 0 : el.scrollLeft + cardW
+      el.scrollTo({ left: next, behavior: 'smooth' })
+      setCarouselIdx(isAtEnd ? 0 : Math.round(next / cardW))
+    }, 3500)
+    return () => clearInterval(id)
+  }, [carouselPaused, biens.length])
 
   const FILTERS = ['Tous', 'Location', 'Vente', 'Publié', 'En attente', 'Rejeté', 'Occupé']
   const byFilter = filter === 'Tous' ? biens
@@ -516,42 +533,79 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
           const recentBiens = [...biens]
             .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
             .slice(0, 5)
-          const bienSlides = recentBiens.map(b => {
-            const loc = b.localisation
-            const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-            const coverPhoto = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
-            const { label: sLabel } = statutBien(b.statut_moderation || 'en_attente')
-            const compo = bienComposition(b)
-            const nbPieces = b.pieces?.length || b.nb_pieces
-            return {
-              src: coverPhoto?.url || villaImg,
-              alt: bienLabel(b),
-              title: `${bienLabel(b)} — ${fmtPrix(b.prix)}`,
-              subtitle: adresse,
-              meta: [
-                { label: 'Statut',      value: sLabel },
-                { label: 'Pièces',      value: nbPieces ? `${nbPieces}` : '—' },
-                { label: 'Composition', value: compo || '—' },
-              ],
-            }
-          })
           return (
             <div className="px-5 md:px-8 xl:px-10 pt-6 pb-2">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'var(--p-muted)' }}>Biens récents</p>
-              <CoverflowCarousel
-                slides={bienSlides}
-                cardWidth="clamp(220px, 42vw, 380px)"
-                rotate={60}
-                depth={1.1}
-                perspective={2.4}
-                showCaption
-                showPagination
-                showNavigation={recentBiens.length > 1}
-                loop={recentBiens.length > 2}
-                label="Biens récents"
-                autoPlay={3500}
-                onSelectionChange={setSelectedBienIdx}
-              />
+              <div
+                ref={carouselRef}
+                className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+                onMouseEnter={() => setCarouselPaused(true)}
+                onMouseLeave={() => setCarouselPaused(false)}
+              >
+                {recentBiens.map(b => {
+                  const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
+                  const loc = b.localisation
+                  const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+                  const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  const compo = bienComposition(b)
+                  return (
+                    <div
+                      key={b.id}
+                      className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                      style={{ width: 'calc(33.333% - 14px)', background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+                      onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
+                      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(75,107,255,0.14)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = ''}
+                    >
+                      <div className="relative overflow-hidden" style={{ height: 160 }}>
+                        {cover?.url
+                          ? <img src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </div>
+                        }
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
+                        <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sColor }}>{sLabel}</span>
+                        <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: '#fff' }}>
+                          {b.transaction === 'location' ? 'À louer' : 'À vendre'}
+                        </span>
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-white font-black text-[15px] leading-none drop-shadow">
+                            {fmtPrix(b.prix)}{b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70"> /mois</span>}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <p className="font-bold text-[14px] leading-tight mb-1.5 truncate" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
+                        <div className="flex items-center gap-1 mb-2">
+                          <span style={{ color: 'var(--p-muted)' }}><IcPin /></span>
+                          <span className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{adresse}</span>
+                        </div>
+                        {compo && (
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: 'var(--p-border)', color: 'var(--p-muted)' }}>{compo}</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {recentBiens.length > 3 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  {recentBiens.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        const el = carouselRef.current
+                        if (!el) return
+                        const cardW = el.scrollWidth / recentBiens.length
+                        el.scrollTo({ left: cardW * i, behavior: 'smooth' })
+                        setCarouselIdx(i)
+                      }}
+                      style={{ width: carouselIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: carouselIdx === i ? '#4B6BFF' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )
         })()}
@@ -3202,7 +3256,9 @@ export default function ProprietaireDashboard() {
     })
     return () => cancelAnimationFrame(id)
   }, [])
-  const [selectedBienIdx, setSelectedBienIdx] = useState(0)
+  const carousel2Ref = useRef<HTMLDivElement>(null)
+  const [carousel2Paused, setCarousel2Paused] = useState(false)
+  const [carousel2Idx, setCarousel2Idx] = useState(0)
 
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
@@ -3241,6 +3297,22 @@ export default function ProprietaireDashboard() {
     document.addEventListener('visibilitychange', onVisible)
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
   }, [tab])
+
+  useEffect(() => {
+    if (carousel2Paused || biens.length === 0) return
+    const id = setInterval(() => {
+      const el = carousel2Ref.current
+      if (!el || carousel2Paused) return
+      const count = Math.min(5, biens.length)
+      const cardW = el.scrollWidth / count
+      const maxScroll = el.scrollWidth - el.clientWidth
+      const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
+      const next = isAtEnd ? 0 : el.scrollLeft + cardW
+      el.scrollTo({ left: next, behavior: 'smooth' })
+      setCarousel2Idx(isAtEnd ? 0 : Math.round(next / cardW))
+    }, 3500)
+    return () => clearInterval(id)
+  }, [carousel2Paused, biens.length])
 
   const me = user || authUser
   const initials = `${me?.prenom?.[0] || ''}${me?.nom?.[0] || ''}`.toUpperCase()
@@ -3635,48 +3707,82 @@ export default function ProprietaireDashboard() {
                 const recentBiens = [...biens]
                   .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
                   .slice(0, 5)
-                const selectedBien = recentBiens[selectedBienIdx]
-                const bienSlides = recentBiens.map(b => {
-                  const loc = b.localisation
-                  const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                  const coverPhoto = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
-                  const { label: sLabel } = statutBien(b.statut_moderation || 'en_attente')
-                  const nbPieces = b.pieces?.length || b.nb_pieces
-                  const compo = bienComposition(b)
-                  return {
-                    src: coverPhoto?.url || villaImg,
-                    alt: bienLabel(b),
-                    title: `${bienLabel(b)} — ${fmtPrix(b.prix)}`,
-                    subtitle: adresse,
-                    meta: [
-                      { label: 'Statut',      value: sLabel },
-                      { label: 'Pièces',      value: nbPieces ? `${nbPieces}` : '—' },
-                      { label: 'Composition', value: compo || '—' },
-                    ],
-                  }
-                })
-                const selStatut = selectedBien ? statutBien(selectedBien.statut_moderation || 'en_attente') : null
                 return (
                   <div className="mb-2">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens récents</p>
                       <button onClick={() => setTab('biens')} className="text-xs font-bold" style={{ color: BLUE }}>Voir tout →</button>
                     </div>
-                    <CoverflowCarousel
-                      slides={bienSlides}
-                      cardWidth="clamp(220px, 42vw, 380px)"
-                      rotate={60}
-                      depth={1.1}
-                      perspective={2.4}
-                      showCaption
-                      showPagination
-                      showNavigation={recentBiens.length > 1}
-                      loop={recentBiens.length > 2}
-                      label="Mes biens récents"
-                      autoPlay={3500}
-                      onSelectionChange={setSelectedBienIdx}
-                      onSlideClick={() => setTab('biens')}
-                    />
+                    <div
+                      ref={carousel2Ref}
+                      className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+                      onMouseEnter={() => setCarousel2Paused(true)}
+                      onMouseLeave={() => setCarousel2Paused(false)}
+                    >
+                      {recentBiens.map(b => {
+                        const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
+                        const loc = b.localisation
+                        const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+                        const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                        const compo = bienComposition(b)
+                        return (
+                          <div
+                            key={b.id}
+                            className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                            style={{ width: 'calc(33.333% - 14px)', background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+                            onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
+                            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(75,107,255,0.14)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = ''}
+                          >
+                            <div className="relative overflow-hidden" style={{ height: 160 }}>
+                              {cover?.url
+                                ? <img src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                  </div>
+                              }
+                              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
+                              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sColor }}>{sLabel}</span>
+                              <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: '#fff' }}>
+                                {b.transaction === 'location' ? 'À louer' : 'À vendre'}
+                              </span>
+                              <div className="absolute bottom-3 left-3 right-3">
+                                <p className="text-white font-black text-[15px] leading-none drop-shadow">
+                                  {fmtPrix(b.prix)}{b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70"> /mois</span>}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="p-3">
+                              <p className="font-bold text-[14px] leading-tight mb-1.5 truncate" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
+                              <div className="flex items-center gap-1 mb-2">
+                                <span style={{ color: 'var(--p-muted)' }}><IcPin /></span>
+                                <span className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{adresse}</span>
+                              </div>
+                              {compo && (
+                                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: 'var(--p-border)', color: 'var(--p-muted)' }}>{compo}</span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {recentBiens.length > 3 && (
+                      <div className="flex justify-center gap-2 mt-4">
+                        {recentBiens.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              const el = carousel2Ref.current
+                              if (!el) return
+                              const cardW = el.scrollWidth / recentBiens.length
+                              el.scrollTo({ left: cardW * i, behavior: 'smooth' })
+                              setCarousel2Idx(i)
+                            }}
+                            style={{ width: carousel2Idx === i ? 20 : 8, height: 8, borderRadius: 4, background: carousel2Idx === i ? '#4B6BFF' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               })()}
