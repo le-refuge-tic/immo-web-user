@@ -31,6 +31,8 @@ export interface CoverflowCarouselProps {
   label?: string;
   className?: string;
   cardClassName?: string;
+  /** Auto-advance interval in ms. Pauses on hover and during drag. */
+  autoPlay?: number;
   /** Called whenever the center card changes. */
   onSelectionChange?: (index: number) => void;
   /** Called when the center card is tapped/clicked (not during a drag). */
@@ -53,6 +55,7 @@ export function CoverflowCarousel({
   label = "Cover carousel",
   className,
   cardClassName,
+  autoPlay,
   onSelectionChange,
   onSlideClick,
 }: CoverflowCarouselProps) {
@@ -220,6 +223,18 @@ export function CoverflowCarousel({
     [],
   );
 
+  const hoveredRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!autoPlay || count < 2) return
+    const id = setInterval(() => {
+      if (!hoveredRef.current && !dragRef.current) {
+        nudge(1)
+      }
+    }, autoPlay)
+    return () => clearInterval(id)
+  }, [autoPlay, count, nudge])
+
 
   const active = slides[selected];
 
@@ -230,6 +245,8 @@ export function CoverflowCarousel({
       role="region"
       aria-roledescription="carousel"
       aria-label={label}
+      onMouseEnter={() => { hoveredRef.current = true }}
+      onMouseLeave={() => { hoveredRef.current = false }}
     >
       <div className="relative">
         <div

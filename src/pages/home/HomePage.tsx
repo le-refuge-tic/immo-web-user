@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
@@ -148,6 +148,13 @@ export default function HomePage() {
 
   const suggestions: Quartier[] = search.trim().length >= 1 ? rechercherQuartiers(search) : []
 
+  const locRef  = useRef<HTMLDivElement>(null)
+  const venteRef = useRef<HTMLDivElement>(null)
+  const [locPaused,   setLocPaused]   = useState(false)
+  const [ventePaused, setVentePaused] = useState(false)
+  const [locIdx,   setLocIdx]   = useState(0)
+  const [venteIdx, setVenteIdx] = useState(0)
+
   // Charge tout le catalogue une seule fois — tous les filtres (transaction,
   // type, ville/quartier, budget) s'appliquent ensuite côté client, ce qui
   // évite tout risque de décalage entre ce qui est chargé et ce qui est filtré.
@@ -197,13 +204,37 @@ export default function HomePage() {
   const recentLocation = biens
     .filter(b => b.transaction === 'location' && b.created_at && (Date.now() - new Date(b.created_at).getTime()) <= UN_MOIS_MS)
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-    .slice(0, 3)
+    .slice(0, 6)
 
   // Même principe côté vente.
   const recentVente = biens
     .filter(b => b.transaction === 'vente')
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-    .slice(0, 3)
+    .slice(0, 6)
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const scrollCarousel = (ref: { current: HTMLDivElement | null }, items: any[], paused: boolean, setIdx: (i: number) => void) => {
+    const el = ref.current
+    if (!el || paused || items.length === 0) return
+    const cardW = el.scrollWidth / items.length
+    const maxScroll = el.scrollWidth - el.clientWidth
+    const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
+    const next = isAtEnd ? 0 : el.scrollLeft + cardW
+    el.scrollTo({ left: next, behavior: 'smooth' })
+    setIdx(isAtEnd ? 0 : Math.round(next / cardW))
+  }
+
+  useEffect(() => {
+    if (locPaused || recentLocation.length === 0) return
+    const id = setInterval(() => scrollCarousel(locRef, recentLocation, locPaused, setLocIdx), 3500)
+    return () => clearInterval(id)
+  }, [locPaused, recentLocation.length])
+
+  useEffect(() => {
+    if (ventePaused || recentVente.length === 0) return
+    const id = setInterval(() => scrollCarousel(venteRef, recentVente, ventePaused, setVenteIdx), 3500)
+    return () => clearInterval(id)
+  }, [ventePaused, recentVente.length])
 
   // Quartiers où des biens sont actuellement publiés, avec le nombre réel de
   // biens par quartier — sert à la fois à la bannière CTA et au nuage de mots
@@ -310,7 +341,7 @@ export default function HomePage() {
         <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.15) 100%)' }} />
 
-        <div className="relative z-10 w-full px-16 pb-20">
+        <div className="relative z-10 w-full px-16 pb-20 pt-12">
           <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4 anim-fade-up">
             Immobilier au Bénin — Annonces vérifiées
           </p>
@@ -427,18 +458,41 @@ export default function HomePage() {
               publiés sur REFUGE et réservez votre visite en quelques clics.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-5">
+          <div
+            ref={locRef}
+            className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+            onMouseEnter={() => setLocPaused(true)}
+            onMouseLeave={() => setLocPaused(false)}
+          >
             {recentLocation.map(bien => (
-              <BienCard
-                key={bien.id}
-                bien={bien}
-                favoriteIds={favIds}
-                onFavoriteToggle={handleFavToggle}
-                showPhotoCount
-                showAddedDate
-              />
+              <div key={bien.id} className="flex-shrink-0 snap-start" style={{ width: 'calc(33.333% - 14px)' }}>
+                <BienCard
+                  bien={bien}
+                  favoriteIds={favIds}
+                  onFavoriteToggle={handleFavToggle}
+                  showPhotoCount
+                  showAddedDate
+                />
+              </div>
             ))}
           </div>
+          {recentLocation.length > 3 && (
+            <div className="flex justify-center gap-2 mt-4">
+              {recentLocation.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    const el = locRef.current
+                    if (!el) return
+                    const cardW = el.scrollWidth / recentLocation.length
+                    el.scrollTo({ left: cardW * i, behavior: 'smooth' })
+                    setLocIdx(i)
+                  }}
+                  style={{ width: locIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: locIdx === i ? '#4B6BFF' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -454,18 +508,41 @@ export default function HomePage() {
               Bénin. Découvrez les derniers biens publiés sur REFUGE.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-5">
+          <div
+            ref={venteRef}
+            className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+            onMouseEnter={() => setVentePaused(true)}
+            onMouseLeave={() => setVentePaused(false)}
+          >
             {recentVente.map(bien => (
-              <BienCard
-                key={bien.id}
-                bien={bien}
-                favoriteIds={favIds}
-                onFavoriteToggle={handleFavToggle}
-                showPhotoCount
-                showAddedDate
-              />
+              <div key={bien.id} className="flex-shrink-0 snap-start" style={{ width: 'calc(33.333% - 14px)' }}>
+                <BienCard
+                  bien={bien}
+                  favoriteIds={favIds}
+                  onFavoriteToggle={handleFavToggle}
+                  showPhotoCount
+                  showAddedDate
+                />
+              </div>
             ))}
           </div>
+          {recentVente.length > 3 && (
+            <div className="flex justify-center gap-2 mt-4">
+              {recentVente.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    const el = venteRef.current
+                    if (!el) return
+                    const cardW = el.scrollWidth / recentVente.length
+                    el.scrollTo({ left: cardW * i, behavior: 'smooth' })
+                    setVenteIdx(i)
+                  }}
+                  style={{ width: venteIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: venteIdx === i ? '#FF6B35' : 'rgba(255,107,53,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

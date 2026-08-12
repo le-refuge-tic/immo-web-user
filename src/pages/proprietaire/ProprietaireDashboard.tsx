@@ -466,6 +466,7 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [search, setSearch] = useState('')
   const [sortByVues, setSortByVues] = useState(false)
   const [editingBien, setEditingBien] = useState<any>(null)
+  const [selectedBienIdx, setSelectedBienIdx] = useState(0)
   const navigate = useNavigate()
 
   const load = async () => {
@@ -510,6 +511,51 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden"
         onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
+        {/* ── Carousel biens récents ── */}
+        {biens.length > 0 && (() => {
+          const recentBiens = [...biens]
+            .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+            .slice(0, 5)
+          const bienSlides = recentBiens.map(b => {
+            const loc = b.localisation
+            const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
+            const coverPhoto = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+            const { label: sLabel } = statutBien(b.statut_moderation || 'en_attente')
+            const compo = bienComposition(b)
+            const nbPieces = b.pieces?.length || b.nb_pieces
+            return {
+              src: coverPhoto?.url || villaImg,
+              alt: bienLabel(b),
+              title: `${bienLabel(b)} — ${fmtPrix(b.prix)}`,
+              subtitle: adresse,
+              meta: [
+                { label: 'Statut',      value: sLabel },
+                { label: 'Pièces',      value: nbPieces ? `${nbPieces}` : '—' },
+                { label: 'Composition', value: compo || '—' },
+              ],
+            }
+          })
+          return (
+            <div className="px-5 md:px-8 xl:px-10 pt-6 pb-2">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'var(--p-muted)' }}>Biens récents</p>
+              <CoverflowCarousel
+                slides={bienSlides}
+                cardWidth="clamp(220px, 42vw, 380px)"
+                rotate={60}
+                depth={1.1}
+                perspective={2.4}
+                showCaption
+                showPagination
+                showNavigation={recentBiens.length > 1}
+                loop={recentBiens.length > 2}
+                label="Biens récents"
+                autoPlay={3500}
+                onSelectionChange={setSelectedBienIdx}
+              />
+            </div>
+          )
+        })()}
+
         <div className="px-5 md:px-8 xl:px-10 pt-8 pb-4">
 
           {/* ── En-tête ── */}
@@ -3535,7 +3581,7 @@ export default function ProprietaireDashboard() {
               </div>
 
               {/* Activité — visites + occupation */}
-              <div className="flex gap-3 mb-7">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-20 mb-7">
                 {[
                   {
                     label: 'Visites ce mois',
@@ -3557,8 +3603,8 @@ export default function ProprietaireDashboard() {
                     icon: <IcHome />,
                   },
                 ].map(card => (
-                  <div key={card.label} className="flex-1 flex justify-center">
-                    <div className="flex flex-col items-center text-center rounded-2xl px-8 py-5 flex-shrink-0"
+                  <div key={card.label}>
+                    <div className="flex flex-col items-center text-center rounded-2xl px-5 py-4 sm:px-8 sm:py-5 flex-shrink-0 w-[42vw] sm:w-auto"
                       style={{
                         background: 'var(--p-card)',
                         border: '1px solid var(--p-border)',
@@ -3627,6 +3673,7 @@ export default function ProprietaireDashboard() {
                       showNavigation={recentBiens.length > 1}
                       loop={recentBiens.length > 2}
                       label="Mes biens récents"
+                      autoPlay={3500}
                       onSelectionChange={setSelectedBienIdx}
                       onSlideClick={() => setTab('biens')}
                     />

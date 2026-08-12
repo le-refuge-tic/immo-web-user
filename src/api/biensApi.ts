@@ -46,4 +46,15 @@ export const biensApi = {
       },
     }).then(r => r.data)
   },
+
+  uploadVideo: (bienId: number, file: File) => {
+    const form = new FormData()
+    form.append('video', file)
+    return axios.post(`${BASE}/biens/${bienId}/video`, form, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }).then(r => r.data)
+  },
 }

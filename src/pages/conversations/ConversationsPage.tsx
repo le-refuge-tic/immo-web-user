@@ -172,7 +172,7 @@ export default function ConversationsPage() {
       <div className="md:hidden">
         {activeId === null ? (
           <div>
-            <div className="px-4 pt-12 pb-3 bg-white border-b border-divider flex items-center justify-between flex-shrink-0">
+            <div className="px-4 pt-4 pb-3 bg-white border-b border-divider flex items-center justify-between flex-shrink-0">
               <h1 className="text-lg font-bold text-text-dark">Messages</h1>
               {!loading && convs.length > 0 && (
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white" style={{ background: '#4B6BFF' }}>
@@ -189,7 +189,7 @@ export default function ConversationsPage() {
       </div>
 
       {/* ── DESKTOP : deux panneaux, façon immo-web-admin ── */}
-      <div className="hidden md:flex h-dvh">
+      <div className="hidden md:flex h-[calc(100dvh-4rem)]">
 
         {/* Panneau gauche — liste */}
         <div className="w-72 lg:w-80 flex-shrink-0 flex flex-col bg-white border-r border-divider">

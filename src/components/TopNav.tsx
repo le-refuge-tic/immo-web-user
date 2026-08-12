@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationsContext'
+import { useScrolled } from '../context/ScrollContext'
 import logoUrl from '../assets/REFUGE-LOGO.png'
 
 const NAV_ITEMS = [
@@ -15,6 +16,7 @@ const NAV_ITEMS = [
 export default function TopNav() {
   const { isLoggedIn, user, logout } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
+  const { scrolled } = useScrolled()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -56,16 +58,28 @@ export default function TopNav() {
   }
 
   return (
-    <header
-      className="hidden md:flex fixed top-0 left-0 right-0 z-[60] h-16 items-center anim-slide-down"
-      style={{
-        background: 'rgba(245,245,247,0.78)',
-        backdropFilter: 'blur(48px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(48px) saturate(180%)',
-        borderBottom: '1px solid rgba(0,0,0,0.07)',
-        boxShadow: 'inset 0 -0.5px 0 rgba(0,0,0,0.04), 0 2px 20px rgba(0,0,0,0.06)',
-      }}
-    >
+    <header className={`hidden md:block fixed top-0 left-0 right-0 z-[60] pointer-events-none transition-[padding] duration-300${scrolled ? ' px-3' : ''}`}>
+      <nav
+        className="mx-auto pointer-events-auto flex items-center backdrop-blur-xl transition-all duration-300"
+        style={{
+          background: scrolled ? 'rgba(245,245,247,0.88)' : 'rgba(245,245,247,0.78)',
+          backdropFilter: 'blur(48px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(48px) saturate(180%)',
+          borderTopWidth:    scrolled ? '1px' : '0px',
+          borderLeftWidth:   scrolled ? '1px' : '0px',
+          borderRightWidth:  scrolled ? '1px' : '0px',
+          borderBottomWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: scrolled ? 'rgba(0,0,0,0.09)' : 'rgba(0,0,0,0.07)',
+          borderRadius: scrolled ? '1rem' : '0px',
+          marginTop: '0px',
+          maxWidth: scrolled ? '72rem' : '100%',
+          boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.10)' : 'inset 0 -0.5px 0 rgba(0,0,0,0.04), 0 2px 20px rgba(0,0,0,0.06)',
+          height: 64,
+          paddingLeft:  scrolled ? '1.25rem' : undefined,
+          paddingRight: scrolled ? '1.25rem' : undefined,
+        }}
+      >
       <div className="w-full px-4 md:px-6 lg:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-3 lg:gap-6">
 
         {/* Logo */}
@@ -207,6 +221,7 @@ export default function TopNav() {
           </div>
         )}
       </div>
+      </nav>
     </header>
   )
 }

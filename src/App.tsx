@@ -2,6 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
+import { ScrollProvider } from './context/ScrollContext'
 import MainLayout from './components/MainLayout'
 import HomePage from './pages/home/HomePage'
 import BienDetailPage from './pages/bien/BienDetailPage'
@@ -62,6 +63,7 @@ function HomeGuard() {
 function App() {
   return (
     <AuthProvider>
+    <ScrollProvider>
     <NotificationsProvider>
       <Routes>
         {/* Pages sans layout (standalone) */}
@@ -135,6 +137,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </NotificationsProvider>
+    </ScrollProvider>
     </AuthProvider>
   )
 }
