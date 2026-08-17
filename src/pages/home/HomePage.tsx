@@ -255,6 +255,8 @@ export default function HomePage() {
     const t = (count - quartierCountMin) / (quartierCountMax - quartierCountMin)
     return 0.85 + t * (1.55 - 0.85)
   }
+  /** Normalise l'affichage d'un nom de quartier (première lettre en majuscule), sans toucher à la donnée saisie. */
+  const capitalizeQuartier = (q: string) => q.charAt(0).toUpperCase() + q.slice(1)
 
   const handleFavToggle = (id: number, added: boolean) => {
     setFavIds(prev => {
@@ -826,7 +828,7 @@ export default function HomePage() {
                   className="transition-opacity hover:opacity-70"
                   style={{ color: '#4B6BFF', fontSize: `${size}rem`, fontWeight: size > 1.2 ? 700 : 600, lineHeight: 1.3 }}
                 >
-                  {q}
+                  {capitalizeQuartier(q)}
                 </button>
               )
             })}
