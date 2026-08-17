@@ -291,6 +291,9 @@ export default function SearchPage() {
      libre non reconnue comme quartier exact — ex: nom de ville). ──── */
   const refCoords = !matchedQuartier && query.trim().length >= 2 ? getQuartierCoords(query.trim()) : null
   const distanceFor = (bien: any): number | null => {
+    // Quartier recherché reconnu : distance réelle entre ce quartier et celui du bien.
+    if (matchedQuartier) return search.distFromQuartier(bien)
+    // Sinon (saisie libre non reconnue comme quartier exact) : repli sur les coordonnées GPS.
     if (!refCoords) return null
     const q = bien.localisation?.quartier
     if (!q) return null

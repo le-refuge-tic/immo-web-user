@@ -8,11 +8,9 @@ const auth = () => ({
 
 export const favoritesApi = {
   list: () =>
-    axios.get(`${BASE}/favoris`, auth()).then(r => r.data),
+    axios.get(`${BASE}/biens/favoris`, auth()).then(r => r.data),
 
-  add: (bienId: number) =>
-    axios.post(`${BASE}/favoris/${bienId}`, {}, auth()).then(r => r.data),
-
-  remove: (bienId: number) =>
-    axios.delete(`${BASE}/favoris/${bienId}`, auth()).then(r => r.data),
+  /** Ajoute ou retire le bien des favoris (toggle) ; renvoie l'état résultant. */
+  toggle: (bienId: number) =>
+    axios.post(`${BASE}/biens/${bienId}/favori`, {}, auth()).then(r => r.data as { isFavori: boolean }),
 }

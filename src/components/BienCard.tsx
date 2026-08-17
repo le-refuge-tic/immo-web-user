@@ -51,6 +51,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     terrain:        'Terrain',
   }
   const label = typeLabel[bien.type] || bien.type
+  /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
+  const title = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
 
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -60,15 +62,9 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     setFavPopped(true)
     setTimeout(() => setFavPopped(false), 400)
     try {
-      if (isFav) {
-        await favoritesApi.remove(bien.id)
-        setIsFav(false)
-        onFavoriteToggle?.(bien.id, false)
-      } else {
-        await favoritesApi.add(bien.id)
-        setIsFav(true)
-        onFavoriteToggle?.(bien.id, true)
-      }
+      const { isFavori } = await favoritesApi.toggle(bien.id)
+      setIsFav(isFavori)
+      onFavoriteToggle?.(bien.id, isFavori)
     } catch (_) {}
     setToggling(false)
   }
@@ -155,7 +151,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             FCFA{isLocation ? '/mois' : ''}
           </span>
         </p>
-        <p className="text-sm font-medium mt-1" style={{ color: 'rgba(0,0,0,0.58)' }}>{label}</p>
+        <p className="text-sm font-semibold mt-1 truncate" style={{ color: 'rgba(0,0,0,0.72)' }}>{title}</p>
         <div className="flex items-center gap-1 mt-2">
           <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.30)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -170,11 +166,6 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             </span>
           )}
         </div>
-        {Number(bien.frais_visite) > 0 && (
-          <p className="hidden md:block text-xs mt-2 pt-2" style={{ color: 'rgba(0,0,0,0.30)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-            Frais visite : <span className="font-semibold" style={{ color: '#FF6B35' }}>{Number(bien.frais_visite).toLocaleString('fr-FR')} FCFA</span>
-          </p>
-        )}
         {showAddedDate && bien.created_at && (
           <p className="text-[11px] mt-2" style={{ color: 'rgba(0,0,0,0.35)' }}>
             Ajouté le {fmtAddedDate(bien.created_at)}

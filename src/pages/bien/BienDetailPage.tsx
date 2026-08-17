@@ -315,6 +315,8 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const allUrls = photos.map((p: any) => resolveUrl(p.url))
   const isLocation = bien.transaction === 'location'
   const typeLabel = TYPE_LABELS[bien.type] || bien.type
+  /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
+  const title = bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
   const prix = Number(bien.prix).toLocaleString('fr-FR')
   const accentColor = isLocation ? '#4B6BFF' : '#FF6B35'
   const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
@@ -434,6 +436,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                   <span className="px-3 py-1.5 rounded-full text-xs font-bold text-white bg-danger">Occupé</span>
                 )}
               </div>
+              <p className="text-xl font-bold text-text-dark mb-3">{title}</p>
 
               <div className="mb-5">
                 {hasPromo && (
@@ -545,6 +548,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
               <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-danger">Occupé</span>
             )}
           </div>
+          <p className="text-lg font-bold text-text-dark mb-1">{title}</p>
           {hasPromo && (
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#EF4444' }}>PROMO -{promoPct}%</span>
@@ -673,12 +677,6 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
           {bien.amenites?.sanitaire === false && <FeatureChip icon="people" label="Non sanitaire" />}
         </div>
       )}
-
-      {/* Frais de visite */}
-      <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border" style={{ background: 'rgba(75,107,255,0.06)', borderColor: 'rgba(75,107,255,0.2)' }}>
-        <svg className="w-[18px] h-[18px] text-primary flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 010 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 010-4V7a2 2 0 00-2-2H5z" /></svg>
-        <p className="text-sm font-semibold text-primary">Frais de visite : 500 FCFA</p>
-      </div>
 
       {/* Description */}
       {bien.description && (
