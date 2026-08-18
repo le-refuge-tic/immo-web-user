@@ -246,15 +246,6 @@ export default function HomePage() {
     if (q) quartierCounts[q] = (quartierCounts[q] || 0) + 1
   }
   const quartiersActifs = Object.keys(quartierCounts).sort((a, b) => a.localeCompare(b, 'fr'))
-  const quartierCountValues = Object.values(quartierCounts)
-  const quartierCountMin = quartierCountValues.length ? Math.min(...quartierCountValues) : 1
-  const quartierCountMax = quartierCountValues.length ? Math.max(...quartierCountValues) : 1
-  /** Taille de tag (rem) proportionnelle au nombre de biens, façon nuage de mots. */
-  const tagSize = (count: number) => {
-    if (quartierCountMax === quartierCountMin) return 1.05
-    const t = (count - quartierCountMin) / (quartierCountMax - quartierCountMin)
-    return 0.85 + t * (1.55 - 0.85)
-  }
   /** Normalise l'affichage d'un nom de quartier (première lettre en majuscule), sans toucher à la donnée saisie. */
   const capitalizeQuartier = (q: string) => q.charAt(0).toUpperCase() + q.slice(1)
 
@@ -819,14 +810,13 @@ export default function HomePage() {
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-3">
             {quartiersActifs.map(q => {
               const count = quartierCounts[q]
-              const size = tagSize(count)
               return (
                 <button
                   key={q}
                   onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)}
                   title={`${count} bien${count > 1 ? 's' : ''}`}
                   className="transition-opacity hover:opacity-70"
-                  style={{ color: '#4B6BFF', fontSize: `${size}rem`, fontWeight: size > 1.2 ? 700 : 600, lineHeight: 1.3 }}
+                  style={{ color: '#4B6BFF', fontSize: '1.05rem', fontWeight: 600, lineHeight: 1.3 }}
                 >
                   {capitalizeQuartier(q)}
                 </button>
