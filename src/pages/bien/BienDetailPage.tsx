@@ -334,6 +334,14 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const superficie = bien.details_maison?.superficie || bien.details_terrain?.superficie || 0
   const nbConsultations = bien.nb_consultations ?? 0
 
+  const modBadge = isOwnBien ? (() => {
+    const mod = bien.statut_moderation || 'en_attente'
+    if (mod === 'approuve')     return { label: 'Publié',       bg: '#22C55E' }
+    if (mod === 'rejete')       return { label: 'Rejeté',       bg: '#EF4444' }
+    if (mod === 'conditionnel') return { label: 'Conditionnel', bg: '#FF9800' }
+    return                               { label: 'En attente',  bg: '#FF9800' }
+  })() : null
+
   return (
     <div className="min-h-full pb-32 lg:pb-0">
 
@@ -427,13 +435,18 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           {/* ── Panneau infos sticky desktop ── */}
           <div className="sticky top-20">
             <div className="glass-card rounded-2xl p-6">
-              <div className="flex gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mb-4">
                 <span className={`px-3 py-1.5 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-secondary'}`}>
                   {isLocation ? 'À LOUER' : 'À VENDRE'}
                 </span>
                 <span className="px-3 py-1.5 rounded-full text-xs font-bold glass-btn text-text-dark">{typeLabel}</span>
                 {bien.statut === 'occupe' && (
                   <span className="px-3 py-1.5 rounded-full text-xs font-bold text-white bg-danger">Occupé</span>
+                )}
+                {modBadge && (
+                  <span className="px-3 py-1.5 rounded-full text-xs font-bold text-white" style={{ background: modBadge.bg }}>
+                    {modBadge.label}
+                  </span>
                 )}
               </div>
               <p className="text-xl font-bold text-text-dark mb-3">{title}</p>
@@ -539,13 +552,18 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       {/* ── MOBILE content ── */}
       <div className="lg:hidden px-4 md:px-8 py-5 md:py-8 space-y-4 md:max-w-2xl md:mx-auto">
         <div>
-          <div className="flex gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-3">
             <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-secondary'}`}>
               {isLocation ? 'À LOUER' : 'À VENDRE'}
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-bold text-text-dark" style={{ background: 'rgba(0,0,0,0.05)' }}>{typeLabel}</span>
             {bien.statut === 'occupe' && (
               <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-danger">Occupé</span>
+            )}
+            {modBadge && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold text-white" style={{ background: modBadge.bg }}>
+                {modBadge.label}
+              </span>
             )}
           </div>
           <p className="text-lg font-bold text-text-dark mb-1">{title}</p>
@@ -647,6 +665,35 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
 
   return (
     <div className="space-y-6">
+      {/* Statut de modération — visible uniquement par le proprio */}
+      {isOwnBien && bien.statut_moderation !== 'approuve' && (() => {
+        const rejete = bien.statut_moderation === 'rejete'
+        return (
+          <div className="p-3.5 rounded-xl border" style={{
+            background: rejete ? 'rgba(239,68,68,0.07)' : 'rgba(255,152,0,0.07)',
+            borderColor: rejete ? 'rgba(239,68,68,0.25)' : 'rgba(255,152,0,0.25)',
+          }}>
+            <div className="flex items-center gap-2">
+              <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: rejete ? '#EF4444' : '#FF9800' }}
+                fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                {rejete
+                  ? <><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></>
+                  : <><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></>}
+              </svg>
+              <p className="text-sm font-bold" style={{ color: rejete ? '#EF4444' : '#FF9800' }}>
+                {rejete ? 'Annonce rejetée' : 'En attente de validation'}
+              </p>
+            </div>
+            {rejete && bien.motif_refus && (
+              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#EF4444' }}>{bien.motif_refus}</p>
+            )}
+            {!rejete && (
+              <p className="text-xs mt-1.5 text-text-grey">Votre annonce est visible uniquement par vous jusqu'à validation par un administrateur.</p>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Visites confirmées */}
       {isOwnBien
         ? (visitesConfirmees && visitesConfirmees.count > 0 && (
