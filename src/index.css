@@ -259,6 +259,21 @@
     border-color: rgba(0,0,0,0.10) !important;
     box-shadow: none !important;
   }
+  .proprio-root.proprio-light .glass-input {
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: #E8EAED !important;
+    color: #1A1A2E !important;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04) !important;
+  }
+  .proprio-root.proprio-light .glass-strong {
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: #E8EAED !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06) !important;
+  }
 
   /* Dark navy card — used in Proprio dashboard */
   .card-navy {
