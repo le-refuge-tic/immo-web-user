@@ -619,7 +619,7 @@ export default function NouveauBienPage() {
         <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--p-muted)' }}>
           En attente de validation par l'administrateur. Vous serez notifié une fois approuvé.
         </p>
-        <button onClick={() => navigate(createdId ? `/biens/${createdId}` : '/')}
+        <button onClick={() => navigate(createdId ? `/proprietaire/biens/${createdId}` : '/proprietaire')}
           className="px-8 py-4 rounded-xl font-bold"
           style={{ background: BLUE, color: 'white', boxShadow: `0 4px 24px ${BLUE}44` }}>
           Voir mon annonce

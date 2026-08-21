@@ -245,6 +245,20 @@
     background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%) !important;
     background-size: 400% 100% !important;
   }
+  .proprio-root.proprio-light .glass-card {
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: #E8EAED !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05) !important;
+  }
+  .proprio-root.proprio-light .glass-btn {
+    background: rgba(0,0,0,0.05) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(0,0,0,0.10) !important;
+    box-shadow: none !important;
+  }
 
   /* Dark navy card — used in Proprio dashboard */
   .card-navy {
