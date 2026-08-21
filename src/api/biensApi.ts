@@ -16,8 +16,20 @@ export const biensApi = {
   mesBiens: () =>
     axios.get(`${BASE}/biens/mes-biens`, auth()).then(r => r.data),
 
+  /** Biens ajoutés en gestion (sans annonce publique), avec le locataire lié s'il y en a un. */
+  mesBiensGestion: () =>
+    axios.get(`${BASE}/biens/mes-biens-gestion`, auth()).then(r => r.data),
+
   create: (body: any) =>
     axios.post(`${BASE}/biens`, body, auth()).then(r => r.data),
+
+  /** Crée un bien en gestion (pas d'annonce publique) : approuvé d'office, avec un code d'invitation. */
+  createEnGestion: (body: any) =>
+    axios.post(`${BASE}/biens`, { ...body, en_gestion: true }, auth()).then(r => r.data),
+
+  /** Régénère le code d'invitation d'un bien en gestion. */
+  regenererCode: (id: number) =>
+    axios.post(`${BASE}/biens/${id}/regenerer-code`, {}, auth()).then(r => r.data as { code_invitation: string }),
 
   update: (id: number, body: any) =>
     axios.patch(`${BASE}/biens/${id}`, body, auth()).then(r => r.data),

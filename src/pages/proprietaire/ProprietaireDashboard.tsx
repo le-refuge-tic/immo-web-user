@@ -12,6 +12,9 @@ import { rolesApi } from '../../api/rolesApi'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
+import AjouterBienGestionModal from './AjouterBienGestionModal'
+import VerificationCipModal from './VerificationCipModal'
+import DelegationModal from './DelegationModal'
 import ChatThread from '../conversations/ChatThread'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 import villaImg from '../../assets/login/villa.jpg'
@@ -39,6 +42,10 @@ const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcLogout  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
 const IcMessage = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 const IcChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+const IcCopy    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path strokeLinecap="round" strokeLinejoin="round" d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+const IcShare   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342a3 3 0 100 2.316m0-2.316a3 3 0 110 2.316m0-2.316L15.316 9.658M8.684 15.658L15.316 19.34M15.316 4.658a3 3 0 105.658 1.658 3 3 0 00-5.658-1.658zm0 0L8.684 8.342m6.632 11a3 3 0 105.658-1.658 3 3 0 00-5.658 1.658z"/></svg>
+const IcUpload  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+const IcHandshake = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M7 11l3 3 7-7M6 21h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1.5M6 21a2 2 0 01-2-2v-6a2 2 0 012-2h1.5M6 21V11m6-7l-3 3m3-3l3 3m-3-3v7"/></svg>
 
 const IcMessagesNav = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
 
@@ -49,7 +56,7 @@ const DARK_BLUE = '#0B1C30'   // navy
 const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Agent', locataire: 'Locataire' }
 const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 
 // Bottom nav (mobile/tablette, < xl) — jeu réduit d'onglets les plus utilisés.
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -72,6 +79,7 @@ const NAV_ITEMS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'biens',        label: 'Mes biens',    icon: <IcHome /> },
   { key: 'reservations', label: 'Réservations', icon: <IcCal /> },
   { key: 'loyers',       label: 'Loyers',       icon: <IcPayments /> },
+  { key: 'creneaux',     label: 'Créneaux',     icon: <IcClock /> },
   { key: 'messages',     label: 'Messages',     icon: <IcMessagesNav /> },
   { key: 'portefeuille', label: 'Portefeuille', icon: <IcWallet /> },
   { key: 'profil',       label: 'Profil',       icon: <IcPerson /> },
@@ -1874,9 +1882,47 @@ function dateLabel(d: any) {
 function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'tous' | 'actif' | 'resilie' | 'expire'>('tous')
+  const [filter, setFilter] = useState<'tous' | 'actif' | 'resilie' | 'expire' | 'gestion'>('tous')
   const [detailContrat, setDetailContrat] = useState<any>(null)
   useEffect(() => { loyersApi.dashboard().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
+
+  // ── Biens en gestion (sans annonce publique, liés par code d'invitation) ──
+  const [biensGestion, setBiensGestion] = useState<any[]>([])
+  const [loadingGestion, setLoadingGestion] = useState(false)
+  const [gestionLoaded, setGestionLoaded] = useState(false)
+  const [showAjoutGestion, setShowAjoutGestion] = useState(false)
+  const [copiedCode, setCopiedCode] = useState<number | null>(null)
+
+  const chargerGestion = () => {
+    setLoadingGestion(true)
+    biensApi.mesBiensGestion()
+      .then(d => setBiensGestion(Array.isArray(d) ? d : d.data || []))
+      .catch(() => {})
+      .finally(() => { setLoadingGestion(false); setGestionLoaded(true) })
+  }
+
+  useEffect(() => {
+    if (filter === 'gestion' && !gestionLoaded) chargerGestion()
+  }, [filter, gestionLoaded])
+
+  const partagerCode = (bien: any) => {
+    const code = bien.code_invitation
+    if (!code) return
+    navigator.clipboard?.writeText(code).catch(() => {})
+    setCopiedCode(bien.id)
+    setTimeout(() => setCopiedCode(null), 1500)
+    const msg = encodeURIComponent(
+      `Bonjour, votre propriétaire vous invite à rejoindre REFUGE pour suivre votre location. Utilisez le code ${code} dans l'application (section "Rejoindre un bien") pour lier votre compte.`
+    )
+    window.open(`https://wa.me/?text=${msg}`, '_blank')
+  }
+
+  const regenererCode = async (bien: any) => {
+    try {
+      const { code_invitation } = await biensApi.regenererCode(bien.id)
+      setBiensGestion(prev => prev.map(b => b.id === bien.id ? { ...b, code_invitation } : b))
+    } catch (_) {}
+  }
 
   const stats = data?.stats || {}
   const contrats: any[] = data?.contrats || []
@@ -1906,6 +1952,7 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
     { key: 'actif',   label: 'Actifs' },
     { key: 'resilie', label: 'Résiliés' },
     { key: 'expire',  label: 'Expirés' },
+    { key: 'gestion', label: 'Gestion' },
   ]
 
   return (
@@ -1918,7 +1965,9 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Gestion</p>
             <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
               Loyers
-              {!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{sorted.length}</span>}
+              {filter === 'gestion'
+                ? (gestionLoaded && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{biensGestion.length}</span>)
+                : (!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{sorted.length}</span>)}
             </h2>
           </div>
         </div>
@@ -1987,7 +2036,83 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 md:px-8 xl:px-10 pb-24"
         onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
 
-        {loading ? (
+        {filter === 'gestion' ? (
+          <div className="pt-2">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-bold text-base" style={{ color: 'var(--p-text)' }}>Biens en gestion</p>
+                <p className="text-xs" style={{ color: 'var(--p-muted)' }}>Sans annonce publique — suivi de loyers uniquement</p>
+              </div>
+              <button onClick={() => setShowAjoutGestion(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white"
+                style={{ background: BLUE }}>
+                <IcPlus /> Ajouter un bien
+              </button>
+            </div>
+
+            {loadingGestion ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1,2,3].map(n => (
+                  <div key={n} className="rounded-2xl overflow-hidden animate-pulse h-32" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }} />
+                ))}
+              </div>
+            ) : biensGestion.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
+                  style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+                  <IcHome />
+                </div>
+                <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun bien en gestion</p>
+                <p className="text-sm text-center max-w-xs mb-5" style={{ color: 'var(--p-muted)' }}>
+                  Ajoutez un bien que vous louez déjà pour suivre ses loyers ici, sans le publier en annonce.
+                </p>
+                <button onClick={() => setShowAjoutGestion(true)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
+                  style={{ background: BLUE }}>
+                  Ajouter un bien en gestion
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {biensGestion.map((b: any) => (
+                  <div key={b.id} className="rounded-2xl p-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm truncate" style={{ color: 'var(--p-text)' }}>{typeLabel(b.type)}</p>
+                        <p className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville || '—'}</p>
+                      </div>
+                      <span className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE }}>{fmtPrix(b.prix)}<span className="font-normal opacity-70">/mois</span></span>
+                    </div>
+
+                    {b.locataire ? (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl mt-2" style={{ background: '#16A34A12' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth={2.5} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span className="text-xs font-bold truncate" style={{ color: '#16A34A' }}>Lié à {b.locataire.prenom} {b.locataire.nom}</span>
+                      </div>
+                    ) : (
+                      <div className="mt-2 px-3 py-2.5 rounded-xl" style={{ background: '#F59E0B12', border: '1px dashed #F59E0B55' }}>
+                        <p className="text-[11px] font-semibold mb-1.5" style={{ color: '#F59E0B' }}>En attente de liaison</p>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono font-bold text-sm tracking-wider" style={{ color: 'var(--p-text)' }}>{b.code_invitation || '—'}</span>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <button onClick={() => partagerCode(b)} title="Copier et partager via WhatsApp"
+                              className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--p-border)', color: 'var(--p-text)' }}>
+                              {copiedCode === b.id ? '✓' : <IcShare />}
+                            </button>
+                            <button onClick={() => regenererCode(b)} title="Régénérer le code"
+                              className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--p-border)', color: 'var(--p-text)' }}>
+                              <IcRefresh />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             {[1,2,3,4,5,6].map(n => (
               <div key={n} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
@@ -2120,6 +2245,133 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
       {detailContrat && (
         <ContratDetailModal contrat={detailContrat} onClose={() => setDetailContrat(null)} />
       )}
+
+      {showAjoutGestion && (
+        <AjouterBienGestionModal
+          onClose={() => setShowAjoutGestion(false)}
+          onCreated={() => { setShowAjoutGestion(false); chargerGestion() }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Tab: Créneaux (disponibilités de visite du propriétaire) ────────────────
+function CreneauxTab() {
+  const [creneaux, setCreneaux] = useState<any[]>([])
+  const [biens, setBiens] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ bien_id: '', date: '', heure: '' })
+  const [saving, setSaving] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const [c, b] = await Promise.allSettled([visitesApi.mesCreneaux(), biensApi.mesBiens()])
+      if (c.status === 'fulfilled') setCreneaux(Array.isArray(c.value) ? c.value : c.value.data || [])
+      if (b.status === 'fulfilled') {
+        const list = Array.isArray(b.value) ? b.value : b.value.data || []
+        setBiens(list.filter((x: any) => x.statut_moderation === 'approuve' || x.en_gestion))
+      }
+    } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  const save = async () => {
+    if (!form.date || !form.heure || !form.bien_id) return
+    setSaving(true)
+    try {
+      await visitesApi.creerCreneau({ bien_id: Number(form.bien_id), debut: `${form.date}T${form.heure}:00`, duree_minutes: 60 })
+      setShowForm(false); setForm({ bien_id: '', date: '', heure: '' }); load()
+    } catch (_) {}
+    setSaving(false)
+  }
+
+  const del = async (id: number) => {
+    try { await visitesApi.supprimerCreneau(id); load() } catch (_) {}
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-4 pb-4 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Disponibilités</p>
+          <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
+            Créneaux
+            {!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{creneaux.length}</span>}
+          </h2>
+        </div>
+        <button onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white"
+          style={{ background: BLUE }}>
+          <IcPlus /> Ajouter
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="flex-shrink-0 mx-5 md:mx-8 xl:mx-10 mb-4 p-4 rounded-2xl space-y-2.5"
+          style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+          <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
+            className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }}>
+            <option value="">Choisir un bien</option>
+            {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
+          </select>
+          <div className="flex gap-2">
+            <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+              className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }} />
+            <input type="time" value={form.heure} onChange={e => setForm({ ...form, heure: e.target.value })}
+              className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }} />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: 'var(--p-border)', color: 'var(--p-muted)' }}>Annuler</button>
+            <button onClick={save} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: BLUE }}>
+              {saving ? 'Enregistrement…' : 'Créer'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto px-5 md:px-8 xl:px-10 pb-24">
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1,2,3].map(n => <div key={n} className="h-20 rounded-2xl animate-pulse" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }} />)}
+          </div>
+        ) : creneaux.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+              <IcClock />
+            </div>
+            <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun créneau</p>
+            <p className="text-sm text-center max-w-xs" style={{ color: 'var(--p-muted)' }}>
+              Créez des créneaux de disponibilité pour que les visiteurs puissent réserver une visite directement.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {creneaux.map((c, i) => (
+              <div key={c.id || i} className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '15', color: BLUE }}>
+                  <IcClock />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate" style={{ color: 'var(--p-text)' }}>
+                    {c.debut ? new Date(c.debut).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) : '—'}
+                  </p>
+                  <p className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>
+                    {c.debut ? new Date(c.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}{c.duree_minutes ? ` · ${c.duree_minutes} min` : ''}
+                    {c.reserve ? ' · Réservé' : ' · Disponible'}
+                  </p>
+                </div>
+                {!c.reserve && (
+                  <button onClick={() => del(c.id)} className="text-danger p-1 flex-shrink-0"><IcTrash /></button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -3036,6 +3288,8 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
+  const [cipOpen, setCipOpen] = useState(false)
+  const [delegationOpen, setDelegationOpen] = useState(false)
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
 
@@ -3061,6 +3315,8 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
   const menuItems = [
     { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE, onClick: () => setEditOpen(true) },
     { icon: <IcShield />, label: 'Changer le mot de passe', color: '#7B2FBE', onClick: () => setPasswordOpen(true) },
+    { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: '#0EA5E9', onClick: () => setCipOpen(true) },
+    { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
     { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#F59E0B', onClick: onOpenRoles },
     { icon: <IcPayments />, label: 'Historique des transactions', color: '#16A34A', onClick: onOpenTransactions },
   ]
@@ -3199,6 +3455,8 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
       </div>{/* /overflow-y-auto */}
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
       <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
+      {cipOpen && <VerificationCipModal user={user} onClose={() => setCipOpen(false)} />}
+      {delegationOpen && <DelegationModal onClose={() => setDelegationOpen(false)} />}
     </div>
   )
 }
@@ -3614,6 +3872,7 @@ export default function ProprietaireDashboard() {
                   { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
                   { icon: <IcCal />, color: '#4B6BFF', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
                   { icon: <IcPayments />, color: '#22C55E', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
+                  { icon: <IcClock />, color: '#0EA5E9', label: 'Créneaux', action: () => setTab('creneaux') },
                   { icon: <IcMessagesNav />, color: '#FF6B35', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
                   { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
                 ].map(q => (
@@ -3796,6 +4055,7 @@ export default function ProprietaireDashboard() {
         {tab === 'reservations' && <ReservationsTab biens={biens} onScrolled={setIsScrolled} />}
         {tab === 'messages'     && <MessagesTab />}
         {tab === 'loyers'       && <LoyersTab onScrolled={setIsScrolled} />}
+        {tab === 'creneaux'     && <CreneauxTab />}
         {tab === 'portefeuille' && <PortefeuilleTab onOpenTransactions={() => setTab('transactions')} />}
         {tab === 'transactions' && <TransactionsTab />}
         {tab === 'roles'        && <RolesTab />}
