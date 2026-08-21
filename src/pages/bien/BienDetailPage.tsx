@@ -519,7 +519,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
             </div>
 
           {/* Biens à proximité */}
-          {similaires.length > 0 && (
+          {!isOwnBien && similaires.length > 0 && (
             <div className="mt-5">
               <p className="font-bold text-text-dark text-sm mb-3">Biens à proximité</p>
               <div className="space-y-2.5">
@@ -602,7 +602,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           visitesPlanifiees={visitesPlanifiees} visitesConfirmees={visitesConfirmees}
         />
 
-        {similaires.length > 0 && (
+        {!isOwnBien && similaires.length > 0 && (
           <div>
             <SectionTitle title="Biens à proximité" />
             <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
