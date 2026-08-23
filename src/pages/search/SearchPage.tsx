@@ -153,12 +153,24 @@ export default function SearchPage() {
 
   /* État */
   const [allBiens,    setAllBiens]    = useState<any[]>([])
+  const [wideBiens,   setWideBiens]   = useState<any[]>([])   // pool élargi sans filtre ville
   const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
   const [loading,     setLoading]     = useState(false)
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAllAutres, setShowAllAutres] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  /* Chargement large en arrière-plan (sans filtre ville) pour alimenter
+     la section "Autres biens" avec des résultats venant de toute la plateforme */
+  useEffect(() => {
+    biensApi.list({ limit: 200 })
+      .then(data => {
+        const raw = Array.isArray(data) ? data : data.data || []
+        setWideBiens(raw)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => { setShowAllAutres(false) }, [allBiens])
 
@@ -224,27 +236,33 @@ export default function SearchPage() {
   }, [query])
 
   const search = useMemo(() => {
-    const base = nonLocationFilters(allBiens)
-    const inBudget = base.filter(b => inBudgetRange(b, prixMin, prixMax))
+    const base      = nonLocationFilters(allBiens)
+    const wideBase  = nonLocationFilters(wideBiens)
+    const inBudget  = base.filter(b => inBudgetRange(b, prixMin, prixMax))
 
-    let mainResults: any[] = []
-    let environs: any[] = []
-    let environsLabel = ''
-    const environsDist = new Map<number, number>()
+    let mainResults: any[]       = []
+    let environs: any[]          = []
+    let environsLabel            = ''
+    let isProximityFallback      = false   // aucun bien dans le quartier exact → repli < 3 km
+    let quartierRecherche: string | undefined
+    const environsDist           = new Map<number, number>()
 
     if (matchedQuartier) {
+      quartierRecherche = matchedQuartier.nom
       const qn = norm(matchedQuartier.nom)
       const exact = inBudget.filter(b => norm(b.localisation?.quartier || '') === qn)
 
       if (exact.length > 0) {
+        /* Cas 1 — Biens trouvés dans le quartier exact */
         mainResults = applySort(exact, '')
         const restVille = inBudget.filter(b =>
           norm(b.localisation?.ville || '') === norm(matchedQuartier.ville) &&
           norm(b.localisation?.quartier || '') !== qn
         )
-        environs = applySort(restVille, '')
+        environs      = applySort(restVille, '')
         environsLabel = `Autres biens à ${matchedQuartier.ville}`
       } else {
+        /* Cas 2 — Quartier vide : chercher dans un rayon de ${PROXIMITY_MAX_KM} km */
         const withDist: { bien: any; km: number }[] = []
         for (const b of inBudget) {
           const bq = b.localisation?.quartier
@@ -255,25 +273,36 @@ export default function SearchPage() {
         withDist.sort((a, z) => a.km - z.km)
 
         if (withDist.length > 0) {
+          /* Sous-cas 2a — Biens trouvés dans des quartiers voisins */
+          isProximityFallback = true
           environs = withDist.map(x => x.bien)
           withDist.forEach(x => environsDist.set(x.bien.id, x.km))
-          environsLabel = `Biens à proximité de « ${matchedQuartier.nom} » (< ${PROXIMITY_MAX_KM} km)`
+          environsLabel = `Quartiers à moins de ${PROXIMITY_MAX_KM} km`
         } else {
-          const cityFallback = inBudget.filter(b => norm(b.localisation?.ville || '') === norm(matchedQuartier.ville))
-          environs = applySort(cityFallback, '')
-          environsLabel = cityFallback.length > 0 ? `Biens à ${matchedQuartier.ville}` : ''
+          /* Sous-cas 2b — Repli sur toute la ville */
+          const cityFallback = inBudget.filter(b =>
+            norm(b.localisation?.ville || '') === norm(matchedQuartier.ville)
+          )
+          environs      = applySort(cityFallback, '')
+          environsLabel = cityFallback.length > 0 ? `Biens disponibles à ${matchedQuartier.ville}` : ''
         }
       }
     } else {
-      mainResults = applySort(base.filter(b => matchLoc(b, query.trim())).filter(b => inBudgetRange(b, prixMin, prixMax)), query.trim())
+      mainResults = applySort(
+        base.filter(b => matchLoc(b, query.trim())).filter(b => inBudgetRange(b, prixMin, prixMax)),
+        query.trim()
+      )
     }
 
     const shownIds = new Set([...mainResults, ...environs].map((b: any) => b.id))
-    const pool = base.filter(b => !shownIds.has(b.id))
 
-    const budgetSimilar = (prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax)) : []
+    /* Pool élargi = union des biens filtrés + du pool large, sans doublons */
+    const widePool = [...wideBase, ...base.filter(b => !wideBase.some(w => w.id === b.id))]
+    const pool     = widePool.filter(b => !shownIds.has(b.id))
+
+    const budgetSimilar    = (prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax)) : []
     const budgetSimilarIds = new Set(budgetSimilar.map(b => b.id))
-    const autres = pool.filter(b => !budgetSimilarIds.has(b.id))
+    const autres           = pool.filter(b => !budgetSimilarIds.has(b.id))
 
     const distFromQuartier = (b: any): number | null => {
       if (!matchedQuartier) return null
@@ -282,8 +311,12 @@ export default function SearchPage() {
       return distanceEntreQuartiers(matchedQuartier.nom, bq)
     }
 
-    return { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier }
-  }, [allBiens, matchedQuartier, query, prixMin, prixMax, nonLocationFilters, applySort])
+    return {
+      mainResults, environs, environsLabel, environsDist,
+      budgetSimilar, autres, distFromQuartier,
+      isProximityFallback, quartierRecherche,
+    }
+  }, [allBiens, wideBiens, matchedQuartier, query, prixMin, prixMax, nonLocationFilters, applySort])
 
   const results = search.mainResults
 
@@ -988,6 +1021,33 @@ type GuidedSearch = {
   budgetSimilar: any[]
   autres: any[]
   distFromQuartier: (bien: any) => number | null
+  isProximityFallback: boolean
+  quartierRecherche: string | undefined
+}
+
+function FallbackBanner({ quartier, isProximity }: { quartier: string; isProximity: boolean }) {
+  return (
+    <div className="rounded-xl border-l-4 p-4 mb-1"
+      style={{ background: '#FFF8E7', borderLeftColor: '#F59E0B' }}>
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: '#92400E' }}>
+            Aucun bien disponible à &laquo;&nbsp;{quartier}&nbsp;&raquo;
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: '#B45309' }}>
+            {isProximity
+              ? `Voici les biens disponibles dans la fourchette souhaitée à moins de ${PROXIMITY_MAX_KM} km — triés par distance`
+              : 'Voici les biens disponibles dans les environs'}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function GuidedResults({
@@ -1000,14 +1060,11 @@ function GuidedResults({
   cols: string
   showAllAutres: boolean
   setShowAllAutres: (v: boolean) => void
-  /** Distance approximative pour les résultats principaux d'une recherche libre
-   *  (ville/texte) non reconnue comme quartier exact — absent pour un quartier
-   *  exact, puisque ces biens SONT au bon endroit. */
   mainDistanceFor?: (bien: any) => number | null
 }) {
   if (loading) return <ResultGrid biens={[]} loading favIds={favIds} onFavToggle={onFavToggle} cols={cols} />
 
-  const { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier } = search
+  const { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier, isProximityFallback, quartierRecherche } = search
   const hasMain = mainResults.length > 0
   const nothingAtAll = !hasMain && environs.length === 0 && budgetSimilar.length === 0 && autres.length === 0
   const autresToShow = showAllAutres ? autres : autres.slice(0, AUTRES_PAGE_SIZE)
@@ -1018,13 +1075,20 @@ function GuidedResults({
         <ResultGrid biens={mainResults} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols} distanceFor={mainDistanceFor} />
       ) : nothingAtAll ? (
         <ResultGrid biens={[]} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols} />
+      ) : quartierRecherche ? (
+        <FallbackBanner quartier={quartierRecherche} isProximity={isProximityFallback} />
       ) : (
         <p className="text-sm text-text-grey">Aucun bien ne correspond exactement à votre recherche — voici ce qui s'en rapproche.</p>
       )}
 
       {environs.length > 0 && (
         <section>
-          <SectionHeader title={environsLabel} />
+          <SectionHeader
+            title={environsLabel}
+            subtitle={isProximityFallback
+              ? 'Les distances indiquées sont calculées par rapport au quartier recherché'
+              : undefined}
+          />
           <ResultGrid biens={environs} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols}
             distanceFor={b => environsDist.get(b.id) ?? distFromQuartier(b)} />
         </section>
@@ -1032,7 +1096,10 @@ function GuidedResults({
 
       {budgetSimilar.length > 0 && (
         <section>
-          <SectionHeader title="Légèrement hors budget" subtitle={`À ± ${BUDGET_TOLERANCE.toLocaleString('fr-FR')} FCFA de votre budget défini`} />
+          <SectionHeader
+            title="Légèrement hors budget"
+            subtitle={`À ± ${BUDGET_TOLERANCE.toLocaleString('fr-FR')} FCFA de votre budget${quartierRecherche ? ` — distances depuis « ${quartierRecherche} »` : ''}`}
+          />
           <ResultGrid biens={budgetSimilar} loading={false} favIds={favIds} onFavToggle={onFavToggle} cols={cols} distanceFor={distFromQuartier} />
         </section>
       )}
