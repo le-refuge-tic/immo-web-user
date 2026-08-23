@@ -31,10 +31,17 @@ function bienTypeLabel(bien: any): string {
 
 const TIME_SLOTS = [7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19]
 
-/** Heure courante en GMT+1 (Africa/Porto-Novo), indépendant du fuseau de l'appareil. */
-function getNowGmt1() {
-  const utcMs = Date.now() + new Date().getTimezoneOffset() * 60_000
-  return new Date(utcMs + 3_600_000)
+/** Heure et minute courantes en GMT+1, indépendant du fuseau de l'appareil.
+ *  UTC+1 = getUTCHours() + 1 — Benin n'a pas de changement d'heure (DST). */
+function gmt1Now() {
+  const now = new Date()
+  return { hour: (now.getUTCHours() + 1) % 24, minute: now.getUTCMinutes() }
+}
+
+/** Date "aujourd'hui" en GMT+1 (composantes année/mois/jour). */
+function gmt1TodayParts() {
+  const t = new Date(Date.now() + 3_600_000) // décale de +1h → jour GMT+1 en UTC
+  return { y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate() }
 }
 
 const IMG_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
@@ -57,8 +64,8 @@ export default function ReservationPage() {
   const timeInputRef = useRef<HTMLInputElement>(null)
   const timeSectionRef = useRef<HTMLDivElement>(null)
 
-  // "today" calculé en GMT+1 pour ne pas dépendre du fuseau de l'appareil
-  const today = (() => { const d = getNowGmt1(); d.setHours(0, 0, 0, 0); return d })()
+  // today/tomorrow : minuit local (l'app cible des appareils en UTC+1, idem GMT+1)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
 
   const [bien, setBien] = useState<any>(null)
@@ -212,10 +219,15 @@ export default function ReservationPage() {
       </div>
       <div className="flex flex-wrap gap-2">
         {(() => {
-          const nowGmt1 = getNowGmt1()
-          const isDateToday = isToday(selectedDate)
+          const { hour: curH, minute: curM } = gmt1Now()
+          const { y, m, d } = gmt1TodayParts()
+          const isDateToday = (
+            selectedDate.getFullYear() === y &&
+            selectedDate.getMonth()    === m &&
+            selectedDate.getDate()     === d
+          )
           const visibleSlots = TIME_SLOTS.filter(h =>
-            !isDateToday || h > nowGmt1.getHours() || (h === nowGmt1.getHours() && nowGmt1.getMinutes() < 45)
+            !isDateToday || h > curH || (h === curH && curM < 45)
           )
           return visibleSlots.map(h => {
             const value = `${String(h).padStart(2, '0')}:00`
