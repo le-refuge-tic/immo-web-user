@@ -36,6 +36,11 @@
 @keyframes slide-in-right { from{opacity:0;transform:translateX(40px)}  to{opacity:1;transform:translateX(0)} }
 @keyframes shimmer   { 0%{background-position:-400% 0} 100%{background-position:400% 0} }
 @keyframes fav-pop   { 0%{transform:scale(1)} 35%{transform:scale(1.45)} 65%{transform:scale(0.85)} 100%{transform:scale(1)} }
+@keyframes marquee-ltr { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+@keyframes marquee-rtl { 0%{transform:translateX(-50%)} 100%{transform:translateX(0)} }
+.scroll-ltr { animation: marquee-ltr 28s linear infinite; }
+.scroll-rtl { animation: marquee-rtl 24s linear infinite; }
+.scroll-ltr:hover, .scroll-rtl:hover { animation-play-state: paused; }
 
 @keyframes orb-drift {
   0%,100% { transform: translate(0,0) scale(1); }

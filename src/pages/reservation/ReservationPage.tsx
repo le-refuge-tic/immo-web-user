@@ -229,6 +229,23 @@ export default function ReservationPage() {
           const visibleSlots = TIME_SLOTS.filter(h =>
             !isDateToday || h > curH || (h === curH && curM < 45)
           )
+
+          if (isDateToday && visibleSlots.length === 0) return (
+            <div className="w-full py-3 px-4 rounded-xl flex items-start gap-2.5"
+              style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)' }}>
+              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth={2}>
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <div>
+                <p className="text-xs font-semibold" style={{ color: '#92400E' }}>Plus de créneaux disponibles aujourd'hui</p>
+                <button className="text-xs mt-1 font-semibold" style={{ color: '#4B6BFF' }}
+                  onClick={() => { setSelectedDate(tomorrow); setSelectedTime('') }}>
+                  Choisir demain
+                </button>
+              </div>
+            </div>
+          )
+
           return visibleSlots.map(h => {
             const value = `${String(h).padStart(2, '0')}:00`
             const sel = selectedTime === value
@@ -241,7 +258,7 @@ export default function ReservationPage() {
                   border: `${sel ? 1.5 : 1}px solid ${sel ? '#4B6BFF' : '#E5E7EB'}`,
                   boxShadow: sel ? '0 3px 8px rgba(75,107,255,0.25)' : 'none',
                 }}>
-                {String(h).padStart(2, '0')}h00
+                {String(h).padStart(2, '00')}h00
               </button>
             )
           })

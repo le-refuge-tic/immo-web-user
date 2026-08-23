@@ -802,24 +802,46 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── Emplacements de bien — nuage de quartiers, taille proportionnelle
-           au nombre de biens publiés (comme un tag cloud classique) ── */}
+      {/* ── Emplacements de bien — bande défilante ── */}
       {quartiersActifs.length > 0 && (
-        <div className="hidden md:block w-full px-16 py-12" style={{ background: '#1A1A1A' }}>
-          <h2 className="text-white font-bold text-xl mb-6">Emplacements de bien</h2>
-          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-3">
-            {quartiersActifs.map(q => {
-              const count = quartierCounts[q]
+        <div className="w-full py-8 md:py-10 overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #F8F9FF 0%, #EEF2FF 100%)', borderTop: '1px solid rgba(75,107,255,0.08)' }}>
+          <div className="px-5 md:px-12 mb-5 flex items-end gap-3">
+            <h2 className="font-bold text-lg md:text-xl" style={{ color: '#1A1A2E' }}>Emplacements</h2>
+            <span className="text-sm mb-0.5" style={{ color: '#8B9CC8' }}>{quartiersActifs.length} quartier{quartiersActifs.length > 1 ? 's' : ''}</span>
+          </div>
+          {/* Deux rangées défilant en sens opposés */}
+          <div className="space-y-3 overflow-hidden">
+            {[0, 1].map(row => {
+              const half = Math.ceil(quartiersActifs.length / 2)
+              const items = quartiersActifs.slice(row * half, row * half + half)
+              const direction = row === 0 ? 'scroll-ltr' : 'scroll-rtl'
               return (
-                <button
-                  key={q}
-                  onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)}
-                  title={`${count} bien${count > 1 ? 's' : ''}`}
-                  className="transition-opacity hover:opacity-70"
-                  style={{ color: '#4B6BFF', fontSize: '1.05rem', fontWeight: 600, lineHeight: 1.3 }}
-                >
-                  {capitalizeQuartier(q)}
-                </button>
+                <div key={row} className={`flex gap-3 ${direction}`} style={{ width: 'max-content' }}>
+                  {[...items, ...items].map((q, i) => {
+                    const count = quartierCounts[q]
+                    return (
+                      <button key={`${q}-${i}`}
+                        onClick={() => navigate(`/search?q=${encodeURIComponent(q)}`)}
+                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95"
+                        style={{
+                          background: 'rgba(255,255,255,0.85)',
+                          backdropFilter: 'blur(12px)',
+                          border: '1px solid rgba(75,107,255,0.15)',
+                          boxShadow: '0 2px 12px rgba(75,107,255,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
+                        }}>
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#4B6BFF', opacity: 0.7 }} />
+                        <span className="text-sm font-semibold whitespace-nowrap" style={{ color: '#1A1A2E' }}>
+                          {capitalizeQuartier(q)}
+                        </span>
+                        <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                          style={{ background: 'rgba(75,107,255,0.1)', color: '#4B6BFF' }}>
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               )
             })}
           </div>
