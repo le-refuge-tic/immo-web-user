@@ -63,7 +63,7 @@ export default function PortefeuillePage() {
     setSubmitting(false)
   }
 
-  const solde = Number(wallet?.solde || 0)
+  const solde = Number(wallet?.balance || 0)
   const loyerCount = transactions.filter(isLoyer).length
   const visiteCount = transactions.filter(isVisite).length
   const filteredTx = filter === 'Loyers' ? transactions.filter(isLoyer) : filter === 'Visites' ? transactions.filter(isVisite) : transactions

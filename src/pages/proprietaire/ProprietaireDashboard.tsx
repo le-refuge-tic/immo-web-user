@@ -1598,12 +1598,7 @@ function ReservationsTab({ biens, onScrolled }: { biens: any[]; onScrolled?: (v:
     if (!cpId || !cpDate || !cpTime) return
     setSubmitting(true)
     try {
-      const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
-      await fetch(`${BASE}/visites/${cpId}/contre-proposer`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` },
-        body: JSON.stringify({ date_proposee: `${cpDate}T${cpTime}:00` }),
-      })
+      await visitesApi.contreProposer(cpId, `${cpDate}T${cpTime}:00`)
       setCpId(null); setCpDate(''); setCpTime('')
       load()
     } catch (_) {}
@@ -2547,35 +2542,111 @@ function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
   )
 }
 
-// Moyens de retrait proposés — logos fournis dans /public pour Moov, Celtiis
-// et FedaPay ; MTN reste en puce de couleur (pas de logo fourni pour celui-ci).
-const RETRAIT_METHODES: { key: string; label: string; short: string; sub: string; bg: string; fg: string; logo?: string }[] = [
-  { key: 'MTN MoMo',     label: 'MTN MoMo',     short: 'MTN',  sub: 'Retrait via MTN Mobile Money',      bg: '#FFCC00', fg: '#3D2E00' },
-  { key: 'Moov Flooz',   label: 'Moov Flooz',   short: 'MOOV', sub: 'Retrait via Moov Mobile Money',     bg: '#0066CC', fg: '#FFFFFF', logo: '/logo-moov.png' },
-  { key: 'Celtiis Cash', label: 'Celtiis Cash', short: 'CEL',  sub: 'Retrait via Celtiis Mobile Money',  bg: '#E63946', fg: '#FFFFFF', logo: '/logo-celtis.webp' },
-  { key: 'FedaPay',      label: 'FedaPay',      short: 'FP',   sub: 'Retrait via FedaPay (Mobile Money / Carte)', bg: '#0B4F6C', fg: '#FFFFFF', logo: '/logo-fedapay.jpg' },
-]
+function NumeroRetraitModal({ current, onClose, onSaved }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void }) {
+  const [step, setStep] = useState<'form' | 'otp'>('form')
+  const [numero, setNumero] = useState('')
+  const [motDePasse, setMotDePasse] = useState('')
+  const [otp, setOtp] = useState('')
+  const [sessionToken, setSessionToken] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const initier = async () => {
+    if (!/^\d{8,10}$/.test(numero.trim())) { setError('Numéro invalide (8 à 10 chiffres).'); return }
+    if (!motDePasse) { setError('Entrez votre mot de passe pour confirmer.'); return }
+    setError(''); setSubmitting(true)
+    try {
+      const res = await walletApi.initierChangementNumeroRetrait(numero.trim(), motDePasse)
+      setSessionToken(res.session_token)
+      setStep('otp')
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Impossible de vérifier ces informations.')
+    }
+    setSubmitting(false)
+  }
+
+  const confirmer = async () => {
+    if (!otp.trim()) { setError('Entrez le code reçu par SMS.'); return }
+    setError(''); setSubmitting(true)
+    try {
+      await walletApi.confirmerChangementNumeroRetrait(sessionToken, otp.trim(), numero.trim())
+      onSaved(numero.trim())
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Code invalide ou expiré.')
+    }
+    setSubmitting(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+      <div className="bg-[#0B1C30] rounded-2xl w-full max-w-sm border border-[#1A3355]" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355]">
+          <h2 className="font-bold text-[#F0EDE8]">Numéro de retrait</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0">✕</button>
+        </div>
+        <div className="p-5 space-y-4">
+          {current && step === 'form' && (
+            <p className="text-xs text-[#8A9BB5]">Numéro actuel : <span className="font-semibold text-[#F0EDE8]">{current}</span></p>
+          )}
+          {error && (
+            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#EF4444', border: '1px solid #EF444430' }}>{error}</div>
+          )}
+
+          {step === 'form' ? (
+            <>
+              <div>
+                <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Nouveau numéro Mobile Money</label>
+                <input type="tel" value={numero} onChange={e => setNumero(e.target.value)} placeholder="Ex: 0197000000"
+                  className="w-full bg-[#112440] border border-[#1A3355] rounded-xl px-4 py-3 text-sm outline-none text-[#F0EDE8] focus:border-[#4B6BFF]" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Mot de passe (confirmation)</label>
+                <input type="password" value={motDePasse} onChange={e => setMotDePasse(e.target.value)} placeholder="••••••••"
+                  className="w-full bg-[#112440] border border-[#1A3355] rounded-xl px-4 py-3 text-sm outline-none text-[#F0EDE8] focus:border-[#4B6BFF]" />
+              </div>
+              <p className="text-[11px] text-[#8A9BB5]">Un code sera envoyé par SMS sur le numéro principal de votre compte pour confirmer ce changement.</p>
+              <button onClick={initier} disabled={submitting}
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60" style={{ background: BLUE }}>
+                {submitting ? 'Vérification…' : 'Recevoir le code'}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-[#8A9BB5]">Entrez le code reçu par SMS pour confirmer le nouveau numéro <span className="font-semibold text-[#F0EDE8]">{numero}</span>.</p>
+              <input type="text" inputMode="numeric" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Code à 6 chiffres"
+                className="w-full bg-[#112440] border border-[#1A3355] rounded-xl px-4 py-3 text-sm text-center tracking-[0.3em] font-bold outline-none text-[#F0EDE8] focus:border-[#4B6BFF]" />
+              <button onClick={confirmer} disabled={submitting}
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60" style={{ background: BLUE }}>
+                {submitting ? 'Confirmation…' : 'Confirmer'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: () => void; onSuccess: () => void }) {
   const [montant, setMontant] = useState('')
-  const [methode, setMethode] = useState<string | null>(null)
-  const [numero, setNumero] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [successMsg, setSuccessMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState(false)
+  const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
+  const [showNumeroModal, setShowNumeroModal] = useState(false)
+
+  useEffect(() => { walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }, [])
 
   const montantNum = Number(montant)
-  const montantValide = montantNum >= 1000 && montantNum <= solde
+  const montantValide = montantNum >= 500 && montantNum <= solde
 
   const confirmer = async () => {
-    if (!methode) { setError('Choisissez un moyen de retrait.'); return }
-    if (!montant || !montantValide) { setError(montantNum > solde ? 'Montant supérieur à votre solde disponible.' : 'Montant minimum : 1 000 FCFA.'); return }
-    if (!numero.trim()) { setError('Entrez votre numéro Mobile Money.'); return }
+    if (!montant || !montantValide) { setError(montantNum > solde ? 'Montant supérieur à votre solde disponible.' : 'Montant minimum : 500 FCFA.'); return }
     setError('')
     setSubmitting(true)
     try {
-      const res = await walletApi.demandeRetrait(montantNum, methode, numero.trim())
-      setSuccessMsg(res?.message || 'Demande de retrait enregistrée.')
+      await walletApi.demandeRetrait(montantNum, 'revenus_locatifs')
+      setSuccessMsg(true)
       onSuccess()
     } catch (e: any) {
       setError(e?.response?.data?.message || "Impossible d'envoyer la demande. Réessayez.")
@@ -2591,9 +2662,9 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             style={{ background: 'linear-gradient(135deg, #4CAF50, #2E7D32)', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }}>
             <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           </div>
-          <p className="font-bold text-[#F0EDE8] text-lg mb-2">Retrait initié !</p>
+          <p className="font-bold text-[#F0EDE8] text-lg mb-2">Demande envoyée !</p>
           <p className="text-sm text-[#8A9BB5] leading-relaxed mb-6">
-            Retrait de {montantNum.toLocaleString('fr-FR')} FCFA via {methode}. {successMsg}
+            Retrait de {montantNum.toLocaleString('fr-FR')} FCFA en attente de validation. Vous serez notifié dès l'envoi.
           </p>
           <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-sm" style={{ background: BLUE, color: '#060D1A' }}>Fermer</button>
         </div>
@@ -2623,56 +2694,20 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Montant à retirer</label>
             <div className="relative">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A9BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
-              <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={1000} max={solde}
+              <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={500} max={solde}
                 className="w-full bg-[#112440] border border-[#1A3355] rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none text-[#F0EDE8] focus:border-[#4B6BFF]" />
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8A9BB5]">FCFA</span>
             </div>
-            <p className="text-[11px] text-[#8A9BB5] mt-1.5">Minimum 1 000 FCFA — traitement sous 48 heures ouvrées.</p>
+            <p className="text-[11px] text-[#8A9BB5] mt-1.5">Minimum 500 FCFA · maximum 3 retraits / 24h vers le même numéro.</p>
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Choisir le mode de retrait</label>
-            <div className="space-y-2">
-              {RETRAIT_METHODES.map(m => {
-                const selected = methode === m.key
-                return (
-                  <button key={m.key} onClick={() => setMethode(m.key)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors"
-                    style={{ borderColor: selected ? BLUE : '#1A3355', background: selected ? 'rgba(212,168,71,0.10)' : '#0B1C30' }}>
-                    {m.logo ? (
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#112440] border border-[#1A3355] p-1.5">
-                        <img src={m.logo} alt={m.label} className="w-full h-full object-contain" />
-                      </div>
-                    ) : (
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 font-extrabold text-[11px]"
-                        style={{ background: m.bg, color: m.fg }}>
-                        {m.short}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm" style={{ color: selected ? BLUE : '#F0EDE8' }}>{m.label}</p>
-                      <p className="text-xs text-[#8A9BB5]">{m.sub}</p>
-                    </div>
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border-2"
-                      style={{ borderColor: selected ? BLUE : '#1A3355', background: selected ? BLUE : 'transparent' }}>
-                      {selected && <svg className="w-3 h-3" style={{ color: '#060D1A' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                    </div>
-                  </button>
-                )
-              })}
+          <div className="p-3.5 rounded-xl flex items-center justify-between gap-3" style={{ background: '#112440', border: '1px solid #1A3355' }}>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold text-[#8A9BB5] uppercase tracking-wide mb-0.5">Envoyé sur</p>
+              <p className="font-semibold text-sm text-[#F0EDE8] truncate">{numeroInfo?.masque || '—'}</p>
             </div>
+            <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE }}>Changer</button>
           </div>
-
-          {methode && (
-            <div>
-              <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Numéro {methode}</label>
-              <div className="relative">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A9BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                <input type="tel" value={numero} onChange={e => setNumero(e.target.value)} placeholder="Ex: 97000000"
-                  className="w-full bg-[#112440] border border-[#1A3355] rounded-xl pl-10 pr-4 py-3 text-sm outline-none text-[#F0EDE8] focus:border-[#4B6BFF]" />
-              </div>
-            </div>
-          )}
 
           <button onClick={confirmer} disabled={submitting}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60"
@@ -2688,6 +2723,14 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
           </button>
         </div>
       </div>
+
+      {showNumeroModal && (
+        <NumeroRetraitModal
+          current={numeroInfo?.masque ?? null}
+          onClose={() => setShowNumeroModal(false)}
+          onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+        />
+      )}
     </div>
   )
 }
@@ -2695,6 +2738,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => void }) {
   const [wallet, setWallet] = useState<any>(null)
   const [transactions, setTrans] = useState<any[]>([])
+  const [retraits, setRetraits] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
   const [detailTx, setDetailTx] = useState<any>(null)
@@ -2702,22 +2746,24 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
   const load = async () => {
     setLoading(true)
     try {
-      const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
-      setWallet(w); setTrans(Array.isArray(t) ? t : t.data || [])
+      const [w, t, r] = await Promise.all([walletApi.me(), walletApi.transactions(), walletApi.mesRetraits()])
+      setWallet(w); setTrans(Array.isArray(t) ? t : t.data || []); setRetraits(Array.isArray(r) ? r : r.data || [])
     } catch (_) {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
 
-  const solde = Number(wallet?.solde || 0)
+  const retraitsEnCours = retraits.filter(r => r.statut === 'en_attente' || r.statut === 'approuve')
+
+  const solde = Number(wallet?.balance || 0)
 
   const now = new Date()
   const recuCeMois = transactions
     .filter(t => {
       const d = new Date(t.created_at)
-      return (t.type === 'credit' || Number(t.montant) > 0) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+      return t.type !== 'retrait' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     })
-    .reduce((s, t) => s + Number(t.montant), 0)
+    .reduce((s, t) => s + Number(t.amount ?? t.montant ?? 0), 0)
   const derniereTx = transactions[0]
   const derniereLabel = derniereTx
     ? new Date(derniereTx.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
@@ -2774,6 +2820,27 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
           </div>
         </div>
 
+        {/* Retraits en cours */}
+        {retraitsEnCours.length > 0 && (
+          <div className="mb-6">
+            <p className="font-bold text-[#F0EDE8] mb-3">Retraits en cours</p>
+            {retraitsEnCours.map((r: any) => {
+              const approuve = r.statut === 'approuve'
+              const color = approuve ? '#F59E0B' : '#8A9BB5'
+              return (
+                <div key={r.id} className="flex items-center gap-3 p-3.5 rounded-xl mb-2" style={{ background: '#112440', border: `1px solid ${color}40` }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className="w-5 h-5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-[#F0EDE8]">{Number(r.montant).toLocaleString('fr-FR')} FCFA</p>
+                    <p className="text-xs" style={{ color }}>{approuve ? 'Approuvé — envoi en cours' : 'En attente de validation'}</p>
+                  </div>
+                  <p className="text-[11px] text-[#8A9BB5] flex-shrink-0">{new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
         {/* Transactions récentes */}
         <div className="flex items-center justify-between mb-3">
           <p className="font-bold text-[#F0EDE8]">Transactions récentes</p>
@@ -2787,7 +2854,8 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
             <p className="text-sm text-[#8A9BB5]">Vos loyers, frais de visite et intégrations apparaîtront ici.</p>
           </div>
         ) : transactions.slice(0, 5).map((t: any, i: number) => {
-          const isCredit = t.type === 'credit' || Number(t.montant) > 0
+          const isCredit = t.type !== 'retrait'
+          const montant = Number(t.amount ?? t.montant ?? 0)
           const cat = categorieTransaction(t.description)
           return (
             <button key={t.id || i} onClick={() => setDetailTx(t)} className="w-full flex items-center gap-3 p-3.5 card-navy rounded-xl mb-2 text-left hover:shadow-sm transition-shadow">
@@ -2802,7 +2870,7 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
                 </div>
               </div>
               <p className="font-bold text-sm flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
-                {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
+                {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
               </p>
             </button>
           )
@@ -2838,7 +2906,8 @@ function txStatutMeta(statut: string | null | undefined): { label: string; color
 const METHODE_LABELS: Record<string, string> = { momo: 'MTN MoMo', flooz: 'Moov Flooz', celtiis: 'Celtiis Cash', fedapay: 'FedaPay' }
 
 function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void }) {
-  const isCredit = t.type === 'credit' || Number(t.montant) > 0
+  const isCredit = t.type !== 'retrait'
+  const montant = Number(t.amount ?? t.montant ?? 0)
   const cat = categorieTransaction(t.description)
   const statut = txStatutMeta(t.statut)
   const lien = t.visite_id ? `Visite #${t.visite_id}` : t.loyer_id ? `Loyer #${t.loyer_id}` : t.contrat_id ? `Contrat #${t.contrat_id}` : null
@@ -2859,7 +2928,7 @@ function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void })
               <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
             </div>
             <p className="font-extrabold text-lg flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
-              {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
+              {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
             </p>
           </div>
           <div className="space-y-3 text-sm">
@@ -2919,7 +2988,7 @@ function TransactionsTab() {
   const categories = ['Tous', ...Array.from(new Set(transactions.map(t => categorieTransaction(t.description).label)))]
 
   const filtered = transactions.filter(t => {
-    const isCredit = t.type === 'credit' || Number(t.montant) > 0
+    const isCredit = t.type !== 'retrait'
     if (typeFilter === 'credit' && !isCredit) return false
     if (typeFilter === 'debit' && isCredit) return false
     const cat = categorieTransaction(t.description).label
@@ -2931,9 +3000,10 @@ function TransactionsTab() {
     return true
   })
 
-  const totalIn = transactions.filter(t => t.type === 'credit' || Number(t.montant) > 0).reduce((s, t) => s + Number(t.montant), 0)
-  const totalOut = transactions.filter(t => t.type === 'debit' && Number(t.montant) < 0).reduce((s, t) => s + Math.abs(Number(t.montant)), 0)
-  const largest = transactions.reduce((m, t) => Math.max(m, Math.abs(Number(t.montant))), 0)
+  const montantOf = (t: any) => Number(t.amount ?? t.montant ?? 0)
+  const totalIn = transactions.filter(t => t.type !== 'retrait').reduce((s, t) => s + montantOf(t), 0)
+  const totalOut = transactions.filter(t => t.type === 'retrait').reduce((s, t) => s + Math.abs(montantOf(t)), 0)
+  const largest = transactions.reduce((m, t) => Math.max(m, Math.abs(montantOf(t))), 0)
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -3029,7 +3099,7 @@ function TransactionsTab() {
               </thead>
               <tbody>
                 {filtered.map((t, i) => {
-                  const isCredit = t.type === 'credit' || Number(t.montant) > 0
+                  const isCredit = t.type !== 'retrait'
                   const cat = categorieTransaction(t.description)
                   const statut = txStatutMeta(t.statut)
                   return (
@@ -3051,7 +3121,7 @@ function TransactionsTab() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
-                          {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
+                          {isCredit ? '+' : '-'}{Math.abs(montantOf(t)).toLocaleString('fr-FR')} F
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
@@ -3290,6 +3360,9 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [cipOpen, setCipOpen] = useState(false)
   const [delegationOpen, setDelegationOpen] = useState(false)
+  const [numeroRetraitOpen, setNumeroRetraitOpen] = useState(false)
+  const [numeroRetrait, setNumeroRetrait] = useState<{ masque: string | null } | null>(null)
+  useEffect(() => { walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => {}) }, [])
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
 
@@ -3317,6 +3390,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
     { icon: <IcShield />, label: 'Changer le mot de passe', color: '#7B2FBE', onClick: () => setPasswordOpen(true) },
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: '#0EA5E9', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
+    { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
     { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#F59E0B', onClick: onOpenRoles },
     { icon: <IcPayments />, label: 'Historique des transactions', color: '#16A34A', onClick: onOpenTransactions },
   ]
@@ -3457,6 +3531,13 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
       <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
       {cipOpen && <VerificationCipModal user={user} onClose={() => setCipOpen(false)} />}
       {delegationOpen && <DelegationModal onClose={() => setDelegationOpen(false)} />}
+      {numeroRetraitOpen && (
+        <NumeroRetraitModal
+          current={numeroRetrait?.masque ?? null}
+          onClose={() => setNumeroRetraitOpen(false)}
+          onSaved={() => { setNumeroRetraitOpen(false); walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => {}) }}
+        />
+      )}
     </div>
   )
 }

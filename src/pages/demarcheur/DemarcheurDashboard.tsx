@@ -533,7 +533,7 @@ function PortefeuilleTab() {
     setSubmitting(false)
   }
 
-  const solde = Number(wallet?.solde || 0)
+  const solde = Number(wallet?.balance || 0)
 
   return (
     <div className="flex-1 overflow-y-auto pb-10">
@@ -569,7 +569,8 @@ function PortefeuilleTab() {
             <p className="text-text-grey text-sm">Vos commissions apparaîtront ici.</p>
           </div>
         ) : transactions.map((t: any, i: number) => {
-          const isCredit = t.type === 'credit' || Number(t.montant) > 0
+          const isCredit = t.type !== 'retrait'
+          const montant = Number(t.amount ?? t.montant ?? 0)
           return (
             <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -586,9 +587,9 @@ function PortefeuilleTab() {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
-                  {isCredit ? '+' : '-'}{Math.abs(Number(t.montant)).toLocaleString('fr-FR')} F
+                  {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
                 </p>
-                {t.solde_apres != null && <p className="text-[10px] text-text-grey">{Number(t.solde_apres).toLocaleString('fr-FR')} F</p>}
+                {t.balance_after != null && <p className="text-[10px] text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
               </div>
             </div>
           )
