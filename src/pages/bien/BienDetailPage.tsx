@@ -658,7 +658,7 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
   visitesPlanifiees: { total: number; slots: { date: string; count: number }[] } | null
   visitesConfirmees: { count: number; visites: { id: number; date: string | null }[] } | null
 }) {
-  const hasFeatureChips = (bien.pieces?.length > 0) || (bien.details_maison?.superficie > 0) ||
+  const hasFeatureChips = (bien.details_maison?.superficie > 0) ||
     (bien.details_terrain?.superficie > 0) || bien.details_appart?.entree_personnelle ||
     bien.details_maison?.cloture || bien.details_terrain?.cloture ||
     bien.amenites?.parking || bien.amenites?.cour || bien.amenites?.boyerie || bien.amenites?.sanitaire != null
@@ -712,7 +712,7 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
       {/* Feature chips */}
       {hasFeatureChips && (
         <div className="flex flex-wrap gap-2.5">
-          {bien.pieces?.length > 0 && <FeatureChip icon="room" label={`${bien.pieces.length} pièce${bien.pieces.length > 1 ? 's' : ''}`} />}
+
           {bien.details_maison?.superficie > 0 && <FeatureChip icon="ruler" label={`${bien.details_maison.superficie} m²`} />}
           {bien.details_terrain?.superficie > 0 && <FeatureChip icon="ruler" label={`${bien.details_terrain.superficie} m²`} />}
           {bien.details_appart?.entree_personnelle && <FeatureChip icon="door" label="Entrée privée" />}
