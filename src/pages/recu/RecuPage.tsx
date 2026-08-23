@@ -57,7 +57,9 @@ export default function RecuPage() {
     if (!refId) return
     setLoading(true)
     setError('')
-    const call = type === 'integration' ? paiementApi.recuIntegration(refId) : paiementApi.recuVisite(refId)
+    const call = type === 'integration' ? paiementApi.recuIntegration(refId)
+      : type === 'loyer' ? paiementApi.recuLoyer(refId)
+      : paiementApi.recuVisite(refId)
     call
       .then(setRecu)
       .catch(e => setError(e?.response?.data?.message || 'Reçu introuvable'))
@@ -78,12 +80,16 @@ export default function RecuPage() {
   )
 
   const isIntegration = type === 'integration'
-  const bien = isIntegration ? recu.bien : recu.visite?.bien
+  const isLoyer = type === 'loyer'
+  const bien = isIntegration || isLoyer ? recu.bien : recu.visite?.bien
   const typeLabel = bien ? (TYPE_LABELS[bien.type] || bien.type) : ''
-  const client = recu.client
+  const client = recu.locataire || recu.client
   const gestionnaire = recu.gestionnaire
   const gestionnaireRoleLabel = gestionnaire?.role === 'demarcheur' ? 'Agent immobilier' : 'Propriétaire'
   const dateVisite = recu.visite?.date_confirmee || recu.visite?.date_souhaitee
+  const moisLoyerLabel = recu.loyer?.mois
+    ? new Date(recu.loyer.mois + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+    : null
 
   return (
     <div className="min-h-dvh py-8 px-4 print:py-0" style={{ background: '#F4F6FA' }}>
@@ -96,7 +102,7 @@ export default function RecuPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <p className="font-bold text-text-dark text-sm">{isIntegration ? "Reçu d'intégration" : 'Reçu de visite'}</p>
+          <p className="font-bold text-text-dark text-sm">{isIntegration ? "Reçu d'intégration" : isLoyer ? 'Reçu de loyer' : 'Reçu de visite'}</p>
           <div className="w-9" />
         </div>
 
@@ -108,7 +114,7 @@ export default function RecuPage() {
           <div className="flex items-center justify-between mb-5">
             <img src={logoUrl} alt="REFUGE" className="h-9 object-contain" />
             <span className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold tracking-wide border border-white/40" style={{ background: 'rgba(255,255,255,0.2)' }}>
-              {isIntegration ? "REÇU D'INTÉGRATION" : 'REÇU DE VISITE'}
+              {isIntegration ? "REÇU D'INTÉGRATION" : isLoyer ? 'REÇU DE LOYER' : 'REÇU DE VISITE'}
             </span>
           </div>
 
@@ -130,18 +136,26 @@ export default function RecuPage() {
 
         {/* Carte détails */}
         <div className="bg-white rounded-[20px] overflow-hidden" style={{ boxShadow: '0 3px 12px rgba(0,0,0,0.05)' }}>
-          {!isIntegration && (
+          {!isIntegration && !isLoyer && (
             <div className="px-5 pt-4.5 pb-3.5">
               <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-2.5">Visite</p>
               {typeLabel && <IconRow icon={<IcHome />} label="Bien" value={`${typeLabel}${bien?.localisation?.ville ? ` — ${bien.localisation.ville}` : ''}`} />}
               {dateVisite && <IconRow icon={<IcCal />} label="Date" value={fmtDateCourte(dateVisite)} />}
             </div>
           )}
-          {!isIntegration && <div className="h-px bg-divider mx-5" />}
+          {isLoyer && (
+            <div className="px-5 pt-4.5 pb-3.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-2.5">Loyer</p>
+              {typeLabel && <IconRow icon={<IcHome />} label="Bien" value={`${typeLabel}${bien?.localisation?.ville ? ` — ${bien.localisation.ville}` : ''}`} />}
+              {moisLoyerLabel && <IconRow icon={<IcCal />} label="Mois" value={moisLoyerLabel} />}
+              {recu.loyer?.date_echeance && <IconRow icon={<IcCal />} label="Échéance" value={fmtDateCourte(recu.loyer.date_echeance)} />}
+            </div>
+          )}
+          {(!isIntegration || isLoyer) && <div className="h-px bg-divider mx-5" />}
 
           <div className="px-5 pt-4.5 pb-3.5">
             <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-2.5">Parties</p>
-            {client && <IconRow icon={<IcPerson />} label="Client" value={`${client.prenom || ''} ${client.nom || ''}`.trim()} />}
+            {client && <IconRow icon={<IcPerson />} label={isLoyer ? 'Locataire' : 'Client'} value={`${client.prenom || ''} ${client.nom || ''}`.trim()} />}
             {gestionnaire && (
               <IconRow
                 icon={gestionnaire.role === 'demarcheur' ? <IcAgent /> : <IcPerson />}
@@ -155,7 +169,7 @@ export default function RecuPage() {
           <div className="px-5 pt-4.5 pb-4.5">
             <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-2.5">Paiement</p>
             <IconRow icon={<IcTag />} label="Référence" value={`${String(recu.reference).slice(0, 12).toUpperCase()}...`} />
-            <IconRow icon={<IcPhone />} label="Numéro" value={recu.telephone_paiement} />
+            {recu.telephone_paiement && <IconRow icon={<IcPhone />} label="Numéro" value={recu.telephone_paiement} />}
             <IconRow icon={<IcCheck />} label="Statut" value="Confirmé" valueColor={GREEN2} />
           </div>
 

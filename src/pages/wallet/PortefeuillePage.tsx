@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../api/walletApi'
+import { useAuth } from '../../context/AuthContext'
 
 const isLoyer = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -31,6 +32,193 @@ function TypeIcon({ t, color, className }: { t: any; color: string; className: s
 }
 
 export default function PortefeuillePage() {
+  const { activeRole } = useAuth()
+  if (activeRole === 'locataire') return <LocataireWalletView />
+  return <WalletCommissionsView />
+}
+
+// ─── Vue locataire : Cotisation / Épargne (mirroir de portefeuille_screen.dart) ─
+type WType = 'cotisation' | 'epargne'
+const W_LABEL: Record<WType, string> = { cotisation: 'Cotisation', epargne: 'Épargne' }
+const W_COLOR: Record<WType, string> = { cotisation: '#4B6BFF', epargne: '#7B4BFF' }
+
+function LocataireWalletView() {
+  const navigate = useNavigate()
+  const [tab, setTab] = useState<WType>('cotisation')
+  const [wallets, setWallets] = useState<Record<WType, any>>({ cotisation: null, epargne: null })
+  const [txs, setTxs] = useState<Record<WType, any[]>>({ cotisation: [], epargne: [] })
+  const [loading, setLoading] = useState(true)
+  const [showRetrait, setShowRetrait] = useState(false)
+  const [montant, setMontant] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [retraitOk, setRetraitOk] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const [wc, we, tc, te] = await Promise.all([
+        walletApi.me('cotisation'), walletApi.me('epargne'),
+        walletApi.transactions('cotisation'), walletApi.transactions('epargne'),
+      ])
+      setWallets({ cotisation: wc, epargne: we })
+      setTxs({
+        cotisation: Array.isArray(tc) ? tc : tc?.data || [],
+        epargne: Array.isArray(te) ? te : te?.data || [],
+      })
+    } catch (_) {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  const solde = Number(wallets[tab]?.balance || 0)
+  const color = W_COLOR[tab]
+  const transactions = txs[tab]
+
+  const demanderRetrait = async () => {
+    if (!montant || Number(montant) <= 0) return
+    setSubmitting(true)
+    try {
+      await walletApi.demandeRetrait(Number(montant), 'epargne')
+      setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
+    } catch (_) {}
+    setSubmitting(false)
+  }
+
+  const typeLabel = (t: any) => {
+    switch (t.type) {
+      case 'depot': return 'Dépôt'
+      case 'retrait': return 'Retrait'
+      case 'paiement_loyer': return 'Paiement de loyer'
+      case 'transfert_interne': return 'Transfert interne'
+      default: return t.description || t.type
+    }
+  }
+  const isDebit = (t: any) => t.type === 'retrait' || t.type === 'paiement_loyer'
+  const formatDate = (raw: any) => {
+    const d = new Date(raw)
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  return (
+    <div className="min-h-full flex flex-col">
+      <div className="flex-shrink-0 px-5 pt-14 md:pt-6 pb-6"
+        style={{ background: `linear-gradient(135deg, ${color}CC, ${color})`, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-4 mb-5">
+            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.15)' }}>
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <p className="text-white font-bold text-lg">Mon portefeuille</p>
+          </div>
+          <div className="flex gap-2 mb-5">
+            {(['cotisation', 'epargne'] as WType[]).map(t => (
+              <button key={t} onClick={() => setTab(t)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors"
+                style={tab === t ? { background: 'white', color } : { background: 'rgba(255,255,255,0.15)', color: 'white' }}>
+                {W_LABEL[t]}
+              </button>
+            ))}
+          </div>
+          <div className="rounded-2xl p-5 text-white" style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.18)' }}>
+            <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Solde {W_LABEL[tab].toLowerCase()}</p>
+            <p className="text-3xl font-bold mb-1">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-white/50 text-[11px] mb-4">Mis à jour : {wallets[tab]?.updated_at ? formatDate(wallets[tab].updated_at) : '—'}</p>
+            {tab === 'cotisation' ? (
+              <div className="space-y-2.5">
+                <button onClick={() => navigate('/locataire')} disabled={solde <= 0}
+                  className="w-full py-3 rounded-xl font-bold text-sm disabled:opacity-50" style={{ background: 'white', color }}>
+                  Payer un loyer avec ma cotisation
+                </button>
+                <button onClick={() => navigate('/portefeuille/recharger/cotisation')}
+                  className="w-full py-3 rounded-xl font-bold text-sm text-white border" style={{ borderColor: 'rgba(255,255,255,0.4)' }}>
+                  Recharger ma cotisation
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                <button onClick={() => navigate('/portefeuille/recharger/epargne')}
+                  className="w-full py-3 rounded-xl font-bold text-sm" style={{ background: 'white', color }}>
+                  Déposer
+                </button>
+                <button onClick={() => setShowRetrait(true)} disabled={solde <= 0}
+                  className="w-full py-3 rounded-xl font-bold text-sm text-white border disabled:opacity-50" style={{ borderColor: 'rgba(255,255,255,0.4)' }}>
+                  Retirer
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-5 py-6 pb-10">
+          {retraitOk && (
+            <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée — en attente de validation.</p>
+            </div>
+          )}
+
+          {showRetrait && (
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
+              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
+              onClick={() => setShowRetrait(false)}>
+              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}
+                onClick={e => e.stopPropagation()}>
+                <h3 className="font-bold text-text-dark text-lg mb-4">Demander un retrait — Épargne</h3>
+                <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{Number(wallets.epargne?.balance || 0).toLocaleString('fr-FR')} FCFA</strong></p>
+                <p className="text-xs text-text-grey mb-3">Minimum 500 FCFA · Max 3 retraits / 24h</p>
+                <label className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
+                <input type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={Number(wallets.epargne?.balance || 0)}
+                  placeholder="Ex: 5000"
+                  className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
+                <div className="flex gap-3">
+                  <button onClick={() => setShowRetrait(false)}
+                    className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
+                  <button onClick={demanderRetrait} disabled={submitting || !montant || Number(montant) > Number(wallets.epargne?.balance || 0)}
+                    className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
+                    style={{ background: W_COLOR.epargne }}>
+                    {submitting ? 'Envoi…' : 'Confirmer'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <p className="font-bold text-text-dark mb-4">Historique</p>
+          {loading ? (
+            [1, 2, 3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
+          ) : transactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} className="w-14 h-14 mb-3" style={{ opacity: 0.25 }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
+              <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
+              <p className="text-text-grey text-sm">Vos opérations {W_LABEL[tab].toLowerCase()} apparaîtront ici.</p>
+            </div>
+          ) : transactions.map((t: any, i: number) => (
+            <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A` }}>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
+                  {isDebit(t) ? <path strokeLinecap="round" strokeLinejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12" /> : <path strokeLinecap="round" strokeLinejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" />}
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-text-dark text-sm truncate">{t.description || typeLabel(t)}</p>
+                <p className="text-[11px] text-text-grey mt-0.5">Solde après : {Number(t.balance_after ?? 0).toLocaleString('fr-FR')} F · {formatDate(t.created_at)}</p>
+              </div>
+              <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? '#EF4444' : '#22C55E' }}>
+                {isDebit(t) ? '-' : '+'}{Number(t.amount ?? 0).toLocaleString('fr-FR')} F
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Vue propriétaire / démarcheur : Commissions (revenus_locatifs) ────────────
+function WalletCommissionsView() {
   const navigate = useNavigate()
   const [wallet, setWallet]         = useState<any>(null)
   const [transactions, setTrans]    = useState<any[]>([])

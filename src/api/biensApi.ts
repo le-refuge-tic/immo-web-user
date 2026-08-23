@@ -31,6 +31,14 @@ export const biensApi = {
   regenererCode: (id: number) =>
     axios.post(`${BASE}/biens/${id}/regenerer-code`, {}, auth()).then(r => r.data as { code_invitation: string }),
 
+  /** Locataire : rejoint un bien en gestion via le code d'invitation partagé par le propriétaire. */
+  rejoindre: (code: string) =>
+    axios.post(`${BASE}/biens/rejoindre`, { code }, auth()).then(r => r.data),
+
+  /** Mes demandes de liaison à un bien en gestion (en attente de validation admin). */
+  mesDemandesGestion: () =>
+    axios.get(`${BASE}/biens/mes-demandes-gestion`, auth()).then(r => r.data),
+
   update: (id: number, body: any) =>
     axios.patch(`${BASE}/biens/${id}`, body, auth()).then(r => r.data),
 

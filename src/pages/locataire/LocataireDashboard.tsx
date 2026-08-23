@@ -4,6 +4,9 @@ import { useAuth } from '../../context/AuthContext'
 import { loyersApi } from '../../api/loyersApi'
 import { paiementApi } from '../../api/paiementApi'
 import { notificationsApi } from '../../api/notificationsApi'
+import { walletApi } from '../../api/walletApi'
+import { chatApi } from '../../api/chatApi'
+import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -32,9 +35,18 @@ const OPERATEURS: { id: 'momo' | 'flooz' | 'celtiis' | 'fedapay'; label: string;
   { id: 'fedapay', label: 'FedaPay', accent: '#00B4D8' },
 ]
 
-function OperateurChips({ value, onChange }: { value: string; onChange: (v: any) => void }) {
+function OperateurChips({ value, onChange, cotisationSolde }: { value: string; onChange: (v: any) => void; cotisationSolde?: number }) {
   return (
     <div className="flex gap-2 mb-3 flex-wrap">
+      {cotisationSolde != null && cotisationSolde > 0 && (
+        <button onClick={() => onChange('cotisation')}
+          className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all"
+          style={value === 'cotisation'
+            ? { borderColor: GREEN, background: `${GREEN}20`, color: '#1A1A2E' }
+            : { borderColor: '#E5E7EB', color: '#6B7280', background: '#fff' }}>
+          Cotisation ({cotisationSolde.toLocaleString('fr-FR')} F)
+        </button>
+      )}
       {OPERATEURS.map(o => (
         <button key={o.id} onClick={() => onChange(o.id)}
           className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all"
@@ -50,20 +62,31 @@ function OperateurChips({ value, onChange }: { value: string; onChange: (v: any)
 
 // ─── Mon Logement ─────────────────────────────────────────────────────────────
 function MonLogementTab() {
+  const navigate = useNavigate()
   const [data, setData]         = useState<any>(null)
   const [loading, setLoading]   = useState(true)
   const [selected, setSelected] = useState<number[]>([])
   const [tel, setTel]           = useState('')
-  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay'>('momo')
+  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay' | 'cotisation'>('momo')
+  const [cotisationSolde, setCotisationSolde] = useState(0)
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [payMsg, setPayMsg]     = useState('')
   const [payUrl, setPayUrl]     = useState('')
+  const [payProgress, setPayProgress] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
   const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const load = async () => {
     setLoading(true)
-    try { setData(await loyersApi.monLogement()) } catch (_) {}
+    try {
+      const [logement, wallet] = await Promise.all([
+        loyersApi.monLogement(),
+        walletApi.me('cotisation').catch(() => null),
+      ])
+      setData(logement)
+      setCotisationSolde(Number(wallet?.balance || 0))
+    } catch (_) {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -79,38 +102,80 @@ function MonLogementTab() {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
   const totalSelected = loyers.filter(l => selected.includes(l.id)).reduce((s: number, l: any) => s + Number(l.montant), 0)
+  const cotisationSuffisante = cotisationSolde >= totalSelected
 
-  const payer = async () => {
-    if ((operateur !== 'fedapay' && !tel) || selected.length === 0) return
-    setPaying(true)
-    setPayState('waiting')
+  const ouvrirChatGestionnaire = async () => {
+    if (!bien?.id) return
+    setChatLoading(true)
     try {
-      const res = await paiementApi.initierLoyer({ loyer_id: selected[0], methode_paiement: operateur, telephone_paiement: tel })
-      const refId = res.referenceId || res.reference_id
-      // FedaPay se paie sur une page hébergée à part — sans l'ouvrir, l'utilisateur
-      // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
-      if ((res as any).url_paiement) {
-        setPayUrl((res as any).url_paiement)
-        window.open((res as any).url_paiement, '_blank', 'noopener')
-      } else {
-        setPayUrl('')
-      }
+      const conv = await chatApi.creerConversation(bien.id)
+      navigate(`/conversations/${conv.id || conv.data?.id}`)
+    } catch (_) {}
+    setChatLoading(false)
+  }
+
+  /** Attend la confirmation d'un paiement (polling), résout true si réussi. */
+  const attendreConfirmation = (refId: string, hasUrl: boolean): Promise<boolean> =>
+    new Promise(resolve => {
       let attempts = 0
-      const maxAttempts = (res as any).url_paiement ? 100 : 20
+      const maxAttempts = hasUrl ? 100 : 20
       pollRef.current = setInterval(async () => {
         attempts++
         try {
           const status = await paiementApi.statutLoyer(refId)
           if (status.statut === 'reussi' || status.statut === 'success') {
-            clearInterval(pollRef.current!)
-            setPayState('success'); setSelected([]); load()
+            clearInterval(pollRef.current!); resolve(true)
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
-            clearInterval(pollRef.current!)
-            setPayState('error'); setPayMsg('Paiement échoué. Réessayez.')
+            clearInterval(pollRef.current!); resolve(false)
           }
         } catch (_) {}
-        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
+        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); resolve(false) }
       }, 3000)
+    })
+
+  const payer = async () => {
+    if (selected.length === 0) return
+    if (operateur === 'cotisation') {
+      if (!cotisationSuffisante) return
+      setPaying(true); setPayState('waiting'); setPayMsg('')
+      try {
+        await paiementApi.payerLoyersAvecCotisation(selected)
+        setPayState('success'); setSelected([]); load()
+      } catch (e: any) {
+        setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur de paiement')
+      }
+      setPaying(false)
+      return
+    }
+
+    if (!tel && operateur !== 'fedapay') return
+    setPaying(true)
+    setPayState('waiting')
+    try {
+      // Paie chaque loyer sélectionné l'un après l'autre (comme sur mobile) —
+      // le backend ne prend qu'un loyer_id par paiement, pas de lot possible
+      // en dehors du mode cotisation.
+      for (let i = 0; i < selected.length; i++) {
+        setPayProgress(selected.length > 1 ? `Paiement ${i + 1}/${selected.length}…` : '')
+        const res = await paiementApi.initierLoyer({ loyer_id: selected[i], methode_paiement: operateur, telephone_paiement: tel })
+        const refId = res.referenceId || res.reference_id
+        const hasUrl = !!(res as any).url_paiement
+        if (hasUrl) {
+          setPayUrl((res as any).url_paiement)
+          window.open((res as any).url_paiement, '_blank', 'noopener')
+        } else {
+          setPayUrl('')
+        }
+        const ok = await attendreConfirmation(refId, hasUrl)
+        if (!ok) {
+          setPayState('error'); setPayMsg(selected.length > 1 ? `Échec au paiement ${i + 1}/${selected.length}. Les précédents restent validés.` : 'Paiement échoué. Réessayez.')
+          setPaying(false)
+          load()
+          return
+        }
+      }
+      setPayProgress('')
+      setPayState('success'); setSelected([]); load()
     } catch (e: any) {
       setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur de paiement')
     }
@@ -141,6 +206,10 @@ function MonLogementTab() {
         <p className="font-bold text-text-dark text-sm">{gestionnaire.prenom} {gestionnaire.nom}</p>
         <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'demarcheur' ? 'Agent' : 'Propriétaire'}</p>
       </div>
+      <button onClick={ouvrirChatGestionnaire} disabled={chatLoading}
+        className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-50" style={{ background: TEAL + '20', color: TEAL }}>
+        <IcChat />
+      </button>
       {gestionnaire.telephone && (
         <a href={`tel:${gestionnaire.telephone}`} className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0" style={{ background: '#22C55E20', color: GREEN }}>
           <IcPhone />
@@ -175,6 +244,16 @@ function MonLogementTab() {
               ))}
             </div>
           </div>
+
+          {/* Prépayé */}
+          {Number(contrat.loyer_prepaye_mois || 0) > 0 && (
+            <div className="mx-4 md:mx-0 mt-4 rounded-2xl p-4 flex items-center gap-3" style={{ background: TEAL + '12', border: `1px solid ${TEAL}30` }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: TEAL + '20', color: TEAL }}><IcCheck /></div>
+              <p className="text-sm font-semibold" style={{ color: TEAL }}>
+                {contrat.loyer_prepaye_mois} mois déjà prépayés à l'intégration — inclus avant votre première échéance.
+              </p>
+            </div>
+          )}
 
           {/* Gestionnaire — mobile only, desktop copy lives in side column */}
           {gestionnaire && (
@@ -226,6 +305,7 @@ function MonLogementTab() {
                   ) : payState === 'waiting' ? (
                     <div className="flex flex-col items-center gap-2 py-2">
                       <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} />
+                      {payProgress && <p className="text-xs font-semibold" style={{ color: GREEN }}>{payProgress}</p>}
                       {payUrl ? (
                         <>
                           <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
@@ -234,6 +314,8 @@ function MonLogementTab() {
                             Rouvrir la page de paiement
                           </button>
                         </>
+                      ) : operateur === 'cotisation' ? (
+                        <p className="text-sm text-text-grey">Débit de votre cotisation…</p>
                       ) : (
                         <>
                           <p className="text-sm text-text-grey">Confirmation du paiement MoMo…</p>
@@ -247,8 +329,14 @@ function MonLogementTab() {
                         <p className="text-sm text-text-grey">{selected.length} loyer{selected.length > 1 ? 's' : ''}</p>
                         <p className="font-bold text-text-dark">{totalSelected.toLocaleString('fr-FR')} FCFA</p>
                       </div>
-                      <OperateurChips value={operateur} onChange={setOperateur} />
-                      {operateur !== 'fedapay' && (
+                      <OperateurChips value={operateur} onChange={setOperateur} cotisationSolde={cotisationSolde} />
+                      {operateur === 'cotisation' ? (
+                        !cotisationSuffisante && (
+                          <p className="text-xs font-semibold mb-3" style={{ color: '#EF4444' }}>
+                            Solde cotisation insuffisant ({cotisationSolde.toLocaleString('fr-FR')} F disponibles).
+                          </p>
+                        )
+                      ) : operateur !== 'fedapay' && (
                         <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
                           <span className="text-text-grey text-sm font-semibold">+229</span>
                           <div className="w-px h-4 bg-divider" />
@@ -257,10 +345,11 @@ function MonLogementTab() {
                             className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                         </div>
                       )}
-                      <button onClick={payer} disabled={(operateur !== 'fedapay' && !tel) || paying}
+                      <button onClick={payer}
+                        disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !tel))}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
                         style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
-                        Payer via {OPERATEURS.find(o => o.id === operateur)?.label}
+                        {operateur === 'cotisation' ? 'Payer avec ma cotisation' : `Payer via ${OPERATEURS.find(o => o.id === operateur)?.label}`}
                       </button>
                     </>
                   )}
@@ -283,7 +372,10 @@ function MonLogementTab() {
                       <p className="font-semibold text-text-dark text-sm">{h.mois || new Date(h.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
                       <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
                     </div>
-                    <p className="font-bold text-sm" style={{ color: GREEN }}>{Number(h.montant).toLocaleString('fr-FR')} F</p>
+                    <p className="font-bold text-sm flex-shrink-0" style={{ color: GREEN }}>{Number(h.montant).toLocaleString('fr-FR')} F</p>
+                    {h.transaction_id && (
+                      <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)} className="text-xs font-bold flex-shrink-0" style={{ color: TEAL }}>Reçu</button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -322,10 +414,12 @@ function MonLogementTab() {
 
 // ─── Activité ─────────────────────────────────────────────────────────────────
 function ActiviteTab() {
+  const navigate = useNavigate()
   const [data, setData]         = useState<any>(null)
   const [loading, setLoading]   = useState(true)
   const [tel, setTel]           = useState('')
-  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay'>('momo')
+  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay' | 'cotisation'>('momo')
+  const [cotisationSolde, setCotisationSolde] = useState(0)
   const [showPay, setShowPay]   = useState(false)
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
@@ -335,7 +429,23 @@ function ActiviteTab() {
 
   const load = async () => {
     setLoading(true)
-    try { setData(await loyersApi.monLogement()) } catch (_) {}
+    try {
+      const [logement, wallet] = await Promise.all([
+        loyersApi.monLogement(),
+        walletApi.me('cotisation').catch(() => null),
+      ])
+      // Réconciliation silencieuse : un loyer resté "en attente" alors que la
+      // transaction a en fait été confirmée côté serveur (webhook manqué, etc).
+      const prochain = logement?.loyers_en_attente?.[0] || logement?.prochain_loyer
+      if (prochain?.id) {
+        try {
+          const repaired = await paiementApi.repairerLoyer(prochain.id)
+          if (repaired?.reparee) { setData(await loyersApi.monLogement()); setCotisationSolde(Number(wallet?.balance || 0)); setLoading(false); return }
+        } catch (_) {}
+      }
+      setData(logement)
+      setCotisationSolde(Number(wallet?.balance || 0))
+    } catch (_) {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -343,6 +453,8 @@ function ActiviteTab() {
 
   const prochainLoyer = data?.loyers_en_attente?.[0] || data?.prochain_loyer
   const historique: any[] = data?.historique_loyers || []
+  const contrat = data?.contrat
+  const cotisationSuffisante = prochainLoyer ? cotisationSolde >= Number(prochainLoyer.montant) : false
 
   const urgence = () => {
     if (!prochainLoyer) return null
@@ -355,7 +467,20 @@ function ActiviteTab() {
   }
 
   const payer = async () => {
-    if ((operateur !== 'fedapay' && !tel) || !prochainLoyer) return
+    if (!prochainLoyer) return
+    if (operateur === 'cotisation') {
+      if (!cotisationSuffisante) return
+      setPaying(true); setPayState('waiting')
+      try {
+        await paiementApi.payerLoyersAvecCotisation([prochainLoyer.id])
+        setPayState('success'); setShowPay(false); load()
+      } catch (e: any) {
+        setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur')
+      }
+      setPaying(false)
+      return
+    }
+    if (operateur !== 'fedapay' && !tel) return
     setPaying(true); setPayState('waiting')
     try {
       const res = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
@@ -392,6 +517,16 @@ function ActiviteTab() {
 
   return (
     <div className="flex-1 overflow-y-auto pb-6 px-4 md:px-8 md:max-w-3xl md:mx-auto md:w-full">
+      {/* Prépayé */}
+      {Number(contrat?.loyer_prepaye_mois || 0) > 0 && (
+        <div className="mt-5 md:mt-8 rounded-2xl p-4 flex items-center gap-3" style={{ background: TEAL + '15', border: `1px solid ${TEAL}30` }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: TEAL + '20' }}>
+            <span style={{ color: TEAL }}><IcCheck /></span>
+          </div>
+          <p className="text-sm text-text-dark"><strong>{contrat.loyer_prepaye_mois}</strong> mois déjà prépayés — vous êtes à jour d'avance.</p>
+        </div>
+      )}
+
       {/* Prochaine échéance */}
       {prochainLoyer && urg && (
         <div className="mt-5 md:mt-8 rounded-3xl p-5" style={{ background: urg.bg, border: `1.5px solid ${urg.color}30` }}>
@@ -442,8 +577,12 @@ function ActiviteTab() {
           ) : (
             <>
               <p className="font-semibold text-text-dark text-sm mb-2">Mode de paiement</p>
-              <OperateurChips value={operateur} onChange={setOperateur} />
-              {operateur !== 'fedapay' && (
+              <OperateurChips value={operateur} onChange={setOperateur} cotisationSolde={cotisationSolde} />
+              {operateur === 'cotisation' ? (
+                !cotisationSuffisante && (
+                  <p className="text-xs text-red-500 mb-3">Solde cotisation insuffisant ({cotisationSolde.toLocaleString('fr-FR')} F disponible).</p>
+                )
+              ) : operateur !== 'fedapay' && (
                 <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
                   <span className="text-text-grey text-sm font-semibold">+229</span>
                   <div className="w-px h-4 bg-divider" />
@@ -454,8 +593,10 @@ function ActiviteTab() {
               )}
               <div className="flex gap-2">
                 <button onClick={() => setShowPay(false)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-                <button onClick={payer} disabled={(operateur !== 'fedapay' && !tel) || paying} className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
-                  style={{ background: GREEN }}>Payer</button>
+                <button onClick={payer}
+                  disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !tel))}
+                  className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
+                  style={{ background: GREEN }}>{operateur === 'cotisation' ? 'Payer avec ma cotisation' : 'Payer'}</button>
               </div>
             </>
           )}
@@ -481,6 +622,10 @@ function ActiviteTab() {
             <div className="text-right">
               <p className="font-bold text-sm" style={{ color: GREEN }}>+{Number(h.montant).toLocaleString('fr-FR')} F</p>
               <span className="text-[10px] font-semibold" style={{ color: GREEN }}>Payé</span>
+              {h.transaction_id && (
+                <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)}
+                  className="block mt-1 text-[10px] font-bold underline" style={{ color: TEAL }}>Reçu</button>
+              )}
             </div>
           </div>
         ))}
@@ -532,6 +677,9 @@ function ProfilTab() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
+  const [showNumeroModal, setShowNumeroModal] = useState(false)
+  useEffect(() => { walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }, [])
   return (
     <div className="flex-1 overflow-y-auto pb-10 pt-5 md:pt-10 md:max-w-2xl md:mx-auto md:w-full">
       <div className="flex flex-col items-center px-5 mb-6">
@@ -543,6 +691,9 @@ function ProfilTab() {
       </div>
       <div className="px-4 space-y-2">
         {[
+          { label: 'Mon portefeuille', action: () => navigate('/portefeuille') },
+          { label: 'Rejoindre un bien', action: () => navigate('/rejoindre-bien') },
+          { label: `Numéro de retrait${numeroInfo?.masque ? ` (${numeroInfo.masque})` : ''}`, action: () => setShowNumeroModal(true) },
           { label: 'Modifier le profil', action: () => navigate('/profil') },
           { label: 'Gérer mes rôles', action: () => navigate('/mes-roles') },
           { label: 'Revenir à l\'accueil', action: () => navigate('/') },
@@ -559,6 +710,14 @@ function ProfilTab() {
           <IcLogout /> Se déconnecter
         </button>
       </div>
+      {showNumeroModal && (
+        <NumeroRetraitModal
+          current={numeroInfo?.masque ?? null}
+          accent={GREEN}
+          onClose={() => setShowNumeroModal(false)}
+          onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+        />
+      )}
     </div>
   )
 }

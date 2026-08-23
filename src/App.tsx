@@ -28,6 +28,8 @@ import ContratBailPage from './pages/integration/ContratBailPage'
 import PaiementIntegrationPage from './pages/integration/PaiementIntegrationPage'
 import GestionViaAppPage from './pages/integration/GestionViaAppPage'
 import PortefeuillePage from './pages/wallet/PortefeuillePage'
+import RechargementWalletPage from './pages/wallet/RechargementWalletPage'
+import RejoindreBienPage from './pages/locataire/RejoindreBienPage'
 import ManageRolesPage from './pages/profile/ManageRolesPage'
 import RecuPage from './pages/recu/RecuPage'
 import SearchPage from './pages/search/SearchPage'
@@ -100,6 +102,12 @@ function App() {
         } />
         <Route path="/recu/:type/:refId" element={
           <PrivateRoute><RecuPage /></PrivateRoute>
+        } />
+        <Route path="/rejoindre-bien" element={
+          <PrivateRoute><RejoindreBienPage /></PrivateRoute>
+        } />
+        <Route path="/portefeuille/recharger/:walletType" element={
+          <PrivateRoute><RechargementWalletPage /></PrivateRoute>
         } />
 
         {/* Pages client avec MainLayout + BottomNav */}
