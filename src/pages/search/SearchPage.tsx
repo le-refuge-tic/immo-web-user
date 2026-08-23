@@ -832,7 +832,7 @@ function FilterPanel({
         </div>
 
         {/* Saisie libre */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2.5">
           <div>
             <p className="text-[11px] text-text-grey mb-1">Minimum</p>
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
@@ -850,6 +850,7 @@ function FilterPanel({
                 className="flex-1 bg-transparent outline-none text-sm text-text-dark min-w-0 placeholder-gray-400"
                 min={0}
               />
+              <span className="text-[11px] text-text-grey flex-shrink-0">FCFA</span>
             </div>
           </div>
           <div>
@@ -869,6 +870,7 @@ function FilterPanel({
                 className="flex-1 bg-transparent outline-none text-sm text-text-dark min-w-0 placeholder-gray-400"
                 min={0}
               />
+              <span className="text-[11px] text-text-grey flex-shrink-0">FCFA</span>
             </div>
           </div>
         </div>

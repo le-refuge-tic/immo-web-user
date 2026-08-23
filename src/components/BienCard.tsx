@@ -50,7 +50,14 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     guesthouse:     'Guesthouse',
     terrain:        'Terrain',
   }
-  const label = typeLabel[bien.type] || bien.type
+  const sousTypeLabel: Record<string, string> = {
+    entree_coucher: 'Entrée-Coucher',
+    chambre_salon:  'Chambre-Salon',
+    studio:         'Studio',
+    f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
+  }
+  const sousType = bien.amenites?.sous_type
+  const label = (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
   const title = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
 
