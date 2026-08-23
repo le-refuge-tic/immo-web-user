@@ -50,4 +50,8 @@ export const paiementApi = {
 
   statutRechargement: (refId: string) =>
     axios.get(`${BASE}/paiements/depot/${refId}/statut`, auth()).then(r => r.data),
+
+  /** Historique consolidé de toutes mes transactions (visites, loyers, intégration, virements). */
+  historique: () =>
+    axios.get(`${BASE}/paiements/historique`, auth()).then(r => r.data),
 }

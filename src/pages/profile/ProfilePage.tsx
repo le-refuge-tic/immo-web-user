@@ -4,8 +4,10 @@ import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import { userApi } from '../../api/userApi'
 import { visitesApi } from '../../api/visitesApi'
+import { walletApi } from '../../api/walletApi'
 import EditProfileModal from './EditProfileModal'
 import ChangePasswordModal from './ChangePasswordModal'
+import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -72,6 +74,21 @@ const StarMenuIcon = () => (
 const ChevronRightIcon = () => (
   <svg className="w-[18px] h-[18px] text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+)
+const KeyMenuIcon = () => (
+  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+  </svg>
+)
+const WalletMenuIcon = () => (
+  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2 2 0 00-2-2H5a2 2 0 00-2 2m18 0v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6m18 0v-1a2 2 0 00-2-2H5a2 2 0 00-2 2v1m14 3h.01" />
+  </svg>
+)
+const PhoneMenuIcon = () => (
+  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
   </svg>
 )
 const LogoutIcon = () => (
@@ -146,6 +163,8 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
+  const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
+  const [numeroOpen, setNumeroOpen] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -164,6 +183,7 @@ export default function ProfilePage() {
       setIsLoading(false)
     }
     load()
+    walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {})
   }, [])
 
   if (!user) return null
@@ -232,9 +252,12 @@ export default function ProfilePage() {
   const MenuBlock = () => (
     <div className="glass-card rounded-[16px] overflow-hidden">
       <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => setEditOpen(true)} />
-      <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => setPasswordOpen(true)} />
-      <MenuItem icon={<ReceiptMenuIcon />} label="Historique des transactions" onClick={() => navigate('/portefeuille')} />
       <MenuItem icon={<PersonMenuIcon />} label="Gérer mes rôles" onClick={() => navigate('/mes-roles')} />
+      <MenuItem icon={<KeyMenuIcon />}    label="Rejoindre un bien (code d'invitation)" onClick={() => navigate('/rejoindre-bien')} />
+      <MenuItem icon={<WalletMenuIcon />} label="Mon portefeuille" onClick={() => navigate('/portefeuille')} />
+      <MenuItem icon={<PhoneMenuIcon />}  label={`Numéro de retrait MoMo${numeroInfo?.masque ? ` (${numeroInfo.masque})` : ''}`} onClick={() => setNumeroOpen(true)} />
+      <MenuItem icon={<ReceiptMenuIcon />} label="Mes transactions" onClick={() => navigate('/mes-paiements')} />
+      <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => setPasswordOpen(true)} />
       <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />
     </div>
   )
@@ -428,6 +451,13 @@ export default function ProfilePage() {
 
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
       <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
+      {numeroOpen && (
+        <NumeroRetraitModal
+          current={numeroInfo?.masque ?? null}
+          onClose={() => setNumeroOpen(false)}
+          onSaved={() => { setNumeroOpen(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+        />
+      )}
     </div>
   )
 }

@@ -31,18 +31,22 @@ function TypeIcon({ t, color, className }: { t: any; color: string; className: s
   return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
 }
 
+// Sur mobile, "Mon portefeuille" (profile_screen.dart) ouvre toujours le
+// wallet Cotisation/Épargne, quel que soit le rôle — seuls le propriétaire et
+// le démarcheur ont un wallet de commissions séparé (revenus_locatifs),
+// accessible depuis leur propre tableau de bord.
 export default function PortefeuillePage() {
   const { activeRole } = useAuth()
-  if (activeRole === 'locataire') return <LocataireWalletView />
-  return <WalletCommissionsView />
+  if (activeRole === 'proprietaire' || activeRole === 'demarcheur') return <WalletCommissionsView />
+  return <ClientWalletView />
 }
 
-// ─── Vue locataire : Cotisation / Épargne (mirroir de portefeuille_screen.dart) ─
+// ─── Vue client/locataire : Cotisation / Épargne (mirroir de portefeuille_screen.dart) ─
 type WType = 'cotisation' | 'epargne'
 const W_LABEL: Record<WType, string> = { cotisation: 'Cotisation', epargne: 'Épargne' }
 const W_COLOR: Record<WType, string> = { cotisation: '#4B6BFF', epargne: '#7B4BFF' }
 
-function LocataireWalletView() {
+function ClientWalletView() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<WType>('cotisation')
   const [wallets, setWallets] = useState<Record<WType, any>>({ cotisation: null, epargne: null })

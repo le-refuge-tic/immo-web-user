@@ -21,7 +21,7 @@ const ROLES: RoleInfo[] = [
   { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#4B6BFF', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
   { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: '#2E86C1', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
   { key: 'demarcheur',   label: 'Agent',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: '#22C55E', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: '#22C55E', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
 ]
 
 function roleLabel(key: string) {
@@ -156,7 +156,16 @@ export default function ManageRolesPage() {
                   </div>
 
                   <div className="px-4 pb-4 flex gap-2">
-                    {isDisponible ? (
+                    {isDisponible && r.key === 'locataire' ? (
+                      // Le statut locataire ne s'auto-active jamais : il vient uniquement
+                      // de la validation d'une demande de liaison à un bien en gestion
+                      // (code d'invitation), jamais d'une activation directe.
+                      <button onClick={() => navigate('/rejoindre-bien')}
+                        className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold transition-opacity hover:opacity-90"
+                        style={{ background: r.color }}>
+                        Rejoindre un bien
+                      </button>
+                    ) : isDisponible ? (
                       <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
                         className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-opacity hover:opacity-90"
                         style={{ background: r.color }}>

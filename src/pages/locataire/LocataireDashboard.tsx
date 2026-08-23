@@ -691,11 +691,12 @@ function ProfilTab() {
       </div>
       <div className="px-4 space-y-2">
         {[
-          { label: 'Mon portefeuille', action: () => navigate('/portefeuille') },
-          { label: 'Rejoindre un bien', action: () => navigate('/rejoindre-bien') },
-          { label: `Numéro de retrait${numeroInfo?.masque ? ` (${numeroInfo.masque})` : ''}`, action: () => setShowNumeroModal(true) },
           { label: 'Modifier le profil', action: () => navigate('/profil') },
           { label: 'Gérer mes rôles', action: () => navigate('/mes-roles') },
+          { label: 'Rejoindre un bien (code d\'invitation)', action: () => navigate('/rejoindre-bien') },
+          { label: 'Mon portefeuille', action: () => navigate('/portefeuille') },
+          { label: `Numéro de retrait MoMo${numeroInfo?.masque ? ` (${numeroInfo.masque})` : ''}`, action: () => setShowNumeroModal(true) },
+          { label: 'Mes transactions', action: () => navigate('/mes-paiements') },
           { label: 'Revenir à l\'accueil', action: () => navigate('/') },
         ].map(item => (
           <button key={item.label} onClick={item.action}
