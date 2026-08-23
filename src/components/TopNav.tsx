@@ -38,8 +38,10 @@ export default function TopNav() {
   }
 
   const handleNav = (item: typeof NAV_ITEMS[0]) => {
-    if (item.authRequired && !isLoggedIn) navigate('/login')
-    else navigate(item.path)
+    if (item.authRequired && !isLoggedIn) {
+      sessionStorage.setItem('post_login_redirect', item.path)
+      navigate('/login')
+    } else navigate(item.path)
     setMenuOpen(false)
   }
 

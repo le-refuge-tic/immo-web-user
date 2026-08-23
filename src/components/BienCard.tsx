@@ -63,7 +63,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
 
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!isLoggedIn) { navigate('/login'); return }
+    if (!isLoggedIn) { sessionStorage.setItem('post_login_redirect', window.location.pathname + window.location.search); navigate('/login'); return }
     if (toggling) return
     setToggling(true)
     setFavPopped(true)

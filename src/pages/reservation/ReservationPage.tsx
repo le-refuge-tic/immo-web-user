@@ -31,6 +31,12 @@ function bienTypeLabel(bien: any): string {
 
 const TIME_SLOTS = [7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19]
 
+/** Heure courante en GMT+1 (Africa/Porto-Novo), indépendant du fuseau de l'appareil. */
+function getNowGmt1() {
+  const utcMs = Date.now() + new Date().getTimezoneOffset() * 60_000
+  return new Date(utcMs + 3_600_000)
+}
+
 const IMG_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
 function resolveUrl(url: string) {
   if (!url) return ''
@@ -51,7 +57,8 @@ export default function ReservationPage() {
   const timeInputRef = useRef<HTMLInputElement>(null)
   const timeSectionRef = useRef<HTMLDivElement>(null)
 
-  const today = new Date(); today.setHours(0, 0, 0, 0)
+  // "today" calculé en GMT+1 pour ne pas dépendre du fuseau de l'appareil
+  const today = (() => { const d = getNowGmt1(); d.setHours(0, 0, 0, 0); return d })()
   const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
 
   const [bien, setBien] = useState<any>(null)
@@ -204,22 +211,29 @@ export default function ReservationPage() {
         </span>
       </div>
       <div className="flex flex-wrap gap-2">
-        {TIME_SLOTS.map(h => {
-          const value = `${String(h).padStart(2, '0')}:00`
-          const sel = selectedTime === value
-          return (
-            <button key={h} onClick={() => setSelectedTime(value)}
-              className="px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
-              style={{
-                background: sel ? '#4B6BFF' : '#fff',
-                color: sel ? '#fff' : '#1A1A2E',
-                border: `${sel ? 1.5 : 1}px solid ${sel ? '#4B6BFF' : '#E5E7EB'}`,
-                boxShadow: sel ? '0 3px 8px rgba(75,107,255,0.25)' : 'none',
-              }}>
-              {String(h).padStart(2, '0')}h00
-            </button>
+        {(() => {
+          const nowGmt1 = getNowGmt1()
+          const isDateToday = isToday(selectedDate)
+          const visibleSlots = TIME_SLOTS.filter(h =>
+            !isDateToday || h > nowGmt1.getHours() || (h === nowGmt1.getHours() && nowGmt1.getMinutes() < 45)
           )
-        })}
+          return visibleSlots.map(h => {
+            const value = `${String(h).padStart(2, '0')}:00`
+            const sel = selectedTime === value
+            return (
+              <button key={h} onClick={() => setSelectedTime(value)}
+                className="px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
+                style={{
+                  background: sel ? '#4B6BFF' : '#fff',
+                  color: sel ? '#fff' : '#1A1A2E',
+                  border: `${sel ? 1.5 : 1}px solid ${sel ? '#4B6BFF' : '#E5E7EB'}`,
+                  boxShadow: sel ? '0 3px 8px rgba(75,107,255,0.25)' : 'none',
+                }}>
+                {String(h).padStart(2, '0')}h00
+              </button>
+            )
+          })
+        })()}
         <button onClick={() => timeInputRef.current?.showPicker?.() || timeInputRef.current?.click()}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-semibold"
           style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid #E5E7EB', color: '#6B7280' }}>

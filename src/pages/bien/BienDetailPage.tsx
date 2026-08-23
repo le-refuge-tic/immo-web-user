@@ -498,7 +498,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                 onToggleDisponibilite={toggleDisponibilite}
                 visiteActive={visiteActive} visiteCancellee={visiteCancellee} visiteEchouee={visiteEchouee}
                 onAnnuler={annulerVisite} annulerBusy={annulerBusy}
-                onProposerVisite={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
+                onProposerVisite={() => { if (!isLoggedIn) { sessionStorage.setItem('post_login_redirect', `/reservation/${bien.id}`); navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
                 onModifier={() => setEditing(true)}
               />
 
@@ -637,7 +637,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           onToggleDisponibilite={toggleDisponibilite}
           visiteActive={visiteActive} visiteCancellee={visiteCancellee} visiteEchouee={visiteEchouee}
           onAnnuler={annulerVisite} annulerBusy={annulerBusy}
-          onProposerVisite={() => { if (!isLoggedIn) { navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
+          onProposerVisite={() => { if (!isLoggedIn) { sessionStorage.setItem('post_login_redirect', `/reservation/${bien.id}`); navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
           onModifier={() => setEditing(true)}
         />
       </div>

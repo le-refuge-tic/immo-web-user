@@ -49,6 +49,12 @@ export default function LoginPage() {
 
   const completeLogin = (data: any) => {
     login(data)
+    const redirect = sessionStorage.getItem('post_login_redirect')
+    if (redirect) {
+      sessionStorage.removeItem('post_login_redirect')
+      navigate(redirect, { replace: true })
+      return
+    }
     const role = data.user?.role
     if (role === 'proprietaire') navigate('/proprietaire', { replace: true })
     else if (role === 'demarcheur') navigate('/demarcheur', { replace: true })

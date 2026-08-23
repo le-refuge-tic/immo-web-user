@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
 import { ScrollProvider } from './context/ScrollContext'
@@ -37,7 +37,11 @@ import SearchPage from './pages/search/SearchPage'
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isLoggedIn } = useAuth()
-  if (!isLoggedIn) return <Navigate to="/login" replace />
+  const location = useLocation()
+  if (!isLoggedIn) {
+    sessionStorage.setItem('post_login_redirect', location.pathname + location.search)
+    return <Navigate to="/login" replace />
+  }
   return children
 }
 
