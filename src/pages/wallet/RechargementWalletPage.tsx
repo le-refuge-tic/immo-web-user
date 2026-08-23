@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { paiementApi, MethodePaiement } from '../../api/paiementApi'
+import { paiementApi } from '../../api/paiementApi'
+import type { MethodePaiement } from '../../api/paiementApi'
 
 type WalletType = 'cotisation' | 'epargne'
 
