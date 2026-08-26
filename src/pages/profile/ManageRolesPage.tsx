@@ -51,8 +51,9 @@ export default function ManageRolesPage() {
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
       setError(e?.response?.data?.message || `Impossible d'activer ce rôle.`)
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   const desactiverRole = async (role: string) => {
@@ -62,14 +63,16 @@ export default function ManageRolesPage() {
       await rolesApi.desactiver(role)
       const newRoles = actifs.filter(r => r !== role)
       updateUser({ roles_actifs: newRoles })
-      // On ne peut pas rester dans un espace dont le rôle vient d'être désactivé.
+      // setActiveRole uniquement après updateUser pour éviter un état incohérent
       if (role === activeRole) setActiveRole(rolePrincipal)
       setSuccess(`Rôle "${roleLabel(role)}" désactivé.`)
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Impossible de désactiver ce rôle.')
+      // Ne pas toucher activeRole en cas d'échec API
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   const goToDashboard = (role: string) => {

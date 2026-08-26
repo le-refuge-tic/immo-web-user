@@ -75,13 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
+    setActiveRoleState('')                    // 1. reset activeRole avant user
+    localStorage.removeItem('rg_active_role') // 2. sync localStorage
     setUser(null)
     setToken(null)
-    setActiveRoleState('')
     localStorage.removeItem('rg_user')
     localStorage.removeItem('rg_token')
     localStorage.removeItem('rg_refresh')
-    localStorage.removeItem('rg_active_role')
   }
 
   const updateUser = (partial: Partial<AuthUser>) => {
@@ -95,10 +95,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasRole = (role: string) => rolesActifs.includes(role)
 
-  useEffect(() => {}, [])
+  const fallbackRole = user?.role_principal || user?.role || ''
+  const candidate = activeRole || fallbackRole
+  const computedActiveRole = (candidate && rolesActifs.includes(candidate)) ? candidate : fallbackRole
+
+  // Resynchronise localStorage si activeRole stocké n'est plus valide
+  useEffect(() => {
+    if (user && activeRole && activeRole !== computedActiveRole) {
+      setActiveRole(computedActiveRole)
+    }
+  }, [user, rolesActifs.join(',')])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn: !!token, login, logout, updateUser, hasRole, rolesActifs, activeRole: activeRole || user?.role_principal || user?.role || '', setActiveRole }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn: !!token, login, logout, updateUser, hasRole, rolesActifs, activeRole: computedActiveRole, setActiveRole }}>
       {children}
     </AuthContext.Provider>
   )

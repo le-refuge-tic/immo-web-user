@@ -45,6 +45,17 @@ function PrivateRoute({ children }: { children: React.ReactElement }) {
   return children
 }
 
+function RoleRoute({ role, children }: { role: string; children: React.ReactElement }) {
+  const { isLoggedIn, rolesActifs } = useAuth()
+  const location = useLocation()
+  if (!isLoggedIn) {
+    sessionStorage.setItem('post_login_redirect', location.pathname + location.search)
+    return <Navigate to="/login" replace />
+  }
+  if (!rolesActifs.includes(role)) return <Navigate to="/" replace />
+  return children
+}
+
 // Page d'accueil avec garde first-launch
 function HomeGuard() {
   const { isLoggedIn, activeRole } = useAuth()
@@ -83,16 +94,16 @@ function App() {
 
         {/* Dashboards rôle : sans MainLayout (ont leur propre nav interne) */}
         <Route path="/proprietaire" element={
-          <PrivateRoute><ProprietaireDashboard /></PrivateRoute>
+          <RoleRoute role="proprietaire"><ProprietaireDashboard /></RoleRoute>
         } />
         <Route path="/proprietaire/biens/:id" element={
-          <PrivateRoute><ProprietaireBienWrapper /></PrivateRoute>
+          <RoleRoute role="proprietaire"><ProprietaireBienWrapper /></RoleRoute>
         } />
         <Route path="/demarcheur" element={
-          <PrivateRoute><DemarcheurDashboard /></PrivateRoute>
+          <RoleRoute role="demarcheur"><DemarcheurDashboard /></RoleRoute>
         } />
         <Route path="/locataire" element={
-          <PrivateRoute><LocataireDashboard /></PrivateRoute>
+          <RoleRoute role="locataire"><LocataireDashboard /></RoleRoute>
         } />
 
         {/* Flow intégration locataire */}

@@ -36,6 +36,23 @@ export async function refreshAccessToken(): Promise<string | null> {
     const { data } = await axios.post(`${BASE}/auth/refresh`, { refresh_token: refreshToken })
     localStorage.setItem('rg_token', data.access_token)
     if (data.refresh_token) localStorage.setItem('rg_refresh', data.refresh_token)
+    // Sync rg_user avec les roles_actifs à jour depuis la réponse serveur,
+    // sinon le contexte React conserve les rôles du dernier login.
+    if (data.user) {
+      localStorage.setItem('rg_user', JSON.stringify(data.user))
+    } else {
+      // Fallback : décoder le payload JWT pour extraire roles_actifs
+      try {
+        const payload = JSON.parse(atob(data.access_token.split('.')[1]))
+        if (payload.roles_actifs) {
+          const stored = localStorage.getItem('rg_user')
+          if (stored) {
+            const u = JSON.parse(stored)
+            localStorage.setItem('rg_user', JSON.stringify({ ...u, roles_actifs: payload.roles_actifs }))
+          }
+        }
+      } catch {}
+    }
     return data.access_token as string
   } catch {
     return null
