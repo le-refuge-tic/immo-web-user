@@ -464,11 +464,9 @@ export default function HomePage() {
         {/* ── Panneau de recherche — centré verticalement à droite du héro ── */}
         <div
           ref={searchPanelRef}
-          className="absolute right-10 top-1/2 -translate-y-1/2 z-[4] w-80"
+          className="absolute right-20 top-1/2 -translate-y-1/2 z-[4] w-80"
         >
-          {/* Couleurs du panneau selon le thème — le hero a toujours une image sombre
-              donc le bouton fermé reste blanc/translucide sur l'image.
-              Le panneau ouvert s'adapte au thème global. */}
+          {/* Couleurs du panneau selon le thème */}
           {(() => {
             const panelBg   = isDark ? 'rgba(14,14,24,0.96)'  : 'rgba(255,255,255,0.96)'
             const panelBdr  = isDark ? 'rgba(75,107,255,0.30)' : 'rgba(75,107,255,0.25)'
@@ -492,11 +490,13 @@ export default function HomePage() {
               onClick={() => setSearchOpen(true)}
               className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
               style={{
-                background: 'rgba(10,10,22,0.60)',
+                background: isDark ? 'rgba(10,10,22,0.70)' : 'rgba(255,255,255,0.18)',
                 backdropFilter: 'blur(40px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-                border: '1px solid rgba(75,107,255,0.45)',
-                boxShadow: '0 0 0 1px rgba(75,107,255,0.15), 0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.10)',
+                border: isDark ? '1px solid rgba(75,107,255,0.45)' : '1px solid rgba(255,255,255,0.45)',
+                boxShadow: isDark
+                  ? '0 0 0 1px rgba(75,107,255,0.15), 0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.10)'
+                  : '0 8px 32px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.50)',
               }}
             >
               <span className="flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0"
@@ -504,10 +504,10 @@ export default function HomePage() {
                 <SearchIcon />
               </span>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-white font-semibold text-sm truncate">
+                <p className="font-semibold text-sm truncate" style={{ color: '#ffffff' }}>
                   {search.trim() || 'Rechercher un bien…'}
                 </p>
-                <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   {[transaction && (transaction === 'location' ? 'Location' : 'Vente'), type && TYPES.find(t => t.key === type)?.label].filter(Boolean).join(' · ') || 'Tous types · Partout au Bénin'}
                 </p>
               </div>
