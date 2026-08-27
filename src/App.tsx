@@ -13,8 +13,7 @@ import NotificationsPage from './pages/notifications/NotificationsPage'
 import ProfilePage from './pages/profile/ProfilePage'
 import MesVisitesPage from './pages/visites/MesVisitesPage'
 import SplashPage from './pages/splash/SplashPage'
-import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/auth/RegisterPage'
+import AuthSwitch from './components/ui/auth-switch'
 import OnboardingPage from './pages/auth/OnboardingPage'
 import OnboardingProjetPage from './pages/auth/OnboardingProjetPage'
 import OnboardingDestinationPage from './pages/auth/OnboardingDestinationPage'
@@ -89,8 +88,8 @@ function App() {
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/onboarding/projet" element={<OnboardingProjetPage />} />
         <Route path="/onboarding/destination" element={<OnboardingDestinationPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<AuthSwitch defaultMode="login" />} />
+        <Route path="/register" element={<AuthSwitch defaultMode="register" />} />
 
         {/* Dashboards rôle : sans MainLayout (ont leur propre nav interne) */}
         <Route path="/proprietaire" element={
