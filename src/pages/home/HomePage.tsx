@@ -466,13 +466,33 @@ export default function HomePage() {
           ref={searchPanelRef}
           className="absolute right-10 top-1/2 -translate-y-1/2 z-[4] w-80"
         >
-          {!searchOpen ? (
-            /* ── Bouton fermé ── */
+          {/* Couleurs du panneau selon le thème — le hero a toujours une image sombre
+              donc le bouton fermé reste blanc/translucide sur l'image.
+              Le panneau ouvert s'adapte au thème global. */}
+          {(() => {
+            const panelBg   = isDark ? 'rgba(14,14,24,0.96)'  : 'rgba(255,255,255,0.96)'
+            const panelBdr  = isDark ? 'rgba(75,107,255,0.30)' : 'rgba(75,107,255,0.25)'
+            const panelSep  = isDark ? 'rgba(255,255,255,0.08)': 'rgba(0,0,0,0.07)'
+            const fieldBg   = isDark ? 'rgba(255,255,255,0.06)': 'rgba(0,0,0,0.04)'
+            const fieldBdr  = isDark ? 'rgba(255,255,255,0.10)': 'rgba(0,0,0,0.10)'
+            const labelClr  = isDark ? 'rgba(255,255,255,0.35)': 'rgba(0,0,0,0.40)'
+            const textClr   = isDark ? '#E8E8EF'               : '#1D1D1F'
+            const phClr     = isDark ? 'rgba(255,255,255,0.30)': 'rgba(0,0,0,0.30)'
+            const closeBg   = isDark ? 'rgba(255,255,255,0.08)': 'rgba(0,0,0,0.06)'
+            const closeClr  = isDark ? 'rgba(255,255,255,0.55)': 'rgba(0,0,0,0.45)'
+            const suggestBg = isDark ? 'rgba(18,18,30,0.99)'   : '#ffffff'
+            const suggestBdr= isDark ? 'rgba(255,255,255,0.10)': 'rgba(0,0,0,0.10)'
+            const suggestRow= isDark ? 'rgba(255,255,255,0.06)': 'rgba(0,0,0,0.05)'
+            const suggestHov= isDark ? 'rgba(75,107,255,0.14)' : 'rgba(75,107,255,0.08)'
+            const pillActive= { background: '#4B6BFF', color: '#fff', border: '1px solid #4B6BFF' }
+            const pillIdle  = { background: fieldBg, color: labelClr, border: `1px solid ${fieldBdr}` }
+            return !searchOpen ? (
+            /* ── Bouton fermé — toujours sombre car posé sur le hero ── */
             <button
               onClick={() => setSearchOpen(true)}
-              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl group transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
               style={{
-                background: 'rgba(15,15,25,0.55)',
+                background: 'rgba(10,10,22,0.60)',
                 backdropFilter: 'blur(40px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(40px) saturate(180%)',
                 border: '1px solid rgba(75,107,255,0.45)',
@@ -487,7 +507,7 @@ export default function HomePage() {
                 <p className="text-white font-semibold text-sm truncate">
                   {search.trim() || 'Rechercher un bien…'}
                 </p>
-                <p className="text-white/45 text-[11px]">
+                <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   {[transaction && (transaction === 'location' ? 'Location' : 'Vente'), type && TYPES.find(t => t.key === type)?.label].filter(Boolean).join(' · ') || 'Tous types · Partout au Bénin'}
                 </p>
               </div>
@@ -497,35 +517,37 @@ export default function HomePage() {
                   {[search, transaction, type, prixMin, prixMax].filter(Boolean).length}
                 </span>
               )}
-              <svg className="w-4 h-4 text-white/40 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.40)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
           ) : (
-            /* ── Panneau ouvert ── */
+            /* ── Panneau ouvert — adapté au thème ── */
             <div
               className="w-full rounded-2xl overflow-visible anim-scale-in origin-top-right"
               style={{
-                background: 'rgba(10,10,20,0.82)',
+                background: panelBg,
                 backdropFilter: 'blur(56px) saturate(200%)',
                 WebkitBackdropFilter: 'blur(56px) saturate(200%)',
-                border: '1px solid rgba(75,107,255,0.35)',
-                boxShadow: '0 0 0 1px rgba(75,107,255,0.12), 0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)',
+                border: `1px solid ${panelBdr}`,
+                boxShadow: isDark
+                  ? '0 0 0 1px rgba(75,107,255,0.10), 0 32px 80px rgba(0,0,0,0.55)'
+                  : '0 0 0 1px rgba(75,107,255,0.08), 0 24px 64px rgba(0,0,0,0.18)',
               }}
             >
               {/* En-tête */}
               <div className="px-4 pt-4 pb-3 flex items-center justify-between"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                style={{ borderBottom: `1px solid ${panelSep}` }}>
                 <div className="flex items-center gap-2">
                   <span className="flex items-center justify-center w-7 h-7 rounded-lg"
                     style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
                     <SearchIcon />
                   </span>
-                  <span className="text-white font-semibold text-sm">Recherche</span>
+                  <span className="font-semibold text-sm" style={{ color: textClr }}>Recherche</span>
                 </div>
                 <button onClick={() => setSearchOpen(false)}
                   className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
-                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)' }}>
+                  style={{ background: closeBg, color: closeClr }}>
                   <XIcon />
                 </button>
               </div>
@@ -534,7 +556,7 @@ export default function HomePage() {
                 {/* Champ localisation */}
                 <div className="relative">
                   <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    style={{ background: fieldBg, border: `1px solid ${fieldBdr}` }}>
                     <span style={{ color: '#4B6BFF' }}><PinIcon /></span>
                     <input
                       autoFocus
@@ -544,54 +566,65 @@ export default function HomePage() {
                       onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                       onKeyDown={e => { if (e.key === 'Enter') { goToSearch(); setSearchOpen(false) } }}
                       placeholder="Ville ou quartier…"
-                      className="flex-1 min-w-0 bg-transparent outline-none text-sm text-white placeholder-white/35"
+                      className="flex-1 min-w-0 bg-transparent outline-none text-sm"
+                      style={{ color: textClr }}
                     />
                     {search && (
-                      <button onClick={() => setSearch('')} style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      <button onClick={() => setSearch('')} style={{ color: phClr }}>
                         <XIcon />
                       </button>
                     )}
                   </div>
                   {showSuggest && suggestions.length > 0 && (
                     <div className="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl overflow-hidden"
-                      style={{ background: 'rgba(18,18,30,0.98)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 16px 48px rgba(0,0,0,0.50)' }}>
+                      style={{ background: suggestBg, border: `1px solid ${suggestBdr}`, boxShadow: '0 16px 48px rgba(0,0,0,0.22)' }}>
                       {suggestions.map((q, i) => (
                         <button key={`${q.nom}-${i}`} type="button"
                           onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
                           className="w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-2 transition-all"
-                          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.85)' }}
-                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(75,107,255,0.12)')}
+                          style={{ borderBottom: `1px solid ${suggestRow}`, color: textClr }}
+                          onMouseEnter={e => (e.currentTarget.style.background = suggestHov)}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           <span className="font-medium">{q.nom}</span>
-                          <span className="text-white/35 text-xs flex-shrink-0">{q.ville}</span>
+                          <span className="text-xs flex-shrink-0" style={{ color: phClr }}>{q.ville}</span>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* Opération + Type */}
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: 'Opération', options: TRANSACTIONS, value: transaction, onChange: (v: string) => setTransaction(v) },
-                    { label: 'Type de bien', options: TYPES.slice(0,5), value: type, onChange: (v: string) => setType(v) },
-                  ].map(field => (
-                    <div key={field.label} className="px-3 py-2.5 rounded-xl"
-                      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{field.label}</p>
-                      <select value={field.value} onChange={e => field.onChange(e.target.value)}
-                        className="w-full bg-transparent outline-none text-sm text-white cursor-pointer"
-                        style={{ colorScheme: 'dark' }}>
-                        {field.options.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
-                      </select>
-                    </div>
-                  ))}
+                {/* Opération — pills custom */}
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: labelClr }}>Opération</p>
+                  <div className="flex gap-2">
+                    {TRANSACTIONS.map(t => (
+                      <button key={t.key} onClick={() => setTransaction(t.key)}
+                        className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all"
+                        style={transaction === t.key ? pillActive : pillIdle}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Type de bien — pills custom */}
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: labelClr }}>Type de bien</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TYPES.slice(0, 5).map(t => (
+                      <button key={t.key} onClick={() => setType(t.key)}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                        style={type === t.key ? pillActive : pillIdle}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Budget max rapide */}
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Budget max (FCFA)</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: labelClr }}>Budget max (FCFA)</p>
                   <div className="flex flex-wrap gap-1.5">
                     {BUDGET_PRESETS.map(p => {
                       const active = prixMax === String(p.max)
@@ -599,9 +632,7 @@ export default function HomePage() {
                         <button key={p.label}
                           onClick={() => { setPrixMin(''); setPrixMax(active ? '' : String(p.max)) }}
                           className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
-                          style={active
-                            ? { background: '#4B6BFF', color: '#fff', border: '1px solid #4B6BFF' }
-                            : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                          style={active ? pillActive : pillIdle}>
                           {p.label}
                         </button>
                       )
@@ -620,7 +651,8 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
-          )}
+          )
+          })()}
         </div>
       </div>
 
