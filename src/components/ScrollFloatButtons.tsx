@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useTheme } from '../context/ThemeContext'
 
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
 
@@ -20,16 +21,31 @@ export default function ScrollFloatButtons({ scrollRef }: { scrollRef: React.Ref
     return () => el.removeEventListener('scroll', check)
   }, [scrollRef])
 
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
   if (HIDE_CHROME_PATHS.includes(location.pathname)) return null
 
   const scrollTop = () => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   const scrollBot = () => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
 
-  const btnStyle: React.CSSProperties = {
+  const btnStyle: React.CSSProperties = isDark ? {
     width: 40, height: 40,
     borderRadius: '50%',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'rgba(255,255,255,0.78)',
+    background: 'rgba(30,30,46,0.90)',
+    backdropFilter: 'blur(32px) saturate(160%)',
+    WebkitBackdropFilter: 'blur(32px) saturate(160%)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 16px rgba(0,0,0,0.40)',
+    cursor: 'pointer',
+    transition: 'opacity 0.2s, transform 0.2s',
+    color: 'rgba(255,255,255,0.70)',
+  } : {
+    width: 40, height: 40,
+    borderRadius: '50%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(255,255,255,0.82)',
     backdropFilter: 'blur(32px) saturate(160%)',
     WebkitBackdropFilter: 'blur(32px) saturate(160%)',
     border: '1px solid rgba(255,255,255,0.92)',

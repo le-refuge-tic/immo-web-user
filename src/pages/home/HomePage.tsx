@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
@@ -137,6 +138,8 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 
 export default function HomePage() {
   const { isLoggedIn, user } = useAuth()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
   const navigate = useNavigate()
   const [transaction, setTransaction] = useState('')
   const [type, setType] = useState('')
@@ -458,51 +461,81 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* ── Bouton de recherche flottant — ancré en bas à droite du héro ── */}
-        <div ref={searchPanelRef} className="absolute bottom-12 right-8 z-[4] w-full max-w-2xl flex justify-end px-0">
+        {/* ── Panneau de recherche — centré verticalement à droite du héro ── */}
+        <div
+          ref={searchPanelRef}
+          className="absolute right-10 top-1/2 -translate-y-1/2 z-[4] w-80"
+        >
           {!searchOpen ? (
-            /* Bouton fermé — pill glass élégant */
+            /* ── Bouton fermé ── */
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-3 px-5 py-3 rounded-2xl transition-all hover:scale-[1.03] active:scale-[0.98]"
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl group transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
               style={{
-                background: 'rgba(255,255,255,0.14)',
-                backdropFilter: 'blur(40px) saturate(200%)',
-                WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-                border: '1px solid rgba(255,255,255,0.30)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45), 0 8px 40px rgba(0,0,0,0.30)',
+                background: 'rgba(15,15,25,0.55)',
+                backdropFilter: 'blur(40px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                border: '1px solid rgba(75,107,255,0.45)',
+                boxShadow: '0 0 0 1px rgba(75,107,255,0.15), 0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.10)',
               }}
             >
-              <span className="flex items-center justify-center w-7 h-7 rounded-xl" style={{ background: '#4B6BFF' }}>
+              <span className="flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.45)' }}>
                 <SearchIcon />
               </span>
-              <span className="text-white font-semibold text-sm whitespace-nowrap">
-                {search.trim() ? search.trim() : 'Rechercher un bien…'}
-              </span>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-white font-semibold text-sm truncate">
+                  {search.trim() || 'Rechercher un bien…'}
+                </p>
+                <p className="text-white/45 text-[11px]">
+                  {[transaction && (transaction === 'location' ? 'Location' : 'Vente'), type && TYPES.find(t => t.key === type)?.label].filter(Boolean).join(' · ') || 'Tous types · Partout au Bénin'}
+                </p>
+              </div>
               {(search || transaction || type || prixMin || prixMax) && (
-                <span className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white" style={{ background: '#4B6BFF' }}>
+                <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white"
+                  style={{ background: '#4B6BFF' }}>
                   {[search, transaction, type, prixMin, prixMax].filter(Boolean).length}
                 </span>
               )}
+              <svg className="w-4 h-4 text-white/40 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
           ) : (
-            /* Panneau étendu */
+            /* ── Panneau ouvert ── */
             <div
-              className="w-full rounded-2xl overflow-hidden anim-scale-in origin-bottom-right"
+              className="w-full rounded-2xl overflow-visible anim-scale-in origin-top-right"
               style={{
-                background: 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(48px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(48px) saturate(180%)',
-                border: '1px solid rgba(255,255,255,0.95)',
-                boxShadow: 'inset 0 2px 0 rgba(255,255,255,1), 0 24px 64px rgba(0,0,0,0.3)',
+                background: 'rgba(10,10,20,0.82)',
+                backdropFilter: 'blur(56px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(56px) saturate(200%)',
+                border: '1px solid rgba(75,107,255,0.35)',
+                boxShadow: '0 0 0 1px rgba(75,107,255,0.12), 0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)',
               }}
             >
-              <div className="flex items-stretch divide-x divide-divider">
-                {/* Quartier */}
-                <div className="flex-1 min-w-0 px-4 md:px-5 py-3 relative">
-                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Quartier</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-text-grey flex-shrink-0"><PinIcon /></span>
+              {/* En-tête */}
+              <div className="px-4 pt-4 pb-3 flex items-center justify-between"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-7 h-7 rounded-lg"
+                    style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                    <SearchIcon />
+                  </span>
+                  <span className="text-white font-semibold text-sm">Recherche</span>
+                </div>
+                <button onClick={() => setSearchOpen(false)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)' }}>
+                  <XIcon />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-3">
+                {/* Champ localisation */}
+                <div className="relative">
+                  <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <span style={{ color: '#4B6BFF' }}><PinIcon /></span>
                     <input
                       autoFocus
                       value={search}
@@ -510,71 +543,80 @@ export default function HomePage() {
                       onFocus={() => setShowSuggest(true)}
                       onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                       onKeyDown={e => { if (e.key === 'Enter') { goToSearch(); setSearchOpen(false) } }}
-                      placeholder="Où cherchez-vous ?"
-                      className="flex-1 min-w-0 bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
+                      placeholder="Ville ou quartier…"
+                      className="flex-1 min-w-0 bg-transparent outline-none text-sm text-white placeholder-white/35"
                     />
+                    {search && (
+                      <button onClick={() => setSearch('')} style={{ color: 'rgba(255,255,255,0.35)' }}>
+                        <XIcon />
+                      </button>
+                    )}
                   </div>
                   {showSuggest && suggestions.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white rounded-xl border border-divider shadow-lg max-h-48 overflow-y-auto">
+                    <div className="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl overflow-hidden"
+                      style={{ background: 'rgba(18,18,30,0.98)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 16px 48px rgba(0,0,0,0.50)' }}>
                       {suggestions.map((q, i) => (
-                        <button key={`${q.nom}-${i}`} type="button" onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
-                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2">
-                          <span className="text-text-dark font-medium">{q.nom}</span>
-                          <span className="text-text-grey text-xs flex-shrink-0">{q.ville}</span>
+                        <button key={`${q.nom}-${i}`} type="button"
+                          onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
+                          className="w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-2 transition-all"
+                          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.85)' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(75,107,255,0.12)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          <span className="font-medium">{q.nom}</span>
+                          <span className="text-white/35 text-xs flex-shrink-0">{q.ville}</span>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* Opération */}
-                <div className="w-32 md:w-40 flex-shrink-0 px-4 md:px-5 py-3">
-                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Opération</p>
-                  <select value={transaction} onChange={e => setTransaction(e.target.value)}
-                    className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
-                    {TRANSACTIONS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-                  </select>
+                {/* Opération + Type */}
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: 'Opération', options: TRANSACTIONS, value: transaction, onChange: (v: string) => setTransaction(v) },
+                    { label: 'Type de bien', options: TYPES.slice(0,5), value: type, onChange: (v: string) => setType(v) },
+                  ].map(field => (
+                    <div key={field.label} className="px-3 py-2.5 rounded-xl"
+                      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{field.label}</p>
+                      <select value={field.value} onChange={e => field.onChange(e.target.value)}
+                        className="w-full bg-transparent outline-none text-sm text-white cursor-pointer"
+                        style={{ colorScheme: 'dark' }}>
+                        {field.options.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                      </select>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Type */}
-                <div className="w-32 md:w-40 flex-shrink-0 px-4 md:px-5 py-3">
-                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Type de bien</p>
-                  <select value={type} onChange={e => setType(e.target.value)}
-                    className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
-                    {TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-                  </select>
-                </div>
-
-                {/* Budget min */}
-                <div className="hidden lg:block w-28 flex-shrink-0 px-5 py-3">
-                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget min</p>
-                  <input type="number" min={0} list="budget-min-presets" value={prixMin}
-                    onChange={e => setPrixMin(e.target.value)} placeholder="0"
-                    className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400" />
-                  <datalist id="budget-min-presets">
-                    {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{`≥ ${p.label.replace('< ', '')}`}</option>)}
-                  </datalist>
-                </div>
-
-                {/* Budget max */}
-                <div className="hidden lg:block w-32 flex-shrink-0 px-5 py-3">
-                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget max</p>
-                  <input type="number" min={0} list="budget-max-presets" value={prixMax}
-                    onChange={e => setPrixMax(e.target.value)} placeholder="Illimité"
-                    className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400" />
-                  <datalist id="budget-max-presets">
-                    {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{p.label}</option>)}
-                  </datalist>
+                {/* Budget max rapide */}
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Budget max (FCFA)</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {BUDGET_PRESETS.map(p => {
+                      const active = prixMax === String(p.max)
+                      return (
+                        <button key={p.label}
+                          onClick={() => { setPrixMin(''); setPrixMax(active ? '' : String(p.max)) }}
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                          style={active
+                            ? { background: '#4B6BFF', color: '#fff', border: '1px solid #4B6BFF' }
+                            : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                          {p.label}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
                 {/* Bouton rechercher */}
                 <button
                   onClick={() => { goToSearch(); setSearchOpen(false) }}
-                  className="flex-shrink-0 flex items-center gap-2 px-5 md:px-6 font-bold text-white text-sm rounded-r-2xl transition-opacity hover:opacity-90"
-                  style={{ background: '#4B6BFF' }}
+                  className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
+                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 20px rgba(75,107,255,0.45)' }}
                 >
                   <SearchIcon />
-                  <span className="hidden sm:inline">Rechercher</span>
+                  Rechercher
                 </button>
               </div>
             </div>
@@ -970,22 +1012,16 @@ export default function HomePage() {
           ].map((s, i) => (
             <Reveal key={s.title} animation="anim-fade-up" delay={i * 70}>
               <div
-                className="rounded-3xl p-7 h-full flex flex-col gap-4 transition-all duration-300 cursor-default group"
-                style={{
-                  background: 'rgba(255,255,255,0.72)',
-                  backdropFilter: 'blur(32px) saturate(160%)',
-                  border: '1px solid rgba(255,255,255,0.88)',
-                  boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.95), 0 4px 24px rgba(0,0,0,0.07)',
-                }}
+                className="service-card rounded-3xl p-7 h-full flex flex-col gap-4 cursor-default"
                 onMouseEnter={e => {
                   const el = e.currentTarget as HTMLDivElement
                   el.style.transform = 'translateY(-6px)'
-                  el.style.boxShadow = `inset 0 1.5px 0 rgba(255,255,255,0.95), 0 20px 48px rgba(0,0,0,0.12), 0 0 0 1px ${s.color}22`
+                  el.style.outline = `1.5px solid ${s.color}44`
                 }}
                 onMouseLeave={e => {
                   const el = e.currentTarget as HTMLDivElement
                   el.style.transform = 'translateY(0)'
-                  el.style.boxShadow = 'inset 0 1.5px 0 rgba(255,255,255,0.95), 0 4px 24px rgba(0,0,0,0.07)'
+                  el.style.outline = 'none'
                 }}
               >
                 {/* Icône */}
@@ -1061,8 +1097,12 @@ export default function HomePage() {
       )}
 
       {/* ── Pied de page ── */}
-      <footer className="hidden md:block w-full px-16 py-12"
-        style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+      <footer className="hidden md:block w-full px-16 py-12" style={{
+        background: isDark ? 'rgba(10,10,18,0.95)' : 'rgba(245,245,247,0.92)',
+        backdropFilter: 'blur(48px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(48px) saturate(180%)',
+        borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}`,
+      }}>
         <div className="flex items-start justify-between gap-12">
 
           {/* Marque */}
@@ -1074,70 +1114,70 @@ export default function HomePage() {
               </div>
               <div>
                 <span className="font-extrabold text-xl tracking-tight" style={{ color: '#4B6BFF' }}>REFUGE</span>
-                <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>Immobilier au Bénin</p>
+                <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.40)' }}>Immobilier au Bénin</p>
               </div>
             </div>
-            <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'rgba(0,0,0,0.50)' }}>
+            <p className="text-sm leading-relaxed max-w-xs" style={{ color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.50)' }}>
               La plateforme de référence pour trouver, louer ou acheter un bien immobilier au Bénin.
             </p>
           </div>
 
           {/* Navigation */}
           <div className="flex gap-16">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(0,0,0,0.35)' }}>Plateforme</p>
-              <ul className="space-y-2.5">
-                {[
-                  { label: 'Accueil', path: '/' },
-                  { label: 'Rechercher un bien', path: '/search' },
-                  { label: 'Mes favoris', path: '/favoris' },
-                  { label: 'Mes visites', path: '/mes-visites' },
-                ].map(l => (
-                  <li key={l.path}>
-                    <button onClick={() => navigate(l.path)}
-                      className="text-sm transition-colors hover:text-primary"
-                      style={{ color: 'rgba(0,0,0,0.55)' }}>
-                      {l.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(0,0,0,0.35)' }}>Légal</p>
-              <ul className="space-y-2.5">
-                {[
-                  { label: 'Politique de confidentialité', path: '/confidentialite' },
-                  { label: "Conditions d'utilisation", path: '/conditions' },
-                  { label: 'Mentions légales', path: '/mentions-legales' },
-                  { label: 'Cookies', path: '/cookies' },
-                ].map(l => (
-                  <li key={l.path}>
-                    <button onClick={() => navigate(l.path)}
-                      className="text-sm transition-colors hover:text-primary"
-                      style={{ color: 'rgba(0,0,0,0.55)' }}>
-                      {l.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {[
+              { heading: 'Plateforme', links: [
+                { label: 'Accueil', path: '/' },
+                { label: 'Rechercher un bien', path: '/search' },
+                { label: 'Mes favoris', path: '/favoris' },
+                { label: 'Mes visites', path: '/mes-visites' },
+              ]},
+              { heading: 'Légal', links: [
+                { label: 'Politique de confidentialité', path: '/confidentialite' },
+                { label: "Conditions d'utilisation", path: '/conditions' },
+                { label: 'Mentions légales', path: '/mentions-legales' },
+                { label: 'Cookies', path: '/cookies' },
+              ]},
+            ].map(col => (
+              <div key={col.heading}>
+                <p className="text-xs font-bold uppercase tracking-widest mb-4"
+                  style={{ color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.35)' }}>
+                  {col.heading}
+                </p>
+                <ul className="space-y-2.5">
+                  {col.links.map(l => (
+                    <li key={l.path}>
+                      <button onClick={() => navigate(l.path)}
+                        className="text-sm transition-colors hover:text-primary"
+                        style={{ color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)' }}>
+                        {l.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Bas du footer */}
-        <div className="mt-10 pt-6 flex items-center justify-between" style={{ borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-          <p className="text-xs" style={{ color: 'rgba(0,0,0,0.35)' }}>
+        <div className="mt-10 pt-6 flex items-center justify-between"
+          style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}` }}>
+          <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.35)' }}>
             © {new Date().getFullYear()} REFUGE. Tous droits réservés. Bénin 🇧🇯
           </p>
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/confidentialite')} className="text-xs hover:text-primary transition-colors" style={{ color: 'rgba(0,0,0,0.40)' }}>
-              Confidentialité
-            </button>
-            <span style={{ color: 'rgba(0,0,0,0.20)' }}>·</span>
-            <button onClick={() => navigate('/conditions')} className="text-xs hover:text-primary transition-colors" style={{ color: 'rgba(0,0,0,0.40)' }}>
-              CGU
-            </button>
+            {[
+              { label: 'Confidentialité', path: '/confidentialite' },
+              { label: 'CGU', path: '/conditions' },
+            ].map((l, i) => (
+              <span key={l.path} className="flex items-center gap-4">
+                {i > 0 && <span style={{ color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.20)' }}>·</span>}
+                <button onClick={() => navigate(l.path)} className="text-xs hover:text-primary transition-colors"
+                  style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.40)' }}>
+                  {l.label}
+                </button>
+              </span>
+            ))}
           </div>
         </div>
       </footer>

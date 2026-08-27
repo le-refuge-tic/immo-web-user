@@ -5,6 +5,7 @@ import BottomNav from './BottomNav'
 import PushPrompt from './PushPrompt'
 import ScrollFloatButtons from './ScrollFloatButtons'
 import { useScrolled } from '../context/ScrollContext'
+import { useTheme } from '../context/ThemeContext'
 
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
 const HIDE_TOPNAV_PREFIXES: string[] = []
@@ -12,6 +13,8 @@ const HIDE_TOPNAV_PREFIXES: string[] = []
 export default function MainLayout() {
   const location = useLocation()
   const { scrolled, setScrolled } = useScrolled()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
@@ -28,7 +31,7 @@ export default function MainLayout() {
   }, [setScrolled])
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden" style={{ background: '#F5F5F7' }}>
+    <div className="flex flex-col h-dvh overflow-hidden" style={{ background: isDark ? '#0F0F14' : '#F5F5F7' }}>
 
       {/* Orbes pastel Liquid Glass */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -50,7 +53,7 @@ export default function MainLayout() {
       {!hideTopNav && scrolled && (
         <div
           className="fixed top-0 left-0 right-0 z-[55] pointer-events-none"
-          style={{ height: 96, background: 'linear-gradient(to bottom, #F5F5F7 0%, transparent 100%)' }}
+          style={{ height: 96, background: `linear-gradient(to bottom, ${isDark ? '#0F0F14' : '#F5F5F7'} 0%, transparent 100%)` }}
         />
       )}
 
