@@ -1,101 +1,170 @@
 import { cn } from '../../lib/utils'
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
 import { SKIP_OTP_UI, DUMMY_OTP_CODE } from '../../utils/otpBypass'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { Eye, EyeOff, Search, Home, Check, ShieldCheck, AlertTriangle, Loader2, Lock, ChevronDown, Mail } from 'lucide-react'
+import { ImageSlider } from './image-slider'
+import { CountryFlag } from './auth/CountryFlag'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
-import terrainImg from '../../assets/login/terrain.jpg'
-import appartementImg from '../../assets/login/appartement.jpg'
-import villaImg from '../../assets/login/villa.jpg'
-import '../../pages/auth/authLayout.css'
+import slide1 from '../../assets/onboarding-1.jpg'
+import slide2 from '../../assets/onboarding-2.jpg'
+import slide3 from '../../assets/onboarding-3.jpg'
+import slide4 from '../../assets/hero-interior.jpg'
+import '../../pages/auth/authNew.css'
 
 const COUNTRY_CODES = [
-  { code: '+229', label: 'BJ +229' },
-  { code: '+228', label: 'TG +228' },
-  { code: '+225', label: 'CI +225' },
-  { code: '+221', label: 'SN +221' },
-  { code: '+33',  label: 'FR +33'  },
+  { code: '+229', label: 'Bénin' },
+  { code: '+228', label: 'Togo' },
+  { code: '+225', label: "Côte d'Ivoire" },
+  { code: '+221', label: 'Sénégal' },
+  { code: '+33',  label: 'France' },
 ]
 
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
 
-const SearchRoleIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
-)
-const HomeRoleIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-  </svg>
-)
-const CheckIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-  </svg>
-)
-const EyeIcon = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-)
-const EyeOffIcon = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
-    <line x1="1" y1="1" x2="23" y2="23" />
-  </svg>
-)
-const AlertIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ flexShrink: 0 }}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-  </svg>
-)
-const ShieldIcon = () => (
-  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-  </svg>
-)
-
 type RoleOption = { key: string; label: string; desc: string; icon: React.ReactNode }
 const ROLES: RoleOption[] = [
-  { key: 'prospect',     label: 'Je cherche un bien',   desc: 'À louer ou à acheter',              icon: <SearchRoleIcon /> },
-  { key: 'proprietaire', label: 'Je suis propriétaire', desc: 'Je mets mon bien en location/vente', icon: <HomeRoleIcon /> },
+  { key: 'prospect',     label: 'Je cherche un bien',   desc: 'À louer ou à acheter',              icon: <Search size={20} /> },
+  { key: 'proprietaire', label: 'Je suis propriétaire', desc: 'Je mets mon bien en location/vente', icon: <Home size={20} /> },
 ]
 
-// ── Panneau gauche partagé ──────────────────────────────────────────────────
+const SLIDE_IMAGES = [slide1, slide2, slide3, slide4]
+
+const PITCH_ITEMS = [
+  'Maisons, appartements, terrains vérifiés',
+  'Réservez des visites en quelques clics',
+  'Échangez directement avec les propriétaires',
+]
+
+const stepVariants = {
+  enter: (dir: number) => ({ x: dir * 24, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir * -24, opacity: 0 }),
+}
+
+// ── Panneau gauche : ImageSlider + overlay REFUGE ──────────────────────────
 function SidePanel() {
   return (
-    <div className="lp-left">
-      <div className="lp-brand">
-        <img src={logoUrl} alt="REFUGE" style={{ width: 58, height: 58, objectFit: 'contain' }} />
-        <span className="lp-brand-name">REFUGE</span>
-      </div>
-      <div className="lp-collage">
-        <div className="lp-img lp-img--1"><img src={terrainImg} alt="Terrain" /></div>
-        <div className="lp-img lp-img--2"><img src={appartementImg} alt="Appartement" /></div>
-        <div className="lp-img lp-img--3"><img src={villaImg} alt="Villa" /></div>
-      </div>
-      <div className="lp-tagline">
-        Trouvez votre<br />
-        <span>logement idéal</span><br />
-        au Bénin
-      </div>
-      <div className="lp-pitch-list">
-        {[
-          'Maisons, appartements, terrains vérifiés',
-          'Réservez des visites en quelques clics',
-          'Échangez directement avec les propriétaires',
-        ].map(text => (
-          <div key={text} className="lp-pitch-item">
-            <span className="lp-pitch-dot" />
-            <span className="lp-pitch-text">{text}</span>
+    <div className="auth-side hidden lg:flex">
+      <ImageSlider images={SLIDE_IMAGES} interval={4000} className="absolute inset-0" />
+
+      {/* Overlay gradient pour lisibilité */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#1D1D1F]/80 via-[#1D1D1F]/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#4B6BFF]/30 to-transparent" />
+
+      {/* Contenu sur l'overlay */}
+      <div className="relative z-10 flex flex-col h-full p-8 justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          <img src={logoUrl} alt="REFUGE" className="w-12 h-12 object-contain drop-shadow-lg" />
+          <span className="text-white text-xl font-black tracking-tight drop-shadow">REFUGE</span>
+        </div>
+
+        {/* Tagline + pitch en bas */}
+        <div>
+          <p className="text-white text-3xl font-black leading-tight tracking-tight drop-shadow-lg mb-5">
+            Trouvez votre<br />
+            <span className="text-[#FF6B35]">logement idéal</span><br />
+            au Bénin
+          </p>
+          <div className="flex flex-col gap-2">
+            {PITCH_ITEMS.map(text => (
+              <div key={text} className="flex items-center gap-2.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4B6BFF] shrink-0" />
+                <span className="text-white/90 text-sm font-medium drop-shadow">{text}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
+    </div>
+  )
+}
+
+// ── Sous-composants UI partagés (inline dans ce fichier standalone) ─────────
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <AnimatePresence>
+      {message && (
+        <motion.div
+          key={message}
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          role="alert"
+          className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-600 mb-3"
+        >
+          <AlertTriangle size={15} className="mt-px shrink-0" />
+          <span>{message}</span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function PrimaryButton({
+  loading, disabled, loadingLabel, children, onClick, type = 'submit', className = '',
+}: {
+  loading?: boolean; disabled?: boolean; loadingLabel?: string
+  children: React.ReactNode; onClick?: () => void; type?: 'submit' | 'button'; className?: string
+}) {
+  return (
+    <motion.button
+      type={type}
+      disabled={disabled || loading}
+      onClick={onClick}
+      whileTap={{ scale: 0.985 }}
+      className={cn(
+        'relative flex w-full items-center justify-center gap-2 rounded-xl h-10 text-[14px] font-bold bg-primary text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B6BFF] focus-visible:ring-offset-2',
+        className,
+      )}
+    >
+      {loading ? <><Loader2 size={16} className="animate-spin" />{loadingLabel ?? children}</> : children}
+    </motion.button>
+  )
+}
+
+// ── Champ téléphone unifié (drapeau + indicatif | numéro) ────────────────────
+function PhoneInput({
+  countryCode, phone, onCountryChange, onPhoneChange, autoComplete = 'tel',
+}: {
+  countryCode: string; phone: string
+  onCountryChange: (v: string) => void; onPhoneChange: (v: string) => void
+  autoComplete?: string
+}) {
+  const current = COUNTRY_CODES.find(c => c.code === countryCode) ?? COUNTRY_CODES[0]
+  return (
+    <div className="auth-phone">
+      <div className="auth-phone-country">
+        <CountryFlag code={current.code} />
+        <span className="auth-phone-code">{current.code}</span>
+        <ChevronDown size={14} className="auth-phone-caret" />
+        <select
+          className="auth-phone-select"
+          value={countryCode}
+          onChange={e => onCountryChange(e.target.value)}
+          aria-label="Indicatif pays"
+        >
+          {COUNTRY_CODES.map(c => (
+            <option key={c.code} value={c.code}>{c.label} ({c.code})</option>
+          ))}
+        </select>
+      </div>
+      <span className="auth-phone-divider" />
+      <input
+        type="tel"
+        className="auth-phone-number"
+        value={phone}
+        onChange={e => onPhoneChange(e.target.value)}
+        placeholder="97 00 00 00"
+        autoComplete={autoComplete}
+      />
     </div>
   )
 }
@@ -104,13 +173,15 @@ function SidePanel() {
 function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const prefersReduced = useReducedMotion()
   const [countryCode, setCountryCode] = useState('+229')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState<'credentials' | 'otp'>('credentials')
+  const [formStep, setFormStep] = useState<'credentials' | 'otp'>('credentials')
+  const [stepDir, setStepDir] = useState(1)
   const [sessionToken, setSessionToken] = useState('')
   const [otpDigits, setOtpDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''))
   const [otpError, setOtpError] = useState('')
@@ -153,7 +224,8 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             completeLogin(otpData); setLoading(false); return
           } catch (_) {}
         }
-        setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError(''); setStep('otp')
+        setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
+        setStepDir(1); setFormStep('otp')
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
     } catch (err: any) {
@@ -200,67 +272,77 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   }
 
   const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
-
-  if (step === 'otp') return (
-    <>
-      <div className="lp-otp-icon"><ShieldIcon /></div>
-      <h2 className="lp-form-title">Vérification</h2>
-      <p className="lp-form-sub">Entrez le code envoyé au numéro se terminant par <strong>{maskedPhone}</strong></p>
-      {otpError && <div className="lp-error"><AlertIcon />{otpError}</div>}
-      <div className="lp-otp-row">
-        {otpDigits.map((d, i) => (
-          <input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
-            onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)}
-            inputMode="numeric" maxLength={1} disabled={otpLoading} className="lp-otp-input" />
-        ))}
-      </div>
-      <button type="button" onClick={() => verifyOtp(otpDigits.join(''))} disabled={otpLoading || otpDigits.some(d => !d)} className="lp-btn-submit">
-        {otpLoading ? <span className="lp-spinner" /> : 'Confirmer'}
-      </button>
-      <div className="lp-footer" style={{ marginTop: '1.25rem' }}>
-        {resendCooldown > 0 ? <>Renvoyer le code dans <strong>{resendCooldown}s</strong></> : (
-          <button type="button" onClick={resendOtp} disabled={loading} className="lp-forgot-inline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-            {loading ? 'Envoi…' : 'Renvoyer le code'}
-          </button>
-        )}
-      </div>
-      <button type="button" onClick={() => { setStep('credentials'); setError('') }} className="lp-btn-ghost">Retour</button>
-    </>
-  )
+  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as any }
 
   return (
-    <>
-      <h2 className="lp-form-title">Bienvenue</h2>
-      <p className="lp-form-sub">Connectez-vous pour accéder à votre espace</p>
-      {error && <div className="lp-error"><AlertIcon />{error}</div>}
-      <form onSubmit={handleLogin} className="lp-form">
-        <div className="lp-field">
-          <label className="lp-label">Numéro de téléphone</label>
-          <div className="lp-phone-row">
-            <select value={countryCode} onChange={e => setCountryCode(e.target.value)} className="lp-input">
-              {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
-            </select>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="97 00 00 00" autoComplete="tel" className="lp-input" />
+    <AnimatePresence mode="wait" custom={stepDir}>
+      {formStep === 'credentials' ? (
+        <motion.div key="creds" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
+          <h2 className="auth-title">Bienvenue</h2>
+          <p className="auth-sub">Connectez-vous pour accéder à votre espace</p>
+          <ErrorBanner message={error} />
+          <form onSubmit={handleLogin} className="flex flex-col gap-2">
+            <div className="auth-field">
+              <label className="auth-label">Numéro de téléphone</label>
+              <PhoneInput countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
+            </div>
+            <div className="auth-field">
+              <label className="auth-label">Mot de passe</label>
+              <div className="relative">
+                <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="auth-input pad-icon-left pad-icon-right w-full" />
+                <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer' : 'Afficher'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <PrimaryButton loading={loading} loadingLabel="Connexion…" className="mt-1">Se connecter</PrimaryButton>
+          </form>
+          <div className="auth-divider" />
+          <p className="auth-footer">
+            Nouveau ici ?{' '}
+            <button type="button" onClick={onSwitch} className="auth-link">Créer un compte</button>
+          </p>
+          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+            Retour à l'accueil
+          </button>
+        </motion.div>
+      ) : (
+        <motion.div key="otp" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(75,107,255,0.12)]">
+              <ShieldCheck size={22} className="text-[#4B6BFF]" />
+            </div>
+            <h2 className="auth-title">Vérification</h2>
+            <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-[#1D1D1F]">{maskedPhone}</strong></p>
           </div>
-        </div>
-        <div className="lp-field">
-          <label className="lp-label">Mot de passe</label>
-          <div className="lp-pwd-wrap">
-            <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••" autoComplete="current-password" className="lp-input" />
-            <button type="button" onClick={() => setShowPwd(v => !v)} className="lp-eye-btn" tabIndex={-1}>
-              {showPwd ? <EyeOffIcon /> : <EyeIcon />}
-            </button>
+          <ErrorBanner message={otpError} />
+          <div className="flex gap-2 mb-5 justify-center">
+            {otpDigits.map((d, i) => (
+              <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
+                onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)}
+                inputMode="numeric" maxLength={1} disabled={otpLoading}
+                animate={{ borderColor: d ? '#4B6BFF' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                transition={{ duration: 0.15 }}
+                className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-[#1D1D1F] outline-none disabled:opacity-50 focus:border-[#4B6BFF] focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
+                aria-label={`Chiffre ${i + 1}`}
+              />
+            ))}
           </div>
-        </div>
-        <button type="submit" disabled={loading} className="lp-btn-submit">
-          {loading ? <><span className="lp-spinner" />Connexion…</> : 'Se connecter'}
-        </button>
-      </form>
-      <div className="lp-divider" />
-      <div className="lp-footer">Nouveau ici ? <button type="button" onClick={onSwitch} className="lp-forgot-inline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Créer un compte</button></div>
-      <button type="button" onClick={() => navigate(-1)} className="lp-btn-ghost">Retour à l'accueil</button>
-    </>
+          <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
+          <div className="mt-3 text-sm text-[#6E6E73] text-center">
+            {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-[#1D1D1F]">{resendCooldown}s</strong></span> : (
+              <button type="button" onClick={resendOtp} disabled={loading} className="font-semibold text-[#4B6BFF] hover:underline disabled:opacity-60">
+                {loading ? 'Envoi…' : 'Renvoyer le code'}
+              </button>
+            )}
+          </div>
+          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+            Retour
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -268,7 +350,9 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const prefersReduced = useReducedMotion()
   const [step, setStep] = useState(1)
+  const [stepDir, setStepDir] = useState(1)
   const [role, setRole] = useState(() => {
     const suggere = localStorage.getItem('rg_role_suggere')
     return suggere === 'proprietaire' || suggere === 'prospect' ? suggere : ''
@@ -280,7 +364,9 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [showPwd, setShowPwd] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sessionToken, setSessionToken] = useState('')
@@ -310,6 +396,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     e.preventDefault()
     if (password !== confirmPwd) { setError('Les mots de passe ne correspondent pas'); return }
     if (password.length < 6) { setError('Mot de passe trop court (6 caractères min.)'); return }
+    if (!acceptedTerms) { setError('Veuillez accepter les conditions d\'utilisation'); return }
     setLoading(true); setError('')
     try {
       const body: any = { role, nom, prenom, password }
@@ -326,7 +413,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             completeLogin(otpData); setLoading(false); return
           } catch (_) {}
         }
-        setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError(''); setStep(3)
+        setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
+        setStepDir(1); setStep(3)
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
     } catch (err: any) {
@@ -372,116 +460,144 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   }
 
   const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
+  const goTo = (s: number) => { setStepDir(s > step ? 1 : -1); setStep(s) }
+  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as any }
 
   return (
     <>
       {step !== 3 && (
-        <div className="lp-step-dots">
+        <div className="auth-step-dots">
           {[1, 2, 3].map(s => (
-            <div key={s} className={`lp-step-dot ${s === step ? 'active' : s < step ? 'done' : ''}`} />
+            <div key={s} className={`auth-step-dot${s === step ? ' active' : s < step ? ' done' : ''}`} />
           ))}
         </div>
       )}
 
-      {error && <div className="lp-error"><AlertIcon />{error}</div>}
-
-      {step === 1 && (
-        <>
-          <h2 className="lp-form-title">Qui êtes-vous ?</h2>
-          <p className="lp-form-sub">Choisissez le profil qui vous correspond</p>
-          <div className="lp-role-grid">
-            {ROLES.map(r => (
-              <button key={r.key} type="button" onClick={() => setRole(r.key)} className={`lp-role-card ${role === r.key ? 'active' : ''}`}>
-                <div className="lp-role-icon">{r.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <p className="lp-role-title">{r.label}</p>
-                  <p className="lp-role-desc">{r.desc}</p>
-                </div>
-                <div className="lp-role-check">{role === r.key && <CheckIcon />}</div>
-              </button>
-            ))}
-          </div>
-          <button type="button" onClick={() => { if (!role) { setError('Choisissez un profil'); return } setError(''); setStep(2) }} className="lp-btn-submit" style={{ marginTop: '1.5rem' }}>
-            Continuer
-          </button>
-          <div className="lp-divider" />
-          <div className="lp-footer">Déjà un compte ? <button type="button" onClick={onSwitch} className="lp-forgot-inline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Se connecter</button></div>
-          <button type="button" onClick={() => navigate(-1)} className="lp-btn-ghost">Retour à l'accueil</button>
-        </>
-      )}
-
-      {step === 2 && (
-        <>
-          <h2 className="lp-form-title">Vos informations</h2>
-          <p className="lp-form-sub">Quelques infos pour créer votre compte</p>
-          <form onSubmit={handleRegister} className="lp-form">
-            <div className="lp-field-row">
-              <div className="lp-field"><label className="lp-label">Nom</label><input value={nom} onChange={e => setNom(e.target.value)} placeholder="Dupont" required className="lp-input" /></div>
-              <div className="lp-field"><label className="lp-label">Prénom</label><input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Jean" required className="lp-input" /></div>
-            </div>
-            <div className="lp-field">
-              <label className="lp-label">Téléphone</label>
-              <div className="lp-phone-row">
-                <select value={countryCode} onChange={e => setCountryCode(e.target.value)} className="lp-input">
-                  {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
-                </select>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="97 00 00 00" className="lp-input" />
-              </div>
-            </div>
-            <div className="lp-field">
-              <label className="lp-label">Email <span style={{ textTransform: 'none', fontWeight: 400, color: 'var(--c-muted)' }}>(optionnel)</span></label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com" className="lp-input" />
-            </div>
-            <div className="lp-field">
-              <label className="lp-label">Mot de passe</label>
-              <div className="lp-pwd-wrap">
-                <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 6 caractères" required className="lp-input" />
-                <button type="button" onClick={() => setShowPwd(v => !v)} className="lp-eye-btn" tabIndex={-1}>
-                  {showPwd ? <EyeOffIcon /> : <EyeIcon />}
+      <AnimatePresence mode="wait" custom={stepDir}>
+        {step === 1 && (
+          <motion.div key="r1" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
+            <h2 className="auth-title">Qui êtes-vous ?</h2>
+            <p className="auth-sub">Choisissez le profil qui vous correspond</p>
+            <ErrorBanner message={error} />
+            <div className="flex flex-col gap-2">
+              {ROLES.map(r => (
+                <button key={r.key} type="button" onClick={() => setRole(r.key)} className={`auth-role-card${role === r.key ? ' active' : ''}`}>
+                  <div className="auth-role-icon">{r.icon}</div>
+                  <div className="flex-1 text-left">
+                    <p className="text-[15px] font-bold text-[#1D1D1F]">{r.label}</p>
+                    <p className="text-xs text-[#6E6E73] mt-0.5">{r.desc}</p>
+                  </div>
+                  <div className="auth-role-check">{role === r.key && <Check size={11} strokeWidth={3} />}</div>
                 </button>
-              </div>
+              ))}
             </div>
-            <div className="lp-field">
-              <label className="lp-label">Confirmer le mot de passe</label>
-              <input type="password" value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Répéter le mot de passe" required className="lp-input" />
-            </div>
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem' }}>
-              <button type="button" onClick={() => { setError(''); setStep(1) }} className="lp-btn-submit" style={{ background: '#fff', color: 'var(--c-text)', border: '1.5px solid var(--c-border)', flex: '0 0 auto', width: 'auto', padding: '0 1.25rem' }}>Retour</button>
-              <button type="submit" disabled={loading} className="lp-btn-submit" style={{ flex: 1 }}>
-                {loading ? <><span className="lp-spinner" />Création…</> : "S'inscrire"}
-              </button>
-            </div>
-          </form>
-          <div className="lp-divider" />
-          <div className="lp-footer">Déjà un compte ? <button type="button" onClick={onSwitch} className="lp-forgot-inline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Se connecter</button></div>
-        </>
-      )}
+            <PrimaryButton type="button" onClick={() => { if (!role) { setError('Choisissez un profil'); return } setError(''); goTo(2) }} className="mt-5">Continuer</PrimaryButton>
+            <div className="auth-divider" />
+            <p className="auth-footer">Déjà un compte ?{' '}<button type="button" onClick={onSwitch} className="auth-link">Se connecter</button></p>
+            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
+          </motion.div>
+        )}
 
-      {step === 3 && (
-        <>
-          <div className="lp-otp-icon"><ShieldIcon /></div>
-          <h2 className="lp-form-title">Vérification</h2>
-          <p className="lp-form-sub">Entrez le code envoyé au numéro se terminant par <strong>{maskedPhone}</strong></p>
-          {otpError && <div className="lp-error"><AlertIcon />{otpError}</div>}
-          <div className="lp-otp-row">
-            {otpDigits.map((d, i) => (
-              <input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
-                onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)}
-                inputMode="numeric" maxLength={1} disabled={otpLoading} className="lp-otp-input" />
-            ))}
-          </div>
-          <button type="button" onClick={() => verifyOtp(otpDigits.join(''))} disabled={otpLoading || otpDigits.some(d => !d)} className="lp-btn-submit">
-            {otpLoading ? <span className="lp-spinner" /> : 'Confirmer'}
-          </button>
-          <div className="lp-footer" style={{ marginTop: '1.25rem' }}>
-            {resendCooldown > 0 ? <>Renvoyer le code dans <strong>{resendCooldown}s</strong></> : (
-              <button type="button" onClick={resendOtp} disabled={resending} className="lp-forgot-inline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-                {resending ? 'Envoi…' : 'Renvoyer le code'}
-              </button>
-            )}
-          </div>
-        </>
-      )}
+        {step === 2 && (
+          <motion.div key="r2" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
+            <h2 className="auth-title">Vos informations</h2>
+            <p className="auth-sub">Quelques infos pour créer votre compte</p>
+            <ErrorBanner message={error} />
+            <form onSubmit={handleRegister} className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <div className="auth-field flex-1">
+                  <label className="auth-label">Nom</label>
+                  <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Dupont" required className="auth-input" />
+                </div>
+                <div className="auth-field flex-1">
+                  <label className="auth-label">Prénom</label>
+                  <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Jean" required className="auth-input" />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label className="auth-label">Téléphone</label>
+                <PhoneInput countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
+              </div>
+              <div className="auth-field">
+                <label className="auth-label">Email <span className="normal-case font-normal text-[#6E6E73]">(optionnel)</span></label>
+                <div className="relative">
+                  <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com" className="auth-input pad-icon-left w-full" />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label className="auth-label">Mot de passe</label>
+                <div className="relative">
+                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 6 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
+                  <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+                    {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div className="auth-field">
+                <label className="auth-label">Confirmer</label>
+                <div className="relative">
+                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <input type={showConfirm ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Répéter le mot de passe" required className="auth-input pad-icon-left pad-icon-right w-full" />
+                  <button type="button" onClick={() => setShowConfirm(v => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <label className="auth-terms">
+                <input type="checkbox" className="sr-only" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
+                <span className="auth-terms-box">{acceptedTerms && <Check size={12} strokeWidth={3} />}</span>
+                <span className="auth-terms-text">
+                  J'accepte les{' '}
+                  <a href="/conditions" target="_blank" rel="noreferrer" className="auth-link">conditions d'utilisation</a>
+                  {' '}et la{' '}
+                  <a href="/confidentialite" target="_blank" rel="noreferrer" className="auth-link">politique de confidentialité</a>.
+                </span>
+              </label>
+              <div className="flex gap-2 mt-1">
+                <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-[#1D1D1F] hover:bg-black/5 transition-colors shrink-0">Retour</button>
+                <PrimaryButton loading={loading} loadingLabel="Création…" className="flex-1">S'inscrire</PrimaryButton>
+              </div>
+            </form>
+            <div className="auth-divider" />
+            <p className="auth-footer">Déjà un compte ?{' '}<button type="button" onClick={onSwitch} className="auth-link">Se connecter</button></p>
+          </motion.div>
+        )}
+
+        {step === 3 && (
+          <motion.div key="r3" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[rgba(75,107,255,0.12)]">
+                <ShieldCheck size={28} className="text-[#4B6BFF]" />
+              </div>
+              <h2 className="auth-title">Vérification</h2>
+              <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-[#1D1D1F]">{maskedPhone}</strong></p>
+            </div>
+            <ErrorBanner message={otpError} />
+            <div className="flex gap-2 mb-5 justify-center">
+              {otpDigits.map((d, i) => (
+                <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
+                  onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)}
+                  inputMode="numeric" maxLength={1} disabled={otpLoading}
+                  animate={{ borderColor: d ? '#4B6BFF' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                  transition={{ duration: 0.15 }}
+                  className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-[#1D1D1F] outline-none disabled:opacity-50 focus:border-[#4B6BFF] focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
+                  aria-label={`Chiffre ${i + 1}`}
+                />
+              ))}
+            </div>
+            <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
+            <div className="mt-3 text-sm text-[#6E6E73] text-center">
+              {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-[#1D1D1F]">{resendCooldown}s</strong></span> : (
+                <button type="button" onClick={resendOtp} disabled={resending} className="font-semibold text-[#4B6BFF] hover:underline disabled:opacity-60">
+                  {resending ? 'Envoi…' : 'Renvoyer le code'}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
@@ -489,41 +605,38 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 // ── Toggle switch Login / Register ──────────────────────────────────────────
 function ModeToggle({ mode, onChange }: { mode: 'login' | 'register'; onChange: (m: 'login' | 'register') => void }) {
   return (
-    <div className={cn('as-toggle')}>
-      <button
-        type="button"
-        className={cn('as-toggle-btn', mode === 'login' && 'as-toggle-btn--active')}
-        onClick={() => onChange('login')}
-      >
-        Connexion
-      </button>
-      <button
-        type="button"
-        className={cn('as-toggle-btn', mode === 'register' && 'as-toggle-btn--active')}
-        onClick={() => onChange('register')}
-      >
-        Inscription
-      </button>
+    <div className="flex items-center bg-[rgba(0,0,0,0.05)] rounded-xl p-0.5 mb-4">
+      {(['login', 'register'] as const).map(m => (
+        <button
+          key={m}
+          type="button"
+          onClick={() => onChange(m)}
+          className={cn(
+            'flex-1 h-8 rounded-[10px] text-[13px] font-bold transition-all duration-200',
+            mode === m
+              ? 'bg-white text-[#4B6BFF] shadow-sm'
+              : 'text-[#6E6E73] hover:text-[#1D1D1F]'
+          )}
+        >
+          {m === 'login' ? 'Connexion' : 'Inscription'}
+        </button>
+      ))}
     </div>
   )
 }
 
 // ── Composant principal exporté ─────────────────────────────────────────────
-export default function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 'register' }) {
+export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 'register' }) {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode)
 
   return (
-    <div className="lp-root">
+    <div className="auth-root">
       <SidePanel />
 
-      <div className="lp-right">
-        <div className="lp-deco lp-deco--1" />
-        <div className="lp-deco lp-deco--2" />
-        <div className="lp-deco lp-deco--3" />
-
-        <div className="lp-form-card">
-          <div className="lp-form-logo">
-            <img src={logoUrl} alt="REFUGE" style={{ width: 58, height: 58, objectFit: 'contain' }} />
+      <div className="auth-panel">
+        <div className="auth-form-inner">
+          <div className="flex justify-center mb-3">
+            <img src={logoUrl} alt="REFUGE" className="w-11 h-11 object-contain" />
           </div>
 
           <ModeToggle mode={mode} onChange={setMode} />
@@ -537,3 +650,6 @@ export default function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'l
     </div>
   )
 }
+
+export { AuthSwitch as Component }
+export default AuthSwitch
