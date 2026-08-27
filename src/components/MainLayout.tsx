@@ -1,33 +1,36 @@
+import { useRef, useCallback } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import TopNav from './TopNav'
 import BottomNav from './BottomNav'
 import PushPrompt from './PushPrompt'
+import ScrollFloatButtons from './ScrollFloatButtons'
 import { useScrolled } from '../context/ScrollContext'
 
-/** Pages "assistant plein écran" qui gèrent leur propre en-tête/navigation
- *  — la nav client (Accueil/Favoris/Messages/Profil) n'a pas sa place ici,
- *  qu'on y arrive en tant que client, propriétaire ou démarcheur. */
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
-
-/** Pages atteintes depuis un dashboard rôle (propriétaire/démarcheur/locataire,
- *  qui n'utilisent pas ce layout) via un lien interne (ex. la cloche Alertes) :
- *  le topbar client (Accueil/Favoris/Messages/Profil) n'a pas de sens dans ce
- *  contexte — la page garde son propre en-tête + bouton retour. Messagerie :
- *  aussi plein écran sur desktop (le topbar mange de la hauteur utile pour un
- *  panneau liste+fil de discussion) — mais garde la bottom nav mobile, la
- *  messagerie reste une destination courante de la navigation. */
 const HIDE_TOPNAV_PREFIXES: string[] = []
 
 export default function MainLayout() {
   const location = useLocation()
-  const { setScrolled } = useScrolled()
+  const { scrolled, setScrolled } = useScrolled()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
   const hideTopNav = hideChrome || HIDE_TOPNAV_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrolled(e.currentTarget.scrollTop > 40)
+
+    // Scrollbar auto-hide : ajoute la classe pendant le scroll, retire après 800ms
+    const el = e.currentTarget
+    el.classList.add('is-scrolling')
+    if (scrollTimer.current) clearTimeout(scrollTimer.current)
+    scrollTimer.current = setTimeout(() => el.classList.remove('is-scrolling'), 800)
+  }, [setScrolled])
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden" style={{ background: '#F5F5F7' }}>
 
-      {/* Orbes pastel Liquid Glass — sur fond clair, couleurs vives traversent le verre */}
+      {/* Orbes pastel Liquid Glass */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="orb absolute top-[-20%] right-[-10%] w-[900px] h-[900px] rounded-full"
           style={{ background: 'radial-gradient(circle, rgba(100,130,255,0.22) 0%, rgba(100,130,255,0.06) 50%, transparent 70%)' }} />
@@ -41,30 +44,32 @@ export default function MainLayout() {
           style={{ background: 'radial-gradient(circle, rgba(255,190,60,0.10) 0%, transparent 70%)', animationDelay: '12s' }} />
       </div>
 
-      {/* Header desktop */}
       {!hideTopNav && <TopNav />}
 
-      {/* Contenu — pas de z-index ici : un z-index sur ce conteneur créerait
-          un contexte d'empilement qui plafonnerait TOUT son contenu (y
-          compris les éléments `fixed` des pages enfants) sous ce niveau,
-          quel que soit leur propre z-index. En restant à z-auto, le
-          contenu se compare directement à la bottom nav (z-50) et reste
-          toujours en dessous ; les rares barres `fixed` de page qui
-          doivent apparaître au-dessus (ex. bouton de validation en bas
-          d'écran) portent leur propre z-index supérieur (z-[60]). */}
+      {/* Scrim sous la navbar pill — efface la transition brusque au scroll */}
+      {!hideTopNav && scrolled && (
+        <div
+          className="fixed top-0 left-0 right-0 z-[55] pointer-events-none"
+          style={{ height: 96, background: 'linear-gradient(to bottom, #F5F5F7 0%, transparent 100%)' }}
+        />
+      )}
+
       <div
-        className={`flex-1 overflow-y-auto relative ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : 'pb-20 md:pb-0 md:pt-16'}`}
-        onScroll={e => setScrolled(e.currentTarget.scrollTop > 40)}
+        ref={scrollRef}
+        className={`flex-1 overflow-y-auto relative scrollbar-auto ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : 'pb-20 md:pb-0 md:pt-16'}`}
+        onScroll={handleScroll}
       >
         <Outlet />
       </div>
 
-      {/* Bottom nav mobile */}
       {!hideChrome && (
         <div className="md:hidden relative z-50">
           <BottomNav />
         </div>
       )}
+
+      {/* Boutons flottants haut/bas — desktop uniquement */}
+      {!hideChrome && <ScrollFloatButtons scrollRef={scrollRef} />}
 
       <PushPrompt />
     </div>

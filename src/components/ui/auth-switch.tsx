@@ -33,7 +33,35 @@ const ROLES: RoleOption[] = [
   { key: 'proprietaire', label: 'Je suis propriétaire', desc: 'Je mets mon bien en location/vente', icon: <Home size={20} /> },
 ]
 
-const SLIDE_IMAGES = [slide1, slide2, slide3, slide4]
+// Slide dédiée à la marque REFUGE (premier élément du carrousel)
+function BrandSlide() {
+  return (
+    <div
+      className="w-full h-full flex flex-col items-center justify-center"
+      style={{
+        background: 'linear-gradient(145deg, #1a2a6c 0%, #2d4de0 35%, #4B6BFF 65%, #3a1f6b 100%)',
+      }}
+    >
+      <img
+        src={logoUrl}
+        alt="REFUGE"
+        className="object-contain drop-shadow-2xl mb-4"
+        style={{ width: 140, height: 140 }}
+      />
+      <span
+        className="text-white font-black tracking-[0.18em] uppercase drop-shadow-lg"
+        style={{ fontSize: '2rem', letterSpacing: '0.22em' }}
+      >
+        REFUGE
+      </span>
+      <span className="text-white/60 text-sm font-medium mt-2 tracking-wide">
+        Votre logement idéal au Bénin
+      </span>
+    </div>
+  )
+}
+
+const SLIDES = [<BrandSlide key="brand" />, slide1, slide2, slide3, slide4]
 
 const PITCH_ITEMS = [
   'Maisons, appartements, terrains vérifiés',
@@ -51,11 +79,14 @@ const stepVariants = {
 function SidePanel() {
   return (
     <div className="auth-side hidden lg:flex">
-      <ImageSlider images={SLIDE_IMAGES} interval={4000} className="absolute inset-0" />
+      <ImageSlider slides={SLIDES} interval={4000} className="absolute inset-0" />
 
       {/* Overlay gradient pour lisibilité */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#1D1D1F]/80 via-[#1D1D1F]/20 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#4B6BFF]/30 to-transparent" />
+
+      {/* Bord droit en fondu — pas de séparateur blanc */}
+      <div className="auth-side-fade" aria-hidden="true" />
 
       {/* Contenu sur l'overlay */}
       <div className="relative z-10 flex flex-col h-full p-8 justify-between">
@@ -625,6 +656,38 @@ function ModeToggle({ mode, onChange }: { mode: 'login' | 'register'; onChange: 
   )
 }
 
+// ── Bulles décoratives d'arrière-plan (panneau formulaire) ─────────────────
+const BUBBLES = [
+  { size: 320, top: '-10%', left: '-14%', color1: 'rgba(75,107,255,0.28)',  color2: 'rgba(75,107,255,0.06)',  delay: 0   },
+  { size: 220, top: '62%',  left: '-10%', color1: 'rgba(255,107,53,0.22)',  color2: 'rgba(255,107,53,0.04)',  delay: 1.8 },
+  { size: 170, top: '8%',   left: '70%',  color1: 'rgba(168,85,247,0.20)',  color2: 'rgba(168,85,247,0.04)',  delay: 3.2 },
+  { size: 260, top: '72%',  left: '58%',  color1: 'rgba(75,107,255,0.18)',  color2: 'rgba(75,107,255,0.03)',  delay: 0.9 },
+  { size: 120, top: '35%',  left: '85%',  color1: 'rgba(255,107,53,0.16)',  color2: 'rgba(255,107,53,0.03)',  delay: 2.5 },
+  { size: 90,  top: '50%',  left: '16%',  color1: 'rgba(168,85,247,0.14)',  color2: 'rgba(168,85,247,0.02)',  delay: 4.1 },
+  { size: 70,  top: '20%',  left: '42%',  color1: 'rgba(75,107,255,0.12)',  color2: 'rgba(75,107,255,0.02)',  delay: 1.4 },
+]
+
+function PanelBubbles() {
+  return (
+    <div className="auth-bubbles" aria-hidden="true">
+      {BUBBLES.map((b, i) => (
+        <div
+          key={i}
+          className="auth-bubble"
+          style={{
+            width:  b.size,
+            height: b.size,
+            top:    b.top,
+            left:   b.left,
+            background: `radial-gradient(circle at 30% 30%, ${b.color1} 0%, ${b.color2} 55%, transparent 75%)`,
+            animationDelay: `${b.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 // ── Composant principal exporté ─────────────────────────────────────────────
 export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 'register' }) {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode)
@@ -634,9 +697,10 @@ export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 
       <SidePanel />
 
       <div className="auth-panel">
+        <PanelBubbles />
         <div className="auth-form-inner">
           <div className="flex justify-center mb-3">
-            <img src={logoUrl} alt="REFUGE" className="w-11 h-11 object-contain" />
+            <img src={logoUrl} alt="REFUGE" className="w-20 h-20 object-contain drop-shadow-md" />
           </div>
 
           <ModeToggle mode={mode} onChange={setMode} />

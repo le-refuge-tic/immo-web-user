@@ -6,7 +6,7 @@
 .auth-root {
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 52% 48%;
+  grid-template-columns: 54% 46%;
   overflow: hidden;
   background: #fff;
 }
@@ -27,7 +27,7 @@
   overflow: hidden;
 }
 
-/* Panneau formulaire droit */
+/* Panneau formulaire droit — toujours en mode clair */
 .auth-panel {
   display: flex;
   flex-direction: column;
@@ -35,13 +35,39 @@
   justify-content: center;
   padding: 1.75rem 2.5rem;
   overflow-y: auto;
-  background: #ffffff;
+  position: relative;
+  color-scheme: light;
+  background:
+    radial-gradient(ellipse 90% 55% at 105% 0%, rgba(75, 107, 255, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 55% at -5% 105%, rgba(255, 107, 53, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 45% at 55% 55%, rgba(168, 85, 247, 0.10) 0%, transparent 50%),
+    linear-gradient(150deg, #e8eeff 0%, #f3eeff 30%, #fff0e8 65%, #eef2ff 100%);
 }
 
-/* Wrapper formulaire — largeur max, pas de container */
+/* Fondu gauche du panneau formulaire — se superpose avec le fondu du panneau gauche */
+.auth-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    to right,
+    rgba(232, 238, 255, 0.0) 0%,
+    transparent 100%
+  );
+}
+
+
+/* Wrapper formulaire — largeur max, passe au-dessus des bulles */
 .auth-form-inner {
   width: 100%;
   max-width: 20rem;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Typographie ─────────────────────────────── */
@@ -293,6 +319,72 @@ select.auth-input { cursor: pointer; }
   border-color: #4B6BFF;
   background: #4B6BFF;
   color: #fff;
+}
+
+/* ── Bulles décoratives arrière-plan formulaire ── */
+@keyframes auth-float {
+  0%, 100% { transform: translateY(0px)   scale(1); }
+  33%       { transform: translateY(-18px) scale(1.03); }
+  66%       { transform: translateY(10px)  scale(0.97); }
+}
+
+.auth-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.auth-bubble {
+  position: absolute;
+  border-radius: 50%;
+  animation: auth-float 9s ease-in-out infinite;
+  will-change: transform;
+  /* Pas de backdrop-filter : les bulles sont translucides sur le dégradé de fond */
+  filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-bubble { animation: none; }
+}
+
+/* ── Fondu droit du panneau gauche — transition fluide vers le panneau formulaire ── */
+.auth-side-fade {
+  position: absolute;
+  right: -40px; /* déborde sur le panneau droit pour fusionner */
+  top: 0;
+  width: 160px;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(232, 238, 255, 0.08) 25%,
+    rgba(232, 238, 255, 0.28) 50%,
+    rgba(232, 238, 255, 0.62) 72%,
+    rgba(232, 238, 255, 0.88) 88%,
+    rgba(232, 238, 255, 1.00) 100%
+  );
+}
+
+/* ── Dark mode — le panneau formulaire reste toujours clair ─ */
+@media (prefers-color-scheme: dark) {
+  .auth-root {
+    background: #0A0A0F;
+  }
+
+  /* .auth-panel conserve son fond clair (color-scheme: light déclaré dessus) */
+
+  .auth-title { color: #1D1D1F; }
+  .auth-sub   { color: #6E6E73; }
+  .auth-label { color: #1D1D1F; }
+
+  /* Vague dark : ton sombre correspondant */
+  .auth-wave-blur-zone {
+    background: rgba(10, 10, 20, 0.22);
+  }
 }
 
 /* ── Reduced motion ──────────────────────────── */

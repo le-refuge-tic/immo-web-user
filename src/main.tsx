@@ -5,13 +5,16 @@ import './index.css'
 import './api/httpInterceptor'
 import App from './App.tsx'
 import { registerServiceWorker } from './lib/push'
+import { ThemeProvider } from './context/ThemeContext'
 
 registerServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
 )

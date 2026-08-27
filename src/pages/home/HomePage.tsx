@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
@@ -6,8 +6,14 @@ import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
 import HERO_IMG from '../../assets/hero-interior.jpg'
+import slide2 from '../../assets/onboarding-1.jpg'
+import slide3 from '../../assets/onboarding-2.jpg'
+import slide4 from '../../assets/onboarding-3.jpg'
+import slide5 from '../../assets/onboarding-side.jpg'
 import logoUrl from '../../assets/REFUGE-ICON.png'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
+
+const HERO_SLIDES = [HERO_IMG, slide2, slide3, slide4, slide5]
 
 function norm(s: string) {
   return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -147,6 +153,37 @@ export default function HomePage() {
   const [prixMax, setPrixMax] = useState('')
 
   const suggestions: Quartier[] = search.trim().length >= 1 ? rechercherQuartiers(search) : []
+
+  // ── Carrousel hero ─────────────────────────────────────────────────────────
+  const [heroIdx,    setHeroIdx]    = useState(0)
+  const [heroPaused, setHeroPaused] = useState(false)
+  const heroTimer = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const heroGo = useCallback((dir: 1 | -1) => {
+    setHeroIdx(i => (i + dir + HERO_SLIDES.length) % HERO_SLIDES.length)
+  }, [])
+
+  useEffect(() => {
+    if (heroPaused) return
+    heroTimer.current = setInterval(() => heroGo(1), 5500)
+    return () => { if (heroTimer.current) clearInterval(heroTimer.current) }
+  }, [heroPaused, heroGo])
+
+  // ── Bouton recherche flottant ───────────────────────────────────────────────
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchPanelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!searchOpen) return
+    const handler = (e: MouseEvent) => {
+      if (searchPanelRef.current && !searchPanelRef.current.contains(e.target as Node))
+        setSearchOpen(false)
+    }
+    const keyHandler = (e: KeyboardEvent) => { if (e.key === 'Escape') setSearchOpen(false) }
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('keydown', keyHandler)
+    return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('keydown', keyHandler) }
+  }, [searchOpen])
 
   const locRef  = useRef<HTMLDivElement>(null)
   const venteRef = useRef<HTMLDivElement>(null)
@@ -329,24 +366,63 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── DESKTOP hero image pleine largeur ── */}
-      <div className="hidden md:flex relative w-full flex-col justify-center" style={{ minHeight: '72vh' }}>
-        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.15) 100%)' }} />
+      {/* ── DESKTOP hero carrousel pleine largeur ── */}
+      <div
+        className="hidden md:flex relative w-full flex-col justify-end overflow-hidden"
+        style={{ minHeight: '78vh' }}
+        onMouseEnter={() => setHeroPaused(true)}
+        onMouseLeave={() => setHeroPaused(false)}
+      >
+        {/* Slides en fondu */}
+        {HERO_SLIDES.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+            style={{ opacity: i === heroIdx ? 1 : 0, zIndex: 0 }}
+          />
+        ))}
 
-        <div className="relative z-10 w-full px-16 pb-20 pt-12">
-          <p className="text-white/60 text-sm uppercase tracking-widest font-medium mb-4 anim-fade-up">
+        {/* Overlay dégradé */}
+        <div className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.38) 50%, rgba(0,0,0,0.12) 100%)' }} />
+
+        {/* Flèches — visibles au hover du hero */}
+        <button
+          onClick={() => heroGo(-1)}
+          aria-label="Slide précédente"
+          className="hero-arrow absolute left-5 top-1/2 -translate-y-1/2 z-[3] w-11 h-11 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+          style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)' }}
+        >
+          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={() => heroGo(1)}
+          aria-label="Slide suivante"
+          className="hero-arrow absolute right-5 top-1/2 -translate-y-1/2 z-[3] w-11 h-11 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+          style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)' }}
+        >
+          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Contenu texte */}
+        <div className="relative z-[2] w-full px-8 md:px-16 pb-28 pt-12">
+          <p className="text-white/60 text-xs md:text-sm uppercase tracking-widest font-medium mb-3 md:mb-4 anim-fade-up">
             Immobilier au Bénin — Annonces vérifiées
           </p>
-          <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-5 anim-blur-up d-100 max-w-2xl" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
+          <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-4 md:mb-5 anim-blur-up d-100 max-w-2xl" style={{ fontSize: 'clamp(2rem, 5vw, 4.5rem)' }}>
             Trouvez votre logement idéal.<br />Habitez en confiance.
           </h1>
-          <p className="text-white/60 text-lg leading-relaxed mb-8 max-w-xl anim-fade-up d-300">
+          <p className="text-white/60 text-base md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl anim-fade-up d-300">
             Maisons, appartements, terrains — à Cotonou, Abomey-Calavi et partout au Bénin.
           </p>
 
           {/* Stats */}
-          <div className="flex items-center gap-12 pt-8 mt-2 anim-fade-in d-600 max-w-2xl" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+          <div className="flex flex-wrap items-center gap-6 md:gap-12 pt-6 md:pt-8 mt-2 anim-fade-in d-600 max-w-2xl" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
             {[
               { val: biens.length > 0 ? `${biens.length}+` : '500+', label: 'Annonces disponibles' },
               { val: '5',    label: 'Villes couvertes' },
@@ -354,88 +430,155 @@ export default function HomePage() {
               { val: '24h',  label: 'Réponse garantie' },
             ].map((s, i) => (
               <div key={s.label} className="anim-fade-up" style={{ animationDelay: `${600 + i * 80}ms` }}>
-                <p className="text-white font-bold text-3xl tracking-tight">{s.val}</p>
-                <p className="text-white/50 text-sm mt-1">{s.label}</p>
+                <p className="text-white font-bold text-2xl md:text-3xl tracking-tight">{s.val}</p>
+                <p className="text-white/50 text-xs md:text-sm mt-1">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* ── Barre de recherche structurée — ancrée à cheval sur le bas du hero,
-          remplace l'ancienne barre mono-champ + panneau "Filtres" replié. ── */}
-      <div className="hidden md:block relative z-20 px-16" style={{ marginTop: -36 }}>
-        <div className="bg-white rounded-2xl shadow-2xl flex items-stretch divide-x divide-divider anim-scale-in d-400">
-          <div className="flex-1 min-w-0 px-5 py-3 relative">
-            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Quartier</p>
-            <div className="flex items-center gap-2">
-              <span className="text-text-grey flex-shrink-0"><PinIcon /></span>
-              <input
-                value={search}
-                onChange={e => { setSearch(e.target.value); setShowSuggest(true) }}
-                onFocus={() => setShowSuggest(true)}
-                onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
-                onKeyDown={e => { if (e.key === 'Enter') goToSearch() }}
-                placeholder="Où cherchez-vous ?"
-                className="flex-1 min-w-0 bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
-              />
-            </div>
-            {showSuggest && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-2 z-30 bg-white rounded-xl border border-divider shadow-lg max-h-56 overflow-y-auto">
-                {suggestions.map((q, i) => (
-                  <button key={`${q.nom}-${i}`} type="button" onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
-                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2">
-                    <span className="text-text-dark font-medium">{q.nom}</span>
-                    <span className="text-text-grey text-xs flex-shrink-0">{q.ville}</span>
-                  </button>
-                ))}
+        {/* Indicateurs à points */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[3] flex items-center gap-2">
+          {HERO_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setHeroIdx(i)}
+              aria-label={`Aller à la slide ${i + 1}`}
+              style={{
+                width: heroIdx === i ? 20 : 8,
+                height: 8,
+                borderRadius: 4,
+                background: heroIdx === i ? '#fff' : 'rgba(255,255,255,0.4)',
+                transition: 'all 0.3s ease',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* ── Bouton de recherche flottant — ancré en bas à droite du héro ── */}
+        <div ref={searchPanelRef} className="absolute bottom-12 right-8 z-[4] w-full max-w-2xl flex justify-end px-0">
+          {!searchOpen ? (
+            /* Bouton fermé — pill glass élégant */
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-3 px-5 py-3 rounded-2xl transition-all hover:scale-[1.03] active:scale-[0.98]"
+              style={{
+                background: 'rgba(255,255,255,0.14)',
+                backdropFilter: 'blur(40px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+                border: '1px solid rgba(255,255,255,0.30)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45), 0 8px 40px rgba(0,0,0,0.30)',
+              }}
+            >
+              <span className="flex items-center justify-center w-7 h-7 rounded-xl" style={{ background: '#4B6BFF' }}>
+                <SearchIcon />
+              </span>
+              <span className="text-white font-semibold text-sm whitespace-nowrap">
+                {search.trim() ? search.trim() : 'Rechercher un bien…'}
+              </span>
+              {(search || transaction || type || prixMin || prixMax) && (
+                <span className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white" style={{ background: '#4B6BFF' }}>
+                  {[search, transaction, type, prixMin, prixMax].filter(Boolean).length}
+                </span>
+              )}
+            </button>
+          ) : (
+            /* Panneau étendu */
+            <div
+              className="w-full rounded-2xl overflow-hidden anim-scale-in origin-bottom-right"
+              style={{
+                background: 'rgba(255,255,255,0.92)',
+                backdropFilter: 'blur(48px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(48px) saturate(180%)',
+                border: '1px solid rgba(255,255,255,0.95)',
+                boxShadow: 'inset 0 2px 0 rgba(255,255,255,1), 0 24px 64px rgba(0,0,0,0.3)',
+              }}
+            >
+              <div className="flex items-stretch divide-x divide-divider">
+                {/* Quartier */}
+                <div className="flex-1 min-w-0 px-4 md:px-5 py-3 relative">
+                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Quartier</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-text-grey flex-shrink-0"><PinIcon /></span>
+                    <input
+                      autoFocus
+                      value={search}
+                      onChange={e => { setSearch(e.target.value); setShowSuggest(true) }}
+                      onFocus={() => setShowSuggest(true)}
+                      onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+                      onKeyDown={e => { if (e.key === 'Enter') { goToSearch(); setSearchOpen(false) } }}
+                      placeholder="Où cherchez-vous ?"
+                      className="flex-1 min-w-0 bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
+                    />
+                  </div>
+                  {showSuggest && suggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white rounded-xl border border-divider shadow-lg max-h-48 overflow-y-auto">
+                      {suggestions.map((q, i) => (
+                        <button key={`${q.nom}-${i}`} type="button" onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2">
+                          <span className="text-text-dark font-medium">{q.nom}</span>
+                          <span className="text-text-grey text-xs flex-shrink-0">{q.ville}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Opération */}
+                <div className="w-32 md:w-40 flex-shrink-0 px-4 md:px-5 py-3">
+                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Opération</p>
+                  <select value={transaction} onChange={e => setTransaction(e.target.value)}
+                    className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
+                    {TRANSACTIONS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+                  </select>
+                </div>
+
+                {/* Type */}
+                <div className="w-32 md:w-40 flex-shrink-0 px-4 md:px-5 py-3">
+                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Type de bien</p>
+                  <select value={type} onChange={e => setType(e.target.value)}
+                    className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
+                    {TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+                  </select>
+                </div>
+
+                {/* Budget min */}
+                <div className="hidden lg:block w-28 flex-shrink-0 px-5 py-3">
+                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget min</p>
+                  <input type="number" min={0} list="budget-min-presets" value={prixMin}
+                    onChange={e => setPrixMin(e.target.value)} placeholder="0"
+                    className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400" />
+                  <datalist id="budget-min-presets">
+                    {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{`≥ ${p.label.replace('< ', '')}`}</option>)}
+                  </datalist>
+                </div>
+
+                {/* Budget max */}
+                <div className="hidden lg:block w-32 flex-shrink-0 px-5 py-3">
+                  <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget max</p>
+                  <input type="number" min={0} list="budget-max-presets" value={prixMax}
+                    onChange={e => setPrixMax(e.target.value)} placeholder="Illimité"
+                    className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400" />
+                  <datalist id="budget-max-presets">
+                    {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{p.label}</option>)}
+                  </datalist>
+                </div>
+
+                {/* Bouton rechercher */}
+                <button
+                  onClick={() => { goToSearch(); setSearchOpen(false) }}
+                  className="flex-shrink-0 flex items-center gap-2 px-5 md:px-6 font-bold text-white text-sm rounded-r-2xl transition-opacity hover:opacity-90"
+                  style={{ background: '#4B6BFF' }}
+                >
+                  <SearchIcon />
+                  <span className="hidden sm:inline">Rechercher</span>
+                </button>
               </div>
-            )}
-          </div>
-          <div className="w-40 flex-shrink-0 px-5 py-3">
-            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Opération</p>
-            <select value={transaction} onChange={e => setTransaction(e.target.value)}
-              className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
-              {TRANSACTIONS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-            </select>
-          </div>
-          <div className="w-40 flex-shrink-0 px-5 py-3">
-            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Type de bien</p>
-            <select value={type} onChange={e => setType(e.target.value)}
-              className="w-full bg-transparent outline-none text-[13px] text-text-dark cursor-pointer">
-              {TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-            </select>
-          </div>
-          <div className="w-28 flex-shrink-0 px-5 py-3">
-            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget min</p>
-            <input
-              type="number" min={0} list="budget-min-presets" value={prixMin}
-              onChange={e => setPrixMin(e.target.value)}
-              placeholder="0"
-              className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
-            />
-            <datalist id="budget-min-presets">
-              {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{`≥ ${p.label.replace('< ', '')}`}</option>)}
-            </datalist>
-          </div>
-          <div className="w-32 flex-shrink-0 px-5 py-3">
-            <p className="text-[10px] font-bold text-text-grey uppercase tracking-wide mb-1">Budget max</p>
-            <input
-              type="number" min={0} list="budget-max-presets" value={prixMax}
-              onChange={e => setPrixMax(e.target.value)}
-              placeholder="Illimité"
-              className="w-full bg-transparent outline-none text-[13px] text-text-dark placeholder-gray-400"
-            />
-            <datalist id="budget-max-presets">
-              {BUDGET_PRESETS.map(p => <option key={p.label} value={p.max}>{p.label}</option>)}
-            </datalist>
-          </div>
-          <button onClick={goToSearch}
-            className="flex-shrink-0 flex items-center gap-2 px-6 font-bold text-white text-sm rounded-r-2xl transition-opacity hover:opacity-90"
-            style={{ background: '#4B6BFF' }}>
-            <SearchIcon />
-            Rechercher
-          </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -752,52 +895,121 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* ── Nos services — pourquoi choisir REFUGE ── */}
-      <div className="hidden md:block w-full px-16 py-16">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <p className="text-sm font-bold uppercase tracking-wide mb-2" style={{ color: '#4B6BFF' }}>Pourquoi choisir REFUGE</p>
-          <h2 className="text-3xl font-extrabold tracking-tight text-text-dark">NOS SERVICES</h2>
-        </div>
-        <div className="grid grid-cols-3 gap-6">
+      {/* ── Pourquoi REFUGE — accroche + Nos services ── */}
+      <div className="hidden md:block w-full px-16 py-20">
+
+        {/* Accroche "Pourquoi choisir REFUGE ?" */}
+        <Reveal animation="anim-fade-up" className="text-center max-w-3xl mx-auto mb-16">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
+            style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF', border: '1px solid rgba(75,107,255,0.20)' }}>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Pourquoi choisir REFUGE ?
+          </span>
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-5" style={{ color: 'var(--services-title, #1D1D1F)' }}>
+            L'immobilier au Bénin,<br />
+            <span style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              sans mauvaises surprises.
+            </span>
+          </h2>
+          <p className="text-base md:text-lg leading-relaxed text-text-grey max-w-xl mx-auto">
+            De la recherche à la signature, REFUGE centralise tout ce dont vous avez besoin pour trouver, visiter et louer en toute confiance.
+          </p>
+        </Reveal>
+
+        {/* Grille services */}
+        <div className="grid grid-cols-3 gap-5">
           {[
             {
               title: 'Moteur de recherche',
-              desc: 'Filtrez par ville, quartier, type de bien et budget pour trouver rapidement le logement qu\'il vous faut.',
-              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+              desc: 'Filtrez par ville, quartier, type de bien et budget. Trouvez votre logement en quelques secondes.',
+              icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+              color: '#4B6BFF',
+              bg: 'rgba(75,107,255,0.10)',
+              tag: 'Recherche avancée',
             },
             {
               title: 'Visites en ligne',
-              desc: 'Réservez votre créneau de visite en quelques clics et suivez la confirmation en temps réel.',
-              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l2 2 4-4" /></svg>,
+              desc: 'Réservez votre créneau en quelques clics. Confirmation en temps réel, rappel automatique.',
+              icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l2 2 4-4" /></svg>,
+              color: '#7B4BFF',
+              bg: 'rgba(123,75,255,0.10)',
+              tag: 'Agenda intelligent',
             },
             {
               title: 'Paiement sécurisé',
-              desc: 'Réglez vos frais de visite et vos loyers via Mobile Money (MTN MoMo, FedaPay), en toute sécurité.',
-              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
+              desc: 'Réglez via MTN MoMo ou FedaPay. Vos transactions sont chiffrées et tracées.',
+              icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
+              color: '#00B087',
+              bg: 'rgba(0,176,135,0.10)',
+              tag: 'Mobile Money',
             },
             {
               title: 'Messagerie intégrée',
-              desc: 'Échangez directement avec les propriétaires et démarcheurs sans quitter l\'application.',
-              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
+              desc: 'Discutez directement avec propriétaires et démarcheurs, sans intermédiaires.',
+              icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
+              color: '#FF6B35',
+              bg: 'rgba(255,107,53,0.10)',
+              tag: 'Communication directe',
             },
             {
               title: 'Biens vérifiés',
-              desc: 'Chaque annonce est vérifiée avant publication pour vous garantir des informations fiables.',
-              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+              desc: 'Chaque annonce est contrôlée avant publication. Zéro fausse annonce, zéro arnaque.',
+              icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+              color: '#4B6BFF',
+              bg: 'rgba(75,107,255,0.10)',
+              tag: '100% fiable',
             },
             {
               title: 'Support réactif',
-              desc: 'Une équipe à votre écoute pour vous accompagner à chaque étape de votre recherche.',
-              icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-2a4 4 0 014-4h10a4 4 0 014 4v2M3 18a2 2 0 002 2h1a1 1 0 001-1v-4a1 1 0 00-1-1H3v6zm18 0a2 2 0 01-2 2h-1a1 1 0 01-1-1v-4a1 1 0 011-1h3v6z" /></svg>,
+              desc: 'Une équipe disponible à chaque étape — de la recherche à l\'emménagement.',
+              icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-2a4 4 0 014-4h10a4 4 0 014 4v2M3 18a2 2 0 002 2h1a1 1 0 001-1v-4a1 1 0 00-1-1H3v6zm18 0a2 2 0 01-2 2h-1a1 1 0 01-1-1v-4a1 1 0 011-1h3v6z" /></svg>,
+              color: '#FF9800',
+              bg: 'rgba(255,152,0,0.10)',
+              tag: 'Assistance 24h',
             },
-          ].map(s => (
-            <div key={s.title} className="rounded-2xl p-7 bg-white" style={{ border: '1px solid rgba(75,107,255,0.15)', boxShadow: '0 4px 20px rgba(75,107,255,0.06)' }}>
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'rgba(75,107,255,0.1)' }}>
-                {s.icon}
+          ].map((s, i) => (
+            <Reveal key={s.title} animation="anim-fade-up" delay={i * 70}>
+              <div
+                className="rounded-3xl p-7 h-full flex flex-col gap-4 transition-all duration-300 cursor-default group"
+                style={{
+                  background: 'rgba(255,255,255,0.72)',
+                  backdropFilter: 'blur(32px) saturate(160%)',
+                  border: '1px solid rgba(255,255,255,0.88)',
+                  boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.95), 0 4px 24px rgba(0,0,0,0.07)',
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLDivElement
+                  el.style.transform = 'translateY(-6px)'
+                  el.style.boxShadow = `inset 0 1.5px 0 rgba(255,255,255,0.95), 0 20px 48px rgba(0,0,0,0.12), 0 0 0 1px ${s.color}22`
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLDivElement
+                  el.style.transform = 'translateY(0)'
+                  el.style.boxShadow = 'inset 0 1.5px 0 rgba(255,255,255,0.95), 0 4px 24px rgba(0,0,0,0.07)'
+                }}
+              >
+                {/* Icône */}
+                <div className="flex items-start justify-between">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: s.bg, color: s.color }}>
+                    {s.icon}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex-shrink-0"
+                    style={{ background: s.bg, color: s.color }}>
+                    {s.tag}
+                  </span>
+                </div>
+                {/* Texte */}
+                <div>
+                  <h3 className="font-bold text-text-dark text-base mb-1.5">{s.title}</h3>
+                  <p className="text-sm text-text-grey leading-relaxed">{s.desc}</p>
+                </div>
+                {/* Barre couleur bas de carte */}
+                <div className="mt-auto pt-4 flex items-center gap-2">
+                  <div className="h-0.5 w-8 rounded-full" style={{ background: s.color, opacity: 0.4 }} />
+                </div>
               </div>
-              <h3 className="font-bold text-text-dark text-lg mb-2">{s.title}</h3>
-              <p className="text-sm text-text-grey leading-relaxed">{s.desc}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -849,15 +1061,85 @@ export default function HomePage() {
       )}
 
       {/* ── Pied de page ── */}
-      <footer className="hidden md:block w-full px-16 py-8"
-        style={{ background: 'rgba(245,245,247,0.78)', backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-        <div className="flex items-center gap-2.5" style={{ minHeight: 40 }}>
-          <img src={logoUrl} alt="REFUGE" style={{ height: 40, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
-          <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
+      <footer className="hidden md:block w-full px-16 py-12"
+        style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+        <div className="flex items-start justify-between gap-12">
+
+          {/* Marque */}
+          <div className="flex-shrink-0">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.30)' }}>
+                <img src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+              </div>
+              <div>
+                <span className="font-extrabold text-xl tracking-tight" style={{ color: '#4B6BFF' }}>REFUGE</span>
+                <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>Immobilier au Bénin</p>
+              </div>
+            </div>
+            <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'rgba(0,0,0,0.50)' }}>
+              La plateforme de référence pour trouver, louer ou acheter un bien immobilier au Bénin.
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex gap-16">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(0,0,0,0.35)' }}>Plateforme</p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: 'Accueil', path: '/' },
+                  { label: 'Rechercher un bien', path: '/search' },
+                  { label: 'Mes favoris', path: '/favoris' },
+                  { label: 'Mes visites', path: '/mes-visites' },
+                ].map(l => (
+                  <li key={l.path}>
+                    <button onClick={() => navigate(l.path)}
+                      className="text-sm transition-colors hover:text-primary"
+                      style={{ color: 'rgba(0,0,0,0.55)' }}>
+                      {l.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(0,0,0,0.35)' }}>Légal</p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: 'Politique de confidentialité', path: '/confidentialite' },
+                  { label: "Conditions d'utilisation", path: '/conditions' },
+                  { label: 'Mentions légales', path: '/mentions-legales' },
+                  { label: 'Cookies', path: '/cookies' },
+                ].map(l => (
+                  <li key={l.path}>
+                    <button onClick={() => navigate(l.path)}
+                      className="text-sm transition-colors hover:text-primary"
+                      style={{ color: 'rgba(0,0,0,0.55)' }}>
+                      {l.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
-        <p className="text-xs mt-4" style={{ color: 'rgba(0,0,0,0.4)' }}>
-          © {new Date().getFullYear()} REFUGE. Tous droits réservés.
-        </p>
+
+        {/* Bas du footer */}
+        <div className="mt-10 pt-6 flex items-center justify-between" style={{ borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+          <p className="text-xs" style={{ color: 'rgba(0,0,0,0.35)' }}>
+            © {new Date().getFullYear()} REFUGE. Tous droits réservés. Bénin 🇧🇯
+          </p>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/confidentialite')} className="text-xs hover:text-primary transition-colors" style={{ color: 'rgba(0,0,0,0.40)' }}>
+              Confidentialité
+            </button>
+            <span style={{ color: 'rgba(0,0,0,0.20)' }}>·</span>
+            <button onClick={() => navigate('/conditions')} className="text-xs hover:text-primary transition-colors" style={{ color: 'rgba(0,0,0,0.40)' }}>
+              CGU
+            </button>
+          </div>
+        </div>
       </footer>
 
     </div>
