@@ -120,7 +120,9 @@ export default function ConversationsPage() {
           const other = getOther(conv)
           const name = displayName(other)
           const lastMsg = conv.dernierMessage
-          const lastContenu = lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : 'Nouvelle conversation')
+          const lastContenu = lastMsg?.contenu === '__supprime__'
+            ? 'Message supprimé par l\'administrateur'
+            : (lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : 'Nouvelle conversation'))
           const unread = conv.nonLus || 0
           const hasUnread = unread > 0
           const timeStr = formatConvTime(lastMsg?.created_at)
@@ -146,7 +148,7 @@ export default function ConversationsPage() {
                     {timeStr && <p className="text-[11px] text-text-grey flex-shrink-0">{timeStr}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className={`text-xs truncate flex-1 ${hasUnread ? 'text-text-dark font-medium' : 'text-text-grey'}`}>
+                    <p className={`text-xs truncate flex-1 ${lastMsg?.contenu === '__supprime__' ? 'text-text-grey italic' : (hasUnread ? 'text-text-dark font-medium' : 'text-text-grey')}`}>
                       {lastContenu}
                     </p>
                     {hasUnread && (

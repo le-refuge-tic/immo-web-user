@@ -101,6 +101,10 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const [isProposingSlot, setIsProposingSlot] = useState(false)
   const [payingFromChat, setPayingFromChat] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
+  const [complainMsg, setComplainMsg] = useState<any>(null)
+  const [complainText, setComplainText] = useState('')
+  const [complainSending, setComplainSending] = useState(false)
+  const [complainSent, setComplainSent] = useState(false)
   const socketRef = useRef<Socket | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -524,19 +528,32 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
               {needsSeparator && <div className="text-center text-[11px] text-text-grey my-3">{dateSeparatorLabel(msg.created_at)}</div>}
               <div className={`flex mb-2.5 group ${isMe ? 'justify-end' : 'justify-start'}`}>
                 <div className="relative max-w-[78%]">
+                  {isSupprime ? (
+                    <div className="px-4 py-2.5 rounded-2xl bg-black/5 border border-dashed border-black/20">
+                      <p className="text-sm italic text-text-grey">Message supprimé par l'administrateur</p>
+                      <button
+                        onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false); }}
+                        className="text-[11px] text-primary underline mt-1"
+                      >
+                        En savoir plus
+                      </button>
+                      <p className="text-[10px] text-text-grey mt-1">{timeLabel(msg.created_at)}</p>
+                    </div>
+                  ) : (
                   <div className={`px-4 py-2.5 rounded-2xl ${isMe ? 'bg-primary text-white rounded-br-sm' : 'glass-card text-text-dark rounded-bl-sm'}`}>
                     {msg.reply_to_contenu && (
                       <div className={`text-xs px-2.5 py-1.5 rounded-lg mb-1.5 border-l-2 truncate ${isMe ? 'border-white/50 bg-white/15' : 'border-primary bg-black/5'}`}>
                         {msg.reply_to_contenu}
                       </div>
                     )}
-                    <p className={`text-sm leading-relaxed ${isSupprime ? 'italic opacity-70' : ''}`}>{msg.contenu}</p>
+                    <p className="text-sm leading-relaxed">{msg.contenu}</p>
                     <div className="flex items-center gap-1 mt-1">
                       {msg.epingle && <span className={`text-[10px] ${isMe ? 'text-white/70' : 'text-primary'}`}>📌</span>}
                       {msg.modifie && <span className={`text-xs ${isMe ? 'text-white/60' : 'text-text-grey'} italic`}>Modifié · </span>}
                       <p className={`text-xs ${isMe ? 'text-white/60' : 'text-text-grey'}`}>{timeLabel(msg.created_at)}</p>
                     </div>
                   </div>
+                  )}
                   <button
                     onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === msg.id ? null : msg.id) }}
                     className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center text-xs ${isMe ? '-left-7' : '-right-7'}`}
@@ -600,6 +617,84 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
       {showSlotPicker && <SlotPickerModal onConfirm={proposerCreneau} onCancel={() => setShowSlotPicker(false)} />}
       {counterFor && <SlotPickerModal onConfirm={confirmCounter} onCancel={() => setCounterFor(null)} />}
+
+      {/* ── Modal plainte suppression ── */}
+      {complainMsg && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center" style={{ background: 'rgba(0,0,0,0.45)' }}
+          onClick={e => { if (e.target === e.currentTarget) setComplainMsg(null) }}>
+          <div className="glass-strong rounded-2xl p-5 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <p className="font-bold text-text-dark text-base">Message supprimé</p>
+                <p className="text-xs text-text-grey mt-0.5">Ce message a été supprimé par un administrateur de la plateforme.</p>
+              </div>
+              <button onClick={() => setComplainMsg(null)} className="w-7 h-7 flex items-center justify-center text-text-grey flex-shrink-0 rounded-full hover:bg-black/5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="rounded-xl px-3 py-2 mb-4 text-xs text-text-grey italic" style={{ background: 'rgba(0,0,0,0.05)', border: '1px dashed rgba(0,0,0,0.15)' }}>
+              Les administrateurs peuvent supprimer des messages qui enfreignent les conditions d'utilisation de la plateforme.
+              Si vous pensez que cette suppression est injustifiée, vous pouvez soumettre une plainte.
+            </div>
+
+            {complainSent ? (
+              <div className="text-center py-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(76,175,80,0.12)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <p className="font-bold text-text-dark text-sm">Plainte envoyée</p>
+                <p className="text-xs text-text-grey mt-1">Notre équipe examinera votre signalement.</p>
+                <button onClick={() => setComplainMsg(null)} className="mt-3 w-full py-2.5 rounded-xl bg-primary text-white text-sm font-bold">Fermer</button>
+              </div>
+            ) : (
+              <>
+                <label className="block text-xs font-semibold text-text-dark mb-1.5">Motif de la plainte</label>
+                <textarea
+                  value={complainText}
+                  onChange={e => setComplainText(e.target.value)}
+                  placeholder="Expliquez pourquoi vous pensez que ce message a été supprimé de façon injustifiée…"
+                  rows={4}
+                  className="w-full border border-divider rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary resize-none"
+                />
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => setComplainMsg(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-dark">
+                    Annuler
+                  </button>
+                  <button
+                    disabled={!complainText.trim() || complainSending}
+                    onClick={async () => {
+                      if (!complainText.trim()) return
+                      setComplainSending(true)
+                      try {
+                        await chatApi.creerPlainte({
+                          message_id: complainMsg.id,
+                          conversation_id: convId,
+                          contenu: complainText.trim(),
+                        })
+                        setComplainSent(true)
+                      } catch {
+                        setError('Impossible d\'envoyer la plainte. Réessayez.')
+                        setTimeout(() => setError(''), 5000)
+                      }
+                      setComplainSending(false)
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-1.5">
+                    {complainSending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : 'Envoyer la plainte'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

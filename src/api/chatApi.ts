@@ -40,4 +40,7 @@ export const chatApi = {
 
   repondreProposition: (messageId: number, response: 'accepted' | 'declined' | 'countered', proposedAt?: string) =>
     axios.patch(`${BASE}/chat/slots/${messageId}`, { response, proposed_at: proposedAt }, auth()).then(r => r.data),
+
+  creerPlainte: (body: { message_id?: number; conversation_id?: number; contenu: string }) =>
+    axios.post(`${BASE}/users/me/plainte`, body, auth()).then(r => r.data),
 }
