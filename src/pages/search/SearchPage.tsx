@@ -418,7 +418,7 @@ export default function SearchPage() {
       <div className="lg:hidden">
 
         {/* Header sticky */}
-        <div className="sticky top-0 z-30 px-4 pt-10 pb-3"
+        <div className="sticky top-0 z-30 px-4 pt-3 pb-3"
           style={{
             background: tk.headerBg,
             backdropFilter: 'blur(40px)',
@@ -767,7 +767,7 @@ function FilterPanel({
         <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Budget (FCFA)
         </label>
-        <div className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 mb-3">
+        <div className="flex flex-wrap gap-1.5 pb-1 mb-3">
           {BUDGET_PRESETS.map(p => {
             const active = prixMax === String(p.max)
             return (
