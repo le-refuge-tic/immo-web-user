@@ -642,7 +642,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                           e.stopPropagation()
                           const rect = e.currentTarget.getBoundingClientRect()
                           if (menuId === msg.id) { setMenuId(null); setMenuPos(null) }
-                          else { setMenuId(msg.id); setMenuPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right }) }
+                          else { setMenuId(msg.id); setMenuPos({ top: rect.top, right: window.innerWidth - rect.right }) }
                         }}
                         className="absolute top-0 -right-8 opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-full flex items-center justify-center cursor-pointer"
                         style={{ background: isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.09)', color: ts }}
