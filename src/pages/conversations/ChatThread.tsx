@@ -364,18 +364,21 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           </div>
         </div>
 
-        {/* Actions rapides */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>, label: 'Appeler', action: () => {} },
-            { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>, label: 'Vidéo', action: () => {} },
-            { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35"/></svg>, label: 'Chercher', action: () => {} },
-          ].map(({ icon, label, action }) => (
-            <button key={label} onClick={action} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl cursor-pointer transition-opacity hover:opacity-80" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}>
-              <span style={{ color: '#4B6BFF' }}>{icon}</span>
-              <span className="text-[11px] font-semibold" style={{ color: ts }}>{label}</span>
-            </button>
-          ))}
+        {/* Action rapide — voir le bien */}
+        {conv?.bien?.id && (
+          <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
+            className="flex items-center gap-2.5 w-full px-3.5 py-3 rounded-2xl cursor-pointer transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(75,107,255,0.10)', border: '1px solid rgba(75,107,255,0.18)' }}>
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <div className="text-left min-w-0">
+              <p className="text-[12px] font-bold" style={{ color: '#4B6BFF' }}>Voir le bien</p>
+              {bienTypeLabel && <p className="text-[11px] truncate" style={{ color: ts }}>{bienTypeLabel}{bienLoc ? ` · ${bienLoc}` : ''}</p>}
+            </div>
+            <svg className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        )}
         </div>
 
         {/* Bien lié */}

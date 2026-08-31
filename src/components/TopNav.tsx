@@ -114,7 +114,7 @@ export default function TopNav() {
 
           {/* Logo */}
           <button onClick={() => navigate('/')} className="flex items-center gap-2 lg:gap-2.5 flex-shrink-0">
-            <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} className="lg:w-[46px] lg:h-[46px]" />
+            <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain', filter: isDark ? 'brightness(1.15) drop-shadow(0 0 6px rgba(0,174,239,0.35))' : 'none' }} className="lg:w-[46px] lg:h-[46px]" />
             <span className="font-bold text-lg lg:text-xl tracking-tight hidden sm:inline" style={{ color: '#00AEEF' }}>REFUGE</span>
           </button>
 
