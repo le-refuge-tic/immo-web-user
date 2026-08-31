@@ -526,9 +526,16 @@ export default function SearchPage() {
             borderRight: `1px solid ${tk.sidebarBdr}`,
           }}
         >
-          <div className="p-5">
-            {/* En-tête sidebar */}
-            <div className="flex items-center justify-between mb-5">
+          {/* En-tête sidebar sticky */}
+          <div className="sticky top-0 z-10 px-5 pt-5 pb-3"
+            style={{
+              background: tk.sidebarBg,
+              backdropFilter: 'blur(48px)',
+              WebkitBackdropFilter: 'blur(48px)',
+              borderBottom: `1px solid ${tk.divider}`,
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: 'rgba(75,107,255,0.14)', color: '#4B6BFF' }}>
@@ -545,6 +552,22 @@ export default function SearchPage() {
               )}
             </div>
 
+            {/* Chips filtres actifs */}
+            {chips.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pb-1">
+                {chips.map(chip => (
+                  <button key={chip.label} onClick={chip.onRemove}
+                    className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold"
+                    style={tk.chipStyle}
+                  >
+                    {chip.label}<XIcon />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="p-5">
             {/* Localisation */}
             <div className="mb-4">
               <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
@@ -578,27 +601,11 @@ export default function SearchPage() {
             <div className="h-px mb-4" style={{ background: tk.divider }} />
 
             <FilterPanel {...fp} />
-
-            {chips.length > 0 && (
-              <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${tk.divider}` }}>
-                <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>Filtres actifs</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {chips.map(chip => (
-                    <button key={chip.label} onClick={chip.onRemove}
-                      className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold"
-                      style={tk.chipStyle}
-                    >
-                      {chip.label}<XIcon />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </aside>
 
         {/* Zone résultats */}
-        <div className="flex-1 px-6 py-6 min-w-0">
+        <div className="flex-1 px-6 py-5 min-w-0">
           <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
             <div>
               <h1 className="text-xl font-bold" style={{ color: tk.textClr }}>Recherche avancée</h1>
