@@ -479,8 +479,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                 <DotsV />
               </button>
               {showHeaderMenu && (
-                <div className="absolute right-0 top-full mt-2 z-50 rounded-2xl py-1.5 min-w-[200px] anim-fade-down"
-                  style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 16px 48px rgba(0,0,0,0.22)' }}>
+                <div className="absolute right-0 top-full mt-2 z-[120] rounded-2xl py-1.5 min-w-[200px] anim-fade-down"
+                  style={{ background: isDark ? '#161622' : '#FFFFFF', border: `1px solid ${menuBdr}`, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.55)' : '0 16px 48px rgba(0,0,0,0.20)' }}>
                   <MI label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
                   {conv?.bien?.id && <MI label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
                   <div className="h-px my-1" style={{ background: divider }} />
@@ -715,8 +715,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
         const m = visible.find(x => x.id === menuId)
         if (!m) return null
         return (
-          <div className="fixed z-[100] rounded-2xl py-1.5 min-w-[190px] anim-fade-down"
-            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 12px 40px rgba(0,0,0,0.28)' }}
+          <div className="fixed z-[120] rounded-2xl py-1.5 min-w-[190px] anim-fade-down"
+            style={{ top: menuPos.top, right: menuPos.right, background: isDark ? '#161622' : '#FFFFFF', border: `1px solid ${menuBdr}`, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.55)' : '0 12px 40px rgba(0,0,0,0.24)' }}
             onClick={e => e.stopPropagation()}>
             <MI label="Répondre" onClick={() => startReply(m)} />
             {canEdit(m) && <MI label="Modifier" onClick={() => startEdit(m)} />}

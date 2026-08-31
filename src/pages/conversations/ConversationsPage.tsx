@@ -80,7 +80,7 @@ export default function ConversationsPage() {
   const emptyIcon = isDark ? 'rgba(75,107,255,0.15)' : 'rgba(75,107,255,0.10)'
 
   /* ── liste ── */
-  const ConvList = () => {
+  const renderConvList = () => {
     if (loading) return (
       <div className="p-3 space-y-2">
         {[1,2,3,4].map(n => (
@@ -176,7 +176,7 @@ export default function ConversationsPage() {
     )
   }
 
-  const SidePanel = () => (
+  const renderSidePanel = () => (
     <div className="flex flex-col h-full" style={{ background: panelBg, backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)', borderRight: `1px solid ${panelBdr}` }}>
       {/* Header */}
       <div className="px-4 pt-5 pb-3 flex-shrink-0" style={{ borderBottom: `1px solid ${hdrBdr}` }}>
@@ -205,7 +205,7 @@ export default function ConversationsPage() {
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto scrollbar-auto"><ConvList /></div>
+      <div className="flex-1 overflow-y-auto scrollbar-auto">{renderConvList()}</div>
       <div className="h-px" style={{ background: divider }} />
     </div>
   )
@@ -236,14 +236,14 @@ export default function ConversationsPage() {
                   style={{ color: tp }} />
               </div>
             </div>
-            <ConvList />
+            {renderConvList()}
           </div>
         ) : <Outlet />}
       </div>
 
       {/* ── DESKTOP ── */}
       <div className="hidden md:flex h-[calc(100dvh-4rem)]">
-        <div className="w-[300px] lg:w-[320px] flex-shrink-0"><SidePanel /></div>
+        <div className="w-[300px] lg:w-[320px] flex-shrink-0">{renderSidePanel()}</div>
         <div className="flex-1 flex flex-col overflow-hidden" style={{ background: chatAreaBg }}>
           {activeId !== null ? <Outlet /> : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-4">
