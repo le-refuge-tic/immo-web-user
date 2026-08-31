@@ -242,7 +242,7 @@ export default function ConversationsPage() {
       </div>
 
       {/* ── DESKTOP ── */}
-      <div className="hidden md:flex h-[calc(100dvh-4rem)]">
+      <div className="hidden md:flex h-[calc(100dvh-72px)]">
         <div className="w-[300px] lg:w-[320px] flex-shrink-0">{renderSidePanel()}</div>
         <div className="flex-1 flex flex-col overflow-hidden" style={{ background: chatAreaBg }}>
           {activeId !== null ? <Outlet /> : (

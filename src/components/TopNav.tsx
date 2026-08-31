@@ -105,7 +105,7 @@ export default function TopNav() {
           borderRadius: scrolled ? '1rem' : '0px',
           maxWidth: scrolled ? '72rem' : '100%',
           boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.12)' : 'inset 0 -0.5px 0 rgba(0,0,0,0.04), 0 2px 20px rgba(0,0,0,0.06)',
-          height: 64,
+          height: 72,
           paddingLeft:  scrolled ? '1.25rem' : undefined,
           paddingRight: scrolled ? '1.25rem' : undefined,
         }}
@@ -113,9 +113,9 @@ export default function TopNav() {
         <div className="w-full px-4 md:px-6 lg:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-3 lg:gap-6">
 
           {/* Logo */}
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 lg:gap-2.5 flex-shrink-0">
-            <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain', filter: isDark ? 'brightness(1.15) drop-shadow(0 0 6px rgba(0,174,239,0.35))' : 'none' }} className="lg:w-[46px] lg:h-[46px]" />
-            <span className="font-bold text-lg lg:text-xl tracking-tight hidden sm:inline" style={{ color: '#00AEEF' }}>REFUGE</span>
+          <button onClick={() => navigate('/')} className="flex items-center gap-2.5 lg:gap-3 flex-shrink-0">
+            <img src={logoUrl} alt="REFUGE" style={{ width: 60, height: 60, objectFit: 'contain', filter: isDark ? 'brightness(1.15) drop-shadow(0 0 6px rgba(0,174,239,0.35))' : 'none' }} className="lg:w-[68px] lg:h-[68px]" />
+            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: '#00AEEF' }}>REFUGE</span>
           </button>
 
           {/* Nav centré */}

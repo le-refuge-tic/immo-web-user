@@ -518,7 +518,7 @@ export default function SearchPage() {
         {/* Sidebar filtres */}
         <aside
           ref={sidebarRef}
-          className="w-[280px] xl:w-[300px] flex-shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto scrollbar-auto"
+          className="w-[280px] xl:w-[300px] flex-shrink-0 sticky top-[72px] self-start h-[calc(100vh-72px)] overflow-y-auto scrollbar-auto"
           style={{
             background: tk.sidebarBg,
             backdropFilter: 'blur(48px)',

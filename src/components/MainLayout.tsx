@@ -59,7 +59,7 @@ export default function MainLayout() {
 
       <div
         ref={scrollRef}
-        className={`flex-1 overflow-y-auto relative scrollbar-auto ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : 'pb-20 md:pb-0 md:pt-16'}`}
+        className={`flex-1 overflow-y-auto relative scrollbar-auto ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
         onScroll={handleScroll}
       >
         <Outlet />
