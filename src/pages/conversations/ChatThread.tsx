@@ -104,6 +104,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const [complainSending, setComplainSending] = useState(false)
   const [complainSent, setComplainSent] = useState(false)
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
+  const [headerMenuPos, setHeaderMenuPos] = useState<{ top: number; right: number } | null>(null)
   const [showProfile, setShowProfile] = useState(false)
   const [atBottom, setAtBottom] = useState(true)
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
@@ -187,7 +188,12 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   /* click outside header menu */
   useEffect(() => {
     if (!showHeaderMenu) return
-    const fn = (e: MouseEvent) => { if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) setShowHeaderMenu(false) }
+    const fn = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (headerMenuRef.current?.contains(t)) return
+      if ((t as HTMLElement).closest?.('[data-headermenu]')) return
+      setShowHeaderMenu(false); setHeaderMenuPos(null)
+    }
     document.addEventListener('mousedown', fn)
     return () => document.removeEventListener('mousedown', fn)
   }, [showHeaderMenu])
@@ -471,24 +477,17 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             )}
 
             {/* Menu 3 points */}
-            <div className="relative flex-shrink-0" ref={headerMenuRef}>
-              <button onClick={() => setShowHeaderMenu(v => !v)}
+            <div className="flex-shrink-0" ref={headerMenuRef}>
+              <button onClick={e => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  if (showHeaderMenu) { setShowHeaderMenu(false); setHeaderMenuPos(null) }
+                  else { setShowHeaderMenu(true); setHeaderMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right }) }
+                }}
                 className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-all"
                 style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.14)' : iconBtn, color: showHeaderMenu ? '#4B6BFF' : ts }}
                 aria-label="Options">
                 <DotsV />
               </button>
-              {showHeaderMenu && (
-                <div className="absolute right-0 top-full mt-2 z-[120] rounded-2xl py-1.5 min-w-[200px] anim-fade-down"
-                  style={{ background: isDark ? '#161622' : '#FFFFFF', border: `1px solid ${menuBdr}`, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.55)' : '0 16px 48px rgba(0,0,0,0.20)' }}>
-                  <MI label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
-                  {conv?.bien?.id && <MI label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
-                  <div className="h-px my-1" style={{ background: divider }} />
-                  <MI label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
-                  <MI label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
-                  <MI label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
-                </div>
-              )}
             </div>
           </div>
 
@@ -707,6 +706,19 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           <div className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()}>
             <ProfilePanel onClose={() => setShowProfile(false)} />
           </div>
+        </div>
+      )}
+
+      {/* Menu header (3 points) — fixed au-dessus de tout */}
+      {showHeaderMenu && headerMenuPos && (
+        <div data-headermenu className="fixed z-[130] rounded-2xl py-1.5 min-w-[200px] anim-fade-down"
+          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: isDark ? '#161622' : '#FFFFFF', border: `1px solid ${menuBdr}`, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.55)' : '0 16px 48px rgba(0,0,0,0.20)' }}>
+          <MI label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
+          {conv?.bien?.id && <MI label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
+          <div className="h-px my-1" style={{ background: divider }} />
+          <MI label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
+          <MI label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
+          <MI label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
         </div>
       )}
 
