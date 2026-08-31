@@ -106,6 +106,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [atBottom, setAtBottom] = useState(true)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
   const socketRef = useRef<Socket | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -523,7 +524,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
         {/* ── Messages ── */}
         <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 scrollbar-auto relative"
-          onClick={() => { setMenuId(null); setShowHeaderMenu(false) }}>
+          onClick={() => { setMenuId(null); setMenuPos(null); setShowHeaderMenu(false) }}>
 
           {/* Message épinglé */}
           {pinnedMsg && (
@@ -598,8 +599,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
               <div key={msg.id} id={`msg-${msg.id}`}>
                 {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
 
-                <div className={`flex group ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-0.5' : 'mb-1.5'}`}>
-                  <div className={`relative ${isMe ? 'max-w-[72%] sm:max-w-[60%]' : 'max-w-[72%] sm:max-w-[60%]'}`}>
+                <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-0.5' : 'mb-1.5'}`}>
+                  <div className="relative max-w-[55%] sm:max-w-[50%]">
 
                     {isSupprime ? (
                       <div className="px-3 py-2 rounded-2xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
@@ -635,26 +636,19 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                       </div>
                     )}
 
-                    {/* Bouton ⋯ — visible au hover, dans l'écran */}
+                    {/* Bouton ⋯ visible au hover */}
                     {!isSupprime && (
-                      <button onClick={e => { e.stopPropagation(); setMenuId(menuId === msg.id ? null : msg.id) }}
-                        className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-full flex items-center justify-center cursor-pointer ${isMe ? '-left-8' : '-right-8'}`}
+                      <button onClick={e => {
+                          e.stopPropagation()
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          if (menuId === msg.id) { setMenuId(null); setMenuPos(null) }
+                          else { setMenuId(msg.id); setMenuPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right }) }
+                        }}
+                        className="absolute top-0 -right-8 opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-full flex items-center justify-center cursor-pointer"
                         style={{ background: isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.09)', color: ts }}
                         aria-label="Options">
                         ···
                       </button>
-                    )}
-                    {menuId === msg.id && (
-                      <div className={`absolute z-30 bottom-full mb-1.5 ${isMe ? 'right-0' : 'left-0'} rounded-2xl py-1.5 min-w-[175px] anim-fade-down`}
-                        style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 12px 40px rgba(0,0,0,0.22)' }}
-                        onClick={e => e.stopPropagation()}>
-                        <MI label="Répondre" onClick={() => startReply(msg)} />
-                        {canEdit(msg) && <MI label="Modifier" onClick={() => startEdit(msg)} />}
-                        <MI label={msg.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(msg)} />
-                        <div className="h-px my-1" style={{ background: divider }} />
-                        {!msg.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(msg)} danger />}
-                        {msg.sender_id === user?.id && !msg.supprime_pour_tous && <MI label="Supprimer pour tous" onClick={() => deleteForAll(msg)} danger />}
-                      </div>
                     )}
                   </div>
                 </div>
@@ -724,6 +718,24 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           </div>
         </div>
       )}
+
+      {/* Menu contextuel message — fixed pour éviter le clip du scroll container */}
+      {menuId !== null && menuPos && (() => {
+        const m = visible.find(x => x.id === menuId)
+        if (!m) return null
+        return (
+          <div className="fixed z-[100] rounded-2xl py-1.5 min-w-[190px] anim-fade-down"
+            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 12px 40px rgba(0,0,0,0.28)' }}
+            onClick={e => e.stopPropagation()}>
+            <MI label="Répondre" onClick={() => startReply(m)} />
+            {canEdit(m) && <MI label="Modifier" onClick={() => startEdit(m)} />}
+            <MI label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
+            <div className="h-px my-1" style={{ background: divider }} />
+            {!m.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
+            {m.sender_id === user?.id && !m.supprime_pour_tous && <MI label="Supprimer pour tous" onClick={() => deleteForAll(m)} danger />}
+          </div>
+        )
+      })()}
 
       {/* Modals */}
       {showSlot && <SlotModal onConfirm={proposerSlot} onCancel={() => setShowSlot(false)} />}
