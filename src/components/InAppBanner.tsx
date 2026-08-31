@@ -70,8 +70,9 @@ export default function InAppBanner({ queue, onDismiss }: Props) {
 
   return (
     <div
-      className="fixed top-4 left-1/2 z-[200] w-[calc(100%-2rem)] max-w-sm"
+      className="fixed left-1/2 z-[200] w-[calc(100%-2rem)] max-w-sm"
       style={{
+        top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
         transform: `translateX(-50%) translateY(${visible ? '0' : '-110%'})`,
         transition: 'transform 0.28s cubic-bezier(0.22,0.61,0.36,1)',
       }}

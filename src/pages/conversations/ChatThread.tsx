@@ -419,7 +419,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
   /* ── Menu contextuel message ── */
   const MessageMenu = ({ msg }: { msg: any }) => (
-    <div className="absolute z-20 top-full mt-1 right-0 rounded-xl py-1 min-w-[170px]"
+    <div className="rounded-xl py-1 min-w-[170px]"
       style={{ background: tk.menuBg, border: `1px solid ${tk.menuBdr}`, boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}
       onClick={e => e.stopPropagation()}>
       <button onClick={() => startReply(msg)} className="w-full text-left px-4 py-2 text-sm transition-colors"
@@ -528,7 +528,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
     <div className="h-full flex flex-col" style={{ background: tk.bg }}>
 
       {/* ── Header ── */}
-      <div className="px-4 pt-12 md:pt-4 pb-3 flex-shrink-0"
+      <div className="px-4 pt-4 pb-3 flex-shrink-0 safe-top"
         style={{ background: tk.headerBg, backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', borderBottom: `1px solid ${tk.headerBdr}` }}>
         <div className="flex items-center gap-3">
           {/* Bouton retour mobile */}
@@ -711,14 +711,20 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                     </div>
                   )}
 
-                  {/* Bouton menu contextuel — visible au hover */}
+                  {/* Bouton menu contextuel */}
                   <button
                     onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === msg.id ? null : msg.id) }}
-                    className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer ${isMe ? '-left-7' : '-right-7'}`}
-                    style={{ background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)', color: tk.textSecond }}>
+                    className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer ${isMe ? '-left-8' : '-right-8'}`}
+                    style={{ background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)', color: tk.textSecond }}
+                    aria-label="Options">
                     ⋯
                   </button>
-                  {openMenuId === msg.id && <MessageMenu msg={msg} />}
+                  {/* Menu positionné selon côté pour rester dans l'écran */}
+                  {openMenuId === msg.id && (
+                    <div className={`absolute z-20 bottom-full mb-1 ${isMe ? 'right-0' : 'left-0'}`}>
+                      <MessageMenu msg={msg} />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
