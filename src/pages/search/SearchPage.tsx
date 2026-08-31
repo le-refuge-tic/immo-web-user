@@ -203,7 +203,21 @@ export default function SearchPage() {
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAllAutres, setShowAllAutres] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sidebarRef   = useRef<HTMLElement>(null)
+  const scrollTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const el = sidebarRef.current
+    if (!el) return
+    const onScroll = () => {
+      el.classList.add('is-scrolling')
+      if (scrollTimer.current) clearTimeout(scrollTimer.current)
+      scrollTimer.current = setTimeout(() => el.classList.remove('is-scrolling'), 800)
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => { el.removeEventListener('scroll', onScroll); if (scrollTimer.current) clearTimeout(scrollTimer.current) }
+  }, [])
 
   useEffect(() => {
     biensApi.list({ limit: 200 })
@@ -503,6 +517,7 @@ export default function SearchPage() {
 
         {/* Sidebar filtres */}
         <aside
+          ref={sidebarRef}
           className="w-[280px] xl:w-[300px] flex-shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto scrollbar-auto"
           style={{
             background: tk.sidebarBg,
