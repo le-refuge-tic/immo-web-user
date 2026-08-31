@@ -635,10 +635,10 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                           if (menuId === msg.id) { setMenuId(null); setMenuPos(null) }
                           else { setMenuId(msg.id); setMenuPos({ top: rect.top, right: window.innerWidth - rect.right }) }
                         }}
-                        className="absolute top-0 -right-8 opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-full flex items-center justify-center cursor-pointer"
-                        style={{ background: isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.09)', color: ts }}
+                        className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center cursor-pointer"
+                        style={{ background: isMe ? 'rgba(255,255,255,0.22)' : (isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.10)'), color: isMe ? '#fff' : ts, backdropFilter: 'blur(4px)' }}
                         aria-label="Options">
-                        ···
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
                       </button>
                     )}
                   </div>
