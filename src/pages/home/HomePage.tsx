@@ -578,31 +578,29 @@ export default function HomePage() {
                   </div>
                   {/* Champs min / max */}
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 flex items-center gap-2 px-2.5 py-2 rounded-xl"
-                      style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+                    <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl min-w-0" style={{ flex: 1, background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                       <input type="number" min={0} value={prixMin}
                         onChange={e => { setPrixMin(e.target.value); if (e.target.value) setPrixMax('') }}
                         placeholder="Minimum"
-                        className="flex-1 min-w-0 bg-transparent outline-none text-xs"
+                        className="w-full bg-transparent outline-none text-xs"
                         style={{ color: tk.textPrimary }} />
                     </div>
                     <span className="text-sm flex-shrink-0" style={{ color: tk.textMuted }}>—</span>
-                    <div className="flex-1 flex items-center gap-2 px-2.5 py-2 rounded-xl"
-                      style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+                    <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl min-w-0" style={{ flex: 1, background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                       <input type="number" min={0} value={prixMax}
                         onChange={e => setPrixMax(e.target.value)}
                         placeholder="Maximum"
-                        className="flex-1 min-w-0 bg-transparent outline-none text-xs"
+                        className="w-full bg-transparent outline-none text-xs"
                         style={{ color: tk.textPrimary }} />
                     </div>
-                    {(prixMin || prixMax) && (
-                      <button onClick={() => { setPrixMin(''); setPrixMax('') }}
-                        className="text-[11px] font-semibold flex-shrink-0 transition-opacity hover:opacity-70"
-                        style={{ color: '#4B6BFF' }}>
-                        Effacer
-                      </button>
-                    )}
                   </div>
+                  {(prixMin || prixMax) && (
+                    <button onClick={() => { setPrixMin(''); setPrixMax('') }}
+                      className="mt-1.5 text-[11px] font-semibold transition-opacity hover:opacity-70"
+                      style={{ color: '#4B6BFF' }}>
+                      Effacer le budget
+                    </button>
+                  )}
                 </div>
 
                 {/* CTA */}
