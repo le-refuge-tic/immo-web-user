@@ -520,7 +520,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           {/* Message épinglé */}
           {pinnedMsg && (
             <div className="flex items-center gap-2 rounded-2xl px-3 py-2 mb-3 border-l-4 anim-fade-in"
-              style={{ background: pinBg, backdropFilter: 'blur(20px)', borderLeftColor: '#4B6BFF', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+              style={{ background: pinBg, borderLeftColor: '#4B6BFF', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
               <span style={{ color: '#4B6BFF' }}><PinFill /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#4B6BFF' }}>Épinglé</p>
@@ -543,7 +543,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             return (
               <button onClick={() => document.getElementById(`msg-${lastSlot.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                 className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-2.5 mb-3 border-l-4 text-left cursor-pointer anim-fade-in"
-                style={{ background: pinBg, backdropFilter: 'blur(20px)', borderLeftColor: c.accent, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                style={{ background: pinBg, borderLeftColor: c.accent, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
