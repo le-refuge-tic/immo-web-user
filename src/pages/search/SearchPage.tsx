@@ -70,8 +70,8 @@ const SOUS_TYPES = [
 
 const SORTS = [
   { key: 'pertinence', label: 'Pertinence' },
-  { key: 'prix_asc',   label: 'Prix ↑' },
-  { key: 'prix_desc',  label: 'Prix ↓' },
+  { key: 'prix_asc',   label: 'Prix croissant' },
+  { key: 'prix_desc',  label: 'Prix décroissant' },
 ]
 
 const BUDGET_PRESETS = [
@@ -82,7 +82,7 @@ const BUDGET_PRESETS = [
   { label: '< 5M',   max: 5_000_000 },
 ]
 
-/* ── Icônes ── */
+/* ── Icônes SVG ── */
 const PinIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -104,9 +104,19 @@ const FilterIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
   </svg>
 )
-const SortIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M6 12h12M9 17h6" />
+const SortAscIcon = () => (
+  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h13M3 8h9M3 12h5m8 0l4-4m0 0l4 4m-4-4v12" />
+  </svg>
+)
+const SortDescIcon = () => (
+  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h13M3 8h9M3 12h5m8 4l4 4m0 0l4-4m-4 4V8" />
+  </svg>
+)
+const SortRelevanceIcon = () => (
+  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <circle cx="11" cy="11" r="8"/><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35"/>
   </svg>
 )
 const ClearIcon = () => (
@@ -115,10 +125,52 @@ const ClearIcon = () => (
   </svg>
 )
 
+const SORT_ICONS: Record<string, React.ReactNode> = {
+  pertinence: <SortRelevanceIcon />,
+  prix_asc:   <SortAscIcon />,
+  prix_desc:  <SortDescIcon />,
+}
+
 function fmtFcfa(v: string) {
   const n = Number(v.replace(/\D/g, ''))
   if (!n) return ''
   return n.toLocaleString('fr-FR')
+}
+
+/* ── Tokens thème centralisés ── */
+function useTokens(isDark: boolean) {
+  return {
+    sidebarBg:      isDark ? 'rgba(14,14,24,0.97)'    : 'rgba(255,255,255,0.90)',
+    sidebarBdr:     isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+    fieldBg:        isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.80)',
+    fieldBdr:       isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)',
+    divider:        isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+    textClr:        isDark ? '#E8E8EF'                : '#1D1D1F',
+    labelClr:       isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.42)',
+    pageBg:         isDark ? 'rgba(15,15,20,1)'       : 'rgba(245,245,247,1)',
+    headerBg:       isDark ? 'rgba(14,14,24,0.97)'    : 'rgba(245,245,247,0.96)',
+    headerBdr:      isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+    suggestBg:      isDark ? 'rgba(20,20,32,0.98)'    : '#ffffff',
+    suggestBdr:     isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
+    suggestHover:   isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+    pillIdle: {
+      background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.70)',
+      border: `1px solid ${isDark ? 'rgba(255,255,255,0.11)' : 'rgba(0,0,0,0.09)'}`,
+      color: isDark ? 'rgba(255,255,255,0.52)' : 'rgba(0,0,0,0.52)',
+      boxShadow: isDark ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.9)',
+    } as React.CSSProperties,
+    pillActive: {
+      background: 'rgba(75,107,255,0.14)',
+      border: '1px solid rgba(75,107,255,0.40)',
+      color: '#4B6BFF',
+      boxShadow: isDark ? '0 0 0 1px rgba(75,107,255,0.20)' : 'inset 0 1.5px 0 rgba(255,255,255,0.9)',
+    } as React.CSSProperties,
+    chipStyle: {
+      background: 'rgba(75,107,255,0.12)',
+      border: '1px solid rgba(75,107,255,0.30)',
+      color: '#4B6BFF',
+    } as React.CSSProperties,
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -129,6 +181,7 @@ export default function SearchPage() {
   const { isLoggedIn } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const tk = useTokens(isDark)
 
   const initialParams = new URLSearchParams(window.location.search)
   const [query,         setQuery]         = useState(initialParams.get('q') || '')
@@ -143,44 +196,14 @@ export default function SearchPage() {
   const [superficieMax, setSuperficieMax] = useState('')
   const [sortBy,        setSortBy]        = useState<'pertinence' | 'prix_asc' | 'prix_desc'>('pertinence')
 
-  const [allBiens,      setAllBiens]      = useState<any[]>([])
-  const [wideBiens,     setWideBiens]     = useState<any[]>([])
-  const [favIds,        setFavIds]        = useState<Set<number>>(new Set())
-  const [loading,       setLoading]       = useState(false)
-  const [mobileOpen,    setMobileOpen]    = useState(false)
-  const [showSuggest,   setShowSuggest]   = useState(false)
+  const [allBiens,    setAllBiens]    = useState<any[]>([])
+  const [wideBiens,   setWideBiens]   = useState<any[]>([])
+  const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
+  const [loading,     setLoading]     = useState(false)
+  const [mobileOpen,  setMobileOpen]  = useState(false)
+  const [showSuggest, setShowSuggest] = useState(false)
   const [showAllAutres, setShowAllAutres] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  /* ── Tokens thème ── */
-  const sidebarBg      = isDark ? 'rgba(14,14,24,0.96)'    : 'rgba(255,255,255,0.88)'
-  const sidebarBdr     = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
-  const fieldBg        = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.80)'
-  const fieldBdr       = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'
-  const textClr        = isDark ? '#E8E8EF'                : '#1D1D1F'
-  const labelClr       = isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.40)'
-  const pillIdle: React.CSSProperties = {
-    background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.65)',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
-    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.50)',
-    boxShadow: isDark ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.9)',
-  }
-  const pillActive: React.CSSProperties = {
-    background: 'rgba(75,107,255,0.14)',
-    border: '1px solid rgba(75,107,255,0.40)',
-    color: '#4B6BFF',
-    boxShadow: isDark ? '0 0 0 1px rgba(75,107,255,0.20)' : 'inset 0 1.5px 0 rgba(255,255,255,0.9)',
-  }
-  const chipStyle: React.CSSProperties = {
-    background: 'rgba(75,107,255,0.12)',
-    border: '1px solid rgba(75,107,255,0.30)',
-    color: '#4B6BFF',
-  }
-  const mobileHeaderBg  = isDark ? 'rgba(14,14,24,0.96)'    : 'rgba(245,245,247,0.94)'
-  const mobileHeaderBdr = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
-  const suggestBg       = isDark ? 'rgba(20,20,32,0.98)'    : '#ffffff'
-  const suggestBdr      = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
-  const suggestHover    = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'
 
   useEffect(() => {
     biensApi.list({ limit: 200 })
@@ -292,12 +315,12 @@ export default function SearchPage() {
       )
     }
 
-    const shownIds        = new Set([...mainResults, ...environs].map((b: any) => b.id))
-    const widePool        = [...wideBase, ...base.filter(b => !wideBase.some((w: any) => w.id === b.id))]
-    const pool            = widePool.filter(b => !shownIds.has(b.id))
-    const budgetSimilar   = (prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax)) : []
+    const shownIds       = new Set([...mainResults, ...environs].map((b: any) => b.id))
+    const widePool       = [...wideBase, ...base.filter(b => !wideBase.some((w: any) => w.id === b.id))]
+    const pool           = widePool.filter(b => !shownIds.has(b.id))
+    const budgetSimilar  = (prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax)) : []
     const budgetSimilarIds = new Set(budgetSimilar.map(b => b.id))
-    const autres          = pool.filter(b => !budgetSimilarIds.has(b.id))
+    const autres         = pool.filter(b => !budgetSimilarIds.has(b.id))
 
     const distFromQuartier = (b: any): number | null => {
       if (!matchedQuartier) return null
@@ -352,11 +375,11 @@ export default function SearchPage() {
 
   type Chip = { label: string; onRemove: () => void }
   const chips: Chip[] = []
-  if (query)         chips.push({ label: query,                                            onRemove: () => setQuery('') })
+  if (query)         chips.push({ label: query,                                                       onRemove: () => setQuery('') })
   if (transaction)   chips.push({ label: TRANSACTIONS.find(t => t.key === transaction)?.label ?? transaction, onRemove: () => setTransaction('') })
-  if (type)          chips.push({ label: TYPES.find(t => t.key === type)?.label ?? type,   onRemove: () => setType('') })
-  if (prixMin)       chips.push({ label: `≥ ${fmtFcfa(prixMin)} FCFA`,                     onRemove: () => setPrixMin('') })
-  if (prixMax)       chips.push({ label: `≤ ${fmtFcfa(prixMax)} FCFA`,                     onRemove: () => setPrixMax('') })
+  if (type)          chips.push({ label: TYPES.find(t => t.key === type)?.label ?? type,              onRemove: () => setType('') })
+  if (prixMin)       chips.push({ label: `≥ ${fmtFcfa(prixMin)} FCFA`,                               onRemove: () => setPrixMin('') })
+  if (prixMax)       chips.push({ label: `≤ ${fmtFcfa(prixMax)} FCFA`,                               onRemove: () => setPrixMax('') })
   if (sousType)      chips.push({ label: SOUS_TYPES.find(t => t.key === sousType)?.label ?? sousType, onRemove: () => setSousType('') })
   if (chambresMin)   chips.push({ label: `≥ ${chambresMin} chambre${Number(chambresMin) > 1 ? 's' : ''}`, onRemove: () => setChambresMin('') })
   if (salonsMin)     chips.push({ label: `≥ ${salonsMin} salon${Number(salonsMin) > 1 ? 's' : ''}`,       onRemove: () => setSalonsMin('') })
@@ -365,14 +388,13 @@ export default function SearchPage() {
   const hasFilters = chips.length > 0
 
   const fp = {
-    isDark, transaction, setTransaction, type, setType,
+    isDark, tk, transaction, setTransaction, type, setType,
     prixMin, setPrixMin, prixMax, setPrixMax,
     sousType, setSousType, chambresMin, setChambresMin,
     salonsMin, setSalonsMin, superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
-    pillIdle, pillActive,
   }
 
-  const sharedResults = { search, loading, favIds, isDark, textClr, labelClr, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
+  const sharedResults = { search, loading, favIds, isDark, tk, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
   const onFavToggle   = (id: number, added: boolean) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })
 
   return (
@@ -384,57 +406,49 @@ export default function SearchPage() {
         {/* Header sticky */}
         <div className="sticky top-0 z-30 px-4 pt-10 pb-3"
           style={{
-            background: mobileHeaderBg,
+            background: tk.headerBg,
             backdropFilter: 'blur(40px)',
             WebkitBackdropFilter: 'blur(40px)',
-            borderBottom: `1px solid ${mobileHeaderBdr}`,
+            borderBottom: `1px solid ${tk.headerBdr}`,
           }}
         >
-          <div className="flex items-center gap-2.5 mb-3">
+          <div className="flex items-center gap-2 mb-2.5">
             <button onClick={() => navigate(-1)}
               className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl transition-all"
-              style={{
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
-                color: textClr,
-              }}
+              style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textClr }}
             >
               <BackIcon />
             </button>
 
             <div className="flex-1 relative">
-              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-all"
-                style={{ background: fieldBg, border: `1px solid ${fieldBdr}`, color: textClr }}
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all"
+                style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textClr }}
               >
-                <span style={{ color: labelClr }}><PinIcon /></span>
+                <span style={{ color: tk.labelClr }}><PinIcon /></span>
                 <input
                   value={query}
                   onChange={e => { setQuery(e.target.value); setShowSuggest(true) }}
                   onFocus={() => setShowSuggest(true)}
                   onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                   placeholder="Ville ou quartier…"
-                  className="flex-1 min-w-0 bg-transparent outline-none text-sm placeholder-gray-400"
-                  style={{ color: textClr }}
+                  className="flex-1 min-w-0 bg-transparent outline-none text-sm"
+                  style={{ color: tk.textClr }}
                 />
                 {query && (
-                  <button onClick={() => setQuery('')} style={{ color: labelClr }}>
+                  <button onClick={() => setQuery('')} style={{ color: tk.labelClr }}>
                     <ClearIcon />
                   </button>
                 )}
               </div>
               {suggestions.length > 0 && showSuggest && (
-                <SuggestDropdown suggestions={suggestions} onPick={pickSuggestion} suggestBg={suggestBg} suggestBdr={suggestBdr} suggestHover={suggestHover} textClr={textClr} labelClr={labelClr} isDark={isDark} />
+                <SuggestDropdown suggestions={suggestions} onPick={pickSuggestion} tk={tk} />
               )}
             </div>
 
             <button
               onClick={() => setMobileOpen(o => !o)}
               className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl relative transition-all"
-              style={hasFilters ? { ...pillActive, width: 36, height: 36 } : {
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
-                color: textClr,
-              }}
+              style={hasFilters ? tk.pillActive : { background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textClr }}
             >
               <FilterIcon />
               {hasFilters && (
@@ -447,17 +461,16 @@ export default function SearchPage() {
           </div>
 
           {chips.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
               {chips.map(chip => (
                 <button key={chip.label} onClick={chip.onRemove}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={chipStyle}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                  style={tk.chipStyle}
                 >
-                  {chip.label}
-                  <XIcon />
+                  {chip.label}<XIcon />
                 </button>
               ))}
-              <button onClick={reset} className="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full" style={{ color: labelClr }}>
+              <button onClick={reset} className="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full" style={{ color: tk.labelClr }}>
                 Tout effacer
               </button>
             </div>
@@ -465,22 +478,21 @@ export default function SearchPage() {
         </div>
 
         {mobileOpen && (
-          <div className="px-4 pb-5 pt-4 border-b anim-fade-down"
+          <div className="px-4 pb-4 pt-4 border-b anim-fade-down"
             style={{
-              background: isDark ? 'rgba(18,18,28,0.98)' : 'rgba(255,255,255,0.95)',
+              background: isDark ? 'rgba(16,16,26,0.99)' : 'rgba(255,255,255,0.97)',
               backdropFilter: 'blur(40px)',
-              borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
+              borderColor: tk.sidebarBdr,
             }}
           >
             <FilterPanel {...fp} />
           </div>
         )}
 
-        <div className="px-4 md:px-8 py-4 md:py-6">
+        <div className="px-4 md:px-6 py-4">
           <ResultHeader
             count={results.length} loading={loading} hasFilters={hasFilters} reset={reset}
-            sortBy={sortBy} setSortBy={setSortBy} isDark={isDark} textClr={textClr} labelClr={labelClr}
-            pillIdle={pillIdle} pillActive={pillActive}
+            sortBy={sortBy} setSortBy={setSortBy} tk={tk}
           />
           <GuidedResults {...sharedResults} onFavToggle={onFavToggle} cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3" />
         </div>
@@ -489,84 +501,79 @@ export default function SearchPage() {
       {/* ══════════════ DESKTOP ══════════════ */}
       <div className="hidden lg:flex min-h-full">
 
+        {/* Sidebar filtres */}
         <aside
-          className="w-[300px] xl:w-[320px] flex-shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto scrollbar-auto"
+          className="w-[280px] xl:w-[300px] flex-shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto scrollbar-auto"
           style={{
-            background: sidebarBg,
+            background: tk.sidebarBg,
             backdropFilter: 'blur(48px)',
             WebkitBackdropFilter: 'blur(48px)',
-            borderRight: `1px solid ${sidebarBdr}`,
+            borderRight: `1px solid ${tk.sidebarBdr}`,
           }}
         >
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+          <div className="p-5">
+            {/* En-tête sidebar */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: 'rgba(75,107,255,0.14)', color: '#4B6BFF' }}>
                   <FilterIcon />
                 </div>
-                <h2 className="font-bold text-base" style={{ color: textClr }}>Filtres</h2>
+                <h2 className="font-bold text-sm" style={{ color: tk.textClr }}>Filtres</h2>
               </div>
               {hasFilters && (
                 <button onClick={reset}
-                  className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg transition-all"
+                  className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg transition-all"
                   style={{ color: '#4B6BFF', background: 'rgba(75,107,255,0.10)' }}>
-                  <ClearIcon />
-                  Effacer
+                  <ClearIcon />Effacer
                 </button>
               )}
             </div>
 
             {/* Localisation */}
-            <div className="mb-5">
-              <label className="block text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>
-                Ville ou quartier
+            <div className="mb-4">
+              <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+                Localisation
               </label>
               <div className="relative">
-                <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl transition-all"
-                  style={{
-                    background: fieldBg,
-                    border: `1px solid ${fieldBdr}`,
-                    boxShadow: isDark ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'inset 0 1px 3px rgba(0,0,0,0.04)',
-                  }}
-                >
-                  <span style={{ color: labelClr }}><PinIcon /></span>
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all"
+                  style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+                  <span style={{ color: tk.labelClr }}><PinIcon /></span>
                   <input
                     value={query}
                     onChange={e => { setQuery(e.target.value); setShowSuggest(true) }}
                     onFocus={() => setShowSuggest(true)}
                     onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
-                    placeholder="Ex: Cotonou, Adovié, Akpakpa…"
-                    className="flex-1 min-w-0 bg-transparent outline-none text-sm placeholder-gray-400"
-                    style={{ color: textClr }}
+                    placeholder="Cotonou, Adovié, Akpakpa…"
+                    className="flex-1 min-w-0 bg-transparent outline-none text-sm"
+                    style={{ color: tk.textClr }}
                   />
                   {query && (
-                    <button onClick={() => setQuery('')} style={{ color: labelClr }}>
+                    <button onClick={() => setQuery('')} style={{ color: tk.labelClr }}>
                       <ClearIcon />
                     </button>
                   )}
                 </div>
                 {suggestions.length > 0 && showSuggest && (
-                  <SuggestDropdown suggestions={suggestions} onPick={pickSuggestion} suggestBg={suggestBg} suggestBdr={suggestBdr} suggestHover={suggestHover} textClr={textClr} labelClr={labelClr} isDark={isDark} />
+                  <SuggestDropdown suggestions={suggestions} onPick={pickSuggestion} tk={tk} />
                 )}
               </div>
             </div>
 
-            <div className="h-px mb-5" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }} />
+            <div className="h-px mb-4" style={{ background: tk.divider }} />
 
             <FilterPanel {...fp} />
 
             {chips.length > 0 && (
-              <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
-                <p className="text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>Filtres actifs</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${tk.divider}` }}>
+                <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>Filtres actifs</p>
+                <div className="flex flex-wrap gap-1.5">
                   {chips.map(chip => (
                     <button key={chip.label} onClick={chip.onRemove}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-                      style={chipStyle}
+                      className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold"
+                      style={tk.chipStyle}
                     >
-                      {chip.label}
-                      <XIcon />
+                      {chip.label}<XIcon />
                     </button>
                   ))}
                 </div>
@@ -575,16 +582,16 @@ export default function SearchPage() {
           </div>
         </aside>
 
-        <div className="flex-1 px-8 py-8 min-w-0">
-          <div className="flex items-end justify-between mb-6 gap-4 flex-wrap">
+        {/* Zone résultats */}
+        <div className="flex-1 px-6 py-6 min-w-0">
+          <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: textClr }}>Recherche avancée</h1>
-              <p className="text-sm mt-1" style={{ color: labelClr }}>Tous les biens disponibles au Bénin</p>
+              <h1 className="text-xl font-bold" style={{ color: tk.textClr }}>Recherche avancée</h1>
+              <p className="text-xs mt-0.5" style={{ color: tk.labelClr }}>Tous les biens disponibles au Bénin</p>
             </div>
             <ResultHeader
               count={results.length} loading={loading} hasFilters={hasFilters} reset={reset}
-              sortBy={sortBy} setSortBy={setSortBy} inline isDark={isDark}
-              textClr={textClr} labelClr={labelClr} pillIdle={pillIdle} pillActive={pillActive}
+              sortBy={sortBy} setSortBy={setSortBy} inline tk={tk}
             />
           </div>
 
@@ -596,31 +603,30 @@ export default function SearchPage() {
 }
 
 /* ── Dropdown suggestions ── */
-function SuggestDropdown({ suggestions, onPick, suggestBg, suggestBdr, suggestHover, textClr, labelClr, isDark }: {
-  suggestions: Quartier[]; onPick: (q: Quartier) => void
-  suggestBg: string; suggestBdr: string; suggestHover: string; textClr: string; labelClr: string; isDark: boolean
+function SuggestDropdown({ suggestions, onPick, tk }: {
+  suggestions: Quartier[]; onPick: (q: Quartier) => void; tk: ReturnType<typeof useTokens>
 }) {
   return (
-    <div className="absolute z-40 mt-1.5 w-full rounded-2xl overflow-hidden"
+    <div className="absolute z-40 mt-1 w-full rounded-2xl overflow-hidden"
       style={{
-        background: suggestBg,
-        border: `1px solid ${suggestBdr}`,
-        boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)' : '0 8px 32px rgba(0,0,0,0.12)',
+        background: tk.suggestBg,
+        border: `1px solid ${tk.suggestBdr}`,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         backdropFilter: 'blur(32px)',
       }}
     >
       {suggestions.map((q, i) => (
         <button key={`${q.nom}-${i}`} type="button" onClick={() => onPick(q)}
-          className="w-full text-left px-4 py-3 text-sm flex items-center justify-between gap-2 transition-colors"
+          className="w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-2 transition-colors"
           style={{
-            color: textClr,
-            borderBottom: i < suggestions.length - 1 ? `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}` : 'none',
+            color: tk.textClr,
+            borderBottom: i < suggestions.length - 1 ? `1px solid ${tk.suggestBdr}` : 'none',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = suggestHover)}
+          onMouseEnter={e => (e.currentTarget.style.background = tk.suggestHover)}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           <span className="font-semibold">{q.nom}</span>
-          <span className="text-xs flex-shrink-0" style={{ color: labelClr }}>{q.ville}</span>
+          <span className="text-xs flex-shrink-0" style={{ color: tk.labelClr }}>{q.ville}</span>
         </button>
       ))}
     </div>
@@ -631,7 +637,7 @@ function SuggestDropdown({ suggestions, onPick, suggestBg, suggestBdr, suggestHo
    FilterPanel
    ══════════════════════════════════════════════════════════════ */
 type FilterPanelProps = {
-  isDark: boolean
+  isDark: boolean; tk: ReturnType<typeof useTokens>
   transaction: string; setTransaction: (v: string) => void
   type: string; setType: (v: string) => void
   prixMin: string; setPrixMin: (v: string) => void
@@ -641,34 +647,28 @@ type FilterPanelProps = {
   salonsMin: string; setSalonsMin: (v: string) => void
   superficieMin: string; setSuperficieMin: (v: string) => void
   superficieMax: string; setSuperficieMax: (v: string) => void
-  pillIdle: React.CSSProperties
-  pillActive: React.CSSProperties
 }
 
 function FilterPanel({
-  isDark, transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax,
+  isDark, tk, transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax,
   sousType, setSousType, chambresMin, setChambresMin, salonsMin, setSalonsMin,
-  superficieMin, setSuperficieMin, superficieMax, setSuperficieMax, pillIdle, pillActive,
+  superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
 }: FilterPanelProps) {
-  const labelClr = isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.40)'
-  const textClr  = isDark ? '#E8E8EF' : '#1D1D1F'
-  const fieldBg  = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.80)'
-  const fieldBdr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'
   const showSuperficie = type === 'terrain' || sousType === 'terrain'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
       {/* Transaction */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>
+        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Transaction
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {TRANSACTIONS.map(t => (
             <button key={t.key} onClick={() => setTransaction(t.key)}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
-              style={transaction === t.key ? pillActive : pillIdle}
+              className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all"
+              style={transaction === t.key ? tk.pillActive : tk.pillIdle}
             >
               {t.label}
             </button>
@@ -678,14 +678,14 @@ function FilterPanel({
 
       {/* Type de bien */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>
+        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Type de bien
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {TYPES.map(t => (
             <button key={t.key} onClick={() => setType(t.key)}
-              className="flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-              style={type === t.key ? pillActive : pillIdle}
+              className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              style={type === t.key ? tk.pillActive : tk.pillIdle}
             >
               {t.label}
             </button>
@@ -695,14 +695,14 @@ function FilterPanel({
 
       {/* Sous-type */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>
+        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Sous-type
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {SOUS_TYPES.map(t => (
             <button key={t.key} onClick={() => setSousType(sousType === t.key ? '' : t.key)}
-              className="flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-              style={sousType === t.key ? pillActive : pillIdle}
+              className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              style={sousType === t.key ? tk.pillActive : tk.pillIdle}
             >
               {t.label}
             </button>
@@ -712,34 +712,34 @@ function FilterPanel({
 
       {/* Pièces */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>
+        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Pièces minimum
         </label>
         <div className="grid grid-cols-2 gap-2">
-          <Stepper label="Chambres" value={chambresMin} onChange={setChambresMin} isDark={isDark} />
-          <Stepper label="Salons"   value={salonsMin}   onChange={setSalonsMin}   isDark={isDark} />
+          <Stepper label="Chambres" value={chambresMin} onChange={setChambresMin} tk={tk} />
+          <Stepper label="Salons"   value={salonsMin}   onChange={setSalonsMin}   tk={tk} />
         </div>
       </div>
 
       {/* Superficie */}
       {showSuperficie && (
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>
+          <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
             Superficie (m²)
           </label>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: 'Minimum', value: superficieMin, set: setSuperficieMin, ph: '0' },
-              { label: 'Maximum', value: superficieMax, set: setSuperficieMax, ph: 'Illimité' },
+              { label: 'Min', value: superficieMin, set: setSuperficieMin, ph: '0' },
+              { label: 'Max', value: superficieMax, set: setSuperficieMax, ph: '∞' },
             ].map(f => (
               <div key={f.label}>
-                <p className="text-[11px] mb-1" style={{ color: labelClr }}>{f.label}</p>
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                  style={{ background: fieldBg, border: `1px solid ${fieldBdr}` }}>
+                <p className="text-[10px] mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
+                <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl"
+                  style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                   <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
                     placeholder={f.ph} min={0}
-                    className="flex-1 bg-transparent outline-none text-sm min-w-0 placeholder-gray-400"
-                    style={{ color: textClr }} />
+                    className="flex-1 bg-transparent outline-none text-sm min-w-0"
+                    style={{ color: tk.textClr }} />
                 </div>
               </div>
             ))}
@@ -749,51 +749,47 @@ function FilterPanel({
 
       {/* Budget */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: labelClr }}>
+        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Budget (FCFA)
         </label>
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 mb-3">
+        <div className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 mb-3">
           {BUDGET_PRESETS.map(p => {
             const active = prixMax === String(p.max)
             return (
               <button key={p.max}
                 onClick={() => { setPrixMin(''); setPrixMax(active ? '' : String(p.max)) }}
-                className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                className="flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={active ? {
                   background: 'rgba(255,107,53,0.14)',
                   border: '1px solid rgba(255,107,53,0.40)',
                   color: '#FF6B35',
-                } : pillIdle}
+                } : tk.pillIdle}
               >
                 {p.label}
               </button>
             )
           })}
         </div>
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2">
           {[
-            { label: 'Minimum', value: prixMin, set: setPrixMin, ph: '0' },
-            { label: 'Maximum', value: prixMax, set: setPrixMax, ph: 'Illimité' },
+            { label: 'Min', value: prixMin, set: setPrixMin, ph: '0' },
+            { label: 'Max', value: prixMax, set: setPrixMax, ph: '∞' },
           ].map(f => (
             <div key={f.label}>
-              <p className="text-[11px] mb-1" style={{ color: labelClr }}>{f.label}</p>
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                style={{
-                  background: fieldBg,
-                  border: `1px solid ${fieldBdr}`,
-                  boxShadow: isDark ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'inset 0 1px 3px rgba(0,0,0,0.04)',
-                }}>
+              <p className="text-[10px] mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
+              <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
+                style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                 <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
                   placeholder={f.ph} min={0}
-                  className="flex-1 bg-transparent outline-none text-sm min-w-0 placeholder-gray-400"
-                  style={{ color: textClr }} />
-                <span className="text-[11px] flex-shrink-0" style={{ color: labelClr }}>FCFA</span>
+                  className="flex-1 bg-transparent outline-none text-sm min-w-0"
+                  style={{ color: tk.textClr }} />
+                <span className="text-[10px] flex-shrink-0 font-medium" style={{ color: tk.labelClr }}>FCFA</span>
               </div>
             </div>
           ))}
         </div>
         {(prixMin || prixMax) && (
-          <p className="text-xs mt-2 pl-1" style={{ color: labelClr }}>
+          <p className="text-xs mt-2" style={{ color: tk.labelClr }}>
             {prixMin && prixMax
               ? `De ${Number(prixMin).toLocaleString('fr-FR')} à ${Number(prixMax).toLocaleString('fr-FR')} FCFA`
               : prixMin
@@ -807,25 +803,25 @@ function FilterPanel({
 }
 
 /* ── Stepper ── */
-function Stepper({ label, value, onChange, isDark }: { label: string; value: string; onChange: (v: string) => void; isDark: boolean }) {
+function Stepper({ label, value, onChange, tk }: {
+  label: string; value: string; onChange: (v: string) => void; tk: ReturnType<typeof useTokens>
+}) {
   const n = Number(value) || 0
-  const textClr  = isDark ? '#E8E8EF' : '#1D1D1F'
-  const labelClr = isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.40)'
-  const fieldBg  = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.80)'
-  const fieldBdr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'
   return (
     <div>
-      <p className="text-[11px] mb-1" style={{ color: labelClr }}>{label}</p>
-      <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-xl"
-        style={{ background: fieldBg, border: `1px solid ${fieldBdr}` }}>
+      <p className="text-[10px] mb-1 font-medium" style={{ color: tk.labelClr }}>{label}</p>
+      <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 rounded-xl"
+        style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
         <button type="button" onClick={() => onChange(n > 0 ? String(n - 1) : '')}
-          className="w-7 h-7 rounded-lg flex items-center justify-center font-bold"
-          style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)', color: textClr }}>
+          className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold"
+          style={{ background: tk.pillIdle.background as string, color: tk.textClr }}>
           −
         </button>
-        <span className="text-sm font-semibold" style={{ color: textClr }}>{n || 'Tout'}</span>
+        <span className="text-sm font-semibold min-w-[1.5rem] text-center" style={{ color: tk.textClr }}>
+          {n || '—'}
+        </span>
         <button type="button" onClick={() => onChange(String(n + 1))}
-          className="w-7 h-7 rounded-lg flex items-center justify-center font-bold"
+          className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold"
           style={{ background: 'rgba(75,107,255,0.14)', color: '#4B6BFF' }}>
           +
         </button>
@@ -835,45 +831,50 @@ function Stepper({ label, value, onChange, isDark }: { label: string; value: str
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ResultHeader — tri custom (pas de <select> natif)
+   ResultHeader — tri avec icônes directionnelles
    ══════════════════════════════════════════════════════════════ */
 type ResultHeaderProps = {
   count: number; loading: boolean; hasFilters: boolean; reset: () => void; inline?: boolean
   sortBy: 'pertinence' | 'prix_asc' | 'prix_desc'; setSortBy: (v: 'pertinence' | 'prix_asc' | 'prix_desc') => void
-  isDark: boolean; textClr: string; labelClr: string
-  pillIdle: React.CSSProperties; pillActive: React.CSSProperties
+  tk: ReturnType<typeof useTokens>
 }
 
-function ResultHeader({ count, loading, hasFilters, reset, inline, sortBy, setSortBy, isDark: _isDark, textClr, labelClr, pillIdle, pillActive }: ResultHeaderProps) {
+function ResultHeader({ count, loading, hasFilters, reset, inline, sortBy, setSortBy, tk }: ResultHeaderProps) {
   if (loading) return (
-    <div className={inline ? 'flex items-center' : 'mb-4'}>
+    <div className={inline ? 'flex items-center' : 'mb-3'}>
       <div className="w-32 h-4 rounded-lg skeleton" />
     </div>
   )
   return (
-    <div className={`flex items-center gap-3 flex-wrap ${inline ? '' : 'mb-5'}`}>
-      <p className="text-sm font-medium" style={{ color: labelClr }}>
-        <strong style={{ color: textClr }} className="font-bold">{count}</strong> résultat{count !== 1 ? 's' : ''}
-        {hasFilters && ' trouvé' + (count !== 1 ? 's' : '')}
+    <div className={`flex items-center gap-2 flex-wrap ${inline ? '' : 'mb-4'}`}>
+      <p className="text-sm font-medium" style={{ color: tk.labelClr }}>
+        <strong style={{ color: tk.textClr }} className="font-bold">{count}</strong>{' '}
+        résultat{count !== 1 ? 's' : ''}
+        {hasFilters && ` trouvé${count !== 1 ? 's' : ''}`}
       </p>
       {hasFilters && count === 0 && (
         <button onClick={reset} className="text-xs font-semibold underline" style={{ color: '#4B6BFF' }}>
           Effacer les filtres
         </button>
       )}
-      <div className="ml-auto flex items-center gap-1.5">
-        <SortIcon />
-        <div className="flex gap-1">
-          {SORTS.map(s => (
+
+      {/* Tri */}
+      <div className="ml-auto flex items-center gap-1 rounded-xl p-1"
+        style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+        {SORTS.map(s => {
+          const active = sortBy === s.key
+          return (
             <button key={s.key}
               onClick={() => setSortBy(s.key as any)}
-              className="text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all"
-              style={sortBy === s.key ? pillActive : { ...pillIdle, padding: '0.375rem 0.625rem', fontSize: '0.75rem' }}
+              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all"
+              style={active ? tk.pillActive : { color: tk.labelClr }}
+              title={s.label}
             >
-              {s.label}
+              {SORT_ICONS[s.key]}
+              <span className="hidden sm:inline">{s.label}</span>
             </button>
-          ))}
-        </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -883,38 +884,38 @@ function ResultHeader({ count, loading, hasFilters, reset, inline, sortBy, setSo
    ResultGrid
    ══════════════════════════════════════════════════════════════ */
 type ResultGridProps = {
-  biens: any[]; loading: boolean; favIds: Set<number>; isDark: boolean
+  biens: any[]; loading: boolean; favIds: Set<number>; isDark: boolean; tk: ReturnType<typeof useTokens>
   onFavToggle: (id: number, added: boolean) => void; cols: string
-  distanceFor?: (bien: any) => number | null; textClr: string; labelClr: string
+  distanceFor?: (bien: any) => number | null
 }
 
-function ResultGrid({ biens, loading, favIds, onFavToggle, cols, distanceFor, isDark, textClr, labelClr }: ResultGridProps) {
+function ResultGrid({ biens, loading, favIds, onFavToggle, cols, distanceFor, isDark, tk }: ResultGridProps) {
   if (loading) return (
-    <div className={`grid ${cols} gap-3 md:gap-4`}>
+    <div className={`grid ${cols} gap-3`}>
       {[1, 2, 3, 4, 5, 6].map(n => (
-        <div key={n} className="skeleton rounded-2xl h-56 md:h-64" />
+        <div key={n} className="skeleton rounded-2xl h-56" />
       ))}
     </div>
   )
 
   if (biens.length === 0) return (
-    <Reveal animation="anim-fade-in" className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
+    <Reveal animation="anim-fade-in" className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
         style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}>
-        <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
-          style={{ color: isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.18)' }}>
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
+          style={{ color: isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.20)' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
-      <p className="font-bold text-base" style={{ color: textClr }}>Aucun résultat</p>
-      <p className="text-sm mt-1.5 max-w-xs" style={{ color: labelClr }}>
+      <p className="font-bold text-sm" style={{ color: tk.textClr }}>Aucun résultat</p>
+      <p className="text-xs mt-1 max-w-xs" style={{ color: tk.labelClr }}>
         Aucun bien ne correspond à vos critères. Essayez d'élargir la recherche.
       </p>
     </Reveal>
   )
 
   return (
-    <div className={`grid ${cols} gap-3 md:gap-4`}>
+    <div className={`grid ${cols} gap-3`}>
       {biens.map((b, i) => (
         <Reveal key={b.id} animation="anim-scale-in" delay={Math.min(i * 50, 300)} className="card-lift">
           <BienCard bien={b} favoriteIds={favIds} onFavoriteToggle={onFavToggle} distanceKm={distanceFor?.(b) ?? null} />
@@ -935,24 +936,24 @@ type GuidedSearch = {
   isProximityFallback: boolean; quartierRecherche: string | undefined
 }
 
-function SectionHeader({ title, subtitle, textClr, labelClr }: { title: string; subtitle?: string; textClr: string; labelClr: string }) {
+function SectionHeader({ title, subtitle, tk }: { title: string; subtitle?: string; tk: ReturnType<typeof useTokens> }) {
   return (
-    <div className="mb-4">
-      <h2 className="text-base md:text-lg font-bold" style={{ color: textClr }}>{title}</h2>
-      {subtitle && <p className="text-xs mt-0.5" style={{ color: labelClr }}>{subtitle}</p>}
+    <div className="mb-3">
+      <h2 className="text-sm font-bold" style={{ color: tk.textClr }}>{title}</h2>
+      {subtitle && <p className="text-xs mt-0.5" style={{ color: tk.labelClr }}>{subtitle}</p>}
     </div>
   )
 }
 
 function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; isProximity: boolean; isDark: boolean }) {
   return (
-    <div className="rounded-2xl border-l-4 p-4 mb-2"
+    <div className="rounded-2xl border-l-4 p-3.5 mb-2"
       style={{
         background: isDark ? 'rgba(245,158,11,0.08)' : '#FFF8E7',
         borderLeftColor: '#F59E0B',
       }}>
       <div className="flex items-start gap-3">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <div>
@@ -961,7 +962,7 @@ function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; i
           </p>
           <p className="text-xs mt-0.5" style={{ color: isDark ? '#FDE68A' : '#B45309' }}>
             {isProximity
-              ? `Voici les biens disponibles dans la fourchette souhaitée à moins de ${PROXIMITY_MAX_KM} km — triés par distance`
+              ? `Biens à moins de ${PROXIMITY_MAX_KM} km — triés par distance`
               : 'Voici les biens disponibles dans les environs'}
           </p>
         </div>
@@ -971,23 +972,23 @@ function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; i
 }
 
 function GuidedResults({
-  search, loading, favIds, onFavToggle, cols, showAllAutres, setShowAllAutres, mainDistanceFor, isDark, textClr, labelClr,
+  search, loading, favIds, onFavToggle, cols, showAllAutres, setShowAllAutres, mainDistanceFor, isDark, tk,
 }: {
-  search: GuidedSearch; loading: boolean; favIds: Set<number>; isDark: boolean
+  search: GuidedSearch; loading: boolean; favIds: Set<number>; isDark: boolean; tk: ReturnType<typeof useTokens>
   onFavToggle: (id: number, added: boolean) => void; cols: string
   showAllAutres: boolean; setShowAllAutres: (v: boolean) => void
-  mainDistanceFor?: (bien: any) => number | null; textClr: string; labelClr: string
+  mainDistanceFor?: (bien: any) => number | null
 }) {
-  if (loading) return <ResultGrid biens={[]} loading favIds={favIds} onFavToggle={onFavToggle} cols={cols} isDark={isDark} textClr={textClr} labelClr={labelClr} />
+  if (loading) return <ResultGrid biens={[]} loading favIds={favIds} onFavToggle={onFavToggle} cols={cols} isDark={isDark} tk={tk} />
 
   const { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier, isProximityFallback, quartierRecherche } = search
   const hasMain      = mainResults.length > 0
   const nothingAtAll = !hasMain && environs.length === 0 && budgetSimilar.length === 0 && autres.length === 0
   const autresToShow = showAllAutres ? autres : autres.slice(0, AUTRES_PAGE_SIZE)
-  const gridProps    = { loading: false, favIds, onFavToggle, isDark, textClr, labelClr }
+  const gridProps    = { loading: false, favIds, onFavToggle, isDark, tk }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {hasMain ? (
         <ResultGrid biens={mainResults} {...gridProps} cols={cols} distanceFor={mainDistanceFor} />
       ) : nothingAtAll ? (
@@ -995,14 +996,14 @@ function GuidedResults({
       ) : quartierRecherche ? (
         <FallbackBanner quartier={quartierRecherche} isProximity={isProximityFallback} isDark={isDark} />
       ) : (
-        <p className="text-sm" style={{ color: labelClr }}>
-          Aucun bien ne correspond exactement à votre recherche — voici ce qui s'en rapproche.
+        <p className="text-sm" style={{ color: tk.labelClr }}>
+          Aucun bien ne correspond exactement — voici ce qui s'en rapproche.
         </p>
       )}
 
       {environs.length > 0 && (
         <section>
-          <SectionHeader title={environsLabel} subtitle={isProximityFallback ? 'Distances calculées depuis le quartier recherché' : undefined} textClr={textClr} labelClr={labelClr} />
+          <SectionHeader title={environsLabel} subtitle={isProximityFallback ? 'Distances depuis le quartier recherché' : undefined} tk={tk} />
           <ResultGrid biens={environs} {...gridProps} cols={cols} distanceFor={b => environsDist.get(b.id) ?? distFromQuartier(b)} />
         </section>
       )}
@@ -1011,8 +1012,8 @@ function GuidedResults({
         <section>
           <SectionHeader
             title="Légèrement hors budget"
-            subtitle={`À ± ${BUDGET_TOLERANCE.toLocaleString('fr-FR')} FCFA de votre budget${quartierRecherche ? ` — distances depuis « ${quartierRecherche} »` : ''}`}
-            textClr={textClr} labelClr={labelClr}
+            subtitle={`± ${BUDGET_TOLERANCE.toLocaleString('fr-FR')} FCFA${quartierRecherche ? ` depuis « ${quartierRecherche} »` : ''}`}
+            tk={tk}
           />
           <ResultGrid biens={budgetSimilar} {...gridProps} cols={cols} distanceFor={distFromQuartier} />
         </section>
@@ -1020,17 +1021,13 @@ function GuidedResults({
 
       {autres.length > 0 && (
         <section>
-          <SectionHeader title="Autres biens disponibles" textClr={textClr} labelClr={labelClr} />
+          <SectionHeader title="Autres biens disponibles" tk={tk} />
           <ResultGrid biens={autresToShow} {...gridProps} cols={cols} distanceFor={distFromQuartier} />
           {!showAllAutres && autres.length > AUTRES_PAGE_SIZE && (
             <button onClick={() => setShowAllAutres(true)}
-              className="mt-5 w-full py-3 rounded-2xl text-sm font-semibold transition-all"
-              style={{
-                border: '1px solid rgba(75,107,255,0.35)',
-                color: '#4B6BFF',
-                background: 'rgba(75,107,255,0.06)',
-              }}>
-              Voir plus ({autres.length - AUTRES_PAGE_SIZE} autres)
+              className="mt-4 w-full py-2.5 rounded-2xl text-sm font-semibold transition-all"
+              style={{ border: `1px solid ${tk.sidebarBdr}`, color: tk.labelClr, background: tk.fieldBg }}>
+              Voir {autres.length - AUTRES_PAGE_SIZE} autres biens
             </button>
           )}
         </section>

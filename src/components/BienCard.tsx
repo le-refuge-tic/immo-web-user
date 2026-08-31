@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
 
 const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
@@ -22,27 +23,29 @@ type Props = {
   favoriteIds?: Set<number>
   onFavoriteToggle?: (id: number, added: boolean) => void
   distanceKm?: number | null
-  /** Affiche le nombre de photos (badge bas-gauche), façon portails immobiliers classiques. */
   showPhotoCount?: boolean
-  /** Affiche la date de publication du bien. */
   showAddedDate?: boolean
 }
 
 export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distanceKm, showPhotoCount, showAddedDate }: Props) {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
   const { isLoggedIn } = useAuth()
-  const [isFav, setIsFav] = useState(favoriteIds?.has(bien.id) ?? false)
-  const [toggling, setToggling] = useState(false)
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  const [isFav,     setIsFav]     = useState(favoriteIds?.has(bien.id) ?? false)
+  const [toggling,  setToggling]  = useState(false)
   const [favPopped, setFavPopped] = useState(false)
 
   useEffect(() => {
     setIsFav(favoriteIds?.has(bien.id) ?? false)
   }, [favoriteIds, bien.id])
 
-  const cover = bien.photos?.find((p: any) => p.is_cover) || bien.photos?.[0]
+  const cover    = bien.photos?.find((p: any) => p.is_cover) || bien.photos?.[0]
   const coverUrl = cover ? resolveUrl(cover.url) : null
 
   const isLocation = bien.transaction === 'location'
+
   const typeLabel: Record<string, string> = {
     maison:         'Maison',
     appart_vide:    'Appartement vide',
@@ -57,13 +60,23 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
   }
   const sousType = bien.amenites?.sous_type
-  const label = (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
-  /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
-  const title = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
+  const label    = (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
+  const title    = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
+
+  /* ── Tokens thème ── */
+  const textPrimary  = isDark ? '#E8E8EF'                : '#1D1D1F'
+  const textSecond   = isDark ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.62)'
+  const textMuted    = isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.38)'
+  const iconMuted    = isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'
+  const emptyBg      = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
 
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!isLoggedIn) { sessionStorage.setItem('post_login_redirect', window.location.pathname + window.location.search); navigate('/login'); return }
+    if (!isLoggedIn) {
+      sessionStorage.setItem('post_login_redirect', window.location.pathname + window.location.search)
+      navigate('/login')
+      return
+    }
     if (toggling) return
     setToggling(true)
     setFavPopped(true)
@@ -82,21 +95,25 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       className="glass-card rounded-[22px] overflow-hidden cursor-pointer group"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)'
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 48px rgba(0,0,0,0.14), inset 0 1.5px 0 rgba(255,255,255,0.95)'
+        const el = e.currentTarget as HTMLDivElement
+        el.style.transform = 'translateY(-6px)'
+        el.style.boxShadow = isDark
+          ? '0 20px 48px rgba(0,0,0,0.40), inset 0 1.5px 0 rgba(255,255,255,0.12)'
+          : '0 20px 48px rgba(0,0,0,0.14), inset 0 1.5px 0 rgba(255,255,255,0.95)'
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.transform = ''
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow = ''
+        const el = e.currentTarget as HTMLDivElement
+        el.style.transform = ''
+        el.style.boxShadow = ''
       }}
     >
-      {/* Image */}
+      {/* ── Image ── */}
       <div className="relative h-44 sm:h-48 md:h-52 lg:h-56 img-zoom">
         {coverUrl ? (
           <img src={coverUrl} alt={label} className="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)' }}>
-            <svg className="w-12 h-12" style={{ color: 'rgba(0,0,0,0.18)' }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <div className="w-full h-full flex items-center justify-center" style={{ background: emptyBg }}>
+            <svg className="w-12 h-12" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
           </div>
@@ -122,18 +139,25 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           onClick={handleFav}
           className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
           style={{
-            background: 'rgba(255,255,255,0.80)',
+            background: isDark ? 'rgba(30,30,44,0.80)' : 'rgba(255,255,255,0.80)',
             backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.95)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,1), 0 2px 8px rgba(0,0,0,0.10)',
+            border: isDark ? '1px solid rgba(255,255,255,0.14)' : '1px solid rgba(255,255,255,0.95)',
+            boxShadow: isDark
+              ? 'inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 8px rgba(0,0,0,0.40)'
+              : 'inset 0 1px 0 rgba(255,255,255,1), 0 2px 8px rgba(0,0,0,0.10)',
           }}
         >
-          <svg viewBox="0 0 24 24" fill={isFav ? '#FF3B30' : 'none'} stroke={isFav ? '#FF3B30' : 'rgba(0,0,0,0.5)'} strokeWidth={2} className="w-4 h-4 transition-colors duration-200">
+          <svg viewBox="0 0 24 24"
+            fill={isFav ? '#FF3B30' : 'none'}
+            stroke={isFav ? '#FF3B30' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)')}
+            strokeWidth={2}
+            className="w-4 h-4 transition-colors duration-200"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
 
-        {/* Gradient bottom pour lisibilité du texte */}
+        {/* Gradient bas pour lisibilité */}
         <div className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)' }} />
 
@@ -150,21 +174,21 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
         )}
       </div>
 
-      {/* Infos */}
+      {/* ── Infos ── */}
       <div className="p-4">
-        <p className="text-lg md:text-xl font-bold leading-tight tracking-tight" style={{ color: '#1D1D1F' }}>
+        <p className="text-lg md:text-xl font-bold leading-tight tracking-tight" style={{ color: textPrimary }}>
           {Number(bien.prix).toLocaleString('fr-FR')}{' '}
-          <span className="text-sm font-medium" style={{ color: 'rgba(0,0,0,0.38)' }}>
+          <span className="text-sm font-medium" style={{ color: textMuted }}>
             FCFA{isLocation ? '/mois' : ''}
           </span>
         </p>
-        <p className="text-sm font-semibold mt-1 truncate" style={{ color: 'rgba(0,0,0,0.72)' }}>{title}</p>
+        <p className="text-sm font-semibold mt-1 truncate" style={{ color: textSecond }}>{title}</p>
         <div className="flex items-center gap-1 mt-2">
-          <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.30)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <p className="text-xs truncate min-w-0 flex-1" style={{ color: 'rgba(0,0,0,0.42)' }}>
+          <p className="text-xs truncate min-w-0 flex-1" style={{ color: textMuted }}>
             {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || '—'}
           </p>
           {distanceKm != null && (
@@ -174,7 +198,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           )}
         </div>
         {showAddedDate && bien.created_at && (
-          <p className="text-[11px] mt-2" style={{ color: 'rgba(0,0,0,0.35)' }}>
+          <p className="text-[11px] mt-2" style={{ color: textMuted }}>
             Ajouté le {fmtAddedDate(bien.created_at)}
           </p>
         )}
