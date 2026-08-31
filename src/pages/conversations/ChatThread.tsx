@@ -379,18 +379,6 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             <svg className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
           </button>
         )}
-        </div>
-
-        {/* Bien lié */}
-        {conv?.bien && (
-          <button onClick={() => navigate(`/biens/${conv.bien.id}`)} className="w-full text-left p-3.5 rounded-2xl cursor-pointer transition-opacity hover:opacity-80"
-            style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'}` }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: tm }}>Bien concerné</p>
-            <p className="text-[13px] font-bold" style={{ color: tp }}>{bienTypeLabel || 'Bien immobilier'}</p>
-            {bienLoc && <p className="text-[12px] mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
-            <p className="text-[11px] font-semibold mt-2" style={{ color: '#4B6BFF' }}>Voir l'annonce →</p>
-          </button>
-        )}
 
         {/* Actions signalement */}
         <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
