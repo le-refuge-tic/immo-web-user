@@ -447,8 +447,14 @@ export default function HomePage() {
                 <p className="font-semibold text-sm truncate text-white">
                   {search.trim() || 'Rechercher un bien…'}
                 </p>
-                <p className="text-[11px] text-white/55">
-                  {[transaction && (transaction === 'location' ? 'Location' : 'Vente'), type && TYPES.find(t => t.key === type)?.label].filter(Boolean).join(' · ') || 'Tous types · Partout au Bénin'}
+                <p className="text-[11px] text-white/55 truncate">
+                  {[
+                    transaction && (transaction === 'location' ? 'Location' : 'Vente'),
+                    type && TYPES.find(t => t.key === type)?.label,
+                    prixMin && !prixMax && `≥ ${Number(prixMin).toLocaleString('fr-FR')} F`,
+                    prixMax && !prixMin && `≤ ${Number(prixMax).toLocaleString('fr-FR')} F`,
+                    prixMin && prixMax && `${Number(prixMin).toLocaleString('fr-FR')}–${Number(prixMax).toLocaleString('fr-FR')} F`,
+                  ].filter(Boolean).join(' · ') || 'Tous types · Partout au Bénin'}
                 </p>
               </div>
               {(search || transaction || type || prixMin || prixMax) && (
@@ -556,8 +562,8 @@ export default function HomePage() {
 
                 {/* Budget */}
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Budget max (FCFA)</p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Budget (FCFA)</p>
+                  <div className="flex flex-wrap gap-1.5 mb-2.5">
                     {BUDGET_PRESETS.map(p => {
                       const active = prixMax === String(p.max)
                       return (
@@ -569,6 +575,33 @@ export default function HomePage() {
                         </button>
                       )
                     })}
+                  </div>
+                  {/* Champs min / max */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 flex items-center gap-2 px-2.5 py-2 rounded-xl"
+                      style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+                      <input type="number" min={0} value={prixMin}
+                        onChange={e => { setPrixMin(e.target.value); if (e.target.value) setPrixMax('') }}
+                        placeholder="Minimum"
+                        className="flex-1 min-w-0 bg-transparent outline-none text-xs"
+                        style={{ color: tk.textPrimary }} />
+                    </div>
+                    <span className="text-sm flex-shrink-0" style={{ color: tk.textMuted }}>—</span>
+                    <div className="flex-1 flex items-center gap-2 px-2.5 py-2 rounded-xl"
+                      style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+                      <input type="number" min={0} value={prixMax}
+                        onChange={e => setPrixMax(e.target.value)}
+                        placeholder="Maximum"
+                        className="flex-1 min-w-0 bg-transparent outline-none text-xs"
+                        style={{ color: tk.textPrimary }} />
+                    </div>
+                    {(prixMin || prixMax) && (
+                      <button onClick={() => { setPrixMin(''); setPrixMax('') }}
+                        className="text-[11px] font-semibold flex-shrink-0 transition-opacity hover:opacity-70"
+                        style={{ color: '#4B6BFF' }}>
+                        Effacer
+                      </button>
+                    )}
                   </div>
                 </div>
 
