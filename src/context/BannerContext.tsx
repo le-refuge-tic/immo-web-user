@@ -39,6 +39,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
 
   // Gestes swipe
   const [dragY, setDragY] = useState(0)
+  const dragYRef = useRef(0)          // valeur à jour lue par onPointerUp (le state est async)
   const startY = useRef<number | null>(null)
 
   const dismiss = useCallback(() => {
@@ -46,6 +47,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
     setExiting(true)
     setTimeout(() => {
       setExiting(false)
+      dragYRef.current = 0
       setDragY(0)
       setCurrent(null)
     }, EXIT_MS)
@@ -82,11 +84,11 @@ export function BannerProvider({ children }: { children: ReactNode }) {
   const onPointerMove = (e: React.PointerEvent) => {
     if (startY.current == null) return
     const dy = e.clientY - startY.current
-    if (dy < 0) setDragY(dy)
+    if (dy < 0) { dragYRef.current = dy; setDragY(dy) }
   }
   const onPointerUp = () => {
-    if (dragY < -40) dismiss()
-    else { setDragY(0); if (current) timerRef.current = setTimeout(dismiss, DISPLAY_MS) }
+    if (dragYRef.current < -40) dismiss()
+    else { dragYRef.current = 0; setDragY(0); if (current) timerRef.current = setTimeout(dismiss, DISPLAY_MS) }
     startY.current = null
   }
 
