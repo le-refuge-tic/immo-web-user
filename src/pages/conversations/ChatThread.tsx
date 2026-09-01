@@ -114,28 +114,33 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const headerMenuRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  /* ── tokens ── */
-  const tp   = isDark ? '#E8E8EF' : '#1D1D1F'
-  const ts   = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)'
-  const tm   = isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.38)'
-  const hdrBg = isDark ? 'rgba(12,12,20,0.95)' : 'rgba(245,245,250,0.92)'
-  const hdrBdr = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
-  const inpBg  = isDark ? 'rgba(12,12,20,0.95)' : 'rgba(245,245,250,0.92)'
-  const inpFieldBg  = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.88)'
-  const inpFieldBdr = isDark ? 'rgba(255,255,255,0.11)' : 'rgba(0,0,0,0.10)'
-  const bubbleMeBg  = isDark ? 'linear-gradient(135deg,#3B55D4 0%,#5B30C4 100%)' : 'linear-gradient(135deg,#4B6BFF 0%,#7B4BFF 100%)'
-  const bubbleOtherBg  = isDark ? 'rgba(32,32,48,0.95)' : 'rgba(255,255,255,0.92)'
-  const bubbleOtherBdr = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'
-  const menuBg  = isDark ? 'rgba(22,22,34,0.98)' : 'rgba(255,255,255,0.98)'
-  const menuBdr = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.09)'
-  const menuHov = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const divider = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-  const pinBg   = isDark ? 'rgba(28,28,44,0.92)' : 'rgba(255,255,255,0.92)'
-  const sepBg   = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
-  const profileBg = isDark ? 'rgba(14,14,24,0.97)' : 'rgba(248,248,255,0.97)'
-  const profileBdr = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
-  const chatBg  = isDark ? '#0A0A12' : '#E8ECF4'
-  const iconBtn = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.06)'
+  /* ── Design tokens (light par défaut, dark optionnel) ── */
+  // Text
+  const tp  = isDark ? '#E8E9F0' : '#111827'          // primary — lisible 7:1+
+  const ts  = isDark ? 'rgba(232,233,240,0.62)' : '#4B5563'  // secondary — 4.5:1+
+  const tm  = isDark ? 'rgba(232,233,240,0.40)' : '#9CA3AF'  // muted
+  // Surfaces
+  const chatBg     = isDark ? '#0F1117' : '#EEF0F7'
+  const hdrBg      = isDark ? '#161820' : '#FFFFFF'
+  const hdrBdr     = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  const inpBg      = isDark ? '#161820' : '#FFFFFF'
+  const inpFieldBg = isDark ? 'rgba(255,255,255,0.07)' : '#F3F4F8'
+  const inpFieldBdr= isDark ? 'rgba(255,255,255,0.10)' : '#E5E7EB'
+  const profileBg  = isDark ? '#161820' : '#FFFFFF'
+  const profileBdr = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  // Bubbles
+  const bubbleMeBg      = isDark ? 'linear-gradient(135deg,#3B55D4,#5B30C4)' : 'linear-gradient(135deg,#4B6BFF,#7B4BFF)'
+  const bubbleOtherBg   = isDark ? '#1E2130' : '#FFFFFF'
+  const bubbleOtherBdr  = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  // Menus & overlays
+  const menuBg  = isDark ? '#1E2130' : '#FFFFFF'
+  const menuBdr = isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB'
+  const menuHov = isDark ? 'rgba(255,255,255,0.06)' : '#F9FAFB'
+  // Misc
+  const divider = isDark ? 'rgba(255,255,255,0.06)' : '#F0F1F4'
+  const pinBg   = isDark ? '#1E2130' : '#FFFFFF'
+  const sepBg   = isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB'
+  const iconBtn = isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F8'
 
   /* ── load ── */
   useEffect(() => {
@@ -288,8 +293,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
   /* ── Menu item ── */
   const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => (
-    <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13px] transition-colors cursor-pointer"
-      style={{ color: danger ? '#EF4444' : tp }}
+    <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
+      style={{ color: danger ? '#EF4444' : tp, width: 'calc(100% - 8px)' }}
       onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
       {label}
@@ -342,11 +347,11 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
   /* ── Panneau profil (desktop droit / mobile drawer) ── */
   const ProfilePanel = ({ onClose }: { onClose: () => void }) => (
-    <div className="h-full flex flex-col" style={{ background: profileBg, backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', borderLeft: `1px solid ${profileBdr}` }}>
+    <div className="h-full flex flex-col" style={{ background: profileBg, borderLeft: `1px solid ${profileBdr}` }}>
       {/* Header profil */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${divider}` }}>
         <p className="text-[13px] font-bold uppercase tracking-widest" style={{ color: tm }}>Infos du contact</p>
-        <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer" style={{ background: iconBtn, color: ts }}>
+        <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer transition-colors hover:opacity-80" style={{ background: iconBtn, color: ts }}>
           <XIcon />
         </button>
       </div>
@@ -411,15 +416,16 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           )}
         </div>
 
-        {/* Actions signalement */}
+        {/* Actions */}
         <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
           {[
-            { label: 'Mode silencieux', action: () => {} },
+            { label: 'Mode silencieux', action: () => {}, danger: false },
             { label: 'Bloquer ce contact', action: () => {}, danger: true },
             { label: 'Signaler', action: () => {}, danger: true },
-          ].map(({ label, action, danger }) => (
-            <button key={label} onClick={action} className="w-full text-left px-4 py-3 text-[13px] transition-colors cursor-pointer flex items-center justify-between"
-              style={{ color: danger ? '#EF4444' : tp, borderBottom: `1px solid ${divider}` }}
+          ].map(({ label, action, danger }, i, arr) => (
+            <button key={label} onClick={action}
+              className="w-full text-left px-4 py-3.5 text-[13.5px] font-medium transition-colors cursor-pointer flex items-center justify-between"
+              style={{ color: danger ? '#EF4444' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none' }}
               onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
               {label}
@@ -472,32 +478,32 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
         {/* Header */}
         <div className="flex-shrink-0 safe-top px-4 pt-3 pb-3"
-          style={{ background: hdrBg, backdropFilter: 'blur(48px) saturate(200%)', WebkitBackdropFilter: 'blur(48px) saturate(200%)', borderBottom: `1px solid ${hdrBdr}` }}>
-          <div className="flex items-center gap-2.5">
-            <button onClick={onBack} className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-opacity hover:opacity-70"
+          style={{ background: hdrBg, borderBottom: `1px solid ${hdrBdr}` }}>
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors hover:opacity-75"
               style={{ background: iconBtn, color: tp }}>
               <BackIcon />
             </button>
 
             {/* Avatar cliquable → ouvre profil */}
-            <button onClick={() => setShowProfile(p => !p)} className="flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer group">
+            <button onClick={() => setShowProfile(p => !p)} className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer group">
               <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
                 style={{ background: avatarGrad(other?.id ?? 0) }}>
                 <span className="text-white font-bold text-sm">{initial(otherName)}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
-                {role && <p className="text-[11px] font-semibold" style={{ color: '#4B6BFF' }}>{role}</p>}
+                <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
+                {role && <p className="text-[12px] font-medium mt-0.5" style={{ color: '#4B6BFF' }}>{role}</p>}
               </div>
             </button>
 
             {/* Bien lié — compact */}
             {bienTypeLabel && conv?.bien && (
               <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
-                className="hidden sm:flex flex-col text-left px-2.5 py-1.5 rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                style={{ background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)', border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`, maxWidth: 110 }}>
-                <p className="text-[11px] font-bold truncate" style={{ color: tp }}>{bienTypeLabel}</p>
-                {bienLoc && <p className="text-[10px] truncate" style={{ color: tm }}>{bienLoc}</p>}
+                className="hidden sm:flex flex-col text-left px-3 py-2 rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, maxWidth: 120 }}>
+                <p className="text-[11.5px] font-semibold truncate" style={{ color: tp }}>{bienTypeLabel}</p>
+                {bienLoc && <p className="text-[10px] truncate mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
               </button>
             )}
 
@@ -508,8 +514,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                   if (showHeaderMenu) { setShowHeaderMenu(false); setHeaderMenuPos(null) }
                   else { setShowHeaderMenu(true); setHeaderMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right }) }
                 }}
-                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-all"
-                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.14)' : iconBtn, color: showHeaderMenu ? '#4B6BFF' : ts }}
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors"
+                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? '#4B6BFF' : ts }}
                 aria-label="Options">
                 <DotsV />
               </button>
@@ -518,12 +524,12 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
           {/* Code visite */}
           {conv?.code_visite && (
-            <button onClick={copyCode} className="mt-2.5 flex items-center gap-2 px-3 py-1.5 rounded-xl w-full cursor-pointer hover:opacity-80 transition-opacity"
-              style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.07)'}` }}>
+            <button onClick={copyCode} className="mt-3 flex items-center gap-2 px-3.5 py-2 rounded-xl w-full cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}` }}>
               <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
               </svg>
-              <span className="text-[12px] font-bold tracking-wider flex-1" style={{ color: tp }}>Code visite : {conv.code_visite}</span>
+              <span className="text-[12px] font-semibold flex-1" style={{ color: tp }}>Code visite : {conv.code_visite}</span>
               <span className="text-[11px] font-bold flex-shrink-0" style={{ color: '#4B6BFF' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
             </button>
           )}
@@ -539,12 +545,12 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
         {/* ── Bandeaux fixes (épinglé + créneau) ── */}
         {(pinnedMsg || lastSlot) && (
-          <div className="flex-shrink-0 px-3 sm:px-5 pt-3 space-y-2">
+          <div className="flex-shrink-0 px-3 sm:px-4 pt-3 space-y-2">
             {/* Message épinglé */}
             {pinnedMsg && (
               <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                className="flex items-center gap-2 w-full rounded-2xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
-                style={{ background: pinBg, borderLeftColor: '#4B6BFF', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                className="flex items-center gap-2 w-full rounded-xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
+                style={{ background: pinBg, borderLeftColor: '#4B6BFF', border: `1px solid ${divider}`, borderLeft: '4px solid #4B6BFF' }}>
                 <span style={{ color: '#4B6BFF' }}><PinFill /></span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#4B6BFF' }}>Épinglé</p>
@@ -566,8 +572,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
               const c = cfg[status] || cfg.pending
               return (
                 <button onClick={() => document.getElementById(`msg-${lastSlot.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                  className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-2.5 border-l-4 text-left cursor-pointer anim-fade-in"
-                  style={{ background: pinBg, borderLeftColor: c.accent, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                  className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left cursor-pointer anim-fade-in"
+                  style={{ background: pinBg, border: `1px solid ${divider}`, borderLeft: `4px solid ${c.accent}` }}>
                   <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
@@ -682,41 +688,41 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
         {/* Bouton scroll bas */}
         {!atBottom && (
           <button onClick={() => { scrollBot(); setAtBottom(true) }}
-            className="absolute bottom-24 right-5 z-20 w-9 h-9 rounded-full flex items-center justify-center shadow-lg cursor-pointer anim-scale-in"
-            style={{ background: isDark ? 'rgba(28,28,44,0.95)' : 'rgba(255,255,255,0.95)', border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'}`, backdropFilter: 'blur(20px)', color: tp }}>
+            className="absolute bottom-24 right-5 z-20 w-10 h-10 rounded-full flex items-center justify-center shadow-md cursor-pointer anim-scale-in transition-transform hover:scale-105"
+            style={{ background: hdrBg, border: `1px solid ${hdrBdr}`, color: tp }}>
             <ChevDown />
           </button>
         )}
 
         {/* Zone saisie */}
-        <div className="flex-shrink-0" style={{ background: inpBg, backdropFilter: 'blur(48px) saturate(200%)', WebkitBackdropFilter: 'blur(48px) saturate(200%)', borderTop: `1px solid ${hdrBdr}` }}>
+        <div className="flex-shrink-0" style={{ background: inpBg, borderTop: `1px solid ${hdrBdr}` }}>
           {/* Contexte réponse / modification */}
           {(replyingTo || editingMsg) && (
-            <div className="px-4 pt-2.5 pb-1 flex items-center gap-2.5">
+            <div className="px-4 pt-3 pb-1 flex items-center gap-2.5">
               <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4B6BFF' }} />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold" style={{ color: '#4B6BFF' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
-                <p className="text-[12px] truncate" style={{ color: tm }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
+                <p className="text-[11.5px] font-semibold" style={{ color: '#4B6BFF' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
+                <p className="text-[12px] truncate mt-0.5" style={{ color: ts }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
               </div>
-              <button onClick={cancelCtx} className="w-7 h-7 flex items-center justify-center flex-shrink-0 cursor-pointer" style={{ color: tm }}><XIcon /></button>
+              <button onClick={cancelCtx} className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors hover:opacity-75" style={{ color: tm, background: iconBtn }}><XIcon /></button>
             </div>
           )}
-          <div className="px-3 py-2.5 flex items-end gap-2 safe-bottom">
+          <div className="px-3 py-3 flex items-end gap-2 safe-bottom">
             {/* Calendrier */}
             <button onClick={() => setShowSlot(true)} disabled={proposing}
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
+              style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF', border: '1px solid rgba(75,107,255,0.18)' }}>
               {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /> : <CalIcon />}
             </button>
             {/* Textarea */}
             <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
               placeholder="Écrire un message…" rows={1}
-              className="flex-1 min-w-0 rounded-2xl px-4 py-2 text-[14px] outline-none resize-none max-h-28 leading-relaxed"
-              style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp, minHeight: '40px' }} />
+              className="flex-1 min-w-0 rounded-2xl px-4 py-2.5 text-[14px] outline-none resize-none max-h-28 leading-relaxed"
+              style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp, minHeight: '44px' }} />
             {/* Envoyer */}
             <button onClick={send} disabled={!input.trim() || sending}
-              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 cursor-pointer transition-transform hover:scale-105 active:scale-95"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.40)' : 'none' }}>
+              className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
               {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <SendIcon />}
             </button>
           </div>
@@ -742,11 +748,11 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
       {/* Menu header (3 points) — fixed au-dessus de tout */}
       {showHeaderMenu && headerMenuPos && (
-        <div data-headermenu className="fixed z-[130] rounded-2xl py-1.5 min-w-[200px] anim-fade-down"
-          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: isDark ? '#161622' : '#FFFFFF', border: `1px solid ${menuBdr}`, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.55)' : '0 16px 48px rgba(0,0,0,0.20)' }}>
+        <div data-headermenu className="fixed z-[130] rounded-2xl overflow-hidden py-1 min-w-[200px] anim-fade-down"
+          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}>
           <MI label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
           {conv?.bien?.id && <MI label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
-          <div className="h-px my-1" style={{ background: divider }} />
+          <div className="h-px mx-2 my-1" style={{ background: divider }} />
           <MI label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
           <MI label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
           <MI label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
@@ -758,13 +764,13 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
         const m = visible.find(x => x.id === menuId)
         if (!m) return null
         return (
-          <div className="fixed z-[120] rounded-2xl py-1.5 min-w-[190px] anim-fade-down"
-            style={{ top: menuPos.top, right: menuPos.right, background: isDark ? '#161622' : '#FFFFFF', border: `1px solid ${menuBdr}`, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.55)' : '0 12px 40px rgba(0,0,0,0.24)' }}
+          <div className="fixed z-[120] rounded-2xl overflow-hidden py-1 min-w-[190px] anim-fade-down"
+            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}
             onClick={e => e.stopPropagation()}>
             <MI label="Répondre" onClick={() => startReply(m)} />
             {canEdit(m) && <MI label="Modifier" onClick={() => startEdit(m)} />}
             <MI label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
-            <div className="h-px my-1" style={{ background: divider }} />
+            <div className="h-px mx-2 my-1" style={{ background: divider }} />
             {!m.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
             {m.sender_id === user?.id && !m.supprime_pour_tous && <MI label="Supprimer pour tous" onClick={() => deleteForAll(m)} danger />}
           </div>
