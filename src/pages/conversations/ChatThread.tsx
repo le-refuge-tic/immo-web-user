@@ -150,6 +150,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
       } catch (_) {}
       setLoading(false)
     }
+    setConv(null); setMessages([]); setShowProfile(false)
     load(); setHidden(new Set()); setReplyingTo(null); setEditingMsg(null)
   }, [convId])
 
