@@ -7,6 +7,8 @@ import { userApi } from '../../api/userApi'
 import { walletApi } from '../../api/walletApi'
 import { delegationApi } from '../../api/delegationApi'
 import { chatApi } from '../../api/chatApi'
+import { notificationsApi } from '../../api/notificationsApi'
+import { useNotifications } from '../../context/NotificationsContext'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
@@ -24,6 +26,7 @@ const IcEye     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const IcStar    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
 const IcPin     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
 const IcTrash   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+const IcBell    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
 const IcClock   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
 const IcEdit    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
 const IcRefresh = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -37,7 +40,7 @@ const PURPLE      = '#9B59B6'
 const DARK_PURPLE = '#4A0E8F'
 const MID_PURPLE  = '#7B2FBE'
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'portefeuille' | 'profil' | 'delegations'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
   en_attente: { label: 'En attente',  color: '#F59E0B' },
@@ -50,10 +53,11 @@ const DELEG_STATUT: Record<string, { label: string; color: string }> = {
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
   { key: 'biens',        label: 'Mes biens',    icon: <IcHome /> },
-  { key: 'reservations', label: 'Réservations', icon: <IcCal /> },
-  { key: 'creneaux',     label: 'Créneaux',     icon: <IcClock /> },
-  { key: 'portefeuille', label: 'Portefeuille', icon: <IcWallet /> },
-  { key: 'profil',       label: 'Profil',       icon: <IcPerson /> },
+  { key: 'reservations',  label: 'Réservations', icon: <IcCal /> },
+  { key: 'creneaux',      label: 'Créneaux',     icon: <IcClock /> },
+  { key: 'notifications', label: 'Notifications', icon: <IcBell /> },
+  { key: 'portefeuille',  label: 'Portefeuille', icon: <IcWallet /> },
+  { key: 'profil',        label: 'Profil',       icon: <IcPerson /> },
 ]
 
 function fmtPrix(p: any) {
@@ -81,6 +85,161 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
       </div>
       <span className="text-[11px] font-semibold text-text-dark text-center leading-tight">{label}</span>
     </button>
+  )
+}
+
+// ─── Tab: Notifications ───────────────────────────────────────────────────────
+/* Onglet notifications propre à l'espace démarcheur : n'affiche que les alertes
+ * concernant ce rôle (target_role = 'demarcheur'/'commercial', ou null pour les
+ * alertes antérieures au champ). Le clic reste dans le contexte démarcheur. */
+const NOTIF_VISITE_TYPES = new Set([
+  'visite_demande', 'visite_confirmee', 'visite_contre_proposee',
+  'visite_client_recontrepropose', 'visite_proposition_envoyee',
+  'visite_effectuee', 'visite_echouee', 'visite_annulee',
+  'rappel_visite', 'paiement_visite',
+])
+const NOTIF_BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
+const DEMARCHEUR_ROLES = new Set(['demarcheur', 'commercial'])
+
+function notifTimeAgo(iso?: string): string {
+  if (!iso) return ''
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return "À l'instant"
+  if (m < 60) return `Il y a ${m} min`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `Il y a ${h}h`
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}
+
+function notifIconD(type: string): { node: React.ReactNode; color: string } {
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#22C55E' }
+  if (type === 'nouveau_message') return { node: <IcChat />, color: '#8B5CF6' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#EF4444' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#22C55E' }
+  if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE }
+  return { node: <IcBell />, color: '#9E9E9E' }
+}
+
+function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { refresh: refreshCounts } = useNotifications()
+  const [notifs, setNotifs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
+
+  useEffect(() => {
+    setLoading(true)
+    notificationsApi.list()
+      .then(d => setNotifs(Array.isArray(d) ? d : d.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const mine = notifs.filter(n => !n.target_role || DEMARCHEUR_ROLES.has(n.target_role))
+  const unread = mine.filter(n => !n.lu).length
+  const displayed = filter === 'non_lues' ? mine.filter(n => !n.lu) : mine
+
+  const markRead = async (id: number) => {
+    try {
+      await notificationsApi.markRead(id)
+      setNotifs(p => p.map(n => n.id === id ? { ...n, lu: true } : n))
+      refreshCounts()
+    } catch (_) {}
+  }
+  const markAll = async () => {
+    try {
+      await notificationsApi.markAllRead()
+      setNotifs(p => p.map(n => ({ ...n, lu: true })))
+      refreshCounts()
+    } catch (_) {}
+  }
+
+  const ouvrirConversationPourVisite = async (visiteId: number): Promise<boolean> => {
+    if (!user) return false
+    try {
+      const [vd, cd] = await Promise.all([visitesApi.mesVisites(), chatApi.conversations()])
+      const visites = Array.isArray(vd) ? vd : vd.data || []
+      const visite = visites.find((v: any) => v.id === visiteId)
+      const bienId = visite?.bien?.id
+      const otherId = visite?.client?.id === user.id ? visite?.gestionnaire?.id : visite?.client?.id
+      if (!bienId || !otherId) return false
+      const convs = Array.isArray(cd) ? cd : cd.data || []
+      const match = convs.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === otherId))
+      if (!match) return false
+      navigate(`/conversations/${match.id}`)
+      return true
+    } catch { return false }
+  }
+
+  const openNotif = async (n: any) => {
+    if (!n.lu) markRead(n.id)
+    const meta = n.meta || {}
+    if (n.type === 'nouveau_message' && meta.conversation_id) {
+      navigate(`/conversations/${meta.conversation_id}`); return
+    }
+    if (NOTIF_VISITE_TYPES.has(n.type) && meta.visite_id) {
+      const opened = await ouvrirConversationPourVisite(meta.visite_id)
+      if (opened) return
+    }
+    // Reste dans l'espace démarcheur : bascule vers l'onglet interne pertinent.
+    if (NOTIF_VISITE_TYPES.has(n.type)) onOpenTab('reservations')
+    else if (NOTIF_BIEN_TYPES.has(n.type) && meta.bien_id) navigate(`/biens/${meta.bien_id}`)
+    else if (NOTIF_BIEN_TYPES.has(n.type)) onOpenTab('biens')
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white px-4 md:px-5 py-3 border-b border-divider flex items-center justify-between flex-shrink-0">
+        <p className="font-bold text-text-dark">
+          Notifications
+          {unread > 0 && <span className="ml-2 text-sm font-bold" style={{ color: PURPLE }}>{unread}</span>}
+        </p>
+        {unread > 0 && <button onClick={markAll} className="text-xs font-bold" style={{ color: PURPLE }}>Tout marquer lu</button>}
+      </div>
+
+      <div className="bg-white px-4 md:px-5 py-2.5 border-b border-divider flex gap-2 flex-shrink-0">
+        {([['toutes', 'Toutes'], ['non_lues', `Non lues${unread > 0 ? ` (${unread})` : ''}`]] as const).map(([k, l]) => (
+          <button key={k} onClick={() => setFilter(k)}
+            className="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+            style={filter === k ? { background: PURPLE, color: '#fff' } : { background: 'var(--surface-g, #F4F6FA)', color: '#5F6B7A' }}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 md:px-5 py-4 pb-24 space-y-2">
+        {loading ? (
+          [1, 2, 3, 4].map(i => <div key={i} className="skeleton rounded-2xl h-20" />)
+        ) : displayed.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-surface-g text-text-grey"><IcBell /></div>
+            <p className="font-bold text-text-dark">{filter === 'non_lues' ? 'Tout est lu !' : 'Aucune notification'}</p>
+            <p className="text-sm text-text-grey">{filter === 'non_lues' ? 'Vous êtes à jour.' : 'Les alertes de vos biens et visites apparaîtront ici.'}</p>
+          </div>
+        ) : (
+          displayed.map(n => {
+            const ic = notifIconD(n.type)
+            return (
+              <button key={n.id} onClick={() => openNotif(n)}
+                className="w-full text-left bg-white rounded-2xl p-4 flex items-start gap-4 transition-colors border"
+                style={{ borderColor: n.lu ? 'var(--divider, #E5E7EB)' : PURPLE }}>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-surface-g" style={{ color: ic.color }}>
+                  {ic.node}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm leading-snug text-text-dark" style={{ fontWeight: n.lu ? 500 : 700 }}>{n.titre || n.corps}</p>
+                  {n.corps && n.titre && <p className="text-xs text-text-grey mt-1 line-clamp-2">{n.corps}</p>}
+                  <p className="text-xs text-text-grey mt-1.5">{notifTimeAgo(n.created_at)}</p>
+                </div>
+                {!n.lu && <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1" style={{ background: PURPLE }} />}
+              </button>
+            )
+          })
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -805,6 +964,7 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function DemarcheurDashboard() {
   const { user: authUser } = useAuth()
+  const { unreadAlertes } = useNotifications()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
   const [user, setUser] = useState<any>(null)
@@ -878,6 +1038,13 @@ export default function DemarcheurDashboard() {
               <p className="text-white/70 text-xs md:text-sm">Bonjour 👋</p>
               <p className="text-white font-bold text-base md:text-xl truncate">{loading ? '…' : `${me?.prenom || ''} ${me?.nom || ''}`.trim()}</p>
             </div>
+            {/* Cloche → onglet notifications interne à l'espace démarcheur */}
+            <button onClick={() => setTab('notifications')} title="Notifications"
+              className="relative w-10 h-10 rounded-full flex items-center justify-center border flex-shrink-0 transition-colors"
+              style={{ background: tab === 'notifications' ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)', color: '#fff' }}>
+              <IcBell />
+              {unreadAlertes > 0 && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style={{ background: '#FF3B30', borderColor: MID_PURPLE }} />}
+            </button>
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0 xl:hidden"
               style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
               <IcVerif />
@@ -979,9 +1146,10 @@ export default function DemarcheurDashboard() {
             </div>
           </div>
         )}
-        {tab === 'biens'        && <MesBiensTab />}
-        {tab === 'reservations' && <ReservationsTab />}
-        {tab === 'creneaux'     && <CreneauxTab />}
+        {tab === 'biens'         && <MesBiensTab />}
+        {tab === 'reservations'  && <ReservationsTab />}
+        {tab === 'creneaux'      && <CreneauxTab />}
+        {tab === 'notifications' && <NotificationsTab onOpenTab={setTab} />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
         {tab === 'delegations'  && <DelegationsRecuesTab onBack={() => setTab('profil')} />}
         {tab === 'profil'       && <ProfilTab user={me} onOpenDelegations={() => setTab('delegations')} />}
