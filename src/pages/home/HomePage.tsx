@@ -317,7 +317,7 @@ export default function HomePage() {
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
-              <img src={logoUrl} alt="REFUGE" className="w-12 h-12 object-contain drop-shadow-lg flex-shrink-0" />
+              <img src={logoUrl} alt="REFUGE" className="object-contain drop-shadow-lg flex-shrink-0" style={{ width: 64, height: 'auto' }} />
               <div>
                 <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: '#00AEEF' }}>REFUGE</p>
                 <p className="text-white/60 text-[11px] mt-0.5">
