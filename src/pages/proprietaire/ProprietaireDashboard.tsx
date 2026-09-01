@@ -1076,7 +1076,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
   // le prénom réel sans condition de statut.
   const nom = v.client?.prenom || v.client?.nom || 'Client'
   const init = nom ? nom[0].toUpperCase() : 'C'
-  const bType = typeLabel(v.bien?.type || '')
+  const bType = v.bien ? bienLabel(v.bien) : ''
   const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
   const dateStr = v.date_souhaitee
     ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -1258,7 +1258,7 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
   const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
   const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
   const initiale = clientNom[0]?.toUpperCase() || '?'
-  const bType = typeLabel(v.bien?.type || '')
+  const bType = v.bien ? bienLabel(v.bien) : ''
   const loc = v.bien?.localisation
   const bLoc = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
   const dateRef = v.date_contre_proposee || v.date_souhaitee
@@ -1554,7 +1554,7 @@ function ReservationsTab({ biens, onScrolled }: { biens: any[]; onScrolled?: (v:
       if (!id || seen.has(id)) continue
       seen.add(id)
       const loc = v.bien?.localisation
-      list.push({ id, label: `${typeLabel(v.bien?.type || '')} — ${loc?.quartier || loc?.ville || ''}` })
+      list.push({ id, label: `${v.bien ? bienLabel(v.bien) : ''} — ${loc?.quartier || loc?.ville || ''}` })
     }
     return list
   })()
@@ -1707,7 +1707,7 @@ function ReservationsTab({ biens, onScrolled }: { biens: any[]; onScrolled?: (v:
                   : statutVisite(v.statut)
                 const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
                 const initiale = clientNom[0]?.toUpperCase() || '?'
-                const bType = typeLabel(v.bien?.type || '')
+                const bType = v.bien ? bienLabel(v.bien) : ''
                 const loc = v.bien?.localisation
                 const bLoc = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
                 const dateRef = v.date_contre_proposee || v.date_souhaitee
@@ -2074,7 +2074,7 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                   <div key={b.id} className="rounded-2xl p-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
                     <div className="flex items-start justify-between mb-2">
                       <div className="min-w-0">
-                        <p className="font-bold text-sm truncate" style={{ color: 'var(--p-text)' }}>{typeLabel(b.type)}</p>
+                        <p className="font-bold text-sm truncate" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
                         <p className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville || '—'}</p>
                       </div>
                       <span className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE }}>{fmtPrix(b.prix)}<span className="font-normal opacity-70">/mois</span></span>
@@ -2186,7 +2186,7 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                           {c.locataire?.prenom} {c.locataire?.nom}
                         </p>
                         <p className="text-white/70 text-[11px] truncate">
-                          {typeLabel(c.bien?.type || '')} · {c.bien?.localisation?.ville || '—'}
+                          {c.bien ? bienLabel(c.bien) : ''} ·{c.bien?.localisation?.ville || '—'}
                         </p>
                       </div>
                     </div>
@@ -2312,7 +2312,7 @@ function CreneauxTab() {
           <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
             className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }}>
             <option value="">Choisir un bien</option>
-            {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
+            {biens.map(b => <option key={b.id} value={b.id}>{bienLabel(b)} — {b.localisation?.ville}</option>)}
           </select>
           <div className="flex gap-2">
             <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
@@ -2438,7 +2438,7 @@ function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () =>
               {c.locataire?.prenom} {c.locataire?.nom}
             </p>
             <p className="text-white/70 text-[12px]">
-              {typeLabel(c.bien?.type || '')} · {c.bien?.localisation?.quartier ? `${c.bien.localisation.quartier}, ` : ''}{c.bien?.localisation?.ville || '—'}
+              {c.bien ? bienLabel(c.bien) : ''} ·{c.bien?.localisation?.quartier ? `${c.bien.localisation.quartier}, ` : ''}{c.bien?.localisation?.ville || '—'}
             </p>
           </div>
         </div>

@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
-
-const TYPE_LABELS: Record<string, string> = {
-  maison: 'Maison', appart_vide: 'Appartement vide',
-  appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain',
-}
+import { bienTypeLabel } from '../../utils/bienType'
 
 const GREEN = '#1A6B3C'
 const GREEN2 = '#27AE60'
@@ -82,7 +78,7 @@ export default function RecuPage() {
   const isIntegration = type === 'integration'
   const isLoyer = type === 'loyer'
   const bien = isIntegration || isLoyer ? recu.bien : recu.visite?.bien
-  const typeLabel = bien ? (TYPE_LABELS[bien.type] || bien.type) : ''
+  const typeLabel = bien ? bienTypeLabel(bien) : ''
   const client = recu.locataire || recu.client
   const gestionnaire = recu.gestionnaire
   const gestionnaireRoleLabel = gestionnaire?.role === 'demarcheur' ? 'Agent immobilier' : 'Propriétaire'

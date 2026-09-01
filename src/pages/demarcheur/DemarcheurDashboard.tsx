@@ -10,6 +10,7 @@ import { chatApi } from '../../api/chatApi'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
+import { bienTypeLabel } from '../../utils/bienType'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -55,10 +56,6 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'profil',       label: 'Profil',       icon: <IcPerson /> },
 ]
 
-function typeLabel(t: string) {
-  const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse' }
-  return m[t] || t
-}
 function fmtPrix(p: any) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
 }
@@ -181,7 +178,7 @@ function MesBiensTab() {
                     <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
                   </div>
                   <div className="p-3.5">
-                    <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
+                    <p className="font-bold text-text-dark text-sm">{bienTypeLabel(b)}</p>
                     <div className="flex items-center gap-1 mt-0.5"><span className="text-text-grey"><IcPin /></span><span className="text-xs text-text-grey">{adresse}</span></div>
                     {b.statut_moderation === 'rejete' && b.motif_refus && (
                       <div className="mt-2 p-2 rounded-lg bg-danger/5 border border-danger/20"><p className="text-danger text-xs">{b.motif_refus}</p></div>
@@ -252,7 +249,7 @@ function ReservationsTab() {
   // demarcheur_reservations.dart::_ouvrirChatEchouee sur mobile.
   const ouvrirChatEchouee = (v: any) => {
     const prenom = v.client?.prenom || ''
-    const bType = typeLabel(v.bien?.type || '')
+    const bType = v.bien ? bienTypeLabel(v.bien) : ''
     const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : ''
     const raw = v.date_contre_proposee || v.date_souhaitee
     const dateStr = raw ? new Date(raw).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) + ' à ' + new Date(raw).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
@@ -306,7 +303,7 @@ function ReservationsTab() {
           const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
           const nom = 'Client'
           const init = 'C'
-          const bType = typeLabel(v.bien?.type || '')
+          const bType = v.bien ? bienTypeLabel(v.bien) : ''
           const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : '—'
           const dateStr = v.date_souhaitee
             ? new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -456,7 +453,7 @@ function CreneauxTab() {
           <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
             className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
             <option value="">Choisir un bien</option>
-            {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
+            {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}
           </select>
           <div className="flex gap-2">
             <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
@@ -673,7 +670,7 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
               </div>
               <p className="text-xs text-text-grey mb-3">
-                {d.bien ? `${typeLabel(d.bien.type)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'}
+                {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'}
               </p>
               {d.statut === 'en_attente' && (
                 <div className="flex gap-2">
@@ -965,7 +962,7 @@ export default function DemarcheurDashboard() {
                       <span style={{ color: PURPLE }}><IcHome /></span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-text-dark text-sm">{typeLabel(b.type)}</p>
+                      <p className="font-bold text-text-dark text-sm">{bienTypeLabel(b)}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="text-text-grey"><IcPin /></span>
                         <p className="text-xs text-text-grey truncate">{adresse}</p>

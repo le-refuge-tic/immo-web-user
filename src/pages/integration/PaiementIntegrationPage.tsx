@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
+import { bienTypeLabel } from '../../utils/bienType'
 
 const TEAL = '#0EA5E9'
 
@@ -116,7 +117,7 @@ export default function PaiementIntegrationPage() {
           {/* Récap bien */}
           {bien && (
             <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
-              <p className="font-bold text-text-dark text-sm mb-1">{['maison','appart_vide','appart_meuble','guesthouse','terrain'].includes(bien.type) ? ({maison:'Maison',appart_vide:'Appartement vide',appart_meuble:'Appartement meublé',guesthouse:'Guesthouse',terrain:'Terrain'})[bien.type as string] : bien.type}</p>
+              <p className="font-bold text-text-dark text-sm mb-1">{bienTypeLabel(bien)}</p>
               <p className="text-xs text-text-grey">{bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville}</p>
             </div>
           )}

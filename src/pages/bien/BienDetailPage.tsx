@@ -7,6 +7,7 @@ import { infosLogementRows, infosTerrainRows, type InfoRow } from '../../utils/a
 import EditBienModal from './EditBienModal'
 import ShareSheet from '../../components/ShareSheet'
 import { shareBien } from '../../services/shareService'
+import { bienTypeLabel } from '../../utils/bienType'
 import logoSbee from '../../assets/logo-SBEE.png'
 import logoSoneb from '../../assets/logo-SONEB.png'
 
@@ -16,11 +17,6 @@ function resolveUrl(url: string) {
   if (!url) return ''
   if (url.startsWith('http')) return url
   return BACKEND + url
-}
-
-const TYPE_LABELS: Record<string, string> = {
-  maison: 'Maison', appart_vide: 'Appartement vide',
-  appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain',
 }
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -315,7 +311,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const photos: any[] = bien.photos || []
   const allUrls = photos.map((p: any) => resolveUrl(p.url))
   const isLocation = bien.transaction === 'location'
-  const typeLabel = TYPE_LABELS[bien.type] || bien.type
+  const typeLabel = bienTypeLabel(bien)
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
   const title = bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
   const prix = Number(bien.prix).toLocaleString('fr-FR')

@@ -5,6 +5,7 @@ import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { chatApi } from '../../api/chatApi'
 import FaceRating from '../../components/FaceRating'
+import { bienTypeLabel } from '../../utils/bienType'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
@@ -37,13 +38,6 @@ const OPERATORS = [
   { key: 'fedapay', label: 'FedaPay'  },
 ]
 
-const TYPE_LABELS: Record<string, string> = {
-  maison:        'Maison',
-  appart_vide:   'Appartement vide',
-  appart_meuble: 'Appartement meublé',
-  guesthouse:    'Guesthouse',
-  terrain:       'Terrain',
-}
 
 function fmtDate(raw: string | undefined | null) {
   if (!raw) return '--'
@@ -185,7 +179,7 @@ export default function MesVisitesPage() {
   const handleContacterEchouee = (v: any) => {
     const bien = v.bien
     const gestionnairePrenom = v.gestionnaire?.prenom || ''
-    const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'ce bien'
+    const typeStr = bien ? bienTypeLabel(bien) : 'ce bien'
     const loc = bien?.localisation?.quartier ? `${bien.localisation.quartier}, ${bien.localisation.ville}` : (bien?.localisation?.ville || '')
     const msg = `Bonjour${gestionnairePrenom ? ' ' + gestionnairePrenom : ''}, je vous contacte au sujet de notre visite prévue le ${fmtDate(v.date_contre_proposee || v.date_souhaitee)} pour le bien ${typeStr}${loc ? ' à ' + loc : ''}, qui ne s'est pas tenue. Peut-on reprogrammer ?`
     if (bien?.id) openChat(bien.id, msg)
@@ -579,7 +573,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
   const isDatePassee = isDatePasseeVisite(v)
   const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' })
   const bien = v.bien
-  const typeStr = TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
+  const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
   const isCP = v.statut === 'contre_proposee' && !isEchouee
   const [reproposing, setReproposing] = useState(false)
   const [newDate, setNewDate] = useState('')
