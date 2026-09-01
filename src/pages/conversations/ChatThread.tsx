@@ -370,42 +370,45 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           </div>
         </div>
 
-        {/* Rôle dans la conversation */}
-        {role && (
-          <div className="rounded-2xl px-4 py-3 space-y-1" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px solid ${divider}` }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: ts }}>Rôle</p>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-              </svg>
-              <p className="text-[13px] font-semibold" style={{ color: tp }}>{role}</p>
+        {/* Rôle + Bien concerné */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
+          {/* Rôle */}
+          <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${divider}` }}>
+            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Rôle</p>
+              <p className="text-[13px] font-semibold" style={{ color: role ? tp : ts }}>{role || 'Non renseigné'}</p>
             </div>
           </div>
-        )}
-
-        {/* Bien concerné */}
-        {conv?.bien?.id && (
-          <div className="rounded-2xl overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px solid ${divider}` }}>
-            <div className="px-4 pt-3 pb-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: ts }}>Bien concerné</p>
-              <div className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                </svg>
-                <div className="min-w-0">
-                  {bienTypeLabel && <p className="text-[13px] font-semibold" style={{ color: tp }}>{bienTypeLabel}</p>}
-                  {bienLoc && <p className="text-[12px] mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
-                </div>
-              </div>
+          {/* Bien concerné */}
+          <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: conv?.bien?.id ? `1px solid ${divider}` : undefined }}>
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Bien concerné</p>
+              {conv?.bien?.id ? (
+                <>
+                  <p className="text-[13px] font-semibold" style={{ color: tp }}>{bienTypeLabel || 'Bien'}</p>
+                  {bienLoc && <p className="text-[11px] mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+                </>
+              ) : (
+                <p className="text-[13px] font-semibold" style={{ color: ts }}>Non renseigné</p>
+              )}
             </div>
+          </div>
+          {/* Lien vers le bien */}
+          {conv?.bien?.id && (
             <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
               className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer transition-opacity hover:opacity-80"
-              style={{ borderTop: `1px solid ${divider}`, color: '#4B6BFF' }}>
+              style={{ color: '#4B6BFF' }}>
               <span className="text-[12px] font-bold">Voir le bien</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Actions signalement */}
         <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
