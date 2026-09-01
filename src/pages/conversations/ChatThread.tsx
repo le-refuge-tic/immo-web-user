@@ -533,48 +533,54 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           </div>
         )}
 
+        {/* ── Bandeaux fixes (épinglé + créneau) ── */}
+        {(pinnedMsg || lastSlot) && (
+          <div className="flex-shrink-0 px-3 sm:px-5 pt-3 space-y-2">
+            {/* Message épinglé */}
+            {pinnedMsg && (
+              <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                className="flex items-center gap-2 w-full rounded-2xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
+                style={{ background: pinBg, borderLeftColor: '#4B6BFF', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                <span style={{ color: '#4B6BFF' }}><PinFill /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#4B6BFF' }}>Épinglé</p>
+                  <p className="text-[12px] truncate" style={{ color: tp }}>{pinnedMsg.contenu}</p>
+                </div>
+              </button>
+            )}
+
+            {/* Dernier créneau — bandeau */}
+            {lastSlot && (() => {
+              const status = lastSlot.metadata?.status || 'pending'
+              const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
+              const cfg: Record<string, { accent: string; label: string }> = {
+                accepted: { accent: '#22C55E', label: 'Créneau confirmé' },
+                declined: { accent: '#EF4444', label: 'Créneau refusé' },
+                countered: { accent: '#FB923C', label: 'Contre-proposition' },
+                pending: { accent: '#4B6BFF', label: 'Créneau en discussion' },
+              }
+              const c = cfg[status] || cfg.pending
+              return (
+                <button onClick={() => document.getElementById(`msg-${lastSlot.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-2.5 border-l-4 text-left cursor-pointer anim-fade-in"
+                  style={{ background: pinBg, borderLeftColor: c.accent, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: c.accent }}>{c.label}</p>
+                    <p className="text-[12px] font-semibold truncate" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
+                  </div>
+                  <ChevDown />
+                </button>
+              )
+            })()}
+          </div>
+        )}
+
         {/* ── Messages ── */}
         <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 scrollbar-auto relative"
           onClick={() => { setMenuId(null); setMenuPos(null); setShowHeaderMenu(false) }}>
-
-          {/* Message épinglé */}
-          {pinnedMsg && (
-            <div className="flex items-center gap-2 rounded-2xl px-3 py-2 mb-3 border-l-4 anim-fade-in"
-              style={{ background: pinBg, borderLeftColor: '#4B6BFF', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
-              <span style={{ color: '#4B6BFF' }}><PinFill /></span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#4B6BFF' }}>Épinglé</p>
-                <p className="text-[12px] truncate" style={{ color: tp }}>{pinnedMsg.contenu}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Dernier créneau — bandeau */}
-          {lastSlot && (() => {
-            const status = lastSlot.metadata?.status || 'pending'
-            const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
-            const cfg: Record<string, { accent: string; label: string }> = {
-              accepted: { accent: '#22C55E', label: 'Créneau confirmé' },
-              declined: { accent: '#EF4444', label: 'Créneau refusé' },
-              countered: { accent: '#FB923C', label: 'Contre-proposition' },
-              pending: { accent: '#4B6BFF', label: 'Créneau en discussion' },
-            }
-            const c = cfg[status] || cfg.pending
-            return (
-              <button onClick={() => document.getElementById(`msg-${lastSlot.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-2.5 mb-3 border-l-4 text-left cursor-pointer anim-fade-in"
-                style={{ background: pinBg, borderLeftColor: c.accent, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: c.accent }}>{c.label}</p>
-                  <p className="text-[12px] font-semibold truncate" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
-                </div>
-                <ChevDown />
-              </button>
-            )
-          })()}
 
           {/* Liste messages */}
           {loading ? (
