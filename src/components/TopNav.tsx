@@ -190,6 +190,7 @@ export default function TopNav() {
                 </button>
               </div>
             ) : (
+              <div className="flex items-center gap-2">
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen(o => !o)}
@@ -231,71 +232,66 @@ export default function TopNav() {
                       boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.45)' : 'inset 0 1.5px 0 rgba(255,255,255,1), 0 20px 60px rgba(0,0,0,0.14)',
                     }}
                   >
-                    {/* Section "Mes espaces" — uniquement si plusieurs rôles */}
-                    {espacesRoles.length > 1 && (
-                      <>
-                        <div className="px-4 pt-3 pb-1">
-                          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)' }}>
-                            Mes espaces
-                          </p>
-                        </div>
-                        {espacesRoles.map(role => {
-                          const { label, path } = ROLE_ROUTES[role]
-                          const isCurrent = activeRole === role
-                          return (
-                            <button
-                              key={role}
-                              onClick={() => { setActiveRole(role); navigate(path); setMenuOpen(false) }}
-                              className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
-                              style={{ color: isCurrent ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
-                              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
-                              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
-                            >
-                              <span>{label}</span>
-                              {isCurrent && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
-                                  Actif
-                                </span>
-                              )}
-                            </button>
-                          )
-                        })}
-                        <div style={{ borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)') }} />
-                      </>
-                    )}
-
-                    {/* Liens profil standard */}
-                    {[
-                      { label: 'Mon profil',    path: '/profil' },
-                      { label: 'Mes visites',   path: '/mes-visites' },
-                      { label: 'Messages',      path: '/conversations' },
-                      { label: 'Favoris',       path: '/favoris' },
-                      { label: 'Notifications', path: '/notifications' },
-                    ].map(item => (
-                      <button key={item.path} onClick={() => { navigate(item.path); setMenuOpen(false) }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-all"
-                        style={menuItemStyle}
+                    <div className="px-4 pt-3 pb-1">
+                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)' }}>
+                        Mes espaces
+                      </p>
+                    </div>
+                    {espacesRoles.length > 1 ? (
+                      /* Multi-rôles : liste des espaces avec bascule silencieuse. */
+                      espacesRoles.map(role => {
+                        const { label, path } = ROLE_ROUTES[role]
+                        const isCurrent = activeRole === role
+                        return (
+                          <button
+                            key={role}
+                            onClick={() => { setActiveRole(role); navigate(path); setMenuOpen(false) }}
+                            className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
+                            style={{ color: isCurrent ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
+                            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
+                          >
+                            <span>{label}</span>
+                            {isCurrent && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+                                Actif
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })
+                    ) : (
+                      /* Rôle unique : le seul "espace" mène au profil. */
+                      <button
+                        onClick={() => { navigate('/profil'); setMenuOpen(false) }}
+                        className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
+                        style={{ color: '#4B6BFF' }}
                         onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
                         onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
                       >
-                        {item.label}
+                        <span>{ROLE_ROUTES[activeRole]?.label || 'Mon profil'}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+                          Actif
+                        </span>
                       </button>
-                    ))}
-
-                    <div style={{ borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)') }} />
-
-                    {/* Logout avec icône */}
-                    <button onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-all"
-                      style={{ color: '#FF3B30' }}
-                      onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,59,48,0.08)'}
-                      onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
-                    >
-                      <LogOutIcon />
-                      Se déconnecter
-                    </button>
+                    )}
                   </div>
                 )}
+              </div>
+
+              {/* Déconnexion — bouton séparé à côté, comme l'espace propriétaire */}
+              <button onClick={handleLogout} title="Se déconnecter" aria-label="Se déconnecter"
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)',
+                  border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'),
+                  color: '#FF3B30',
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,59,48,0.10)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)'}
+              >
+                <LogOutIcon />
+              </button>
               </div>
             )}
           </div>
