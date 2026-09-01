@@ -370,20 +370,41 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           </div>
         </div>
 
-        {/* Action rapide — voir le bien */}
-        {conv?.bien?.id && (
-          <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
-            className="flex items-center gap-2.5 w-full px-3.5 py-3 rounded-2xl cursor-pointer transition-opacity hover:opacity-80"
-            style={{ background: 'rgba(75,107,255,0.10)', border: '1px solid rgba(75,107,255,0.18)' }}>
-            <svg className="w-5 h-5 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-            <div className="text-left min-w-0">
-              <p className="text-[12px] font-bold" style={{ color: '#4B6BFF' }}>Voir le bien</p>
-              {bienTypeLabel && <p className="text-[11px] truncate" style={{ color: ts }}>{bienTypeLabel}{bienLoc ? ` · ${bienLoc}` : ''}</p>}
+        {/* Rôle dans la conversation */}
+        {role && (
+          <div className="rounded-2xl px-4 py-3 space-y-1" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px solid ${divider}` }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: ts }}>Rôle</p>
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <p className="text-[13px] font-semibold" style={{ color: tp }}>{role}</p>
             </div>
-            <svg className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-          </button>
+          </div>
+        )}
+
+        {/* Bien concerné */}
+        {conv?.bien?.id && (
+          <div className="rounded-2xl overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px solid ${divider}` }}>
+            <div className="px-4 pt-3 pb-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: ts }}>Bien concerné</p>
+              <div className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <div className="min-w-0">
+                  {bienTypeLabel && <p className="text-[13px] font-semibold" style={{ color: tp }}>{bienTypeLabel}</p>}
+                  {bienLoc && <p className="text-[12px] mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+                </div>
+              </div>
+            </div>
+            <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
+              className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer transition-opacity hover:opacity-80"
+              style={{ borderTop: `1px solid ${divider}`, color: '#4B6BFF' }}>
+              <span className="text-[12px] font-bold">Voir le bien</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
         )}
 
         {/* Actions signalement */}
