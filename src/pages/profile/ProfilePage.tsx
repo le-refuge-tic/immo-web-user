@@ -8,6 +8,7 @@ import { walletApi } from '../../api/walletApi'
 import EditProfileModal from './EditProfileModal'
 import ChangePasswordModal from './ChangePasswordModal'
 import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
+import { bienTypeLabel } from '../../utils/bienType'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -274,7 +275,7 @@ export default function ProfilePage() {
             <div key={v.id} className="rounded-[12px] p-3" style={{ background: '#F59E0B0D', border: '1px solid #F59E0B26' }}>
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-semibold text-text-dark truncate">
-                  {v.bien?.type || v.bienType || 'Bien'}
+                  {v.bien ? bienTypeLabel(v.bien) : 'Bien'}
                   {v.bien?.localisation?.quartier ? ` — ${v.bien.localisation.quartier}` : ''}
                 </p>
                 <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -300,25 +301,50 @@ export default function ProfilePage() {
     )
   )
 
-  const VisiteActiveBlock = () => (
-    visiteActive ? (
-      <div className="glass-card rounded-[14px] p-3.5 flex items-center gap-3">
+  const VisiteActiveBlock = () => {
+    if (!visiteActive) return null
+    const bien = visiteActive.bien || visiteActive.creneau?.bien
+    const bienId = bien?.id
+    const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
+    const lieu = bien?.localisation ? (bien.localisation.quartier || bien.localisation.ville) : null
+    const dateStr = visiteActive.creneau?.debut
+      ? new Date(visiteActive.creneau.debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+      : visiteActive.dateVisite || null
+    const goToBien = () => { if (bienId) navigate(`/biens/${bienId}`) }
+
+    return (
+      <div
+        onClick={goToBien}
+        role={bienId ? 'button' : undefined}
+        tabIndex={bienId ? 0 : undefined}
+        onKeyDown={e => { if (bienId && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); goToBien() } }}
+        className={`glass-card rounded-[14px] p-3.5 flex items-center gap-3 ${bienId ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+      >
         <div className="w-[42px] h-[42px] rounded-[11px] bg-primary/10 flex items-center justify-center flex-shrink-0">
           <EyeActiveIcon />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="text-[13px] font-bold text-text-dark">{visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}</p>
-          <p className="text-[11px] text-text-grey mt-0.5">
-            {visiteActive.creneau?.bien?.type || visiteActive.bienType || 'Bien'}
-            {visiteActive.creneau?.debut ? ` · ${new Date(visiteActive.creneau.debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}` : visiteActive.dateVisite ? ` · ${visiteActive.dateVisite}` : ''}
+          <p className="text-[11px] text-text-grey mt-0.5 truncate">
+            {typeStr}
+            {lieu ? ` — ${lieu}` : ''}
+            {dateStr ? ` · ${dateStr}` : ''}
           </p>
         </div>
-        <button onClick={handleAnnuler} className="text-[11px] font-bold text-danger px-2.5 py-1.5 rounded-[8px]" style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
+        {bienId && (
+          <svg className="w-4 h-4 flex-shrink-0 text-text-grey/50" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        )}
+        <button
+          onClick={e => { e.stopPropagation(); handleAnnuler() }}
+          className="text-[11px] font-bold text-danger px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
+          style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
           Annuler
         </button>
       </div>
-    ) : null
-  )
+    )
+  }
 
   return (
     <div className="min-h-full">
