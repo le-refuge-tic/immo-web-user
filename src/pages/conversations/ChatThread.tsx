@@ -471,7 +471,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   }
 
   return (
-    <div className="flex flex-col md:flex-row" style={{ background: chatBg, height: '100%', minHeight: 0 }}>
+    <div className="flex flex-col md:flex-row fixed inset-0 z-40 md:static md:z-auto md:h-full" style={{ background: chatBg, minHeight: 0 }}>
 
       {/* ═══ ZONE CHAT ═══ */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
@@ -626,25 +626,25 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
               <div key={msg.id} id={`msg-${msg.id}`}>
                 {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
 
-                <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-0.5' : 'mb-1.5'}`}>
-                  <div className="relative max-w-[72%] sm:max-w-[60%] md:max-w-[52%]">
+                <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-[3px]' : 'mb-1'}`}>
+                  <div className="relative max-w-[78%] sm:max-w-[62%] md:max-w-[54%]">
 
                     {isSupprime ? (
-                      <div className="px-3 py-2 rounded-2xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
-                        <p className="text-[13px] italic" style={{ color: tm }}>Message supprimé</p>
+                      <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
+                        <p className="text-[12.5px] italic" style={{ color: tm }}>Message supprimé</p>
                         <button onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false) }}
                           className="text-[11px] underline mt-0.5 cursor-pointer" style={{ color: '#4B6BFF' }}>En savoir plus</button>
-                        <p className="text-[10px] mt-1" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
+                        <p className="text-[10px] mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
                       </div>
                     ) : (
-                      <div className={`${isMe ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl rounded-bl-sm'} ${grouped && isMe ? 'rounded-tr-md' : ''} ${grouped && !isMe ? 'rounded-tl-md' : ''}`}
+                      <div className={`${isMe ? 'rounded-xl rounded-br-[4px]' : 'rounded-xl rounded-bl-[4px]'} ${grouped && isMe ? 'rounded-tr-[6px]' : ''} ${grouped && !isMe ? 'rounded-tl-[6px]' : ''}`}
                         style={isMe
-                          ? { background: bubbleMeBg, padding: '7px 11px' }
-                          : { background: bubbleOtherBg, border: `1px solid ${bubbleOtherBdr}`, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '7px 11px', color: tp }
+                          ? { background: bubbleMeBg, padding: '6px 10px' }
+                          : { background: bubbleOtherBg, border: `1px solid ${bubbleOtherBdr}`, padding: '6px 10px', color: tp }
                         }>
                         {/* Citation */}
                         {msg.reply_to_contenu && (
-                          <div className="text-[12px] px-2 py-1 rounded-lg mb-1.5 border-l-2 line-clamp-2"
+                          <div className="text-[11.5px] px-2 py-1 rounded-lg mb-1 border-l-2 line-clamp-2"
                             style={isMe
                               ? { borderLeftColor: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)' }
                               : { borderLeftColor: '#4B6BFF', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(75,107,255,0.06)', color: ts }
@@ -653,11 +653,11 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                           </div>
                         )}
                         {/* Texte */}
-                        <p className="text-[13.5px] leading-[1.45] break-words" style={{ color: isMe ? '#fff' : tp }}>{msg.contenu}</p>
+                        <p className="text-[14px] leading-[1.4] break-words" style={{ color: isMe ? '#fff' : tp }}>{msg.contenu}</p>
                         {/* Footer */}
-                        <div className="flex items-center gap-1 mt-0.5 justify-end">
-                          {msg.modifie && <span className="text-[10px] italic" style={{ color: isMe ? 'rgba(255,255,255,0.50)' : tm }}>modifié ·</span>}
-                          <span className="text-[10px]" style={{ color: isMe ? 'rgba(255,255,255,0.50)' : tm }}>{timeLabel(msg.created_at)}</span>
+                        <div className="flex items-center gap-1 -mt-0.5 justify-end">
+                          {msg.modifie && <span className="text-[9.5px] italic" style={{ color: isMe ? 'rgba(255,255,255,0.50)' : tm }}>modifié ·</span>}
+                          <span className="text-[9.5px]" style={{ color: isMe ? 'rgba(255,255,255,0.55)' : tm }}>{timeLabel(msg.created_at)}</span>
                           <MsgStatus status={msg.status} isMe={isMe} />
                         </div>
                       </div>
