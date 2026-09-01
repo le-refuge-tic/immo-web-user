@@ -311,13 +311,13 @@ export default function HomePage() {
     <div className="min-h-full overflow-x-hidden">
 
       {/* ══════════════ MOBILE HEADER ══════════════ */}
-      <div className="md:hidden relative px-4 pb-6 overflow-hidden rounded-b-3xl" style={{ background: '#0a0a0a', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
-        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.65))' }} />
+      <div className="md:hidden relative px-4 pb-6 rounded-b-3xl" style={{ background: '#0a0a0a', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
+        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 rounded-b-3xl" />
+        <div className="absolute inset-0 rounded-b-3xl" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.65))' }} />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
-              <img src={logoUrl} alt="REFUGE" className="w-14 h-14 object-contain drop-shadow-lg" />
+              <img src={logoUrl} alt="REFUGE" className="w-12 h-12 object-contain drop-shadow-lg flex-shrink-0" />
               <div>
                 <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: '#00AEEF' }}>REFUGE</p>
                 <p className="text-white/60 text-[11px] mt-0.5">
