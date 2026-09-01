@@ -471,10 +471,10 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   }
 
   return (
-    <div className="h-full flex flex-col md:flex-row" style={{ background: chatBg }}>
+    <div className="flex flex-col md:flex-row" style={{ background: chatBg, height: '100%', minHeight: 0 }}>
 
       {/* ═══ ZONE CHAT ═══ */}
-      <div className="flex-1 flex flex-col min-w-0 h-full">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
         {/* Header */}
         <div className="flex-shrink-0 safe-top px-4 pt-3 pb-3"
@@ -627,7 +627,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                 {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
 
                 <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-0.5' : 'mb-1.5'}`}>
-                  <div className="relative max-w-[55%] sm:max-w-[50%]">
+                  <div className="relative max-w-[72%] sm:max-w-[60%] md:max-w-[52%]">
 
                     {isSupprime ? (
                       <div className="px-3 py-2 rounded-2xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>

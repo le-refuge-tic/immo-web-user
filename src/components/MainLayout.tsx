@@ -9,6 +9,8 @@ import { useTheme } from '../context/ThemeContext'
 
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
 const HIDE_TOPNAV_PREFIXES: string[] = []
+// Pages qui gèrent leur propre scroll interne (pas de overflow-y-auto sur le layout)
+const OWN_SCROLL_PREFIXES = ['/conversations']
 
 export default function MainLayout() {
   const location = useLocation()
@@ -19,6 +21,7 @@ export default function MainLayout() {
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
   const hideTopNav = hideChrome || HIDE_TOPNAV_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
+  const ownScroll  = OWN_SCROLL_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setScrolled(e.currentTarget.scrollTop > 40)
@@ -58,9 +61,9 @@ export default function MainLayout() {
       )}
 
       <div
-        ref={scrollRef}
-        className={`flex-1 overflow-y-auto relative scrollbar-auto ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
-        onScroll={handleScroll}
+        ref={ownScroll ? undefined : scrollRef}
+        className={`flex-1 min-h-0 relative ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : ownScroll ? 'md:pt-[72px]' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
+        onScroll={ownScroll ? undefined : handleScroll}
       >
         <Outlet />
       </div>

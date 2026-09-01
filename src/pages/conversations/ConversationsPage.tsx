@@ -246,7 +246,7 @@ export default function ConversationsPage() {
       {/* ── MOBILE : liste seule ou fil actif ── */}
       <div className="md:hidden">
         {activeId === null ? (
-          <div className="min-h-dvh" style={{ background: bgSidebar }}>
+          <div style={{ background: bgSidebar, minHeight: '100dvh' }}>
             {/* Header mobile */}
             <div className="safe-top px-5 pt-5 pb-3 flex items-center justify-between sticky top-0 z-10"
               style={{ background: bgSidebar, borderBottom: `1px solid ${divider}` }}>
@@ -284,7 +284,7 @@ export default function ConversationsPage() {
       </div>
 
       {/* ── DESKTOP : sidebar + zone chat ── */}
-      <div className="hidden md:flex h-[calc(100dvh-72px)]">
+      <div className="hidden md:flex" style={{ height: 'calc(100dvh - 72px)' }}>
         <div className="w-[300px] lg:w-[320px] xl:w-[340px] flex-shrink-0">{renderSidePanel()}</div>
         <div className="flex-1 flex flex-col overflow-hidden" style={{ background: bgChatArea }}>
           {activeId !== null ? <Outlet /> : (

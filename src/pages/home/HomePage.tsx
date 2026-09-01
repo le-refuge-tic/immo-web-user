@@ -316,11 +316,14 @@ export default function HomePage() {
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.65))' }} />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="text-white/50 text-xs uppercase tracking-widest">REFUGE</p>
-              <h1 className="text-white text-xl font-bold mt-1">
-                {isLoggedIn ? `Bonjour, ${firstName}` : 'Trouvez votre bien'}
-              </h1>
+            <div className="flex items-center gap-2.5">
+              <img src={logoUrl} alt="REFUGE" className="w-10 h-10 object-contain drop-shadow-lg" />
+              <div>
+                <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: '#00AEEF' }}>REFUGE</p>
+                <p className="text-white/60 text-[11px] mt-0.5">
+                  {isLoggedIn ? `Bonjour, ${firstName}` : 'Trouvez votre bien'}
+                </p>
+              </div>
             </div>
             <button
               onClick={() => navigate(isLoggedIn ? '/profil' : '/login')}
