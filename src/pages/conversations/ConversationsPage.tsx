@@ -16,9 +16,10 @@ function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVAT
 function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 function initiale(o: any) { return (displayName(o)[0] || '?').toUpperCase() }
 function roleLabel(o: any) {
-  if (o?.role === 'demarcheur') return 'Agent immobilier'
+  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Agent immobilier'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'
+  if (o?.role === 'prospect') return 'Client'
   return null
 }
 function fmtTime(iso?: string) {
