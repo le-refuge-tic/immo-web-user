@@ -210,6 +210,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const isClientRole = other?.role === 'demarcheur' || other?.role === 'proprietaire'
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
   const bienLoc = conv?.bien?.localisation ? (conv.bien.localisation.quartier || conv.bien.localisation.ville) : null
+  const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
+  const isOnline = !!(other?.isOnline ?? conv?.isOnline)
 
   const showError = (e: any) => { setError(e?.response?.data?.message || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
   const scrollBot = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -362,18 +364,28 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             <span className="text-white font-extrabold text-2xl">{initial(otherName)}</span>
           </div>
           <div className="text-center">
-            <p className="text-[16px] font-bold" style={{ color: tp }}>{otherName}</p>
+            <div className="flex items-center justify-center gap-1.5">
+              <p className="text-[16px] font-bold" style={{ color: tp }}>{otherName}</p>
+              {isVerified && (
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
+                  <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
+                  <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
+                </svg>
+              )}
+            </div>
             {role && (
               <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
                 {role}
               </span>
             )}
           </div>
-          {/* Présence */}
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-green-400" />
-            <span className="text-[12px] font-medium" style={{ color: ts }}>En ligne</span>
-          </div>
+          {/* Présence — affichée seulement si connue */}
+          {isOnline && (
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-400" />
+              <span className="text-[12px] font-medium" style={{ color: ts }}>En ligne</span>
+            </div>
+          )}
         </div>
 
         {/* Rôle + Bien concerné */}
@@ -487,13 +499,25 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
             {/* Avatar cliquable → ouvre profil */}
             <button onClick={() => setShowProfile(p => !p)} className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer group">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
-                style={{ background: avatarGrad(other?.id ?? 0) }}>
-                <span className="text-white font-bold text-sm">{initial(otherName)}</span>
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105"
+                  style={{ background: avatarGrad(other?.id ?? 0) }}>
+                  <span className="text-white font-bold text-sm">{initial(otherName)}</span>
+                </div>
+                {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 bg-green-400" style={{ borderColor: hdrBg }} />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
-                {role && <p className="text-[12px] font-medium mt-0.5" style={{ color: '#4B6BFF' }}>{role}</p>}
+                <div className="flex items-center gap-1">
+                  <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
+                  {isVerified && (
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
+                      <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
+                      <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
+                    </svg>
+                  )}
+                </div>
+                {role ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#4B6BFF' }}>{role}</p>
+                  : isOnline ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#22C55E' }}>En ligne</p> : null}
               </div>
             </button>
 
