@@ -160,6 +160,11 @@ div:hover > .hero-arrow { opacity: 1; }
   .anim-fade-in    { animation: fade-in          0.45s ease both; }
   .anim-slide-right{ animation: slide-in-right   0.6s  cubic-bezier(0.22,0.61,0.36,1) both; }
   .anim-slide-left { animation: slide-in-left    0.6s  cubic-bezier(0.22,0.61,0.36,1) both; }
+  .banner-enter    { animation: banner-in         0.32s cubic-bezier(0.22,0.61,0.36,1) both; }
+  .banner-exit     { animation: banner-out        0.28s cubic-bezier(0.4,0,1,1) both; }
+
+  @keyframes banner-in  { from { opacity: 0; transform: translateY(-120%); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes banner-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-120%); } }
 
   .d-50  { animation-delay:  50ms; }
   .d-100 { animation-delay: 100ms; }

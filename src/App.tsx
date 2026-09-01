@@ -2,6 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
+import { BannerProvider } from './context/BannerContext'
 import { ScrollProvider } from './context/ScrollContext'
 import MainLayout from './components/MainLayout'
 import HomePage from './pages/home/HomePage'
@@ -81,6 +82,7 @@ function App() {
   return (
     <AuthProvider>
     <ScrollProvider>
+    <BannerProvider>
     <NotificationsProvider>
       <Routes>
         {/* Pages sans layout (standalone) */}
@@ -163,6 +165,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </NotificationsProvider>
+    </BannerProvider>
     </ScrollProvider>
     </AuthProvider>
   )
