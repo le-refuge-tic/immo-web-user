@@ -42,7 +42,7 @@ const LogOutIcon = () => (
 )
 
 export default function TopNav() {
-  const { isLoggedIn, user, logout, rolesActifs, activeRole } = useAuth()
+  const { isLoggedIn, user, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
   const { scrolled } = useScrolled()
   const { theme, toggleTheme } = useTheme()
@@ -243,7 +243,7 @@ export default function TopNav() {
                           return (
                             <button
                               key={role}
-                              onClick={() => { navigate(path); setMenuOpen(false) }}
+                              onClick={() => { setActiveRole(role); navigate(path); setMenuOpen(false) }}
                               className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
                               style={{ color: isCurrent ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
                               onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
