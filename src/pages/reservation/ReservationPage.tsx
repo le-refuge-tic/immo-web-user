@@ -3,6 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { chatApi } from '../../api/chatApi'
+import { rolesApi } from '../../api/rolesApi'
+import { useAuth } from '../../context/AuthContext'
+
+/** Rôles autorisés par le backend à réserver une visite (POST /visites → CLIENTS). */
+const ROLES_RESERVATION = ['prospect', 'locataire']
 
 const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
@@ -61,8 +66,15 @@ const GLASS = {
 export default function ReservationPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
+  const { rolesActifs, updateUser } = useAuth()
   const timeInputRef = useRef<HTMLInputElement>(null)
   const timeSectionRef = useRef<HTMLDivElement>(null)
+
+  // Le backend n'autorise que prospect/locataire à réserver. Un propriétaire ou
+  // démarcheur qui explore un bien n'a pas ce rôle → sans garde-fou, le POST
+  // renvoie un 403 « Forbidden resource » brut. On détecte le cas en amont pour
+  // proposer d'activer le rôle prospect à la volée plutôt que d'échouer.
+  const peutReserver = rolesActifs.some(r => ROLES_RESERVATION.includes(r))
 
   // today/tomorrow : minuit local (l'app cible des appareils en UTC+1, idem GMT+1)
   const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -77,6 +89,7 @@ export default function ReservationPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [activatingRole, setActivatingRole] = useState(false)
 
   useEffect(() => {
     if (!bienId) return
@@ -101,9 +114,29 @@ export default function ReservationPage() {
     return selectedTime ? `${label} à ${selectedTime.replace(':', 'h')}` : label
   }
 
+  /** Active le rôle prospect à la volée (le token est rafraîchi par rolesApi),
+   *  puis synchronise le contexte pour que `peutReserver` repasse à true. */
+  const activerRoleProspect = async () => {
+    setActivatingRole(true); setError('')
+    try {
+      await rolesApi.activer('prospect')
+      updateUser({ roles_actifs: [...rolesActifs, 'prospect'] })
+    } catch (e: any) {
+      setError(e?.response?.data?.message || "Impossible d'activer le profil prospect. Réessayez.")
+    } finally {
+      setActivatingRole(false)
+    }
+  }
+
   const handleSubmit = async () => {
     if (!selectedTime) { setError('Choisissez une heure pour la visite'); return }
     if (!bienId) { setError("Impossible d'envoyer la demande : bien non identifié"); return }
+    // Garde-fou : sans rôle prospect/locataire, le backend renverrait un 403.
+    // On invite à activer le profil prospect au lieu de laisser passer l'erreur.
+    if (!peutReserver) {
+      setError('Activez le profil prospect pour proposer une visite.')
+      return
+    }
     setError('')
     setSubmitting(true)
     try {
@@ -126,7 +159,12 @@ export default function ReservationPage() {
       // (fiche bien), comme le pop() du mobile — pas de redirection forcée.
       navigate(-1)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Erreur lors de la réservation')
+      // Fallback si le 403 passe malgré le garde-fou (token pas encore à jour) :
+      // message explicite au lieu du « Forbidden resource » brut du backend.
+      const msg = e?.response?.status === 403
+        ? 'Activez le profil prospect pour proposer une visite.'
+        : (e?.response?.data?.message || 'Erreur lors de la réservation')
+      setError(msg)
       setSubmitting(false)
     }
   }
@@ -328,7 +366,29 @@ export default function ReservationPage() {
     </div>
   )
 
-  const SubmitBtn = ({ full = false }) => (
+  // Invite affichée à la place du bouton d'envoi quand l'utilisateur (proprio /
+  // démarcheur sans rôle client) n'est pas autorisé à réserver : on lui propose
+  // d'activer le profil prospect en un clic plutôt que de le laisser buter sur un 403.
+  const ActivateProspectBtn = () => (
+    <button onClick={activerRoleProspect} disabled={activatingRole}
+      className="w-full py-4 rounded-[16px] font-bold text-white flex items-center justify-center gap-2 transition-all"
+      style={{ background: '#4B6BFF', boxShadow: '0 4px 12px rgba(75,107,255,0.35)' }}>
+      {activatingRole
+        ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+        : <span>Activer le profil prospect pour réserver</span>
+      }
+    </button>
+  )
+
+  // Bandeau explicatif quand le rôle client n'est pas actif.
+  const ProspectNotice = () => !peutReserver ? (
+    <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(75,107,255,0.08)', border: '1px solid rgba(75,107,255,0.25)' }}>
+      <p className="text-[13px] font-semibold text-text-dark">Profil prospect requis</p>
+      <p className="text-xs text-text-grey mt-0.5">Proposer une visite est réservé aux prospects et locataires. Activez le profil prospect pour continuer — vous gardez vos autres rôles.</p>
+    </div>
+  ) : null
+
+  const SubmitBtn = ({ full = false }) => !peutReserver ? <ActivateProspectBtn /> : (
     <button onClick={handleSubmit} disabled={submitting || !selectedTime}
       className={`${full ? 'w-full' : 'w-full'} py-4 rounded-[16px] font-bold text-white flex items-center justify-center gap-2 transition-all`}
       style={{ background: !selectedTime ? '#E5E7EB' : '#4B6BFF', boxShadow: selectedTime ? '0 4px 12px rgba(75,107,255,0.35)' : 'none' }}>
@@ -375,6 +435,7 @@ export default function ReservationPage() {
         <TimeCard />
         <PeopleCard />
         <SummaryCard />
+        <ProspectNotice />
         {error && (
           <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
             <p className="text-red-500 text-sm">{error}</p>
@@ -397,6 +458,7 @@ export default function ReservationPage() {
           {/* Colonne droite — récapitulatif sticky */}
           <div className="sticky top-6 space-y-4">
             <SummaryCard />
+            <ProspectNotice />
             {error && (
               <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
                 <p className="text-red-500 text-sm">{error}</p>
