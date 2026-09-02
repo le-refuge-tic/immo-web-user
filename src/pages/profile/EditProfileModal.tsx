@@ -46,7 +46,10 @@ export default function EditProfileModal({ open, onClose }: Props) {
     setError('')
     try {
       const data = await userApi.updateProfil({ nom, prenom, email: email || undefined, telephone: telephone || undefined })
-      updateUser(data.user || { nom, prenom, email, telephone })
+      // Le endpoint renvoie l'entité User mise à jour directement (pas de wrapper
+      // { user }). On applique donc soit data.user, soit l'entité elle-même, avec
+      // repli sur les valeurs saisies si la réponse est vide.
+      updateUser(data.user || data || { nom, prenom, email, telephone })
       setSuccess(true)
       setTimeout(onClose, 1000)
     } catch (err: any) {
