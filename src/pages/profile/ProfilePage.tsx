@@ -103,8 +103,8 @@ type Visite = {
   statut: string
   bienType?: string
   dateVisite?: string
-  creneau?: { debut: string; bien?: { type?: string } }
-  bien?: { type?: string; localisation?: { ville?: string; quartier?: string } }
+  creneau?: { debut: string; bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } } }
+  bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } }
   feedback_donne?: boolean
   note_client?: number | null
   feedback_tags?: string[]

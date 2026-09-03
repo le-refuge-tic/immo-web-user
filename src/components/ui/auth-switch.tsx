@@ -39,14 +39,14 @@ function BrandSlide() {
     <div
       className="w-full h-full flex flex-col items-center justify-center"
       style={{
-        background: 'linear-gradient(145deg, #1a2a6c 0%, #2d4de0 35%, #4B6BFF 65%, #3a1f6b 100%)',
+        background: 'linear-gradient(160deg, #0A0E1A 0%, #14192B 45%, #1E1533 100%)',
       }}
     >
       <img
         src={logoUrl}
         alt="REFUGE"
         className="object-contain drop-shadow-2xl mb-4"
-        style={{ width: 140, height: 140 }}
+        style={{ width: 300, height: 300 }}
       />
       <span
         className="text-white font-black tracking-[0.18em] uppercase drop-shadow-lg"
@@ -85,14 +85,12 @@ function SidePanel() {
       <div className="absolute inset-0 bg-gradient-to-t from-[#1D1D1F]/80 via-[#1D1D1F]/20 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#4B6BFF]/30 to-transparent" />
 
-      {/* Bord droit en fondu — pas de séparateur blanc */}
-      <div className="auth-side-fade" aria-hidden="true" />
 
       {/* Contenu sur l'overlay */}
       <div className="relative z-10 flex flex-col h-full p-8 justify-between">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <img src={logoUrl} alt="REFUGE" className="w-12 h-12 object-contain drop-shadow-lg" />
+          <img src={logoUrl} alt="REFUGE" className="w-20 h-20 object-contain drop-shadow-lg" />
           <span className="text-white text-xl font-black tracking-tight drop-shadow">REFUGE</span>
         </div>
 
@@ -697,7 +695,6 @@ export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 
       <SidePanel />
 
       <div className="auth-panel">
-        <PanelBubbles />
         <div className="auth-form-inner">
           <div className="flex justify-center mb-3">
             <img src={logoUrl} alt="REFUGE" className="w-20 h-20 object-contain drop-shadow-md" />
