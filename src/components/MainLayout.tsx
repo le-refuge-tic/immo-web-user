@@ -77,6 +77,29 @@ export default function MainLayout() {
       {/* Boutons flottants haut/bas — desktop uniquement */}
       {!hideChrome && <ScrollFloatButtons scrollRef={scrollRef} />}
 
+      {/* Téléchargement de l'app Android (APK) — bouton flottant discret */}
+      {!hideChrome && (
+        <a
+          href="/base.apk"
+          download
+          className="fixed z-50 bottom-24 md:bottom-6 left-4 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-sm font-semibold transition-transform hover:scale-105"
+          style={{
+            background: isDark ? 'rgba(30,30,40,0.85)' : 'rgba(255,255,255,0.9)',
+            color: '#4B6BFF',
+            border: '1px solid rgba(100,130,255,0.3)',
+            backdropFilter: 'blur(12px)',
+          }}
+          title="Télécharger l'application Android"
+        >
+          <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span className="hidden sm:inline">Télécharger l'app</span>
+        </a>
+      )}
+
       <PushPrompt />
     </div>
   )
