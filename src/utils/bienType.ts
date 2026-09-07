@@ -18,6 +18,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 const SOUS_TYPE_LABELS: Record<string, string> = {
   villa: 'Villa',
+  duplex: 'Duplex / Grande propriété',
   maison_individuelle: 'Maison individuelle',
   maison: 'Maison',
   appartement: 'Appartement',
