@@ -77,10 +77,12 @@ export default function MainLayout() {
       {/* Boutons flottants haut/bas — desktop uniquement */}
       {!hideChrome && <ScrollFloatButtons scrollRef={scrollRef} />}
 
-      {/* Téléchargement de l'app Android (APK) — bouton flottant discret */}
-      {!hideChrome && (
+      {/* Téléchargement de l'app Android (APK) — bouton flottant, visible si URL configurée */}
+      {!hideChrome && import.meta.env.VITE_APK_URL && (
         <a
-          href="/base.apk"
+          href={import.meta.env.VITE_APK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           download
           className="fixed z-50 bottom-24 md:bottom-6 left-4 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-sm font-semibold transition-transform hover:scale-105"
           style={{
