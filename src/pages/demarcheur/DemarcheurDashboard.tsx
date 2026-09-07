@@ -660,62 +660,32 @@ function CreneauxTab() {
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function PortefeuilleTab() {
-  const [wallet, setWallet]         = useState<any>(null)
-  const [transactions, setTrans]    = useState<any[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [showRetrait, setShowRetrait] = useState(false)
-  const [montant, setMontant]       = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [retraitOk, setRetraitOk]  = useState(false)
+  const navigate = useNavigate()
+  const [transactions, setTrans] = useState<any[]>([])
+  const [loading, setLoading]   = useState(true)
 
-  const load = async () => {
+  useEffect(() => {
     setLoading(true)
-    try {
-      const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
-      setWallet(w)
-      setTrans(Array.isArray(t) ? t : t.data || [])
-    } catch (_) {}
-    setLoading(false)
-  }
-  useEffect(() => { load() }, [])
+    walletApi.transactions()
+      .then(t => setTrans(Array.isArray(t) ? t : t.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
-  const demanderRetrait = async () => {
-    if (!montant || Number(montant) <= 0) return
-    setSubmitting(true)
-    try {
-      await walletApi.demandeRetrait(Number(montant))
-      setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
-    } catch (_) {}
-    setSubmitting(false)
-  }
-
-  const solde = Number(wallet?.balance || 0)
+  const recent = transactions.slice(0, 4)
 
   return (
     <div className="flex-1 overflow-y-auto pb-10">
-      {/* Balance card */}
-      <div className="mx-4 mt-5 rounded-2xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}, ${PURPLE})`, boxShadow: `0 8px 20px ${PURPLE}4D` }}>
-        <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Solde disponible</p>
-        <p className="text-3xl font-bold mb-4">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
-        <button onClick={() => setShowRetrait(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm"
-          style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8 8-8-8"/></svg>
-          Demander un retrait
-        </button>
-      </div>
-
       <div className="px-4 py-5">
-        {retraitOk && (
-          <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée avec succès.</p>
-          </div>
-        )}
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-bold text-text-dark text-[17px]">Historique des transactions</p>
+          <button onClick={() => navigate('/portefeuille')} className="text-sm font-semibold" style={{ color: PURPLE }}>
+            Voir tout
+          </button>
+        </div>
 
-        <p className="font-bold text-text-dark mb-4">Historique des transactions</p>
         {loading ? (
-          [1,2,3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
+          [1,2,3,4].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
         ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: PURPLE + '15' }}>
@@ -724,58 +694,42 @@ function PortefeuilleTab() {
             <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
             <p className="text-text-grey text-sm">Vos commissions apparaîtront ici.</p>
           </div>
-        ) : transactions.map((t: any, i: number) => {
-          const isCredit = t.type !== 'retrait'
-          const montant = Number(t.amount ?? t.montant ?? 0)
-          return (
-            <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: isCredit ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#22C55E' : '#EF4444'} strokeWidth={2.5} className="w-5 h-5">
-                  {isCredit
-                    ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8-8-8 8"/>
-                    : <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m8 8l-8 8-8-8"/>}
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-text-dark text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
-                <p className="text-xs text-text-grey mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
-                  {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
-                </p>
-                {t.balance_after != null && <p className="text-[10px] text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
-              </div>
-            </div>
-          )
-        })}
+        ) : (
+          <>
+            {recent.map((t: any, i: number) => {
+              const isCredit = t.type !== 'retrait'
+              const amt = Number(t.amount ?? t.montant ?? 0)
+              return (
+                <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: isCredit ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#22C55E' : '#EF4444'} strokeWidth={2.5} className="w-5 h-5">
+                      {isCredit
+                        ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8-8-8 8"/>
+                        : <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m8 8l-8 8-8-8"/>}
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-text-dark text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
+                    <p className="text-xs text-text-grey mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+                      {isCredit ? '+' : '-'}{Math.abs(amt).toLocaleString('fr-FR')} F
+                    </p>
+                    {t.balance_after != null && <p className="text-[10px] text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
+                  </div>
+                </div>
+              )
+            })}
+            <button onClick={() => navigate('/portefeuille')}
+              className="w-full py-3 rounded-xl text-sm font-bold mt-1"
+              style={{ background: PURPLE + '12', color: PURPLE }}>
+              Voir tout l'historique
+            </button>
+          </>
+        )}
       </div>
-
-      {showRetrait && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-          onClick={() => setShowRetrait(false)}>
-          <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}
-            onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-text-dark text-lg mb-4">Demande de retrait</h3>
-            <p className="text-sm text-text-grey mb-3">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
-            <label className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-            <input type="number" value={montant} onChange={e => setMontant(e.target.value)} min={1} max={solde}
-              placeholder="Ex: 50000"
-              className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
-            <div className="flex gap-3">
-              <button onClick={() => setShowRetrait(false)}
-                className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-              <button onClick={demanderRetrait} disabled={submitting || !montant || Number(montant) > solde}
-                className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
-                style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}, ${PURPLE})` }}>
-                {submitting ? 'Envoi…' : 'Envoyer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
