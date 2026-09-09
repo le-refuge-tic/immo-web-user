@@ -5,6 +5,7 @@ import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
 import { walletApi } from '../../api/walletApi'
+import { commercialApi, type CompteursCommercial, type PerfHebdoSemaine } from '../../api/commercialApi'
 import { delegationApi } from '../../api/delegationApi'
 import { chatApi } from '../../api/chatApi'
 import { notificationsApi } from '../../api/notificationsApi'
@@ -62,6 +63,12 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
 
 function fmtPrix(p: any) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
+}
+/** Libellé « Sem. du 8 sept. » à partir du début de semaine (lundi). */
+function fmtSemaine(raw: string) {
+  const d = new Date(raw)
+  if (isNaN(d.getTime())) return raw.slice(0, 10)
+  return `Sem. du ${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
 }
 function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
@@ -924,12 +931,29 @@ export default function DemarcheurDashboard() {
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [compteurs, setCompteurs] = useState<CompteursCommercial | null>(null)
+  const [perfHebdo, setPerfHebdo] = useState<PerfHebdoSemaine[]>([])
+
+  const isCommercial = (u: any) =>
+    u?.role_principal === 'commercial' ||
+    (Array.isArray(u?.roles_actifs) && u.roles_actifs.includes('commercial'))
 
   const loadData = async () => {
     try {
       const [u, b] = await Promise.allSettled([userApi.me(), biensApi.mesBiens()])
-      if (u.status === 'fulfilled') setUser(u.value?.user || u.value)
+      const me = u.status === 'fulfilled' ? (u.value?.user || u.value) : null
+      if (me) setUser(me)
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
+
+      // Compteurs + performance hebdo : uniquement pour les commerciaux, sur leur propre id.
+      if (me && isCommercial(me) && me.id) {
+        const [c, p] = await Promise.allSettled([
+          commercialApi.compteurs(me.id),
+          commercialApi.performanceHebdo(me.id, 8),
+        ])
+        if (c.status === 'fulfilled') setCompteurs(c.value)
+        if (p.status === 'fulfilled') setPerfHebdo(p.value)
+      }
     } catch (_) {}
     setLoading(false)
   }
@@ -1061,6 +1085,48 @@ export default function DemarcheurDashboard() {
                   ))}
                 </div>
               </div>
+
+              {/* Compteurs + performance hebdo — commerciaux uniquement */}
+              {isCommercial(me) && compteurs && (
+                <div className="mb-6">
+                  <p className="text-[17px] font-bold text-text-dark mb-3.5">Mes performances</p>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {[
+                      { label: 'Biens publiés', value: compteurs.total_publies, color: PURPLE },
+                      { label: 'En vérification', value: compteurs.en_verification, color: '#F59E0B' },
+                      { label: 'Validés', value: compteurs.valides, color: '#22C55E' },
+                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: '#4B6BFF' },
+                    ].map(c => (
+                      <div key={c.label} className="card-soft rounded-xl p-4">
+                        <p className="text-[26px] font-bold" style={{ color: c.color }}>{c.value}</p>
+                        <p className="text-xs text-text-grey mt-0.5">{c.label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {perfHebdo.length > 0 && (
+                    <div className="card-soft rounded-xl p-4">
+                      <p className="text-sm font-bold text-text-dark mb-3">Historique hebdomadaire</p>
+                      <div className="space-y-2.5">
+                        {perfHebdo.map(s => (
+                          <div key={s.semaine_debut} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xs text-text-grey">{fmtSemaine(s.semaine_debut)}</span>
+                              <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: PURPLE + '15', color: PURPLE }}>
+                                {s.nb_biens_valides} bien{s.nb_biens_valides !== 1 ? 's' : ''}
+                              </span>
+                              {s.palier_atteint && (
+                                <span className="text-[11px] px-1.5 py-0.5 rounded font-semibold" style={{ background: '#22C55E20', color: '#16A34A' }}>Palier 20</span>
+                              )}
+                            </div>
+                            <span className="text-sm font-bold text-text-dark flex-shrink-0">{fmtPrix(s.montant)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Biens récents */}
               <div className="flex items-center justify-between mb-3.5">
