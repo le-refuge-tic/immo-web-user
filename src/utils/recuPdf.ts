@@ -20,6 +20,8 @@ const GREEN_DARK = hex(0x1a6b3c)
 const GREEN_LIGHT = hex(0xe8f5ee)
 const BLUE_DARK = hex(0x1a3a6b)
 const BLUE_LIGHT = hex(0xe8f0fa)
+const PURPLE_DARK = hex(0x5b2a8c)
+const PURPLE_LIGHT = hex(0xf0e9fa)
 
 const GREY_600 = hex(0x757575)
 const GREY_500 = hex(0x9e9e9e)
@@ -37,7 +39,9 @@ export interface RecuSection {
   lignes: RecuLigne[]
 }
 export interface RecuPdfData {
-  variante: 'visite' | 'loyer'
+  variante: 'visite' | 'loyer' | 'depot'
+  /** Titre en-tête personnalisé (sinon dérivé de la variante). */
+  titre?: string
   /** Petit libellé sous « REÇU DE … » (« Frais de visite » ou « Septembre 2026 »). */
   sousTitre: string
   montantLabel: string
@@ -64,9 +68,9 @@ export async function generateRecuPdf(data: RecuPdfData): Promise<void> {
   const font = await doc.embedFont(StandardFonts.Helvetica)
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold)
 
-  const dark = data.variante === 'visite' ? GREEN_DARK : BLUE_DARK
-  const light = data.variante === 'visite' ? GREEN_LIGHT : BLUE_LIGHT
-  const titre = data.variante === 'visite' ? 'REÇU DE VISITE' : 'REÇU DE LOYER'
+  const dark = data.variante === 'visite' ? GREEN_DARK : data.variante === 'depot' ? PURPLE_DARK : BLUE_DARK
+  const light = data.variante === 'visite' ? GREEN_LIGHT : data.variante === 'depot' ? PURPLE_LIGHT : BLUE_LIGHT
+  const titre = data.titre ?? (data.variante === 'visite' ? 'REÇU DE VISITE' : data.variante === 'depot' ? 'REÇU DE RECHARGEMENT' : 'REÇU DE LOYER')
 
   // ── Filigrane logo (5 %) ───────────────────────────────────────────────
   try {

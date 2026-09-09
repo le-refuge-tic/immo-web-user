@@ -8,6 +8,7 @@ import { generateRecuPdf, type RecuSection } from '../../utils/recuPdf'
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
 const VISITE = { dark: '#1A6B3C', light: '#27AE60' } // vert
 const LOYER = { dark: '#1A3A6B', light: '#2E86C1' } // bleu
+const DEPOT = { dark: '#5B2A8C', light: '#7B4BFF' } // violet
 
 function fmtDate(raw: string | undefined | null) {
   if (!raw) return '--'
@@ -76,6 +77,7 @@ export default function RecuPage() {
     setError('')
     const call = type === 'integration' ? paiementApi.recuIntegration(refId)
       : type === 'loyer' ? paiementApi.recuLoyer(refId)
+      : type === 'depot' ? paiementApi.recuDepot(refId)
       : paiementApi.recuVisite(refId)
     call
       .then(setRecu)
@@ -98,9 +100,10 @@ export default function RecuPage() {
 
   const isIntegration = type === 'integration'
   const isLoyer = type === 'loyer'
-  const theme = isLoyer ? LOYER : VISITE
-  const titre = isIntegration ? "REÇU D'INTÉGRATION" : isLoyer ? 'REÇU DE LOYER' : 'REÇU DE VISITE'
-  const titreCourt = isIntegration ? "Reçu d'intégration" : isLoyer ? 'Reçu de loyer' : 'Reçu de visite'
+  const isDepot = type === 'depot'
+  const theme = isDepot ? DEPOT : isLoyer ? LOYER : VISITE
+  const titre = isDepot ? 'REÇU DE RECHARGEMENT' : isIntegration ? "REÇU D'INTÉGRATION" : isLoyer ? 'REÇU DE LOYER' : 'REÇU DE VISITE'
+  const titreCourt = isDepot ? 'Reçu de rechargement' : isIntegration ? "Reçu d'intégration" : isLoyer ? 'Reçu de loyer' : 'Reçu de visite'
 
   const bien = isIntegration || isLoyer ? recu.bien : recu.visite?.bien
   const typeLabel = bien ? bienTypeLabel(bien) : ''
@@ -136,6 +139,11 @@ export default function RecuPage() {
             ],
           })
         }
+      } else if (isDepot) {
+        sections.push({
+          titre: 'DÉTAILS DU RECHARGEMENT',
+          lignes: [{ label: 'Wallet crédité', value: recu.depot?.wallet_label || 'Wallet' }],
+        })
       } else if (!isIntegration) {
         const lignes = [
           ...(typeLabel ? [{ label: 'Type de bien', value: typeLabel }] : []),
@@ -181,13 +189,14 @@ export default function RecuPage() {
 
       const ref8 = String(recu.reference || refId || '').slice(0, 8)
       await generateRecuPdf({
-        variante: isLoyer ? 'loyer' : 'visite',
-        sousTitre: isLoyer ? (moisLoyerLabel || '') : isIntegration ? "Frais d'intégration" : 'Frais de visite',
-        montantLabel: isLoyer ? 'Montant payé' : 'Montant total payé',
+        variante: isDepot ? 'depot' : isLoyer ? 'loyer' : 'visite',
+        titre: isDepot ? 'REÇU DE RECHARGEMENT' : isIntegration ? "REÇU D'INTÉGRATION" : undefined,
+        sousTitre: isDepot ? `Rechargement ${recu.depot?.wallet_label || 'wallet'}` : isLoyer ? (moisLoyerLabel || '') : isIntegration ? "Frais d'intégration" : 'Frais de visite',
+        montantLabel: isDepot ? 'Montant rechargé' : isLoyer ? 'Montant payé' : 'Montant total payé',
         montant: `${fmt(recu.montant)} FCFA`,
         paiementLigne: `${isLoyer ? '' : 'via '}${operateur} · ${fmtDate(recu.date_paiement)}`,
         sections,
-        filename: `refuge_${isLoyer ? 'loyer' : isIntegration ? 'integration' : 'recu'}_${ref8}.pdf`,
+        filename: `refuge_${isDepot ? 'rechargement' : isLoyer ? 'loyer' : isIntegration ? 'integration' : 'recu'}_${ref8}.pdf`,
       })
     } catch (e) {
       setError('Impossible de générer le PDF. Réessayez.')
@@ -241,11 +250,17 @@ export default function RecuPage() {
 
         {/* Carte détails */}
         <div className="bg-white rounded-[20px] overflow-hidden" style={{ boxShadow: '0 3px 12px rgba(0,0,0,0.05)' }}>
-          {!isIntegration && !isLoyer && (
+          {!isIntegration && !isLoyer && !isDepot && (
             <div className="px-5 pt-4.5 pb-3.5">
               <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-2.5">Détails de la visite</p>
               {typeLabel && <IconRow icon={<IcHome />} label="Type de bien" value={typeLabel} />}
               {dateVisite && <IconRow icon={<IcCal />} label="Date de visite" value={fmtDateCourte(dateVisite)} />}
+            </div>
+          )}
+          {isDepot && (
+            <div className="px-5 pt-4.5 pb-3.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-2.5">Détails du rechargement</p>
+              <IconRow icon={<IcHome />} label="Wallet crédité" value={recu.depot?.wallet_label || 'Wallet'} />
             </div>
           )}
           {isLoyer && (
