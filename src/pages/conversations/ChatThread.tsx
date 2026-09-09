@@ -678,9 +678,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                           contenu: complainText.trim(),
                         })
                         setComplainSent(true)
-                      } catch {
-                        setError('Impossible d\'envoyer la plainte. Réessayez.')
-                        setTimeout(() => setError(''), 5000)
+                      } catch (err) {
+                        showBlockedOrError(err)
                       }
                       setComplainSending(false)
                     }}
