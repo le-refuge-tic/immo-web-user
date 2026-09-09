@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { delegationApi } from '../../api/delegationApi'
 import { biensApi } from '../../api/biensApi'
+import { bienTypeLabel } from '../../utils/bienType'
 
 type Props = { onClose: () => void }
 
@@ -12,10 +13,6 @@ const STATUT_LABELS: Record<string, { label: string; color: string }> = {
   refusee:    { label: 'Refusée',    color: '#EF4444' },
 }
 
-function typeLabel(t: string) {
-  const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse' }
-  return m[t] || t
-}
 
 export default function DelegationModal({ onClose }: Props) {
   const [view, setView] = useState<'liste' | 'nouvelle'>('liste')
@@ -118,7 +115,7 @@ export default function DelegationModal({ onClose }: Props) {
                             {d.demarcheur?.prenom} {d.demarcheur?.nom}
                           </p>
                           <p className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>
-                            {d.bien ? `${typeLabel(d.bien.type)} — ${d.bien.localisation?.ville || ''}` : 'Tous mes biens'}
+                            {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous mes biens'}
                           </p>
                         </div>
                         <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: st.color + '18', color: st.color }}>{st.label}</span>
@@ -145,7 +142,7 @@ export default function DelegationModal({ onClose }: Props) {
               <select value={bienId} onChange={e => setBienId(e.target.value)}
                 className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }}>
                 <option value="">Tous mes biens</option>
-                {biens.map(b => <option key={b.id} value={b.id}>{typeLabel(b.type)} — {b.localisation?.ville}</option>)}
+                {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}
               </select>
             </div>
 

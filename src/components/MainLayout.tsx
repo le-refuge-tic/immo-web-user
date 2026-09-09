@@ -9,6 +9,8 @@ import { useTheme } from '../context/ThemeContext'
 
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
 const HIDE_TOPNAV_PREFIXES: string[] = []
+// Pages qui gèrent leur propre scroll interne (pas de overflow-y-auto sur le layout)
+const OWN_SCROLL_PREFIXES = ['/conversations']
 
 export default function MainLayout() {
   const location = useLocation()
@@ -19,6 +21,7 @@ export default function MainLayout() {
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
   const hideTopNav = hideChrome || HIDE_TOPNAV_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
+  const ownScroll  = OWN_SCROLL_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setScrolled(e.currentTarget.scrollTop > 40)
@@ -58,9 +61,9 @@ export default function MainLayout() {
       )}
 
       <div
-        ref={scrollRef}
-        className={`flex-1 overflow-y-auto relative scrollbar-auto ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : 'pb-20 md:pb-0 md:pt-16'}`}
-        onScroll={handleScroll}
+        ref={ownScroll ? undefined : scrollRef}
+        className={`flex-1 min-h-0 relative ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : ownScroll ? 'md:pt-[72px]' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
+        onScroll={ownScroll ? undefined : handleScroll}
       >
         <Outlet />
       </div>
@@ -73,6 +76,31 @@ export default function MainLayout() {
 
       {/* Boutons flottants haut/bas — desktop uniquement */}
       {!hideChrome && <ScrollFloatButtons scrollRef={scrollRef} />}
+
+      {/* Téléchargement de l'app Android (APK) — bouton flottant, visible si URL configurée */}
+      {!hideChrome && import.meta.env.VITE_APK_URL && (
+        <a
+          href={import.meta.env.VITE_APK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          download
+          className="fixed z-50 bottom-24 md:bottom-6 left-4 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-sm font-semibold transition-transform hover:scale-105"
+          style={{
+            background: isDark ? 'rgba(30,30,40,0.85)' : 'rgba(255,255,255,0.9)',
+            color: '#4B6BFF',
+            border: '1px solid rgba(100,130,255,0.3)',
+            backdropFilter: 'blur(12px)',
+          }}
+          title="Télécharger l'application Android"
+        >
+          <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span className="hidden sm:inline">Télécharger l'app</span>
+        </a>
+      )}
 
       <PushPrompt />
     </div>

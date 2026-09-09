@@ -18,7 +18,9 @@ const NAV_ITEMS = [
 const ROLE_ROUTES: Record<string, { label: string; path: string }> = {
   proprietaire: { label: 'Espace Propriétaire', path: '/proprietaire' },
   demarcheur:   { label: 'Espace Démarcheur',   path: '/demarcheur'   },
+  commercial:   { label: 'Espace Agent',         path: '/demarcheur'   },
   locataire:    { label: 'Espace Locataire',     path: '/locataire'    },
+  prospect:     { label: 'Espace Client',        path: '/'             },
 }
 
 // Icônes inline légères
@@ -42,7 +44,7 @@ const LogOutIcon = () => (
 )
 
 export default function TopNav() {
-  const { isLoggedIn, user, logout, rolesActifs, activeRole } = useAuth()
+  const { isLoggedIn, user, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
   const { scrolled } = useScrolled()
   const { theme, toggleTheme } = useTheme()
@@ -105,7 +107,7 @@ export default function TopNav() {
           borderRadius: scrolled ? '1rem' : '0px',
           maxWidth: scrolled ? '72rem' : '100%',
           boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.12)' : 'inset 0 -0.5px 0 rgba(0,0,0,0.04), 0 2px 20px rgba(0,0,0,0.06)',
-          height: 64,
+          height: 72,
           paddingLeft:  scrolled ? '1.25rem' : undefined,
           paddingRight: scrolled ? '1.25rem' : undefined,
         }}
@@ -113,9 +115,9 @@ export default function TopNav() {
         <div className="w-full px-4 md:px-6 lg:px-16 grid grid-cols-[auto_1fr_auto] items-center gap-3 lg:gap-6">
 
           {/* Logo */}
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 lg:gap-2.5 flex-shrink-0">
-            <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} className="lg:w-[46px] lg:h-[46px]" />
-            <span className="font-bold text-lg lg:text-xl tracking-tight hidden sm:inline" style={{ color: '#00AEEF' }}>REFUGE</span>
+          <button onClick={() => navigate('/')} className="flex items-center gap-2.5 lg:gap-3 flex-shrink-0">
+            <img src={logoUrl} alt="REFUGE" style={{ width: 60, height: 60, objectFit: 'contain', filter: isDark ? 'brightness(1.15) drop-shadow(0 0 6px rgba(0,174,239,0.35))' : 'none' }} className="lg:w-[68px] lg:h-[68px]" />
+            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: '#00AEEF' }}>REFUGE</span>
           </button>
 
           {/* Nav centré */}
@@ -188,6 +190,7 @@ export default function TopNav() {
                 </button>
               </div>
             ) : (
+              <div className="flex items-center gap-2">
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen(o => !o)}
@@ -229,71 +232,66 @@ export default function TopNav() {
                       boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.45)' : 'inset 0 1.5px 0 rgba(255,255,255,1), 0 20px 60px rgba(0,0,0,0.14)',
                     }}
                   >
-                    {/* Section "Mes espaces" — uniquement si plusieurs rôles */}
-                    {espacesRoles.length > 1 && (
-                      <>
-                        <div className="px-4 pt-3 pb-1">
-                          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)' }}>
-                            Mes espaces
-                          </p>
-                        </div>
-                        {espacesRoles.map(role => {
-                          const { label, path } = ROLE_ROUTES[role]
-                          const isCurrent = activeRole === role
-                          return (
-                            <button
-                              key={role}
-                              onClick={() => { navigate(path); setMenuOpen(false) }}
-                              className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
-                              style={{ color: isCurrent ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
-                              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
-                              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
-                            >
-                              <span>{label}</span>
-                              {isCurrent && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
-                                  Actif
-                                </span>
-                              )}
-                            </button>
-                          )
-                        })}
-                        <div style={{ borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)') }} />
-                      </>
-                    )}
-
-                    {/* Liens profil standard */}
-                    {[
-                      { label: 'Mon profil',    path: '/profil' },
-                      { label: 'Mes visites',   path: '/mes-visites' },
-                      { label: 'Messages',      path: '/conversations' },
-                      { label: 'Favoris',       path: '/favoris' },
-                      { label: 'Notifications', path: '/notifications' },
-                    ].map(item => (
-                      <button key={item.path} onClick={() => { navigate(item.path); setMenuOpen(false) }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-all"
-                        style={menuItemStyle}
+                    <div className="px-4 pt-3 pb-1">
+                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)' }}>
+                        Mes espaces
+                      </p>
+                    </div>
+                    {espacesRoles.length > 1 ? (
+                      /* Multi-rôles : liste des espaces avec bascule silencieuse. */
+                      espacesRoles.map(role => {
+                        const { label, path } = ROLE_ROUTES[role]
+                        const isCurrent = activeRole === role
+                        return (
+                          <button
+                            key={role}
+                            onClick={() => { setActiveRole(role); navigate(path); setMenuOpen(false) }}
+                            className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
+                            style={{ color: isCurrent ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
+                            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
+                          >
+                            <span>{label}</span>
+                            {isCurrent && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+                                Actif
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })
+                    ) : (
+                      /* Rôle unique : le seul "espace" mène au profil. */
+                      <button
+                        onClick={() => { navigate('/profil'); setMenuOpen(false) }}
+                        className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
+                        style={{ color: '#4B6BFF' }}
                         onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
                         onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
                       >
-                        {item.label}
+                        <span>{ROLE_ROUTES[activeRole]?.label || 'Mon profil'}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+                          Actif
+                        </span>
                       </button>
-                    ))}
-
-                    <div style={{ borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)') }} />
-
-                    {/* Logout avec icône */}
-                    <button onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-all"
-                      style={{ color: '#FF3B30' }}
-                      onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,59,48,0.08)'}
-                      onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
-                    >
-                      <LogOutIcon />
-                      Se déconnecter
-                    </button>
+                    )}
                   </div>
                 )}
+              </div>
+
+              {/* Déconnexion — bouton séparé à côté, comme l'espace propriétaire */}
+              <button onClick={handleLogout} title="Se déconnecter" aria-label="Se déconnecter"
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)',
+                  border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'),
+                  color: '#FF3B30',
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,59,48,0.10)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)'}
+              >
+                <LogOutIcon />
+              </button>
               </div>
             )}
           </div>

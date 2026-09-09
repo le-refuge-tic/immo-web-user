@@ -7,12 +7,14 @@ type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 const isVisite = (t: any) => String(t.type ?? '').toLowerCase() === 'frais_visite'
 const isLoyer  = (t: any) => String(t.type ?? '').toLowerCase() === 'loyer'
 const isInteg  = (t: any) => String(t.type ?? '').toLowerCase() === 'integration'
+const isDepot  = (t: any) => String(t.type ?? '').toLowerCase() === 'depot_wallet'
 
 const typeLabel = (t: any) => {
   switch (String(t.type ?? '').toLowerCase()) {
     case 'frais_visite': return 'Frais de visite'
     case 'loyer':         return 'Loyer mensuel'
     case 'integration':   return "Paiement d'intégration"
+    case 'depot_wallet':  return t.wallet_label ? `Rechargement ${t.wallet_label}` : 'Rechargement wallet'
     case 'virement':      return 'Virement reçu'
     default:               return 'Transaction'
   }
@@ -100,6 +102,8 @@ export default function HistoriquePaiementsPage() {
     if (!t.reference) return
     if (isVisite(t)) navigate(`/recu/visite/${t.reference}`)
     else if (isLoyer(t)) navigate(`/recu/loyer/${t.reference}`)
+    else if (isInteg(t)) navigate(`/recu/integration/${t.reference}`)
+    else if (isDepot(t)) navigate(`/recu/depot/${t.reference}`)
   }
 
   return (
@@ -175,7 +179,7 @@ export default function HistoriquePaiementsPage() {
                 const color = colorFor(t)
                 const bien = bienLabel(t)
                 const confirme = statut === 'Payé'
-                const showRecu = confirme && t.reference && (isVisite(t) || isLoyer(t))
+                const showRecu = confirme && t.reference && (isVisite(t) || isLoyer(t) || isInteg(t) || isDepot(t))
                 return (
                   <div key={i} onClick={() => setDetail(t)}
                     className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
@@ -249,7 +253,7 @@ export default function HistoriquePaiementsPage() {
                 {detail.date_visite && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Date de visite</span><span className="text-xs font-semibold text-text-dark">{fmtDate(detail.date_visite)}</span></div>}
               </div>
             )}
-            {statutLabel(detail) === 'Payé' && detail.reference && (isVisite(detail) || isLoyer(detail)) && (
+            {statutLabel(detail) === 'Payé' && detail.reference && (isVisite(detail) || isLoyer(detail) || isInteg(detail) || isDepot(detail)) && (
               <button onClick={() => { const t = detail; setDetail(null); ouvrirRecu(t) }}
                 className="w-full mt-5 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2"
                 style={{ background: colorFor(detail) }}>

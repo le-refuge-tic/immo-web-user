@@ -2,17 +2,20 @@
    AUTH — mode clair uniquement. Dark mode à implémenter plus tard.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Layout racine */
+/* Layout racine — le carrousel flotte dans une carte arrondie */
 .auth-root {
   min-height: 100dvh;
   display: grid;
   grid-template-columns: 54% 46%;
   overflow: hidden;
-  background: #fff;
+  background: #fff !important;
+  padding: 1rem;
+  gap: 1rem;
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
-  .auth-root { grid-template-columns: 1fr; }
+  .auth-root { grid-template-columns: 1fr; padding: 0; gap: 0; }
   .auth-side  { display: none !important; }
   .auth-panel { min-height: 100dvh; padding: 1.75rem 1.25rem; }
 }
@@ -20,11 +23,13 @@
   .auth-panel { padding: 1.25rem 1rem; }
 }
 
-/* Panneau photo gauche */
+/* Panneau photo gauche — carte flottante à coins arrondis */
 .auth-side {
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px -12px rgba(10, 14, 26, 0.25);
 }
 
 /* Panneau formulaire droit — toujours en mode clair */
@@ -37,28 +42,7 @@
   overflow-y: auto;
   position: relative;
   color-scheme: light;
-  background:
-    radial-gradient(ellipse 90% 55% at 105% 0%, rgba(75, 107, 255, 0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 55% at -5% 105%, rgba(255, 107, 53, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 65% 45% at 55% 55%, rgba(168, 85, 247, 0.10) 0%, transparent 50%),
-    linear-gradient(150deg, #e8eeff 0%, #f3eeff 30%, #fff0e8 65%, #eef2ff 100%);
-}
-
-/* Fondu gauche du panneau formulaire — se superpose avec le fondu du panneau gauche */
-.auth-panel::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100px;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  background: linear-gradient(
-    to right,
-    rgba(232, 238, 255, 0.0) 0%,
-    transparent 100%
-  );
+  background: #fff;
 }
 
 
@@ -347,26 +331,6 @@ select.auth-input { cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .auth-bubble { animation: none; }
-}
-
-/* ── Fondu droit du panneau gauche — transition fluide vers le panneau formulaire ── */
-.auth-side-fade {
-  position: absolute;
-  right: -40px; /* déborde sur le panneau droit pour fusionner */
-  top: 0;
-  width: 160px;
-  height: 100%;
-  z-index: 10;
-  pointer-events: none;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(232, 238, 255, 0.08) 25%,
-    rgba(232, 238, 255, 0.28) 50%,
-    rgba(232, 238, 255, 0.62) 72%,
-    rgba(232, 238, 255, 0.88) 88%,
-    rgba(232, 238, 255, 1.00) 100%
-  );
 }
 
 /* ── Dark mode — le panneau formulaire reste toujours clair ─ */

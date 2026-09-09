@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
-
-const TYPE_LABELS: Record<string, string> = {
-  maison: 'Villa / Maison',
-  appart_vide: 'Appartement',
-  appart_meuble: 'Appartement meublé',
-  guesthouse: 'Guesthouse',
-  terrain: 'Terrain',
-}
+import { bienTypeLabel } from '../../utils/bienType'
 
 function fmtFcfa(n: number) {
   if (!n) return '---'
@@ -27,7 +20,7 @@ export default function ContratBailPage() {
     biensApi.byId(Number(bienId)).then(setBien).catch(() => {}).finally(() => setLoading(false))
   }, [bienId])
 
-  const bienType = bien ? (TYPE_LABELS[bien.type] || bien.type) : '...'
+  const bienType = bien ? bienTypeLabel(bien) : '...'
   const bienAdresse = bien
     ? [bien.localisation?.quartier, bien.localisation?.ville].filter(Boolean).join(', ') || `Bien #${bien.id}`
     : '...'

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
 import { io, Socket } from 'socket.io-client'
@@ -8,84 +9,82 @@ import { io, Socket } from 'socket.io-client'
 const WS_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
 
 const BIEN_TYPE_LABELS: Record<string, string> = {
-  maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appartement meublé',
+  maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appt. meublé',
   guesthouse: 'Guesthouse', terrain: 'Terrain',
 }
 const SOUS_TYPE_LABELS: Record<string, string> = {
-  villa: 'Villa', maison_individuelle: 'Maison individuelle', appartement: 'Appartement',
+  villa: 'Villa', maison_individuelle: 'Maison indiv.', appartement: 'Appartement',
   chambre_salon: 'Chambre-Salon', entree_coucher: 'Entrée-Coucher', boutique: 'Boutique', terrain: 'Terrain',
 }
-
-function timeLabel(dateStr: string) {
-  const d = new Date(dateStr)
-  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-}
-
+const AVATAR_PALETTE = [
+  'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
+  'linear-gradient(135deg,#FF6B35,#FF3B7A)',
+  'linear-gradient(135deg,#00C6A2,#0099CC)',
+  'linear-gradient(135deg,#F7B731,#F55252)',
+  'linear-gradient(135deg,#A855F7,#6366F1)',
+  'linear-gradient(135deg,#10B981,#3B82F6)',
+]
+function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVATAR_PALETTE.length] }
+function initial(name: string) { return name?.[0]?.toUpperCase() || '?' }
+function timeLabel(s: string) { return new Date(s).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
 function sameDay(a: string, b: string) {
   const da = new Date(a), db = new Date(b)
   return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate()
 }
-
-function dateSeparatorLabel(dateStr: string) {
-  const d = new Date(dateStr)
-  const now = new Date()
-  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1)
-  if (sameDay(dateStr, now.toISOString())) return "Aujourd'hui"
-  if (sameDay(dateStr, yesterday.toISOString())) return 'Hier'
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+function dateSep(s: string) {
+  const d = new Date(s), now = new Date(), yest = new Date(now); yest.setDate(now.getDate() - 1)
+  if (sameDay(s, now.toISOString())) return "Aujourd'hui"
+  if (sameDay(s, yest.toISOString())) return 'Hier'
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+}
+function fmtSlot(dt: Date) {
+  const J = ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.']
+  const M = ['janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc']
+  return `${J[dt.getDay()]} ${dt.getDate()} ${M[dt.getMonth()]} à ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
+}
+function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
+function roleLabel(o: any) {
+  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Agent immobilier'
+  if (o?.role === 'proprietaire') return 'Propriétaire'
+  if (o?.role === 'locataire') return 'Locataire'
+  if (o?.role === 'prospect') return 'Client'
+  return ''
 }
 
-function formatSlotDate(dt: Date) {
-  const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
-  const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-  const h = String(dt.getHours()).padStart(2, '0')
-  const m = String(dt.getMinutes()).padStart(2, '0')
-  return `${jours[dt.getDay()]} ${dt.getDate()} ${mois[dt.getMonth()]} ${dt.getFullYear()} à ${h}:${m}`
-}
-
-function initial(name: string) {
-  return name?.[0]?.toUpperCase() || '?'
-}
-
-function SlotPickerModal({ onConfirm, onCancel }: { onConfirm: (iso: string) => void; onCancel: () => void }) {
-  const tomorrow = new Date(Date.now() + 86400000)
-  const [date, setDate] = useState(tomorrow.toISOString().slice(0, 10))
-  const [time, setTime] = useState('09:00')
+/* ── Statut lecture ── */
+function MsgStatus({ status, isMe }: { status?: string; isMe: boolean }) {
+  if (!isMe) return null
+  const color = status === 'read' ? '#4B6BFF' : 'rgba(255,255,255,0.55)'
+  if (status === 'sent') return (
+    <svg width="11" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onCancel}>
-      <div className="glass-strong rounded-2xl p-5 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-        <p className="font-bold text-text-dark mb-4">Proposer un créneau</p>
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs font-semibold text-text-grey mb-1 block">Date</label>
-            <input type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
-              className="w-full border border-divider rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary" />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-text-grey mb-1 block">Heure</label>
-            <input type="time" value={time} onChange={e => setTime(e.target.value)}
-              className="w-full border border-divider rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary" />
-          </div>
-        </div>
-        <div className="flex gap-2 mt-5">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-dark">Annuler</button>
-          <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())}
-            className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold">Confirmer</button>
-        </div>
-      </div>
-    </div>
+    <svg width="15" height="10" viewBox="0 0 30 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="24 6 11 17 6 12" />
+      <polyline points="30 6 17 17 15 15" />
+    </svg>
   )
 }
 
-/** Fil de discussion complet (créneaux, code visite, épingler, éditer, supprimer,
- *  temps réel…) — paramétré par convId pour être réutilisable aussi bien depuis
- *  la route /conversations/:id que depuis un onglet "Messages" embarqué (ex :
- *  dashboard propriétaire, où la navigation ne doit pas faire disparaître la
- *  sidebar). `onBack` est appelé pour revenir à la liste (mobile / narrow). */
+/* ── Icônes ── */
+const BackIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+const DotsV = () => <svg width="4" height="18" viewBox="0 0 4 18" fill="currentColor"><circle cx="2" cy="2" r="1.8"/><circle cx="2" cy="9" r="1.8"/><circle cx="2" cy="16" r="1.8"/></svg>
+const SendIcon = () => <svg className="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+const CalIcon = () => <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+const XIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+const PinFill = () => <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+const ChevDown = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+
 export default function ChatThread({ convId, onBack }: { convId: number; onBack: () => void }) {
   const { user, token } = useAuth()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
   const navigate = useNavigate()
   const location = useLocation()
+
+  /* ── state ── */
   const [messages, setMessages] = useState<any[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
@@ -93,600 +92,755 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
   const [replyingTo, setReplyingTo] = useState<any>(null)
-  const [editingMessage, setEditingMessage] = useState<any>(null)
-  const [hiddenForMe, setHiddenForMe] = useState<Set<number>>(new Set())
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
-  const [showSlotPicker, setShowSlotPicker] = useState(false)
+  const [editingMsg, setEditingMsg] = useState<any>(null)
+  const [hidden, setHidden] = useState<Set<number>>(new Set())
+  const [menuId, setMenuId] = useState<number | null>(null)
+  const [showSlot, setShowSlot] = useState(false)
   const [counterFor, setCounterFor] = useState<any>(null)
-  const [isProposingSlot, setIsProposingSlot] = useState(false)
-  const [payingFromChat, setPayingFromChat] = useState(false)
+  const [proposing, setProposing] = useState(false)
+  const [paying, setPaying] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const [complainMsg, setComplainMsg] = useState<any>(null)
   const [complainText, setComplainText] = useState('')
   const [complainSending, setComplainSending] = useState(false)
   const [complainSent, setComplainSent] = useState(false)
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false)
+  const [headerMenuPos, setHeaderMenuPos] = useState<{ top: number; right: number } | null>(null)
+  const [showProfile, setShowProfile] = useState(false)
+  const [atBottom, setAtBottom] = useState(true)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
   const socketRef = useRef<Socket | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const headerMenuRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
+  /* ── Design tokens (light par défaut, dark optionnel) ── */
+  // Text
+  const tp  = isDark ? '#E8E9F0' : '#111827'          // primary — lisible 7:1+
+  const ts  = isDark ? 'rgba(232,233,240,0.62)' : '#4B5563'  // secondary — 4.5:1+
+  const tm  = isDark ? 'rgba(232,233,240,0.40)' : '#9CA3AF'  // muted
+  // Surfaces
+  const chatBg     = isDark ? '#0F1117' : '#EEF0F7'
+  const hdrBg      = isDark ? '#161820' : '#FFFFFF'
+  const hdrBdr     = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  const inpBg      = isDark ? '#161820' : '#FFFFFF'
+  const inpFieldBg = isDark ? 'rgba(255,255,255,0.07)' : '#F3F4F8'
+  const inpFieldBdr= isDark ? 'rgba(255,255,255,0.10)' : '#E5E7EB'
+  const profileBg  = isDark ? '#161820' : '#FFFFFF'
+  const profileBdr = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  // Bubbles
+  const bubbleMeBg      = isDark ? 'linear-gradient(135deg,#3B55D4,#5B30C4)' : 'linear-gradient(135deg,#4B6BFF,#7B4BFF)'
+  const bubbleOtherBg   = isDark ? '#1E2130' : '#FFFFFF'
+  const bubbleOtherBdr  = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  // Menus & overlays
+  const menuBg  = isDark ? '#1E2130' : '#FFFFFF'
+  const menuBdr = isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB'
+  const menuHov = isDark ? 'rgba(255,255,255,0.06)' : '#F9FAFB'
+  // Misc
+  const divider = isDark ? 'rgba(255,255,255,0.06)' : '#F0F1F4'
+  const pinBg   = isDark ? '#1E2130' : '#FFFFFF'
+  const sepBg   = isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB'
+  const iconBtn = isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F8'
+
+  /* ── load ── */
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       try {
-        const [msgsData, convsData] = await Promise.all([
-          chatApi.messages(convId),
-          chatApi.conversations(),
-        ])
-        const msgs = Array.isArray(msgsData) ? msgsData : msgsData.data || []
+        const [md, cd] = await Promise.all([chatApi.messages(convId), chatApi.conversations()])
+        const msgs = Array.isArray(md) ? md : md.data || []
         setMessages(msgs.filter((m: any) => m.sender_id !== null))
-        const convsList = Array.isArray(convsData) ? convsData : convsData.data || []
-        setConv(convsList.find((c: any) => c.id === convId) || null)
+        const list = Array.isArray(cd) ? cd : cd.data || []
+        setConv(list.find((c: any) => c.id === convId) || null)
       } catch (_) {}
       setLoading(false)
     }
-    load()
-    setHiddenForMe(new Set())
-    setReplyingTo(null)
-    setEditingMessage(null)
+    setConv(null); setMessages([]); setShowProfile(false)
+    load(); setHidden(new Set()); setReplyingTo(null); setEditingMsg(null)
   }, [convId])
 
-  // Message pré-rempli (ex : relance depuis une visite échouée) — comme
-  // ChatScreen.initialMessage sur mobile : pré-remplit le champ sans l'envoyer.
   useEffect(() => {
     const draft = (location.state as any)?.draftMessage
-    if (draft) {
-      setInput(draft)
-      navigate(location.pathname, { replace: true, state: {} })
-    }
+    if (draft) { setInput(draft); navigate(location.pathname, { replace: true, state: {} }) }
   }, [location.state])
 
   useEffect(() => {
     if (!token) return
-    const socket = io(`${WS_URL}/chat`, { auth: { token }, transports: ['websocket'] })
-    socketRef.current = socket
-
-    socket.on('connect', () => socket.emit('rejoindre', { conversation_id: convId }))
-
-    socket.on('message', (msg: any) => {
+    const s = io(`${WS_URL}/chat`, { auth: { token }, transports: ['websocket'] })
+    socketRef.current = s
+    s.on('connect', () => s.emit('rejoindre', { conversation_id: convId }))
+    s.on('message', (msg: any) => {
       if (msg.sender_id === null) return
       setMessages(prev => {
         const idx = prev.findIndex(m => m.id === msg.id)
-        if (idx !== -1) {
-          const copy = [...prev]
-          copy[idx] = msg
-          return copy
-        }
+        if (idx !== -1) { const c = [...prev]; c[idx] = msg; return c }
         return [...prev, msg]
       })
     })
-
-    return () => { socket.disconnect() }
+    return () => { s.disconnect() }
   }, [token, convId])
 
+  /* scroll tracking */
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80)
+  }, [])
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    if (atBottom) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, atBottom])
+
+  /* click outside header menu */
+  useEffect(() => {
+    if (!showHeaderMenu) return
+    const fn = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (headerMenuRef.current?.contains(t)) return
+      if ((t as HTMLElement).closest?.('[data-headermenu]')) return
+      setShowHeaderMenu(false); setHeaderMenuPos(null)
+    }
+    document.addEventListener('mousedown', fn)
+    return () => document.removeEventListener('mousedown', fn)
+  }, [showHeaderMenu])
 
   const other = conv?.participants?.find((p: any) => p.id !== user?.id) || conv?.participants?.[0] || null
-  const otherName = other?.prenom || other?.pseudonyme || other?.nom || 'Conversation'
-  const roleLabel = other?.role === 'demarcheur' ? 'Agent immobilier' : other?.role === 'proprietaire' ? 'Propriétaire' : ''
+  const otherName = displayName(other)
+  const role = roleLabel(other)
   const isClientRole = other?.role === 'demarcheur' || other?.role === 'proprietaire'
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
   const bienLoc = conv?.bien?.localisation ? (conv.bien.localisation.quartier || conv.bien.localisation.ville) : null
+  const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
+  const isOnline = !!(other?.isOnline ?? conv?.isOnline)
 
-  const showBlockedOrError = (err: any) => {
-    const msg = err?.response?.data?.message || "Erreur d'envoi. Réessayez."
-    setError(msg)
-    setTimeout(() => setError(''), 6000)
-  }
-
-  const scrollToBottom = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const showError = (e: any) => { setError(e?.response?.data?.message || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
+  const scrollBot = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
 
   const send = async () => {
-    const text = input.trim()
-    if (!text || sending) return
-
-    if (editingMessage) {
-      setInput('')
-      const editing = editingMessage
-      setEditingMessage(null)
-      try {
-        const updated = await chatApi.modifierMessage(editing.id, text)
-        setMessages(prev => prev.map(m => m.id === editing.id ? updated : m))
-      } catch (e) { showBlockedOrError(e) }
+    const text = input.trim(); if (!text || sending) return
+    if (editingMsg) {
+      setInput(''); const ed = editingMsg; setEditingMsg(null)
+      try { const u = await chatApi.modifierMessage(ed.id, text); setMessages(p => p.map(m => m.id === ed.id ? u : m)) } catch (e) { showError(e) }
       return
     }
-
-    setInput('')
-    setSending(true)
+    setInput(''); setSending(true)
     try {
-      const replyId = replyingTo?.id
-      const replyContenu = replyingTo?.contenu
-      setReplyingTo(null)
-      const sent = await chatApi.envoyer(convId, text, replyId, replyContenu)
-      setMessages(prev => prev.some(m => m.id === sent.id) ? prev : [...prev, sent])
-    } catch (e) {
-      showBlockedOrError(e)
-    }
+      const rid = replyingTo?.id, rc = replyingTo?.contenu; setReplyingTo(null)
+      const sent = await chatApi.envoyer(convId, text, rid, rc)
+      setMessages(p => p.some(m => m.id === sent.id) ? p : [...p, sent])
+    } catch (e) { showError(e) }
     setSending(false)
   }
 
-  const handleKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
-  }
+  const handleKey = (e: React.KeyboardEvent) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
+  const startReply = (m: any) => { if (m.type === 'slot_proposal') return; setReplyingTo(m); setEditingMsg(null); setMenuId(null); inputRef.current?.focus() }
+  const startEdit  = (m: any) => { setEditingMsg(m); setReplyingTo(null); setInput(m.contenu); setMenuId(null); inputRef.current?.focus() }
+  const cancelCtx  = () => { const wasEdit = !!editingMsg; setReplyingTo(null); setEditingMsg(null); if (wasEdit) setInput('') }
+  const deleteForMe = (m: any) => { setHidden(p => new Set(p).add(m.id)); setMenuId(null) }
 
-  const startReply = (msg: any) => {
-    if (msg.type === 'slot_proposal') return
-    setReplyingTo(msg); setEditingMessage(null); setOpenMenuId(null)
-  }
-  const startEdit = (msg: any) => {
-    setEditingMessage(msg); setReplyingTo(null); setInput(msg.contenu); setOpenMenuId(null)
-  }
-  const cancelReplyOrEdit = () => {
-    const wasEditing = !!editingMessage
-    setReplyingTo(null); setEditingMessage(null)
-    if (wasEditing) setInput('')
-  }
-
-  const deleteForMe = (msg: any) => {
-    setHiddenForMe(prev => new Set(prev).add(msg.id))
-    setOpenMenuId(null)
-  }
-
-  const confirmDeleteForAll = async (msg: any) => {
-    setOpenMenuId(null)
-    if (!window.confirm('Ce message sera masqué pour tous les participants. Continuer ?')) return
+  const deleteForAll = async (m: any) => {
+    setMenuId(null)
+    if (!window.confirm('Supprimer pour tous ?')) return
     try {
-      await chatApi.supprimerMessage(msg.id)
-      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, contenu: '🚫 Message supprimé', supprime_pour_tous: true, epingle: false } : m))
-    } catch (e) { showBlockedOrError(e) }
+      await chatApi.supprimerMessage(m.id)
+      setMessages(p => p.map(x => x.id === m.id ? { ...x, contenu: 'Message supprimé', supprime_pour_tous: true, epingle: false } : x))
+    } catch (e) { showError(e) }
   }
 
-  const togglePin = async (msg: any) => {
-    setOpenMenuId(null)
-    const newPinnedId = msg.epingle ? null : msg.id
-    try {
-      await chatApi.togglePin(convId, newPinnedId)
-      setMessages(prev => prev.map(m => ({ ...m, epingle: m.id === newPinnedId })))
-    } catch (e) { showBlockedOrError(e) }
+  const togglePin = async (m: any) => {
+    setMenuId(null)
+    const newId = m.epingle ? null : m.id
+    try { await chatApi.togglePin(convId, newId); setMessages(p => p.map(x => ({ ...x, epingle: x.id === newId }))) } catch (e) { showError(e) }
   }
 
-  const pinnedMessage = messages.filter(m => m.epingle && !m.supprime_pour_tous).slice(-1)[0]
-  const lastSlotMessage = messages.filter(m => m.type === 'slot_proposal' && !m.supprime_pour_tous).slice(-1)[0]
+  const pinnedMsg = messages.filter(m => m.epingle && !m.supprime_pour_tous).slice(-1)[0]
+  const lastSlot  = messages.filter(m => m.type === 'slot_proposal' && !m.supprime_pour_tous).slice(-1)[0]
 
-  const findVisitePourBien = async () => {
+  const findVisite = async () => {
     if (!conv?.bien?.id) return null
-    try {
-      const data = await visitesApi.mesVisites()
-      const list = Array.isArray(data) ? data : data.data || []
-      return list.find((v: any) => v.bien?.id === conv.bien.id) || null
-    } catch { return null }
+    try { const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []; return l.find((v: any) => v.bien?.id === conv.bien.id) || null } catch { return null }
   }
-
-  const syncVisiteContreProposer = async (iso: string) => {
-    const visite = await findVisitePourBien()
-    if (visite && visite.statut === 'en_attente') {
-      try { await visitesApi.contreProposer(visite.id, iso) } catch (_) {}
-    }
+  const proposerSlot = async (iso: string) => {
+    setShowSlot(false); setProposing(true)
+    try { const m = await chatApi.proposerCreneau(convId, iso); setMessages(p => [...p, m]); scrollBot() } catch (e) { showError(e) }
+    setProposing(false)
   }
-
-  const syncVisiteStatusAfterAccept = async () => {
-    const visite = await findVisitePourBien()
-    if (!visite) return
-    try {
-      if (isClientRole) {
-        if (visite.statut === 'contre_proposee' || visite.statut === 'en_attente') {
-          await visitesApi.accepterContreProposition(visite.id)
-        }
-      } else {
-        if (visite.statut === 'en_attente' || visite.statut === 'contre_proposee') {
-          await visitesApi.confirmerVisite(visite.id)
-        }
-      }
-    } catch (_) {}
+  const repondre = async (m: any, r: 'accepted'|'declined'|'countered') => {
+    if (r === 'countered') { setCounterFor(m); return }
+    try { const u = await chatApi.repondreProposition(m.id, r); setMessages(p => p.map(x => x.id === m.id ? u : x)) } catch (e) { showError(e) }
   }
-
-  const proposerCreneau = async (iso: string) => {
-    setShowSlotPicker(false)
-    setIsProposingSlot(true)
-    try {
-      const msg = await chatApi.proposerCreneau(convId, iso)
-      setMessages(prev => [...prev, msg])
-      scrollToBottom()
-      if (!isClientRole) syncVisiteContreProposer(iso)
-    } catch (e) { showBlockedOrError(e) }
-    setIsProposingSlot(false)
-  }
-
-  const repondreProposition = async (msg: any, response: 'accepted' | 'declined' | 'countered') => {
-    if (response === 'countered') { setCounterFor(msg); return }
-    try {
-      const updated = await chatApi.repondreProposition(msg.id, response)
-      setMessages(prev => prev.map(m => m.id === msg.id ? updated : m))
-      if (response === 'accepted') syncVisiteStatusAfterAccept()
-    } catch (e) { showBlockedOrError(e) }
-  }
-
   const confirmCounter = async (iso: string) => {
-    const msg = counterFor
-    setCounterFor(null)
-    if (!msg) return
+    const m = counterFor; setCounterFor(null); if (!m) return
     try {
-      const newMsg = await chatApi.repondreProposition(msg.id, 'countered', iso)
-      setMessages(prev => {
-        const updated = prev.map(m => m.id === msg.id ? { ...m, metadata: { ...m.metadata, status: 'countered' } } : m)
-        return updated.some(m => m.id === newMsg.id) ? updated : [...updated, newMsg]
-      })
-      scrollToBottom()
-    } catch (e) { showBlockedOrError(e) }
+      const nm = await chatApi.repondreProposition(m.id, 'countered', iso)
+      setMessages(p => { const u = p.map(x => x.id === m.id ? { ...x, metadata: { ...x.metadata, status: 'countered' } } : x); return u.some(x => x.id === nm.id) ? u : [...u, nm] }); scrollBot()
+    } catch (e) { showError(e) }
   }
-
-  const copyCode = () => {
-    if (!conv?.code_visite) return
-    navigator.clipboard?.writeText(conv.code_visite)
-    setCodeCopied(true)
-    setTimeout(() => setCodeCopied(false), 2000)
-  }
-
-  const payerDepuisChat = async () => {
-    if (!conv?.bien?.id) return
-    setPayingFromChat(true)
+  const copyCode = () => { if (!conv?.code_visite) return; navigator.clipboard?.writeText(conv.code_visite); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000) }
+  const payer = async () => {
+    if (!conv?.bien?.id) return; setPaying(true)
     try {
-      const data = await visitesApi.mesVisites()
-      const list = Array.isArray(data) ? data : data.data || []
-      const visite = list.find((v: any) => v.bien?.id === conv.bien.id)
-      if (!visite) { alert('Aucune visite trouvée pour ce bien.'); return }
-      if (visite.paiement_effectue) { alert('Visite déjà payée ✓'); return }
-      if (!(Number(visite.frais_visite) > 0)) { alert('Visite gratuite — aucun paiement requis.'); return }
-      navigate('/mes-visites', { state: { openPayForVisiteId: visite.id } })
-    } catch (_) {
-      alert("Impossible de récupérer la visite. Réessayez.")
-    }
-    setPayingFromChat(false)
+      const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
+      const v = l.find((x: any) => x.bien?.id === conv.bien.id)
+      if (!v) { alert('Aucune visite.'); return }
+      if (v.paiement_effectue) { alert('Déjà payé ✓'); return }
+      if (!(Number(v.frais_visite) > 0)) { alert('Visite gratuite.'); return }
+      navigate('/mes-visites', { state: { openPayForVisiteId: v.id } })
+    } catch { alert('Erreur.') }
+    setPaying(false)
   }
 
-  const visibleMessages = messages.filter(m => !hiddenForMe.has(m.id))
+  const canEdit = (m: any) => m.sender_id === user?.id && !m.supprime_pour_tous && Date.now() - new Date(m.created_at).getTime() <= 15 * 60_000
+  const visible = messages.filter(m => !hidden.has(m.id))
 
-  const canEdit = (msg: any) =>
-    msg.sender_id === user?.id && !msg.supprime_pour_tous &&
-    (Date.now() - new Date(msg.created_at).getTime()) <= 15 * 60 * 1000
-
-  const MessageMenu = ({ msg }: { msg: any }) => (
-    <div className="absolute z-20 top-full mt-1 right-0 bg-white rounded-xl shadow-lg border border-divider py-1 min-w-[170px]"
-      onClick={e => e.stopPropagation()}>
-      <button onClick={() => startReply(msg)} className="w-full text-left px-4 py-2 text-sm text-text-dark hover:bg-surface-g">Répondre</button>
-      {canEdit(msg) && <button onClick={() => startEdit(msg)} className="w-full text-left px-4 py-2 text-sm text-text-dark hover:bg-surface-g">Modifier</button>}
-      <button onClick={() => togglePin(msg)} className="w-full text-left px-4 py-2 text-sm text-text-dark hover:bg-surface-g">{msg.epingle ? 'Désépingler' : 'Épingler'}</button>
-      {!msg.supprime_pour_tous && <button onClick={() => deleteForMe(msg)} className="w-full text-left px-4 py-2 text-sm text-text-dark hover:bg-surface-g">Supprimer pour moi</button>}
-      {msg.sender_id === user?.id && !msg.supprime_pour_tous && (
-        <button onClick={() => confirmDeleteForAll(msg)} className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-surface-g">Supprimer pour tous</button>
-      )}
-    </div>
+  /* ── Menu item ── */
+  const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => (
+    <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
+      style={{ color: danger ? '#EF4444' : tp, width: 'calc(100% - 8px)' }}
+      onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
+      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+      {label}
+    </button>
   )
 
-  const SlotBubble = ({ msg }: { msg: any }) => {
-    const isMe = msg.sender_id === user?.id
-    const status = msg.metadata?.status || 'pending'
-    const dt = msg.metadata?.proposed_at ? new Date(msg.metadata.proposed_at) : null
-
-    const palette: Record<string, { bg: string; accent: string; label: string }> = {
-      accepted: { bg: 'rgba(76,175,80,0.10)', accent: '#4CAF50', label: 'Confirmé' },
-      declined: { bg: 'rgba(0,0,0,0.03)', accent: '#9E9E9E', label: 'Refusé' },
-      countered: { bg: 'rgba(255,152,0,0.08)', accent: '#FF9800', label: 'Contre-proposé' },
-      pending: { bg: isMe ? 'rgba(75,107,255,0.11)' : '#fff', accent: '#4B6BFF', label: isMe ? 'En attente de réponse' : 'Créneau proposé' },
+  /* ── Bulle slot ── */
+  const SlotBubble = ({ m }: { m: any }) => {
+    const isMe = m.sender_id === user?.id
+    const status = m.metadata?.status || 'pending'
+    const dt = m.metadata?.proposed_at ? new Date(m.metadata.proposed_at) : null
+    const p: Record<string, { bg: string; accent: string; label: string }> = {
+      accepted: { bg: 'rgba(34,197,94,0.10)', accent: '#22C55E', label: 'Confirmé ✓' },
+      declined:  { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', accent: '#94A3B8', label: 'Refusé' },
+      countered: { bg: 'rgba(251,146,60,0.10)', accent: '#FB923C', label: 'Contre-proposé' },
+      pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: '#4B6BFF', label: isMe ? 'En attente…' : 'Créneau proposé' },
     }
-    const p = palette[status] || palette.pending
-
+    const pal = p[status] || p.pending
     return (
-      <div className={`flex mb-2.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
-        <div className="max-w-[300px] rounded-2xl p-3.5" style={{ background: p.bg, border: `1.5px solid ${p.accent}55` }}>
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: p.accent }}>Proposition de créneau</span>
-          </div>
-          <p className="text-sm font-bold text-text-dark leading-snug">{dt ? formatSlotDate(dt) : '—'}</p>
-          <div className="flex items-center gap-1.5 mt-2">
-            <span className="text-xs font-semibold" style={{ color: p.accent }}>{p.label}</span>
+      <div className={`flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+        <div className="rounded-2xl overflow-hidden max-w-[270px]" style={{ background: pal.bg, border: `1.5px solid ${pal.accent}44` }}>
+          <div className="px-3 pt-2.5 pb-0.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: pal.accent }}>Créneau de visite</p>
+            <p className="text-[13.5px] font-bold leading-snug" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
+            <p className="text-[11px] mt-1 font-medium" style={{ color: pal.accent }}>{pal.label}</p>
           </div>
           {!isMe && status === 'pending' && (
-            <div className="mt-2.5 pt-2.5" style={{ borderTop: `1px solid ${p.accent}33` }}>
-              <div className="flex gap-2">
-                <button onClick={() => repondreProposition(msg, 'accepted')}
-                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(76,175,80,0.13)', color: '#4CAF50' }}>Confirmer</button>
-                <button onClick={() => repondreProposition(msg, 'declined')}
-                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(239,68,68,0.10)', color: '#EF4444' }}>Rejeter</button>
+            <div className="px-3 pb-2.5 pt-2 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${pal.accent}22` }}>
+              <div className="flex gap-1.5">
+                <button onClick={() => repondre(m, 'accepted')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(34,197,94,0.14)', color: '#22C55E' }}>Confirmer</button>
+                <button onClick={() => repondre(m, 'declined')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(239,68,68,0.10)', color: '#EF4444' }}>Rejeter</button>
               </div>
-              <button onClick={() => repondreProposition(msg, 'countered')}
-                className="w-full mt-2 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF' }}>
-                Proposer une autre date
-              </button>
+              <button onClick={() => repondre(m, 'countered')} className="w-full py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer" style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF' }}>Autre date</button>
             </div>
           )}
           {status === 'accepted' && conv?.bien?.id && isClientRole && (
-            <div className="mt-2.5 pt-2.5" style={{ borderTop: `1px solid ${p.accent}33` }}>
-              <button onClick={payerDepuisChat} disabled={payingFromChat}
-                className="w-full py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-60"
-                style={{ background: 'rgba(76,175,80,0.13)', color: '#4CAF50' }}>
-                {payingFromChat ? '…' : (
-                  <>
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
-                    Payer maintenant
-                  </>
-                )}
+            <div className="px-3 pb-2.5 pt-2" style={{ borderTop: `1px solid ${pal.accent}22` }}>
+              <button onClick={payer} disabled={paying} className="w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.14)', color: '#22C55E' }}>
+                {paying ? '…' : 'Payer maintenant'}
               </button>
             </div>
           )}
-          <p className="text-[10px] text-text-grey mt-1.5">{timeLabel(msg.created_at)}</p>
+          <div className="px-3 pb-2">
+            <p className="text-[10px] text-right" style={{ color: tm }}>{timeLabel(m.created_at)}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Panneau profil (desktop droit / mobile drawer) ── */
+  const ProfilePanel = ({ onClose }: { onClose: () => void }) => (
+    <div className="h-full flex flex-col" style={{ background: profileBg, borderLeft: `1px solid ${profileBdr}` }}>
+      {/* Header profil */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${divider}` }}>
+        <p className="text-[13px] font-bold uppercase tracking-widest" style={{ color: tm }}>Infos du contact</p>
+        <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer transition-colors hover:opacity-80" style={{ background: iconBtn, color: ts }}>
+          <XIcon />
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto scrollbar-auto px-5 py-5 space-y-5">
+        {/* Avatar grand */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-lg" style={{ background: avatarGrad(other?.id ?? 0) }}>
+            <span className="text-white font-extrabold text-2xl">{initial(otherName)}</span>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1.5">
+              <p className="text-[16px] font-bold" style={{ color: tp }}>{otherName}</p>
+              {isVerified && (
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
+                  <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
+                  <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
+                </svg>
+              )}
+            </div>
+            {role && (
+              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+                {role}
+              </span>
+            )}
+          </div>
+          {/* Présence — affichée seulement si connue */}
+          {isOnline && (
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-400" />
+              <span className="text-[12px] font-medium" style={{ color: ts }}>En ligne</span>
+            </div>
+          )}
+        </div>
+
+        {/* Rôle + Bien concerné */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
+          {/* Rôle */}
+          <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${divider}` }}>
+            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Rôle</p>
+              <p className="text-[13px] font-semibold" style={{ color: role ? tp : ts }}>{role || 'Non renseigné'}</p>
+            </div>
+          </div>
+          {/* Bien concerné */}
+          <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: conv?.bien?.id ? `1px solid ${divider}` : undefined }}>
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Bien concerné</p>
+              {conv?.bien?.id ? (
+                <>
+                  <p className="text-[13px] font-semibold" style={{ color: tp }}>{bienTypeLabel || 'Bien'}</p>
+                  {bienLoc && <p className="text-[11px] mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+                </>
+              ) : (
+                <p className="text-[13px] font-semibold" style={{ color: ts }}>Non renseigné</p>
+              )}
+            </div>
+          </div>
+          {/* Lien vers le bien */}
+          {conv?.bien?.id && (
+            <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
+              className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer transition-opacity hover:opacity-80"
+              style={{ color: '#4B6BFF' }}>
+              <span className="text-[12px] font-bold">Voir le bien</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
+          {[
+            { label: 'Mode silencieux', action: () => {}, danger: false },
+            { label: 'Bloquer ce contact', action: () => {}, danger: true },
+            { label: 'Signaler', action: () => {}, danger: true },
+          ].map(({ label, action, danger }, i, arr) => (
+            <button key={label} onClick={action}
+              className="w-full text-left px-4 py-3.5 text-[13.5px] font-medium transition-colors cursor-pointer flex items-center justify-between"
+              style={{ color: danger ? '#EF4444' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              {label}
+              {!danger && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
+  /* ── Modal slot picker ── */
+  const SlotModal = ({ onConfirm, onCancel }: { onConfirm: (iso: string) => void; onCancel: () => void }) => {
+    const tom = new Date(Date.now() + 86400000)
+    const [date, setDate] = useState(tom.toISOString().slice(0, 10))
+    const [time, setTime] = useState('09:00')
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
+        <div className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
+          style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
+          <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
+              <input type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
+              <input type="time" value={time} onChange={e => setTime(e.target.value)}
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
+            </div>
+          </div>
+          <div className="flex gap-2 mt-5">
+            <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
+            <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>Confirmer</button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="px-4 pt-12 md:pt-4 pb-3 flex-shrink-0" style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-        <div className="flex items-center gap-3">
-          <button onClick={onBack} className="md:hidden glass-btn w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0">
-            <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+    <div className="flex flex-col md:flex-row fixed inset-0 z-40 md:static md:z-auto md:h-full" style={{ background: chatBg, minHeight: 0 }}>
 
-          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
-            <span className="text-white font-bold text-sm">{initial(otherName)}</span>
+      {/* ═══ ZONE CHAT ═══ */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
+
+        {/* Header */}
+        <div className="flex-shrink-0 safe-top px-4 pt-3 pb-3"
+          style={{ background: hdrBg, borderBottom: `1px solid ${hdrBdr}` }}>
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors hover:opacity-75"
+              style={{ background: iconBtn, color: tp }}>
+              <BackIcon />
+            </button>
+
+            {/* Avatar cliquable → ouvre profil */}
+            <button onClick={() => setShowProfile(p => !p)} className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer group">
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105"
+                  style={{ background: avatarGrad(other?.id ?? 0) }}>
+                  <span className="text-white font-bold text-sm">{initial(otherName)}</span>
+                </div>
+                {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 bg-green-400" style={{ borderColor: hdrBg }} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
+                  {isVerified && (
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
+                      <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
+                      <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
+                    </svg>
+                  )}
+                </div>
+                {role ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#4B6BFF' }}>{role}</p>
+                  : isOnline ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#22C55E' }}>En ligne</p> : null}
+              </div>
+            </button>
+
+            {/* Bien lié — compact */}
+            {bienTypeLabel && conv?.bien && (
+              <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
+                className="hidden sm:flex flex-col text-left px-3 py-2 rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, maxWidth: 120 }}>
+                <p className="text-[11.5px] font-semibold truncate" style={{ color: tp }}>{bienTypeLabel}</p>
+                {bienLoc && <p className="text-[10px] truncate mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+              </button>
+            )}
+
+            {/* Menu 3 points */}
+            <div className="flex-shrink-0" ref={headerMenuRef}>
+              <button onClick={e => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  if (showHeaderMenu) { setShowHeaderMenu(false); setHeaderMenuPos(null) }
+                  else { setShowHeaderMenu(true); setHeaderMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right }) }
+                }}
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors"
+                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? '#4B6BFF' : ts }}
+                aria-label="Options">
+                <DotsV />
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-text-dark text-sm truncate">{otherName}</p>
-            {roleLabel && <p className="text-xs text-text-grey truncate">{roleLabel}</p>}
-          </div>
-
-          {(bienTypeLabel || bienLoc) && conv?.bien && (
-            <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
-              className="flex-shrink-0 text-left px-2.5 py-1.5 rounded-xl bg-white border border-divider max-w-[110px]">
-              {bienTypeLabel && <p className="text-[11px] font-bold text-text-dark truncate">{bienTypeLabel}</p>}
-              {bienLoc && <p className="text-[10px] text-text-grey truncate">{bienLoc}</p>}
+          {/* Code visite */}
+          {conv?.code_visite && (
+            <button onClick={copyCode} className="mt-3 flex items-center gap-2 px-3.5 py-2 rounded-xl w-full cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}` }}>
+              <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+              </svg>
+              <span className="text-[12px] font-semibold flex-1" style={{ color: tp }}>Code visite : {conv.code_visite}</span>
+              <span className="text-[11px] font-bold flex-shrink-0" style={{ color: '#4B6BFF' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
             </button>
           )}
         </div>
 
-        {conv?.code_visite && (
-          <button onClick={copyCode} className="mt-2.5 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-divider">
-            <svg className="w-3.5 h-3.5 text-text-grey" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg>
-            <span className="text-xs font-bold text-text-dark tracking-wider">Code visite : {conv.code_visite}</span>
-            <span className="text-[10px] text-primary font-semibold">{codeCopied ? 'Copié !' : 'Copier'}</span>
+        {/* Erreur */}
+        {error && (
+          <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#EF4444' }}>
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {error}
+          </div>
+        )}
+
+        {/* ── Bandeaux fixes (épinglé + créneau) ── */}
+        {(pinnedMsg || lastSlot) && (
+          <div className="flex-shrink-0 px-3 sm:px-4 pt-3 space-y-2">
+            {/* Message épinglé */}
+            {pinnedMsg && (
+              <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                className="flex items-center gap-2 w-full rounded-xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
+                style={{ background: pinBg, borderLeftColor: '#4B6BFF', border: `1px solid ${divider}`, borderLeft: '4px solid #4B6BFF' }}>
+                <span style={{ color: '#4B6BFF' }}><PinFill /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#4B6BFF' }}>Épinglé</p>
+                  <p className="text-[12px] truncate" style={{ color: tp }}>{pinnedMsg.contenu}</p>
+                </div>
+              </button>
+            )}
+
+            {/* Dernier créneau — bandeau */}
+            {lastSlot && (() => {
+              const status = lastSlot.metadata?.status || 'pending'
+              const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
+              const cfg: Record<string, { accent: string; label: string }> = {
+                accepted: { accent: '#22C55E', label: 'Créneau confirmé' },
+                declined: { accent: '#EF4444', label: 'Créneau refusé' },
+                countered: { accent: '#FB923C', label: 'Contre-proposition' },
+                pending: { accent: '#4B6BFF', label: 'Créneau en discussion' },
+              }
+              const c = cfg[status] || cfg.pending
+              return (
+                <button onClick={() => document.getElementById(`msg-${lastSlot.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left cursor-pointer anim-fade-in"
+                  style={{ background: pinBg, border: `1px solid ${divider}`, borderLeft: `4px solid ${c.accent}` }}>
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: c.accent }}>{c.label}</p>
+                    <p className="text-[12px] font-semibold truncate" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
+                  </div>
+                  <ChevDown />
+                </button>
+              )
+            })()}
+          </div>
+        )}
+
+        {/* ── Messages ── */}
+        <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 scrollbar-auto relative"
+          onClick={() => { setMenuId(null); setMenuPos(null); setShowHeaderMenu(false) }}>
+
+          {/* Liste messages */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-40 gap-3">
+              <div className="w-7 h-7 rounded-full border-[3px] border-t-transparent animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} />
+            </div>
+          ) : visible.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(75,107,255,0.10)' }}>
+                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+              </div>
+              <p className="text-[13px] font-semibold" style={{ color: tm }}>Démarrez la conversation</p>
+            </div>
+          ) : visible.map((msg, i) => {
+            const isMe = msg.sender_id === user?.id
+            const sep = i === 0 || !sameDay(visible[i - 1].created_at, msg.created_at)
+            const prevIsMe = i > 0 && visible[i - 1].sender_id === user?.id && visible[i - 1].type !== 'slot_proposal'
+            const grouped = !sep && isMe === prevIsMe
+
+            if (msg.type === 'slot_proposal') {
+              return (
+                <div key={msg.id} id={`msg-${msg.id}`}>
+                  {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
+                  <SlotBubble m={msg} />
+                </div>
+              )
+            }
+
+            const isSupprime = msg.supprime_pour_tous
+            return (
+              <div key={msg.id} id={`msg-${msg.id}`}>
+                {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
+
+                <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-[3px]' : 'mb-1'}`}>
+                  <div className="relative max-w-[78%] sm:max-w-[62%] md:max-w-[54%]">
+
+                    {isSupprime ? (
+                      <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
+                        <p className="text-[12.5px] italic" style={{ color: tm }}>Message supprimé</p>
+                        <button onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false) }}
+                          className="text-[11px] underline mt-0.5 cursor-pointer" style={{ color: '#4B6BFF' }}>En savoir plus</button>
+                        <p className="text-[10px] mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
+                      </div>
+                    ) : (
+                      <div className={`${isMe ? 'rounded-xl rounded-br-[4px]' : 'rounded-xl rounded-bl-[4px]'} ${grouped && isMe ? 'rounded-tr-[6px]' : ''} ${grouped && !isMe ? 'rounded-tl-[6px]' : ''}`}
+                        style={isMe
+                          ? { background: bubbleMeBg, padding: '6px 10px' }
+                          : { background: bubbleOtherBg, border: `1px solid ${bubbleOtherBdr}`, padding: '6px 10px', color: tp }
+                        }>
+                        {/* Citation */}
+                        {msg.reply_to_contenu && (
+                          <div className="text-[11.5px] px-2 py-1 rounded-lg mb-1 border-l-2 line-clamp-2"
+                            style={isMe
+                              ? { borderLeftColor: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)' }
+                              : { borderLeftColor: '#4B6BFF', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(75,107,255,0.06)', color: ts }
+                            }>
+                            {msg.reply_to_contenu}
+                          </div>
+                        )}
+                        {/* Texte */}
+                        <p className="text-[14px] leading-[1.4] break-words" style={{ color: isMe ? '#fff' : tp }}>{msg.contenu}</p>
+                        {/* Footer */}
+                        <div className="flex items-center gap-1 -mt-0.5 justify-end">
+                          {msg.modifie && <span className="text-[9.5px] italic" style={{ color: isMe ? 'rgba(255,255,255,0.50)' : tm }}>modifié ·</span>}
+                          <span className="text-[9.5px]" style={{ color: isMe ? 'rgba(255,255,255,0.55)' : tm }}>{timeLabel(msg.created_at)}</span>
+                          <MsgStatus status={msg.status} isMe={isMe} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bouton ⋯ visible au hover */}
+                    {!isSupprime && (
+                      <button onClick={e => {
+                          e.stopPropagation()
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          if (menuId === msg.id) { setMenuId(null); setMenuPos(null) }
+                          else { setMenuId(msg.id); setMenuPos({ top: rect.top, right: window.innerWidth - rect.right }) }
+                        }}
+                        className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center cursor-pointer"
+                        style={{ background: isMe ? 'rgba(255,255,255,0.22)' : (isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.10)'), color: isMe ? '#fff' : ts, backdropFilter: 'blur(4px)' }}
+                        aria-label="Options">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+          <div ref={bottomRef} className="h-1" />
+        </div>
+
+        {/* Bouton scroll bas */}
+        {!atBottom && (
+          <button onClick={() => { scrollBot(); setAtBottom(true) }}
+            className="absolute bottom-24 right-5 z-20 w-10 h-10 rounded-full flex items-center justify-center shadow-md cursor-pointer anim-scale-in transition-transform hover:scale-105"
+            style={{ background: hdrBg, border: `1px solid ${hdrBdr}`, color: tp }}>
+            <ChevDown />
           </button>
         )}
+
+        {/* Zone saisie */}
+        <div className="flex-shrink-0" style={{ background: inpBg, borderTop: `1px solid ${hdrBdr}` }}>
+          {/* Contexte réponse / modification */}
+          {(replyingTo || editingMsg) && (
+            <div className="px-4 pt-3 pb-1 flex items-center gap-2.5">
+              <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4B6BFF' }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11.5px] font-semibold" style={{ color: '#4B6BFF' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
+                <p className="text-[12px] truncate mt-0.5" style={{ color: ts }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
+              </div>
+              <button onClick={cancelCtx} className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors hover:opacity-75" style={{ color: tm, background: iconBtn }}><XIcon /></button>
+            </div>
+          )}
+          <div className="px-3 py-3 flex items-end gap-2 safe-bottom">
+            {/* Calendrier */}
+            <button onClick={() => setShowSlot(true)} disabled={proposing}
+              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
+              style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF', border: '1px solid rgba(75,107,255,0.18)' }}>
+              {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /> : <CalIcon />}
+            </button>
+            {/* Textarea */}
+            <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
+              placeholder="Écrire un message…" rows={1}
+              className="flex-1 min-w-0 rounded-2xl px-4 py-2.5 text-[14px] outline-none resize-none max-h-28 leading-relaxed"
+              style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp, minHeight: '44px' }} />
+            {/* Envoyer */}
+            <button onClick={send} disabled={!input.trim() || sending}
+              className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
+              {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <SendIcon />}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {error && (
-        <div className="px-4 pt-2 flex-shrink-0">
-          <div className="bg-text-dark text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2">
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-            <span>{error}</span>
+      {/* ═══ PANNEAU PROFIL — desktop côté droit ═══ */}
+      {showProfile && (
+        <div className="hidden md:block w-[280px] xl:w-[300px] flex-shrink-0 h-full anim-slide-left">
+          <ProfilePanel onClose={() => setShowProfile(false)} />
+        </div>
+      )}
+
+      {/* ═══ PANNEAU PROFIL — mobile drawer ═══ */}
+      {showProfile && (
+        <div className="md:hidden fixed inset-0 z-50 flex" onClick={() => setShowProfile(false)}>
+          <div className="flex-1 bg-black/40" />
+          <div className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()}>
+            <ProfilePanel onClose={() => setShowProfile(false)} />
           </div>
         </div>
       )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4" onClick={() => setOpenMenuId(null)}>
-        {pinnedMessage && (
-          <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 mb-3 border-l-[3px] shadow-sm" style={{ borderLeftColor: '#4B6BFF' }}>
-            <svg className="w-3.5 h-3.5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" /></svg>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold text-text-grey">Message épinglé</p>
-              <p className="text-xs text-text-dark truncate">{pinnedMessage.contenu}</p>
-            </div>
-          </div>
-        )}
-
-        {lastSlotMessage && (() => {
-          const status = lastSlotMessage.metadata?.status || 'pending'
-          const dt = lastSlotMessage.metadata?.proposed_at ? new Date(lastSlotMessage.metadata.proposed_at) : null
-          const cfg: Record<string, { accent: string; label: string }> = {
-            accepted:  { accent: '#4CAF50', label: 'Créneau confirmé' },
-            declined:  { accent: '#EF4444', label: 'Créneau refusé' },
-            countered: { accent: '#FF9800', label: 'Contre-proposition' },
-            pending:   { accent: '#4B6BFF', label: 'Créneau en discussion' },
-          }
-          const c = cfg[status] || cfg.pending
-          return (
-            <button
-              onClick={() => document.getElementById(`msg-${lastSlotMessage.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-              className="w-full flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 mb-3 border-l-[3px] text-left shadow-sm"
-              style={{ borderLeftColor: c.accent }}
-            >
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-bold" style={{ color: c.accent }}>{c.label}</p>
-                <p className="text-xs font-semibold text-text-dark truncate">{dt ? formatSlotDate(dt) : '—'}</p>
-              </div>
-              <svg className="w-4 h-4 flex-shrink-0 opacity-60" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-          )
-        })()}
-
-        {loading ? (
-          <div className="flex justify-center pt-8">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : visibleMessages.length === 0 ? (
-          <div className="text-center py-12 text-text-grey text-sm">Démarrez la conversation</div>
-        ) : visibleMessages.map((msg, i) => {
-          const isMe = msg.sender_id === user?.id
-          const needsSeparator = i === 0 || !sameDay(visibleMessages[i - 1].created_at, msg.created_at)
-          if (msg.type === 'slot_proposal') {
-            return (
-              <div key={msg.id} id={`msg-${msg.id}`}>
-                {needsSeparator && <div className="text-center text-[11px] text-text-grey my-3">{dateSeparatorLabel(msg.created_at)}</div>}
-                <SlotBubble msg={msg} />
-              </div>
-            )
-          }
-          const isSupprime = msg.supprime_pour_tous
-          return (
-            <div key={msg.id}>
-              {needsSeparator && <div className="text-center text-[11px] text-text-grey my-3">{dateSeparatorLabel(msg.created_at)}</div>}
-              <div className={`flex mb-2.5 group ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className="relative max-w-[78%]">
-                  {isSupprime ? (
-                    <div className="px-4 py-2.5 rounded-2xl bg-black/5 border border-dashed border-black/20">
-                      <p className="text-sm italic text-text-grey">Message supprimé par l'administrateur</p>
-                      <button
-                        onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false); }}
-                        className="text-[11px] text-primary underline mt-1"
-                      >
-                        En savoir plus
-                      </button>
-                      <p className="text-[10px] text-text-grey mt-1">{timeLabel(msg.created_at)}</p>
-                    </div>
-                  ) : (
-                  <div className={`px-4 py-2.5 rounded-2xl ${isMe ? 'bg-primary text-white rounded-br-sm' : 'glass-card text-text-dark rounded-bl-sm'}`}>
-                    {msg.reply_to_contenu && (
-                      <div className={`text-xs px-2.5 py-1.5 rounded-lg mb-1.5 border-l-2 truncate ${isMe ? 'border-white/50 bg-white/15' : 'border-primary bg-black/5'}`}>
-                        {msg.reply_to_contenu}
-                      </div>
-                    )}
-                    <p className="text-sm leading-relaxed">{msg.contenu}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      {msg.epingle && <span className={`text-[10px] ${isMe ? 'text-white/70' : 'text-primary'}`}>📌</span>}
-                      {msg.modifie && <span className={`text-xs ${isMe ? 'text-white/60' : 'text-text-grey'} italic`}>Modifié · </span>}
-                      <p className={`text-xs ${isMe ? 'text-white/60' : 'text-text-grey'}`}>{timeLabel(msg.created_at)}</p>
-                    </div>
-                  </div>
-                  )}
-                  <button
-                    onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === msg.id ? null : msg.id) }}
-                    className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center text-xs ${isMe ? '-left-7' : '-right-7'}`}
-                    style={{ background: 'rgba(0,0,0,0.06)' }}>
-                    ⋯
-                  </button>
-                  {openMenuId === msg.id && <MessageMenu msg={msg} />}
-                </div>
-              </div>
-            </div>
-          )
-        })}
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Input */}
-      <div className="flex-shrink-0" style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-        {(replyingTo || editingMessage) && (
-          <div className="px-4 pt-2.5 flex items-center gap-2.5">
-            <div className="w-[3px] h-9 bg-primary rounded-full flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-primary">{editingMessage ? 'Modifier le message' : `Répondre à ${otherName.split(' ')[0]}`}</p>
-              <p className="text-xs text-text-grey truncate">{editingMessage?.contenu ?? replyingTo?.contenu}</p>
-            </div>
-            <button onClick={cancelReplyOrEdit} className="w-7 h-7 flex items-center justify-center text-text-grey flex-shrink-0">✕</button>
-          </div>
-        )}
-        <div className="px-4 py-3 flex items-end gap-2.5 safe-bottom">
-          <button onClick={() => setShowSlotPicker(true)} disabled={isProposingSlot}
-            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50" style={{ background: 'rgba(75,107,255,0.10)' }}>
-            {isProposingSlot ? (
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-            )}
-          </button>
-          <textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKey}
-            placeholder="Écrire un message…"
-            rows={1}
-            className="glass-input flex-1 min-w-0 rounded-2xl px-4 py-2.5 text-sm outline-none resize-none max-h-28 leading-relaxed"
-            style={{ minHeight: '42px' }}
-          />
-          <button
-            onClick={send}
-            disabled={!input.trim() || sending}
-            className="w-11 h-11 bg-primary rounded-full flex items-center justify-center shadow-btn disabled:opacity-40 flex-shrink-0"
-          >
-            {sending ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            )}
-          </button>
+      {/* Menu header (3 points) — fixed au-dessus de tout */}
+      {showHeaderMenu && headerMenuPos && (
+        <div data-headermenu className="fixed z-[130] rounded-2xl overflow-hidden py-1 min-w-[200px] anim-fade-down"
+          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}>
+          <MI label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
+          {conv?.bien?.id && <MI label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
+          <div className="h-px mx-2 my-1" style={{ background: divider }} />
+          <MI label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
+          <MI label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
+          <MI label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
         </div>
-      </div>
+      )}
 
-      {showSlotPicker && <SlotPickerModal onConfirm={proposerCreneau} onCancel={() => setShowSlotPicker(false)} />}
-      {counterFor && <SlotPickerModal onConfirm={confirmCounter} onCancel={() => setCounterFor(null)} />}
+      {/* Menu contextuel message — fixed pour éviter le clip du scroll container */}
+      {menuId !== null && menuPos && (() => {
+        const m = visible.find(x => x.id === menuId)
+        if (!m) return null
+        return (
+          <div className="fixed z-[120] rounded-2xl overflow-hidden py-1 min-w-[190px] anim-fade-down"
+            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}
+            onClick={e => e.stopPropagation()}>
+            <MI label="Répondre" onClick={() => startReply(m)} />
+            {canEdit(m) && <MI label="Modifier" onClick={() => startEdit(m)} />}
+            <MI label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
+            <div className="h-px mx-2 my-1" style={{ background: divider }} />
+            {!m.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
+            {m.sender_id === user?.id && !m.supprime_pour_tous && <MI label="Supprimer pour tous" onClick={() => deleteForAll(m)} danger />}
+          </div>
+        )
+      })()}
 
-      {/* ── Modal plainte suppression ── */}
+      {/* Modals */}
+      {showSlot && <SlotModal onConfirm={proposerSlot} onCancel={() => setShowSlot(false)} />}
+      {counterFor && <SlotModal onConfirm={confirmCounter} onCancel={() => setCounterFor(null)} />}
+
+      {/* Modal plainte */}
       {complainMsg && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center" style={{ background: 'rgba(0,0,0,0.45)' }}
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }}
           onClick={e => { if (e.target === e.currentTarget) setComplainMsg(null) }}>
-          <div className="glass-strong rounded-2xl p-5 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+          <div className="rounded-3xl p-5 w-full max-w-sm anim-scale-in" onClick={e => e.stopPropagation()}
+            style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
             <div className="flex items-start justify-between gap-3 mb-3">
-              <div>
-                <p className="font-bold text-text-dark text-base">Message supprimé</p>
-                <p className="text-xs text-text-grey mt-0.5">Ce message a été supprimé par un administrateur de la plateforme.</p>
-              </div>
-              <button onClick={() => setComplainMsg(null)} className="w-7 h-7 flex items-center justify-center text-text-grey flex-shrink-0 rounded-full hover:bg-black/5">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
+              <div><p className="font-bold text-[15px]" style={{ color: tp }}>Message supprimé</p>
+                <p className="text-[12px] mt-0.5" style={{ color: tm }}>Supprimé par un administrateur.</p></div>
+              <button onClick={() => setComplainMsg(null)} className="w-7 h-7 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0" style={{ color: tm, background: iconBtn }}><XIcon /></button>
             </div>
-
-            <div className="rounded-xl px-3 py-2 mb-4 text-xs text-text-grey italic" style={{ background: 'rgba(0,0,0,0.05)', border: '1px dashed rgba(0,0,0,0.15)' }}>
-              Les administrateurs peuvent supprimer des messages qui enfreignent les conditions d'utilisation de la plateforme.
-              Si vous pensez que cette suppression est injustifiée, vous pouvez soumettre une plainte.
-            </div>
-
             {complainSent ? (
-              <div className="text-center py-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(76,175,80,0.12)' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
+              <div className="text-center py-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(34,197,94,0.12)' }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-                <p className="font-bold text-text-dark text-sm">Plainte envoyée</p>
-                <p className="text-xs text-text-grey mt-1">Notre équipe examinera votre signalement.</p>
-                <button onClick={() => setComplainMsg(null)} className="mt-3 w-full py-2.5 rounded-xl bg-primary text-white text-sm font-bold">Fermer</button>
+                <p className="font-bold text-[14px] mb-1" style={{ color: tp }}>Plainte envoyée</p>
+                <p className="text-[12px]" style={{ color: tm }}>Notre équipe examinera votre signalement.</p>
+                <button onClick={() => setComplainMsg(null)} className="mt-4 w-full py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: '#4B6BFF' }}>Fermer</button>
               </div>
             ) : (
               <>
-                <label className="block text-xs font-semibold text-text-dark mb-1.5">Motif de la plainte</label>
-                <textarea
-                  value={complainText}
-                  onChange={e => setComplainText(e.target.value)}
-                  placeholder="Expliquez pourquoi vous pensez que ce message a été supprimé de façon injustifiée…"
-                  rows={4}
-                  className="w-full border border-divider rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary resize-none"
-                />
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => setComplainMsg(null)}
-                    className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-dark">
-                    Annuler
-                  </button>
-                  <button
-                    disabled={!complainText.trim() || complainSending}
-                    onClick={async () => {
-                      if (!complainText.trim()) return
-                      setComplainSending(true)
-                      try {
-                        await chatApi.creerPlainte({
-                          message_id: complainMsg.id,
-                          conversation_id: convId,
-                          contenu: complainText.trim(),
-                        })
-                        setComplainSent(true)
-                      } catch (err) {
-                        showBlockedOrError(err)
-                      }
-                      setComplainSending(false)
-                    }}
-                    className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-1.5">
-                    {complainSending ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : 'Envoyer la plainte'}
+                <textarea value={complainText} onChange={e => setComplainText(e.target.value)}
+                  placeholder="Expliquez pourquoi cette suppression est injustifiée…" rows={4}
+                  className="w-full rounded-xl px-3 py-2.5 text-[13px] outline-none resize-none mb-3"
+                  style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
+                <div className="flex gap-2">
+                  <button onClick={() => setComplainMsg(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
+                  <button disabled={!complainText.trim() || complainSending} onClick={async () => {
+                    if (!complainText.trim()) return; setComplainSending(true)
+                    try { await chatApi.creerPlainte({ message_id: complainMsg.id, conversation_id: convId, contenu: complainText.trim() }); setComplainSent(true) }
+                    catch (err) { showError(err) }
+                    setComplainSending(false)
+                  }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center cursor-pointer" style={{ background: '#4B6BFF' }}>
+                    {complainSending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Envoyer'}
                   </button>
                 </div>
               </>

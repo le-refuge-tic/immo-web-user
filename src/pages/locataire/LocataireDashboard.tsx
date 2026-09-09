@@ -8,6 +8,7 @@ import { walletApi } from '../../api/walletApi'
 import { chatApi } from '../../api/chatApi'
 import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
+import { bienTypeLabel } from '../../utils/bienType'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcHome   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -194,7 +195,6 @@ function MonLogementTab() {
     </div>
   )
 
-  const typeLabels: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain' }
 
   const GestionnaireCard = ({ desktop }: { desktop?: boolean }) => (
     <div className={`${desktop ? '' : 'md:hidden'} rounded-2xl p-4 md:p-5 flex items-center gap-3`}
@@ -225,7 +225,7 @@ function MonLogementTab() {
           {/* Hero card */}
           <div className="mx-4 mt-5 md:mx-0 md:mt-0 rounded-3xl p-5 md:p-7 text-white" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})`, boxShadow: `0 8px 24px ${GREEN}50` }}>
             <p className="text-white/70 text-xs uppercase tracking-wider mb-1">Mon logement</p>
-            <p className="font-bold text-xl md:text-2xl mb-1">{typeLabels[bien?.type] || bien?.type}</p>
+            <p className="font-bold text-xl md:text-2xl mb-1">{bienTypeLabel(bien)}</p>
             <div className="flex items-center gap-1.5 mb-4 text-white/80 text-sm">
               <IcPin />
               <span>{bien?.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien?.localisation?.ville}</span>

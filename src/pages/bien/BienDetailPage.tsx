@@ -5,6 +5,9 @@ import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { infosLogementRows, infosTerrainRows, type InfoRow } from '../../utils/amenites'
 import EditBienModal from './EditBienModal'
+import ShareSheet from '../../components/ShareSheet'
+import { shareBien } from '../../services/shareService'
+import { bienTypeLabel } from '../../utils/bienType'
 import logoSbee from '../../assets/logo-SBEE.png'
 import logoSoneb from '../../assets/logo-SONEB.png'
 
@@ -14,11 +17,6 @@ function resolveUrl(url: string) {
   if (!url) return ''
   if (url.startsWith('http')) return url
   return BACKEND + url
-}
-
-const TYPE_LABELS: Record<string, string> = {
-  maison: 'Maison', appart_vide: 'Appartement vide',
-  appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain',
 }
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -196,7 +194,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const [isOccupeLocal, setIsOccupeLocal] = useState(false)
   const [togglingStatut, setTogglingStatut] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [linkCopied, setLinkCopied] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const [similaires, setSimilaires] = useState<any[]>([])
 
   useEffect(() => {
@@ -228,11 +226,10 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       .catch(() => {})
   }, [bien?.id])
 
-  const partager = () => {
-    navigator.clipboard?.writeText(window.location.href).then(() => {
-      setLinkCopied(true)
-      setTimeout(() => setLinkCopied(false), 2000)
-    }).catch(() => {})
+  const partager = async () => {
+    // Feature detection au tap : share sheet natif si dispo, sinon fenêtre custom
+    const shared = await shareBien(bien)
+    if (!shared) setShareOpen(true)
   }
 
   const isOwnBien = !!(isLoggedIn && user && bien && bien.user_id === user.id)
@@ -314,7 +311,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const photos: any[] = bien.photos || []
   const allUrls = photos.map((p: any) => resolveUrl(p.url))
   const isLocation = bien.transaction === 'location'
-  const typeLabel = TYPE_LABELS[bien.type] || bien.type
+  const typeLabel = bienTypeLabel(bien)
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
   const title = bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
   const prix = Number(bien.prix).toLocaleString('fr-FR')
@@ -504,17 +501,8 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
 
               <button onClick={partager}
                 className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-divider text-text-grey hover:text-text-dark hover:border-text-grey/40 transition-colors">
-                {linkCopied ? (
-                  <>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    <span style={{ color: '#22C55E' }}>Lien copié</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342a2.996 2.996 0 000-2.684m0 2.684a3 3 0 100 2.684m0-2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.368-2.684 3 3 0 00-5.368 2.684zm0 9.632a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                    Partager ce bien
-                  </>
-                )}
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342a2.996 2.996 0 000-2.684m0 2.684a3 3 0 100 2.684m0-2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.368-2.684 3 3 0 00-5.368 2.684zm0 9.632a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                Partager ce bien
               </button>
             </div>
 
@@ -646,6 +634,8 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
         <EditBienModal bien={bien} onClose={() => setEditing(false)}
           onSaved={updated => { setBien((prev: any) => ({ ...prev, ...updated })); setEditing(false) }} />
       )}
+
+      {shareOpen && <ShareSheet bien={bien} onClose={() => setShareOpen(false)} />}
     </div>
   )
 }

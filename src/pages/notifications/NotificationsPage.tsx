@@ -89,8 +89,10 @@ function chipLabel(n: any): string | null {
   return null
 }
 
+const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/mes-visites', prospect: '/mes-visites' }
+
 export default function NotificationsPage() {
-  const { isLoggedIn, hasRole, user } = useAuth()
+  const { isLoggedIn, user, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -151,9 +153,14 @@ export default function NotificationsPage() {
       if (opened) return
     }
     if (VISITE_TYPES.has(n.type)) {
-      if (hasRole('demarcheur')) navigate('/demarcheur')
-      else if (hasRole('proprietaire')) navigate('/proprietaire')
-      else navigate('/mes-visites')
+      // Rôle concerné par CETTE notification. Le backend le fournit via
+      // target_role ; à défaut (alertes créées avant le correctif) on
+      // respecte le contexte de navigation courant (activeRole) plutôt
+      // qu'un ordre de priorité arbitraire entre rôles.
+      const targetRole: string = n.target_role || activeRole
+      // Bascule silencieuse d'espace si nécessaire, puis navigation.
+      if (targetRole && targetRole !== activeRole) setActiveRole(targetRole)
+      navigate(ROLE_ROUTES[targetRole] || '/mes-visites')
     } else if (BIEN_TYPES.has(n.type) && meta.bien_id) {
       navigate(`/biens/${meta.bien_id}`)
     }
