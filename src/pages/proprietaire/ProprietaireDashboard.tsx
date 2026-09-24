@@ -877,7 +877,7 @@ function notifIcon(type: string): { node: React.ReactNode; color: string } {
   return { node: <IcBell />, color: 'var(--p-muted)' as string }
 }
 
-function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
+function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: number, draftMessage?: string) => void }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { refresh: refreshCounts } = useNotifications()
@@ -927,7 +927,7 @@ function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
       const convs = Array.isArray(cd) ? cd : cd.data || []
       const match = convs.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === otherId))
       if (!match) return false
-      navigate(`/conversations/${match.id}`)
+      onOpenTab('messages', match.id)
       return true
     } catch { return false }
   }
@@ -936,7 +936,8 @@ function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
     if (n.type === 'nouveau_message' && meta.conversation_id) {
-      navigate(`/conversations/${meta.conversation_id}`); return
+      onOpenTab('messages', Number(meta.conversation_id))
+      return
     }
     if (NOTIF_VISITE_TYPES.has(n.type) && meta.visite_id) {
       const opened = await ouvrirConversationPourVisite(meta.visite_id)
@@ -1025,12 +1026,12 @@ function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
   )
 }
 
-function MessagesTab() {
+function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: number | null; initialDraft?: string | null }) {
   const { user } = useAuth()
   const [convs, setConvs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [activeConvId, setActiveConvId] = useState<number | null>(null)
+  const [activeConvId, setActiveConvId] = useState<number | null>(initialConvId ?? null)
   // Résultats de recherche dans le CONTENU des messages (endpoint /chat/search,
   // équivalent de ConversationsScreen._doSearch côté mobile — jusqu'ici jamais
   // appelé côté web, qui ne filtrait que le nom du contact localement).
@@ -1182,7 +1183,7 @@ function MessagesTab() {
       {/* Fil de discussion */}
       <div className={`flex-1 flex-col overflow-hidden ${activeConvId != null ? 'flex' : 'hidden md:flex'}`}>
         {activeConvId != null ? (
-          <ChatThread convId={activeConvId} onBack={() => setActiveConvId(null)} />
+          <ChatThread convId={activeConvId} onBack={() => setActiveConvId(null)} initialDraft={initialDraft ?? undefined} />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-8" style={{ background: 'var(--p-deep)' }}>
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '12' }}>
@@ -1698,7 +1699,7 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
   )
 }
 
-function ReservationsTab({ biens, onScrolled }: { biens: any[]; onScrolled?: (v: boolean) => void }) {
+function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; onScrolled?: (v: boolean) => void; onOpenMessages?: (convId: number, draftMessage?: string) => void }) {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -1762,7 +1763,8 @@ function ReservationsTab({ biens, onScrolled }: { biens: any[]; onScrolled?: (v:
         const draftMessage = isEchouee(v)
           ? `Bonjour, concernant votre visite du ${new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} qui ne s'est pas tenue, peut-on reprogrammer ?`
           : undefined
-        navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
+        if (onOpenMessages) onOpenMessages(match.id, draftMessage)
+        else navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
       }
       else alert('Ce client n\'a pas encore démarré de conversation pour ce bien.')
     } catch (_) {}
@@ -3668,6 +3670,15 @@ export default function ProprietaireDashboard() {
     navigate(ROLE_ROUTES[role] || '/')
   }
   const [tab, setTab] = useState<Tab>((location.state as any)?.tab ?? 'tableau')
+  const [messagesInitConvId, setMessagesInitConvId] = useState<number | null>((location.state as any)?.convId ?? null)
+  const [messagesInitDraft, setMessagesInitDraft] = useState<string | null>(null)
+  const openTab = (t: Tab, convId?: number, draftMessage?: string) => {
+    if (t === 'messages') {
+      if (convId != null) setMessagesInitConvId(convId)
+      if (draftMessage != null) setMessagesInitDraft(draftMessage)
+    }
+    setTab(t)
+  }
   // Ignore le premier montage : isScrolled est déjà à la bonne valeur initiale
   // (pill si on vient du détail, false sinon). Les changements de tab suivants
   // remettent bien à zéro.
@@ -3675,6 +3686,7 @@ export default function ProprietaireDashboard() {
     if (!tabMounted.current) { tabMounted.current = true; return }
     setIsScrolled(false)
     setMenuOpen(false)
+    if (tab !== 'messages') { setMessagesInitConvId(null); setMessagesInitDraft(null) }
   }, [tab])
 
   // Animation pill → pleine largeur à l'arrivée depuis la page détail
@@ -4223,9 +4235,9 @@ export default function ProprietaireDashboard() {
           </div>
         )}
         {tab === 'biens'        && <MesBiensTab onScrolled={setIsScrolled} />}
-        {tab === 'reservations' && <ReservationsTab biens={biens} onScrolled={setIsScrolled} />}
-        {tab === 'messages'      && <MessagesTab />}
-        {tab === 'notifications' && <NotificationsTab onOpenTab={setTab} />}
+        {tab === 'reservations' && <ReservationsTab biens={biens} onScrolled={setIsScrolled} onOpenMessages={(convId, draft) => openTab('messages', convId, draft)} />}
+        {tab === 'messages'      && <MessagesTab initialConvId={messagesInitConvId} initialDraft={messagesInitDraft} />}
+        {tab === 'notifications' && <NotificationsTab onOpenTab={openTab} />}
         {tab === 'loyers'        && <LoyersTab onScrolled={setIsScrolled} />}
         {tab === 'creneaux'      && <CreneauxTab />}
         {tab === 'portefeuille' && <PortefeuilleTab onOpenTransactions={() => setTab('transactions')} />}

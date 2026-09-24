@@ -116,7 +116,7 @@ export default function ProprietaireBienWrapper() {
             {/* Right actions */}
             <div className="flex items-center gap-2 ml-auto">
               {/* Alertes */}
-              <button onClick={() => navigate('/notifications')}
+              <button onClick={() => navigate('/proprietaire', { state: { tab: 'notifications', fromDetail: true } })}
                 className="relative w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">

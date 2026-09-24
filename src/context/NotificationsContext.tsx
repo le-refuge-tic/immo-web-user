@@ -65,11 +65,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             : null
           const name = other?.prenom || other?.pseudonyme || other?.nom || 'Nouveau message'
           const preview = c.dernierMessage?.contenu === '__supprime__' ? 'Message supprimé' : (c.dernierMessage?.contenu || 'Vous avez reçu un message')
+          const inProprietaireDashboard = path.startsWith('/proprietaire')
           showBanner({
             variant: 'message',
             title: name,
             message: preview,
-            to: `/conversations/${c.id}`,
+            to: inProprietaireDashboard ? '/proprietaire' : `/conversations/${c.id}`,
+            toState: inProprietaireDashboard ? { tab: 'messages', convId: c.id } : undefined,
             initial: (name[0] || '?').toUpperCase(),
             gradient: AVATAR_PALETTE[Math.abs(other?.id || c.id) % AVATAR_PALETTE.length],
           })

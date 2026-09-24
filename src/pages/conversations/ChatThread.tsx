@@ -77,7 +77,7 @@ const XIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 const PinFill = () => <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
 const ChevDown = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
 
-export default function ChatThread({ convId, onBack }: { convId: number; onBack: () => void }) {
+export default function ChatThread({ convId, onBack, initialDraft }: { convId: number; onBack: () => void; initialDraft?: string }) {
   const { user, token } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -161,9 +161,12 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   }, [convId])
 
   useEffect(() => {
-    const draft = (location.state as any)?.draftMessage
-    if (draft) { setInput(draft); navigate(location.pathname, { replace: true, state: {} }) }
-  }, [location.state])
+    const draft = (location.state as any)?.draftMessage || initialDraft
+    if (draft) {
+      setInput(draft)
+      if ((location.state as any)?.draftMessage) navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state, initialDraft])
 
   useEffect(() => {
     if (!token) return
