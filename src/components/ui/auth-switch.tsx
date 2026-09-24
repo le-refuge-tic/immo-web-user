@@ -285,6 +285,8 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       completeLogin(data)
     } catch (err: any) {
       setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code incorrect'))
+      setOtpDigits(Array(OTP_LENGTH).fill(''))
+      setTimeout(() => otpRefs.current[0]?.focus(), 50)
     }
     setOtpLoading(false)
   }
@@ -473,6 +475,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       completeLogin(data)
     } catch (err: any) {
       setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code incorrect'))
+      setOtpDigits(Array(OTP_LENGTH).fill(''))
+      setTimeout(() => otpRefs.current[0]?.focus(), 50)
     }
     setOtpLoading(false)
   }
