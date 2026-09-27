@@ -106,7 +106,10 @@ export default function RecuPage() {
   const titreCourt = isDepot ? 'Reçu de rechargement' : isIntegration ? "Reçu d'intégration" : isLoyer ? 'Reçu de loyer' : 'Reçu de visite'
 
   const bien = isIntegration || isLoyer ? recu.bien : recu.visite?.bien
-  const typeLabel = bien ? bienTypeLabel(bien) : ''
+  // Le backend calcule déjà le libellé exact (tient compte du sous-type) et
+  // l'expose via bien.type_label — on l'utilise en priorité pour rester
+  // cohérent avec le reçu mobile plutôt que de le recalculer côté client.
+  const typeLabel = bien ? (bien.type_label || bienTypeLabel(bien)) : ''
   const adresse = bien?.localisation?.adresse
   const ville = bien?.localisation?.ville
   const client = recu.locataire || recu.client
