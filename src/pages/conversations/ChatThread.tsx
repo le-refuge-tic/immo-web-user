@@ -244,7 +244,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
     if (!window.confirm('Supprimer pour tous ?')) return
     try {
       await chatApi.supprimerMessage(m.id)
-      setMessages(p => p.map(x => x.id === m.id ? { ...x, contenu: 'Message supprimé', supprime_pour_tous: true, epingle: false } : x))
+      setMessages(p => p.map(x => x.id === m.id ? { ...x, contenu: 'Ce message a été supprimé', supprime_pour_tous: true, supprime_par_admin: false, epingle: false } : x))
     } catch (e) { showError(e) }
   }
 
@@ -656,7 +656,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
                     {isSupprime ? (
                       <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
-                        <p className="text-[12.5px] italic" style={{ color: tm }}>Message supprimé</p>
+                        <p className="text-[12.5px] italic" style={{ color: tm }}>{msg.supprime_par_admin ? 'Ce message a été supprimé par l\'administrateur' : 'Ce message a été supprimé'}</p>
                         <button onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false) }}
                           className="text-[11px] underline mt-0.5 cursor-pointer" style={{ color: '#4B6BFF' }}>En savoir plus</button>
                         <p className="text-[10px] mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
