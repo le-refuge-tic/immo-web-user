@@ -30,7 +30,7 @@ const GREY_200 = hex(0xeeeeee)
 const BLACK = rgb(0.11, 0.11, 0.12)
 
 // ── Types de données (mêmes clés que le back-end / RecuPage) ─────────────────
-export interface RecuLigne {
+interface RecuLigne {
   label: string
   value: string
 }

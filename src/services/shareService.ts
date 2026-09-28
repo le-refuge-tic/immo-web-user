@@ -20,12 +20,12 @@ export interface ShareBien {
 }
 
 /** Lien profond vers la fiche du bien (ouvre l'app web sur la bonne route). */
-export function bienUrl(bien: ShareBien): string {
+function bienUrl(bien: ShareBien): string {
   return `${window.location.origin}/biens/${bien.id}`
 }
 
 /** Texte court adapté au marché béninois : type — prix FCFA — quartier, ville. */
-export function bienShareText(bien: ShareBien): string {
+function bienShareText(bien: ShareBien): string {
   const typeLabel = (bien.type && TYPE_LABELS[bien.type]) || 'Bien immobilier'
   const brut = bien.prix_promo != null && Number(bien.prix_promo) > 0 ? bien.prix_promo : bien.prix
   const prix = brut != null ? `${Number(brut).toLocaleString('fr-FR')} FCFA` : null
@@ -34,7 +34,7 @@ export function bienShareText(bien: ShareBien): string {
 }
 
 /** Le navigateur supporte-t-il le partage natif ? */
-export function canNativeShare(): boolean {
+function canNativeShare(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 }
 

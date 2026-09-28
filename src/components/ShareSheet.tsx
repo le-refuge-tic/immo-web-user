@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTheme } from '../context/ThemeContext'
 import { shareLinks, type ShareBien } from '../services/shareService'
 
@@ -18,6 +18,12 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
   const tp      = isDark ? '#E8E9F0' : '#111827'
   const ts      = isDark ? 'rgba(232,233,240,0.60)' : '#6B7280'
   const fieldBg = isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F8'
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
 
   const copy = () => {
     navigator.clipboard?.writeText(links.url).then(() => {
@@ -45,13 +51,14 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ background: 'rgba(0,0,0,0.55)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 anim-scale-in safe-bottom"
+      <div role="dialog" aria-modal="true" aria-labelledby="sharesheet-title"
+        className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 anim-scale-in safe-bottom"
         style={{ background: bg, border: `1px solid ${border}`, boxShadow: '0 -8px 40px rgba(0,0,0,0.25)' }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[16px] font-bold" style={{ color: tp }}>Partager ce bien</p>
+          <p id="sharesheet-title" className="text-[16px] font-bold" style={{ color: tp }}>Partager ce bien</p>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer transition-opacity hover:opacity-75"
             style={{ background: fieldBg, color: ts }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

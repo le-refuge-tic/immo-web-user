@@ -6,7 +6,7 @@ const COORDS = coordsData as QCoords[]
 const BY_NORM = new Map(COORDS.map(c => [c.nom_normalise, c]))
 
 /** Normalise un nom de quartier : minuscules, sans accents, sans tirets. Miroir du mobile. */
-export function normalizeQuartier(s: string): string {
+function normalizeQuartier(s: string): string {
   return s
     .toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
