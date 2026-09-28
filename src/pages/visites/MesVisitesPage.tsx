@@ -294,7 +294,7 @@ export default function MesVisitesPage() {
       {/* ── Header (mobile sticky + desktop glass bar) ── */}
       <div style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
         <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="flex items-center gap-3 pt-12 md:pt-5 pb-3">
+          <div className="flex items-center gap-3 pt-[72px] md:pt-5 pb-3">
             <button onClick={() => navigate(-1)}
               className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0">
               <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">

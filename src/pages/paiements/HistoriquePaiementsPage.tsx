@@ -108,7 +108,7 @@ export default function HistoriquePaiementsPage() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <div className="flex-shrink-0 px-5 pt-14 md:pt-6 pb-6"
+      <div className="flex-shrink-0 px-5 pt-[72px] md:pt-6 pb-6"
         style={{ background: 'linear-gradient(135deg,#1A1A2E,#0F3460)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">

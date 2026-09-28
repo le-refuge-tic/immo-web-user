@@ -351,7 +351,7 @@ export default function ProfilePage() {
 
       {/* ── MOBILE / TABLETTE layout ── */}
       <div className="lg:hidden">
-        <div className="flex items-center justify-between px-5 md:px-10 pt-12 md:pt-8 pb-4">
+        <div className="flex items-center justify-between px-5 md:px-10 pt-[72px] md:pt-8 pb-4">
           <h1 className="text-xl font-bold text-text-dark">Profil</h1>
           <div className="glass-btn w-[38px] h-[38px] rounded-[10px] flex items-center justify-center">
             <SettingsIcon />

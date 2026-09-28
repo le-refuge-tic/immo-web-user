@@ -43,7 +43,7 @@ export default function FavoritesPage() {
       <div className="w-full px-4 md:px-16">
 
         {/* Header */}
-        <div className="pt-12 md:pt-10 pb-6 flex items-end justify-between">
+        <div className="pt-[72px] md:pt-10 pb-6 flex items-end justify-between">
           <div>
             <h1 className="text-2xl font-bold text-text-dark">Mes favoris</h1>
             {biens.length > 0 && (

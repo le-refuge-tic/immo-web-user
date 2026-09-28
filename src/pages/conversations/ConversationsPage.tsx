@@ -148,8 +148,8 @@ export default function ConversationsPage() {
                 background: active ? activeBg : 'transparent',
                 borderLeft: `3px solid ${active ? '#4B6BFF' : 'transparent'}`,
               }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = hoverBg }}
-              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = hoverBg }}
+              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}>
 
               {/* Avatar + présence */}
               <div className="relative flex-shrink-0">
@@ -249,7 +249,7 @@ export default function ConversationsPage() {
         {activeId === null ? (
           <div style={{ background: bgSidebar, minHeight: '100dvh' }}>
             {/* Header mobile */}
-            <div className="safe-top px-5 pt-5 pb-3 flex items-center justify-between sticky top-0 z-10"
+            <div className="px-5 pt-[calc(72px+12px)] pb-3 flex items-center justify-between sticky top-[72px] z-10"
               style={{ background: bgSidebar, borderBottom: `1px solid ${divider}` }}>
               <h1 className="text-[20px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h1>
               {!loading && convs.length > 0 && (

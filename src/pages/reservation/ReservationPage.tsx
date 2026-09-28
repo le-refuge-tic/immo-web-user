@@ -408,7 +408,7 @@ export default function ReservationPage() {
     <div className="min-h-full flex flex-col">
 
       {/* ── Header ── */}
-      <div className="flex-shrink-0 px-5 md:px-8 pt-14 md:pt-6 pb-5 md:pb-5"
+      <div className="flex-shrink-0 px-5 md:px-8 pt-[72px] md:pt-6 pb-5 md:pb-5"
         style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-5xl mx-auto flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>

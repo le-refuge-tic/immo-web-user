@@ -1003,7 +1003,7 @@ export default function DemarcheurDashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
       {/* Header */}
-      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-12 md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-[72px] md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
         <div className="md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0">
           <div className="flex items-center gap-3 mb-5 md:mb-6">
             <div className="w-11 h-11 md:w-12 md:h-12 rounded-[13px] flex items-center justify-center border flex-shrink-0"

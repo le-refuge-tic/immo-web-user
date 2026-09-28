@@ -797,7 +797,7 @@ export default function LocataireDashboard() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <div className="md:hidden flex-shrink-0 px-5 pt-12 pb-5" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
+        <div className="md:hidden flex-shrink-0 px-5 pt-[72px] pb-5" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/60 text-xs uppercase tracking-wider">REFUGE · Locataire</p>
