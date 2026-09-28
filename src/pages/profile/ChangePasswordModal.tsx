@@ -98,19 +98,19 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
             </div>
           )}
           <div>
-            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Mot de passe actuel</label>
-            <input type="password" value={current} onChange={e => setCurrent(e.target.value)} required
+            <label htmlFor="cp-current" className="text-sm font-semibold text-text-dark mb-1.5 block">Mot de passe actuel</label>
+            <input id="cp-current" type="password" value={current} onChange={e => setCurrent(e.target.value)} required
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Nouveau mot de passe</label>
-            <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} required
+            <label htmlFor="cp-new" className="text-sm font-semibold text-text-dark mb-1.5 block">Nouveau mot de passe</label>
+            <input id="cp-new" type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} required
               placeholder="Min. 8 caractères"
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Confirmer le nouveau mot de passe</label>
-            <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required
+            <label htmlFor="cp-confirm" className="text-sm font-semibold text-text-dark mb-1.5 block">Confirmer le nouveau mot de passe</label>
+            <input id="cp-confirm" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div className="flex gap-3 pt-1">

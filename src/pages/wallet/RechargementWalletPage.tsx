@@ -167,9 +167,11 @@ export default function RechargementWalletPage() {
               </>
             )}
 
-            {state === 'error' && error && (
-              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>{error}</div>
-            )}
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+              {state === 'error' && error && (
+                <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>{error}</div>
+              )}
+            </div>
 
             <button onClick={recharger}
               disabled={state === 'loading' || !montant || Number(montant) < 100}

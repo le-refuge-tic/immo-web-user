@@ -145,24 +145,24 @@ export default function EditProfileModal({ open, onClose }: Props) {
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-semibold text-text-dark mb-1.5 block">Nom</label>
-              <input value={nom} onChange={e => setNom(e.target.value)} required
+              <label htmlFor="ep-nom" className="text-sm font-semibold text-text-dark mb-1.5 block">Nom</label>
+              <input id="ep-nom" value={nom} onChange={e => setNom(e.target.value)} required
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
             <div>
-              <label className="text-sm font-semibold text-text-dark mb-1.5 block">Prénom</label>
-              <input value={prenom} onChange={e => setPrenom(e.target.value)} required
+              <label htmlFor="ep-prenom" className="text-sm font-semibold text-text-dark mb-1.5 block">Prénom</label>
+              <input id="ep-prenom" value={prenom} onChange={e => setPrenom(e.target.value)} required
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com"
+            <label htmlFor="ep-email" className="text-sm font-semibold text-text-dark mb-1.5 block">Email</label>
+            <input id="ep-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com"
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</label>
-            <input type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="+229 00 00 00 00"
+            <label htmlFor="ep-telephone" className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</label>
+            <input id="ep-telephone" type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="+229 00 00 00 00"
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div className="flex gap-3 pt-1">
