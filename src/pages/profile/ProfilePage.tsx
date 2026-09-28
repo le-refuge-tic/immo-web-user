@@ -10,6 +10,7 @@ import EditProfileModal from './EditProfileModal'
 import ChangePasswordModal from './ChangePasswordModal'
 import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import { bienTypeLabel } from '../../utils/bienType'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -158,6 +159,7 @@ function MenuItem({ icon, label, onClick, showDivider = true }: MenuItemProps) {
 }
 
 export default function ProfilePage() {
+  usePageTitle('Profil')
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [apiUser, setApiUser] = useState<any>(null)

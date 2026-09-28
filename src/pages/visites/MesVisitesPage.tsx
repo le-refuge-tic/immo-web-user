@@ -7,6 +7,7 @@ import { chatApi } from '../../api/chatApi'
 import FaceRating from '../../components/FaceRating'
 import { bienTypeLabel } from '../../utils/bienType'
 import { validateBeninPhone, PHONE_FORMAT_HINT } from '../../utils/phone'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
@@ -62,6 +63,7 @@ const ISSUES_TAGS = [
 ]
 
 export default function MesVisitesPage() {
+  usePageTitle('Mes visites')
   const navigate = useNavigate()
   const location = useLocation()
   const [tab, setTab] = useState(0)

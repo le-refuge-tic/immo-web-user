@@ -23,6 +23,7 @@ import PropertyStatsCard from '../../components/PropertyStatsCard'
 import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import { AnimatedGroup } from '../../components/ui/animated-group'
 import { motion, AnimatePresence } from 'framer-motion'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -3673,6 +3674,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function ProprietaireDashboard() {
+  usePageTitle('Espace propriétaire')
   const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const { unreadMessages, unreadAlertes, refresh: refreshNotifications } = useNotifications()
   const navigate = useNavigate()

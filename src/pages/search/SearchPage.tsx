@@ -8,6 +8,7 @@ import BienCard from '../../components/BienCard'
 import Reveal from '../../components/Reveal'
 import { rechercherQuartiers, trouverQuartierExact, type Quartier, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 import { getQuartierCoords, haversineKm, distanceEntreQuartiers } from '../../data/quartierProximite'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 function norm(s: string) {
   return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -177,6 +178,7 @@ function useTokens(isDark: boolean) {
    Composant principal
    ══════════════════════════════════════════════════════════════ */
 export default function SearchPage() {
+  usePageTitle('Recherche')
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { isLoggedIn } = useAuth()

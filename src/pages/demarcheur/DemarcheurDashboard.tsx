@@ -11,6 +11,7 @@ import { delegationApi } from '../../api/delegationApi'
 import { chatApi } from '../../api/chatApi'
 import { notificationsApi } from '../../api/notificationsApi'
 import { BASE } from '../../api/apiBase'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { useNotifications } from '../../context/NotificationsContext'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
@@ -940,6 +941,7 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function DemarcheurDashboard() {
+  usePageTitle('Espace démarcheur')
   const { user: authUser } = useAuth()
   const { unreadAlertes } = useNotifications()
   const navigate = useNavigate()

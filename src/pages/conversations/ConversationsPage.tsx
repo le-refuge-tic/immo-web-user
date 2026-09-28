@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useMatch } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const AVATAR_PALETTE = [
   'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
@@ -31,6 +32,7 @@ function fmtTime(iso?: string) {
 }
 
 export default function ConversationsPage() {
+  usePageTitle('Conversations')
   const { user } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'

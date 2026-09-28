@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 export default function FavoritesPage() {
+  usePageTitle('Favoris')
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
   const [biens, setBiens] = useState<any[]>([])

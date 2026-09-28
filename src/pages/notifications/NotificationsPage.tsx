@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { notificationsApi } from '../../api/notificationsApi'
 import { visitesApi } from '../../api/visitesApi'
 import { chatApi } from '../../api/chatApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -92,6 +93,7 @@ function chipLabel(n: any): string | null {
 const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/mes-visites', prospect: '/mes-visites' }
 
 export default function NotificationsPage() {
+  usePageTitle('Notifications')
   const { isLoggedIn, user, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState<any[]>([])

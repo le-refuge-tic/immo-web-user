@@ -13,6 +13,7 @@ import slide4 from '../../assets/onboarding-3.jpg'
 import slide5 from '../../assets/onboarding-side.jpg'
 import logoUrl from '../../assets/REFUGE-ICON.png'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const HERO_SLIDES = [HERO_IMG, slide2, slide3, slide4, slide5]
 
@@ -138,6 +139,7 @@ export default function HomePage() {
   const isDark = theme === 'dark'
   const tk = useTokens(isDark)
   const navigate = useNavigate()
+  usePageTitle('Accueil')
 
   const [transaction, setTransaction] = useState('')
   const [type, setType] = useState('')
