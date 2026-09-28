@@ -7,6 +7,7 @@ import { ScrollProvider } from './context/ScrollContext'
 import MainLayout from './components/MainLayout'
 import SplashPage from './pages/splash/SplashPage'
 import { AuthSwitch } from './components/ui/auth-switch'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 /* Pages légères chargées immédiatement (premier rendu critique) */
 import HomePage from './pages/home/HomePage'
@@ -96,6 +97,7 @@ function App() {
     <ScrollProvider>
     <BannerProvider>
     <NotificationsProvider>
+      <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Pages sans layout (standalone) */}
@@ -178,6 +180,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>
+      </ErrorBoundary>
     </NotificationsProvider>
     </BannerProvider>
     </ScrollProvider>
