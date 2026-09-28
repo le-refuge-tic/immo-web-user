@@ -91,8 +91,12 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
 
   return (
     <div
+      role="article"
       onClick={() => navigate(`/biens/${bien.id}`)}
-      className="glass-card rounded-[22px] overflow-hidden cursor-pointer group"
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/biens/${bien.id}`) } }}
+      tabIndex={0}
+      aria-label={`${label}${bien.localisation?.quartier ? ` à ${bien.localisation.quartier}` : ''} — ${bien.transaction === 'location' ? 'à louer' : 'à vendre'}`}
+      className="glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLDivElement
