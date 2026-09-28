@@ -160,9 +160,9 @@ function PrimaryButton({
 
 // ── Champ téléphone unifié (drapeau + indicatif | numéro) ────────────────────
 function PhoneInput({
-  countryCode, phone, onCountryChange, onPhoneChange, autoComplete = 'tel',
+  id, countryCode, phone, onCountryChange, onPhoneChange, autoComplete = 'tel',
 }: {
-  countryCode: string; phone: string
+  id?: string; countryCode: string; phone: string
   onCountryChange: (v: string) => void; onPhoneChange: (v: string) => void
   autoComplete?: string
 }) {
@@ -186,6 +186,7 @@ function PhoneInput({
       </div>
       <span className="auth-phone-divider" />
       <input
+        id={id}
         type="tel"
         className="auth-phone-number"
         value={phone}
@@ -307,14 +308,14 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           <ErrorBanner message={error} />
           <form onSubmit={handleLogin} className="flex flex-col gap-2">
             <div className="auth-field">
-              <label className="auth-label">Numéro de téléphone</label>
-              <PhoneInput countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
+              <label htmlFor="login-phone" className="auth-label">Numéro de téléphone</label>
+              <PhoneInput id="login-phone" countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
             </div>
             <div className="auth-field">
-              <label className="auth-label">Mot de passe</label>
+              <label htmlFor="login-password" className="auth-label">Mot de passe</label>
               <div className="relative">
                 <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
-                <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="auth-input pad-icon-left pad-icon-right w-full" />
+                <input id="login-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="auth-input pad-icon-left pad-icon-right w-full" />
                 <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer' : 'Afficher'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -526,40 +527,40 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             <form onSubmit={handleRegister} className="flex flex-col gap-2">
               <div className="flex gap-2">
                 <div className="auth-field flex-1">
-                  <label className="auth-label">Nom</label>
-                  <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Dupont" required className="auth-input" />
+                  <label htmlFor="reg-nom" className="auth-label">Nom</label>
+                  <input id="reg-nom" value={nom} onChange={e => setNom(e.target.value)} placeholder="Dupont" required className="auth-input" />
                 </div>
                 <div className="auth-field flex-1">
-                  <label className="auth-label">Prénom</label>
-                  <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Jean" required className="auth-input" />
+                  <label htmlFor="reg-prenom" className="auth-label">Prénom</label>
+                  <input id="reg-prenom" value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Jean" required className="auth-input" />
                 </div>
               </div>
               <div className="auth-field">
-                <label className="auth-label">Téléphone</label>
-                <PhoneInput countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
+                <label htmlFor="reg-phone" className="auth-label">Téléphone</label>
+                <PhoneInput id="reg-phone" countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
               </div>
               <div className="auth-field">
-                <label className="auth-label">Email <span className="normal-case font-normal text-[#6E6E73]">(optionnel)</span></label>
+                <label htmlFor="reg-email" className="auth-label">Email <span className="normal-case font-normal text-[#6E6E73]">(optionnel)</span></label>
                 <div className="relative">
                   <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com" className="auth-input pad-icon-left w-full" />
+                  <input id="reg-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com" className="auth-input pad-icon-left w-full" />
                 </div>
               </div>
               <div className="auth-field">
-                <label className="auth-label">Mot de passe</label>
+                <label htmlFor="reg-password" className="auth-label">Mot de passe</label>
                 <div className="relative">
                   <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
-                  <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
+                  <input id="reg-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
                   <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
                     {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
               <div className="auth-field">
-                <label className="auth-label">Confirmer</label>
+                <label htmlFor="reg-confirm" className="auth-label">Confirmer</label>
                 <div className="relative">
                   <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
-                  <input type={showConfirm ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Répéter le mot de passe" required className="auth-input pad-icon-left pad-icon-right w-full" />
+                  <input id="reg-confirm" type={showConfirm ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Répéter le mot de passe" required className="auth-input pad-icon-left pad-icon-right w-full" />
                   <button type="button" onClick={() => setShowConfirm(v => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
                     {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
