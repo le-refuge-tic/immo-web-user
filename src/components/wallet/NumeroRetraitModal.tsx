@@ -60,7 +60,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355]">
           <h2 className="font-bold text-[#F0EDE8]">Numéro de retrait</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0">✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0" aria-hidden="false">✕</button>
         </div>
         <div className="p-5 space-y-4">
           {current && step === 'form' && (

@@ -88,7 +88,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Ajouter un bien en gestion</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
         </div>
 
         <div className="p-5 space-y-4">

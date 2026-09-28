@@ -2800,7 +2800,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             <h2 className="font-bold text-[#F0EDE8]">Demander un retrait</h2>
             <p className="text-xs text-[#8A9BB5] mt-0.5">Solde disponible : {solde.toLocaleString('fr-FR')} FCFA</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0">✕</button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0" aria-label="Fermer">✕</button>
         </div>
 
         <div className="p-5 space-y-5">
@@ -3038,7 +3038,7 @@ function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void })
       <div role="dialog" aria-modal="true" aria-label="Détail de la transaction" aria-hidden="false" className="bg-[#0B1C30] rounded-2xl w-full max-w-md border border-[#1A3355]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355]">
           <h2 className="font-bold text-[#F0EDE8]">Détail de la transaction</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0">✕</button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0" aria-label="Fermer">✕</button>
         </div>
         <div className="p-5">
           <div className="flex items-center gap-3 mb-5">

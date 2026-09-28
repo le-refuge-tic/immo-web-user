@@ -64,7 +64,7 @@ export default function VerificationCipModal({ user, onClose }: Props) {
       >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0" style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
           <h2 className="font-bold" style={{ color: 'var(--p-text)' }}>Vérification d'identité</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--p-deep)', color: 'var(--p-muted)' }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--p-deep)', color: 'var(--p-muted)' }}>✕</button>
         </div>
 
         <div className="p-5 space-y-4">
