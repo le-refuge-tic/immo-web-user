@@ -421,8 +421,12 @@ function WalletCommissionsView() {
                   const tColor = typeColor(t)
                   const subtitle = String(t.bien ?? t.reference ?? t.libelle ?? '')
                   return (
-                    <div key={i} onClick={() => setDetailTx(t)}
-                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow">
+                    <div key={i}
+                      role="button" tabIndex={0}
+                      onClick={() => setDetailTx(t)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailTx(t) } }}
+                      aria-label={`${typeLabel(t)} — ${String(t.bien ?? t.reference ?? t.libelle ?? '')} — ${montantOf(t).toLocaleString('fr-FR')} FCFA`}
+                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2">
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tColor}1A` }}>
                         <TypeIcon t={t} color={tColor} className="w-5 h-5" />
                       </div>

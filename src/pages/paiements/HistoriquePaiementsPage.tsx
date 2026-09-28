@@ -191,8 +191,12 @@ export default function HistoriquePaiementsPage() {
                 const confirme = statut === 'Payé'
                 const showRecu = confirme && t.reference && (isVisite(t) || isLoyer(t) || isInteg(t) || isDepot(t))
                 return (
-                  <div key={i} onClick={() => setDetail(t)}
-                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
+                  <div key={i}
+                    role="button" tabIndex={0}
+                    onClick={() => setDetail(t)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetail(t) } }}
+                    aria-label={`${typeLabel(t)} — ${bien || ''} — ${t.montant ?? 0} FCFA`}
+                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A`, color }}>
                         {iconFor(t)}
