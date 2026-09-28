@@ -349,7 +349,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       {/* ── MOBILE header / galerie ── */}
       <div className="lg:hidden relative h-72 md:h-[420px]" style={{ background: 'rgba(0,0,0,0.04)' }}>
         {allUrls.length > 0 ? (
-          <img loading="lazy" src={allUrls[photoIdx]} alt="photo" className="w-full h-full object-cover" />
+          <img loading="lazy" src={allUrls[photoIdx]} alt={bienTitle || 'Photo du bien'} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)' }}>
             <svg className="w-20 h-20 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
@@ -395,7 +395,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <div>
             <div className="relative rounded-2xl overflow-hidden" style={{ height: 480, background: 'rgba(0,0,0,0.04)' }}>
               {allUrls.length > 0 ? (
-                <img loading="lazy" src={allUrls[photoIdx]} alt="photo" className="w-full h-full object-cover" />
+                <img loading="lazy" src={allUrls[photoIdx]} alt={bienTitle || 'Photo du bien'} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)' }}>
                   <svg className="w-24 h-24 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
