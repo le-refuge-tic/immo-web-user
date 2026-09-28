@@ -166,6 +166,7 @@ export default function ProfilePage() {
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
   const [numeroOpen, setNumeroOpen] = useState(false)
+  const [confirmAnnulerVisite, setConfirmAnnulerVisite] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -216,7 +217,7 @@ export default function ProfilePage() {
 
   const handleAnnuler = async () => {
     if (!visiteActive) return
-    if (!window.confirm('Voulez-vous vraiment annuler cette visite ?')) return
+    setConfirmAnnulerVisite(false)
     // Recharger même en cas d'erreur réseau — le serveur a peut-être traité la
     // demande (cold start Render) et l'état affiché doit refléter la réalité.
     try {
@@ -336,12 +337,19 @@ export default function ProfilePage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         )}
-        <button
-          onClick={e => { e.stopPropagation(); handleAnnuler() }}
-          className="text-[11px] font-bold text-danger px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
-          style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
-          Annuler
-        </button>
+        {confirmAnnulerVisite ? (
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button onClick={e => { e.stopPropagation(); handleAnnuler() }} className="text-[11px] font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: '#EF4444' }}>Confirmer</button>
+            <button onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(false) }} className="text-[11px] font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#9CA3AF' }}>✕</button>
+          </div>
+        ) : (
+          <button
+            onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(true) }}
+            className="text-[11px] font-bold text-danger px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
+            style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
+            Annuler
+          </button>
+        )}
       </div>
     )
   }

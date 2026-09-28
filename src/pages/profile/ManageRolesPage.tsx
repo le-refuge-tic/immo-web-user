@@ -36,6 +36,7 @@ export default function ManageRolesPage() {
   const [activating, setActivating] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [confirmDesactiver, setConfirmDesactiver] = useState<string | null>(null)
 
   const rolePrincipal = user?.role_principal || user?.role || ''
   const actifs = rolesActifs
@@ -57,7 +58,7 @@ export default function ManageRolesPage() {
   }
 
   const desactiverRole = async (role: string) => {
-    if (!confirm(`Désactiver le rôle "${roleLabel(role)}" ?`)) return
+    setConfirmDesactiver(null)
     setLoading(role); setError('')
     try {
       await rolesApi.desactiver(role)
@@ -184,11 +185,20 @@ export default function ManageRolesPage() {
                           </button>
                         )}
                         {!isPrincipal && (
-                          <button onClick={() => desactiverRole(r.key)} disabled={busy}
-                            className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#EF4444', background: 'rgba(239,68,68,0.06)' }}>
-                            {busy ? '…' : 'Désactiver'}
-                          </button>
+                          confirmDesactiver === r.key ? (
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white disabled:opacity-50" style={{ background: '#EF4444' }}>
+                                {busy ? '…' : 'Confirmer'}
+                              </button>
+                              <button onClick={() => setConfirmDesactiver(null)} className="py-2 px-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: '#E5E7EB', color: '#9CA3AF', background: 'transparent' }}>✕</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setConfirmDesactiver(r.key)} disabled={busy}
+                              className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
+                              style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#EF4444', background: 'rgba(239,68,68,0.06)' }}>
+                              Désactiver
+                            </button>
+                          )
                         )}
                       </>
                     )}

@@ -255,6 +255,7 @@ function MesBiensTab() {
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('Tous')
+  const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
   const navigate = useNavigate()
 
   const load = async () => {
@@ -270,8 +271,8 @@ function MesBiensTab() {
     : biens.filter(b => b.statut_moderation === 'rejete')
 
   const del = async (id: number) => {
-    if (!confirm('Supprimer ce bien ?')) return
     try { await biensApi.delete(id); load() } catch (_) {}
+    setConfirmDeleteBienId(null)
   }
 
   const [editingBien, setEditingBien] = useState<any>(null)
@@ -339,7 +340,14 @@ function MesBiensTab() {
                     <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
-                      <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                      {confirmDeleteBienId === b.id ? (
+                        <>
+                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#EF4444' }}>Suppr.</button>
+                          <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(null) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm" style={{ background: 'rgba(255,255,255,0.2)' }}>✕</button>
+                        </>
+                      ) : (
+                        <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                      )}
                     </div>
                     <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
                   </div>
@@ -378,6 +386,7 @@ function ReservationsTab() {
   const [cpTime, setCpTime] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
+  const [chatError, setChatError] = useState('')
 
   const load = async () => {
     setLoading(true)
@@ -406,7 +415,7 @@ function ReservationsTab() {
       const list = Array.isArray(convs) ? convs : convs.data || []
       const match = list.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === clientId))
       if (match) navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
-      else alert('Ce client n\'a pas encore démarré de conversation pour ce bien.')
+      else setChatError('Ce client n\'a pas encore démarré de conversation pour ce bien.')
     } catch (_) {}
     setChatLoadingId(null)
   }
@@ -440,6 +449,12 @@ function ReservationsTab() {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      {chatError && (
+        <div className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444' }}>
+          {chatError}
+          <button onClick={() => setChatError('')} className="text-base leading-none flex-shrink-0">✕</button>
+        </div>
+      )}
       <div className="bg-white border-b border-divider flex flex-shrink-0">
         {['Toutes', 'À traiter', 'Confirmées', 'Échouées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}

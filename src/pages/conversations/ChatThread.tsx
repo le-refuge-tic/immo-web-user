@@ -100,6 +100,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const [proposing, setProposing] = useState(false)
   const [paying, setPaying] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
+  const [confirmDeleteForAllId, setConfirmDeleteForAllId] = useState<number | null>(null)
   const [complainMsg, setComplainMsg] = useState<any>(null)
   const [complainText, setComplainText] = useState('')
   const [complainSending, setComplainSending] = useState(false)
@@ -243,8 +244,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const deleteForMe = (m: any) => { setHidden(p => new Set(p).add(m.id)); setMenuId(null) }
 
   const deleteForAll = async (m: any) => {
+    setConfirmDeleteForAllId(null)
     setMenuId(null)
-    if (!window.confirm('Supprimer pour tous ?')) return
     try {
       await chatApi.supprimerMessage(m.id)
       setMessages(p => p.map(x => x.id === m.id ? { ...x, contenu: 'Message supprimé', supprime_pour_tous: true, epingle: false } : x))
@@ -286,11 +287,11 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     try {
       const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
       const v = l.find((x: any) => x.bien?.id === conv.bien.id)
-      if (!v) { alert('Aucune visite.'); return }
-      if (v.paiement_effectue) { alert('Déjà payé ✓'); return }
-      if (!(Number(v.frais_visite) > 0)) { alert('Visite gratuite.'); return }
+      if (!v) { showError({ response: { data: { message: 'Aucune visite trouvée.' } } }); setPaying(false); return }
+      if (v.paiement_effectue) { showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
+      if (!(Number(v.frais_visite) > 0)) { showError({ response: { data: { message: 'Cette visite est gratuite.' } } }); setPaying(false); return }
       navigate('/mes-visites', { state: { openPayForVisiteId: v.id } })
-    } catch { alert('Erreur.') }
+    } catch { showError({ response: { data: { message: 'Une erreur est survenue.' } } }) }
     setPaying(false)
   }
 
@@ -800,7 +801,16 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             <MI label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
             <div className="h-px mx-2 my-1" style={{ background: divider }} />
             {!m.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
-            {m.sender_id === user?.id && !m.supprime_pour_tous && <MI label="Supprimer pour tous" onClick={() => deleteForAll(m)} danger />}
+            {m.sender_id === user?.id && !m.supprime_pour_tous && (
+              confirmDeleteForAllId === m.id ? (
+                <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
+                  <button onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#EF4444', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
+                  <button onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
+                </div>
+              ) : (
+                <MI label="Supprimer pour tous" onClick={() => setConfirmDeleteForAllId(m.id)} danger />
+              )
+            )}
           </div>
         )
       })()}

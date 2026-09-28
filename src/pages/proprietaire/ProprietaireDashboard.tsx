@@ -477,6 +477,7 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [search, setSearch] = useState('')
   const [sortByVues, setSortByVues] = useState(false)
   const [editingBien, setEditingBien] = useState<any>(null)
+  const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
   const [carouselPaused, setCarouselPaused] = useState(false)
   const [carouselIdx, setCarouselIdx] = useState(0)
@@ -524,8 +525,8 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   })()
 
   const del = async (id: number) => {
-    if (!confirm('Supprimer ce bien ?')) return
     try { await biensApi.delete(id); load() } catch (_) {}
+    setConfirmDeleteBienId(null)
   }
 
   const IcSearch = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -819,13 +820,18 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                             onMouseLeave={e => { e.currentTarget.style.background = BLUE + '10' }}>
                             <IcEdit /> Modifier
                           </button>
-                          <button onClick={() => del(b.id)}
-                            className="flex items-center justify-center w-9 h-9 rounded-xl text-xs transition-all flex-shrink-0"
-                            style={{ background: '#EF444410', color: '#EF4444', border: '1px solid #EF444420' }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#EF444420' }}
-                            onMouseLeave={e => { e.currentTarget.style.background = '#EF444410' }}>
-                            <IcTrash />
-                          </button>
+                          {confirmDeleteBienId === b.id ? (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => del(b.id)} className="px-2 py-1 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ background: '#EF4444', border: 'none' }}>Supprimer</button>
+                              <button onClick={() => setConfirmDeleteBienId(null)} className="px-2 py-1 rounded-lg text-xs flex-shrink-0" style={{ background: '#F3F4F6', border: 'none' }}>✕</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setConfirmDeleteBienId(b.id)}
+                              className="flex items-center justify-center w-9 h-9 rounded-xl text-xs transition-all flex-shrink-0"
+                              style={{ background: '#EF444410', color: '#EF4444', border: '1px solid #EF444420' }}>
+                              <IcTrash />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1244,6 +1250,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
   onContrePropose: () => void
   now: number
 }) {
+  const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
   const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
   // L'identité du client n'est jamais masquée côté API (nom/prénom toujours
@@ -1374,8 +1381,14 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
           </button>
         </>}
         {v.statut === 'confirmee' && (
-          <button onClick={() => { if (confirm('Confirmez-vous que la visite a bien eu lieu ?')) onMarquerEffectuee(v.id) }}
-            className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
+          confirmEffectuee ? (
+            <div className="flex items-center gap-1 flex-1">
+              <button onClick={() => { onMarquerEffectuee(v.id); setConfirmEffectuee(false) }} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
+              <button onClick={() => setConfirmEffectuee(false)} className="py-2 px-3 rounded-xl text-xs font-bold" style={{ background: '#1A3355', color: '#9CA3AF' }}>✕</button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirmEffectuee(true)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
+          )
         )}
         </>}
       </div>
@@ -1428,6 +1441,7 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
   onContrePropose: () => void
   now: number
 }) {
+  const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
   const urgente = !echouee && isUrgente(v, now)
   const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
@@ -1686,11 +1700,18 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
               </button>
             )}
             {v.statut === 'confirmee' && !echouee && (
-              <button onClick={() => { if (confirm('Confirmez-vous que la visite a bien eu lieu ?')) onMarquerEffectuee(v.id) }}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold"
-                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>
-                Marquer effectuée
-              </button>
+              confirmEffectuee ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <button onClick={() => { onMarquerEffectuee(v.id); setConfirmEffectuee(false) }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
+                  <button onClick={() => setConfirmEffectuee(false)} className="py-2.5 px-4 rounded-xl border text-sm font-semibold" style={{ borderColor: '#CBD5E1', color: '#6B7280' }}>Annuler</button>
+                </div>
+              ) : (
+                <button onClick={() => setConfirmEffectuee(true)}
+                  className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold"
+                  style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>
+                  Marquer effectuée
+                </button>
+              )
             )}
           </div>
         </div>
@@ -1712,6 +1733,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
   const [modalVisiteId, setModalVisiteId] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
+  const [chatError, setChatError] = useState('')
 
   const load = async () => {
     setLoading(true)
@@ -1766,7 +1788,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
         if (onOpenMessages) onOpenMessages(match.id, draftMessage)
         else navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
       }
-      else alert('Ce client n\'a pas encore démarré de conversation pour ce bien.')
+      else setChatError('Ce client n\'a pas encore démarré de conversation pour ce bien.')
     } catch (_) {}
     setChatLoadingId(null)
   }
@@ -1788,6 +1810,12 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
+      {chatError && (
+        <div className="mx-5 mt-4 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#F87171' }}>
+          {chatError}
+          <button onClick={() => setChatError('')} className="text-base leading-none flex-shrink-0" style={{ color: '#F87171' }}>✕</button>
+        </div>
+      )}
 
       {/* ── En-tête + filtres ── */}
       <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-4 pb-0">
@@ -3279,6 +3307,7 @@ function RolesTab() {
   const [activating, setActivating] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [confirmDesactiverRole, setConfirmDesactiverRole] = useState<string | null>(null)
 
   const rolePrincipal = user?.role_principal || user?.role || ''
   const actifs = rolesActifs
@@ -3303,7 +3332,7 @@ function RolesTab() {
   }
 
   const desactiverRole = async (role: string) => {
-    if (!confirm(`Désactiver le rôle « ${ROLES_META.find(r => r.key === role)?.label} » ?`)) return
+    setConfirmDesactiverRole(null)
     setLoadingRole(role); setError('')
     try {
       await rolesApi.desactiver(role)
@@ -3410,11 +3439,20 @@ function RolesTab() {
                         </button>
                       )}
                       {!isPrincipal && (
-                        <button onClick={() => desactiverRole(r.key)} disabled={busy}
-                          className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                          style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#EF4444', background: 'rgba(239,68,68,0.06)' }}>
-                          {busy ? '…' : 'Désactiver'}
-                        </button>
+                        confirmDesactiverRole === r.key ? (
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white" style={{ background: '#EF4444', border: 'none' }}>
+                              {busy ? '…' : 'Confirmer'}
+                            </button>
+                            <button onClick={() => setConfirmDesactiverRole(null)} className="py-2 px-2 rounded-xl text-xs font-bold border" style={{ borderColor: 'rgba(255,255,255,0.15)', color: '#9CA3AF', background: 'transparent' }}>✕</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setConfirmDesactiverRole(r.key)} disabled={busy}
+                            className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
+                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#EF4444', background: 'rgba(239,68,68,0.06)' }}>
+                            Désactiver
+                          </button>
+                        )
                       )}
                     </>
                   )}
