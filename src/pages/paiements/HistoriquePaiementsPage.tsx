@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 
@@ -65,6 +66,7 @@ const fmtDate = (raw?: string, withTime = false) => {
 
 export default function HistoriquePaiementsPage() {
   const navigate = useNavigate()
+  usePageTitle('Mes paiements')
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -119,15 +121,15 @@ export default function HistoriquePaiementsPage() {
         style={{ background: 'linear-gradient(135deg,#1A1A2E,#0F3460)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
             <div className="flex-1">
-              <p className="text-white font-bold text-lg">Mes paiements</p>
+              <h1 className="text-white font-bold text-lg">Mes paiements</h1>
               <p className="text-white/60 text-xs">Historique complet de vos transactions</p>
             </div>
-            <button onClick={load} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button onClick={load} aria-label="Actualiser" className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../api/walletApi'
 import { useAuth } from '../../context/AuthContext'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const isLoyer = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -48,6 +49,7 @@ const W_COLOR: Record<WType, string> = { cotisation: '#4B6BFF', epargne: '#7B4BF
 
 function ClientWalletView() {
   const navigate = useNavigate()
+  usePageTitle('Mon portefeuille')
   const [tab, setTab] = useState<WType>('cotisation')
   const [wallets, setWallets] = useState<Record<WType, any>>({ cotisation: null, epargne: null })
   const [txs, setTxs] = useState<Record<WType, any[]>>({ cotisation: [], epargne: [] })
@@ -113,7 +115,7 @@ function ClientWalletView() {
               style={{ background: 'rgba(255,255,255,0.15)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <p className="text-white font-bold text-lg">Mon portefeuille</p>
+            <h1 className="text-white font-bold text-lg">Mon portefeuille</h1>
           </div>
           <div className="flex gap-2 mb-5">
             {(['cotisation', 'epargne'] as WType[]).map(t => (
@@ -224,6 +226,7 @@ function ClientWalletView() {
 // ─── Vue propriétaire / démarcheur : Commissions (revenus_locatifs) ────────────
 function WalletCommissionsView() {
   const navigate = useNavigate()
+  usePageTitle('Mon portefeuille')
   const [wallet, setWallet]         = useState<any>(null)
   const [transactions, setTrans]    = useState<any[]>([])
   const [loading, setLoading]       = useState(true)
@@ -273,7 +276,7 @@ function WalletCommissionsView() {
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
             <div>
-              <p className="text-white font-bold text-lg">Mon Portefeuille</p>
+              <h1 className="text-white font-bold text-lg">Mon Portefeuille</h1>
               <p className="text-white/60 text-xs">Solde & transactions</p>
             </div>
           </div>

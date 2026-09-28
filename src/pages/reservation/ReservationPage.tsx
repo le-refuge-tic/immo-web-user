@@ -5,6 +5,7 @@ import { visitesApi } from '../../api/visitesApi'
 import { chatApi } from '../../api/chatApi'
 import { rolesApi } from '../../api/rolesApi'
 import { useAuth } from '../../context/AuthContext'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 /** Rôles autorisés par le backend à réserver une visite (POST /visites → CLIENTS). */
 const ROLES_RESERVATION = ['prospect', 'locataire']
@@ -66,6 +67,7 @@ const GLASS = {
 export default function ReservationPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
+  usePageTitle('Proposer une visite')
   const { rolesActifs, updateUser } = useAuth()
   const timeInputRef = useRef<HTMLInputElement>(null)
   const timeSectionRef = useRef<HTMLDivElement>(null)
@@ -415,7 +417,7 @@ export default function ReservationPage() {
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-lg">Proposer une visite</p>
+            <h1 className="text-white font-bold text-lg">Proposer une visite</h1>
             <p className="text-white/60 text-xs mt-0.5">Choisissez le créneau qui vous convient</p>
           </div>
           <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] flex-shrink-0" style={{ background: 'rgba(75,107,255,0.25)', border: '1px solid rgba(75,107,255,0.5)' }}>

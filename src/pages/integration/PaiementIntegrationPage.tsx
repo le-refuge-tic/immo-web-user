@@ -4,12 +4,14 @@ import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const TEAL = '#0EA5E9'
 
 export default function PaiementIntegrationPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
+  usePageTitle("Paiement d'intégration")
 
   const [bien, setBien]         = useState<any>(null)
   const [visite, setVisite]     = useState<any>(null)
@@ -105,7 +107,7 @@ export default function PaiementIntegrationPage() {
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div>
-            <p className="text-white font-bold text-lg">Paiement d'intégration</p>
+            <h1 className="text-white font-bold text-lg">Paiement d'intégration</h1>
             <p className="text-white/60 text-xs mt-0.5">Payez pour finaliser votre intégration</p>
           </div>
         </div>

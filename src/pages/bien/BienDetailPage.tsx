@@ -8,6 +8,7 @@ import EditBienModal from './EditBienModal'
 import ShareSheet from '../../components/ShareSheet'
 import { shareBien } from '../../services/shareService'
 import { bienTypeLabel } from '../../utils/bienType'
+import { usePageTitle } from '../../utils/usePageTitle'
 import logoSbee from '../../assets/logo-SBEE.png'
 import logoSoneb from '../../assets/logo-SONEB.png'
 
@@ -179,6 +180,8 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const navigate = useNavigate()
   const { isLoggedIn, user } = useAuth()
   const [bien, setBien] = useState<any>(null)
+  const bienTitle = bien ? (bien.localisation?.quartier ? `${bienTypeLabel(bien)} — ${bien.localisation.quartier}` : bienTypeLabel(bien)) : ''
+  usePageTitle(bienTitle)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [photoIdx, setPhotoIdx] = useState(0)
@@ -560,7 +563,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
               </span>
             )}
           </div>
-          <p className="text-lg font-bold text-text-dark mb-1">{title}</p>
+          <h1 className="text-lg font-bold text-text-dark mb-1">{title}</h1>
           {hasPromo && (
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#EF4444' }}>PROMO -{promoPct}%</span>

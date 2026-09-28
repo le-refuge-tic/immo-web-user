@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import type { MethodePaiement } from '../../api/paiementApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -19,6 +20,7 @@ export default function RechargementWalletPage() {
   const { walletType } = useParams<{ walletType: WalletType }>()
   const type: WalletType = walletType === 'epargne' ? 'epargne' : 'cotisation'
   const accent = COLORS[type]
+  usePageTitle(`Recharger — ${LABELS[type]}`)
 
   const [opId, setOpId] = useState('mtn')
   const [montant, setMontant] = useState('')
@@ -86,7 +88,7 @@ export default function RechargementWalletPage() {
           style={{ background: 'rgba(255,255,255,0.15)' }}>
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <p className="text-white font-bold text-lg">Recharger — {LABELS[type]}</p>
+        <h1 className="text-white font-bold text-lg">Recharger — {LABELS[type]}</h1>
       </div>
 
       <div className="flex-1 px-6 py-8 max-w-md mx-auto w-full">

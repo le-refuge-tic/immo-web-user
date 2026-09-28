@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 function fmtFcfa(n: number) {
   if (!n) return '---'
@@ -11,6 +12,7 @@ function fmtFcfa(n: number) {
 export default function ContratBailPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
+  usePageTitle('Contrat de bail')
   const [accepted, setAccepted] = useState(false)
   const [bien, setBien] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -69,7 +71,7 @@ export default function ContratBailPage() {
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div className="flex-1">
-            <p className="text-white font-bold text-lg">Contrat de bail</p>
+            <h1 className="text-white font-bold text-lg">Contrat de bail</h1>
             <p className="text-white/60 text-xs mt-0.5">Lisez attentivement avant d'accepter</p>
           </div>
           <button onClick={() => window.print()} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0"
