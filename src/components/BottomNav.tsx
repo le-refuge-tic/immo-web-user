@@ -66,6 +66,7 @@ export default function BottomNav() {
 
   return (
     <nav
+      aria-label="Navigation principale mobile"
       className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
       style={{
         background: isDark ? 'rgba(20,22,30,0.95)' : 'rgba(255,255,255,0.92)',

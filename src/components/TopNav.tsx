@@ -96,6 +96,7 @@ export default function TopNav() {
   return (
     <header className={`hidden md:block fixed top-0 left-0 right-0 z-[60] pointer-events-none transition-[padding] duration-300${scrolled ? ' px-3' : ''}`}>
       <nav
+        aria-label="Navigation principale"
         className="mx-auto pointer-events-auto flex items-center transition-all duration-300"
         style={{
           background: scrolled
@@ -128,7 +129,7 @@ export default function TopNav() {
           </button>
 
           {/* Nav centré */}
-          <nav className="flex items-center justify-center gap-0.5 lg:gap-1">
+          <nav aria-label="Liens rapides" className="flex items-center justify-center gap-0.5 lg:gap-1">
             {NAV_ITEMS.map(item => {
               const active = isActive(item.path)
               const badge = item.path === '/notifications' ? unreadAlertes : item.path === '/conversations' ? unreadMessages : 0
