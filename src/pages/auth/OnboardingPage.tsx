@@ -33,7 +33,7 @@ const SLIDES = [
     btnLabel: 'Continuer',
   },
   {
-    accent: '#22C55E',
+    accent: '#15803D',
     image: img3,
     icon: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>

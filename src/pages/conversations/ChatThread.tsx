@@ -304,7 +304,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     const [hov, setHov] = useState(false)
     return (
       <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
-        style={{ color: danger ? '#EF4444' : tp, width: 'calc(100% - 8px)', background: hov ? menuHov : 'transparent' }}
+        style={{ color: danger ? '#DC2626' : tp, width: 'calc(100% - 8px)', background: hov ? menuHov : 'transparent' }}
         onMouseEnter={() => setHov(true)}
         onMouseLeave={() => setHov(false)}>
         {label}
@@ -318,7 +318,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     const status = m.metadata?.status || 'pending'
     const dt = m.metadata?.proposed_at ? new Date(m.metadata.proposed_at) : null
     const p: Record<string, { bg: string; accent: string; label: string }> = {
-      accepted: { bg: 'rgba(34,197,94,0.10)', accent: '#22C55E', label: 'Confirmé ✓' },
+      accepted: { bg: 'rgba(34,197,94,0.10)', accent: '#15803D', label: 'Confirmé ✓' },
       declined:  { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', accent: '#94A3B8', label: 'Refusé' },
       countered: { bg: 'rgba(251,146,60,0.10)', accent: '#FB923C', label: 'Contre-proposé' },
       pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: '#4B6BFF', label: isMe ? 'En attente…' : 'Créneau proposé' },
@@ -335,15 +335,15 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           {!isMe && status === 'pending' && (
             <div className="px-3 pb-2.5 pt-2 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${pal.accent}22` }}>
               <div className="flex gap-1.5">
-                <button onClick={() => repondre(m, 'accepted')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(34,197,94,0.14)', color: '#22C55E' }}>Confirmer</button>
-                <button onClick={() => repondre(m, 'declined')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(239,68,68,0.10)', color: '#EF4444' }}>Rejeter</button>
+                <button onClick={() => repondre(m, 'accepted')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(34,197,94,0.14)', color: '#15803D' }}>Confirmer</button>
+                <button onClick={() => repondre(m, 'declined')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(239,68,68,0.10)', color: '#DC2626' }}>Rejeter</button>
               </div>
-              <button onClick={() => repondre(m, 'countered')} className="w-full py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer" style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF' }}>Autre date</button>
+              <button onClick={() => repondre(m, 'countered')} className="w-full py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer" style={{ background: 'rgba(75,107,255,0.10)', color: '#3A5AEE' }}>Autre date</button>
             </div>
           )}
           {status === 'accepted' && conv?.bien?.id && isClientRole && (
             <div className="px-3 pb-2.5 pt-2" style={{ borderTop: `1px solid ${pal.accent}22` }}>
-              <button onClick={payer} disabled={paying} className="w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.14)', color: '#22C55E' }}>
+              <button onClick={payer} disabled={paying} className="w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.14)', color: '#15803D' }}>
                 {paying ? '…' : 'Payer maintenant'}
               </button>
             </div>
@@ -383,7 +383,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               )}
             </div>
             {role && (
-              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
                 {role}
               </span>
             )}
@@ -401,7 +401,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
           {/* Rôle */}
           <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${divider}` }}>
-            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#3A5AEE' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
             <div className="min-w-0">
@@ -411,7 +411,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           </div>
           {/* Bien concerné */}
           <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: conv?.bien?.id ? `1px solid ${divider}` : undefined }}>
-            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#3A5AEE' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
             <div className="min-w-0 flex-1">
@@ -430,7 +430,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           {conv?.bien?.id && (
             <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
               className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer transition-opacity hover:opacity-80"
-              style={{ color: '#4B6BFF' }}>
+              style={{ color: '#3A5AEE' }}>
               <span className="text-[12px] font-bold">Voir le bien</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
@@ -446,7 +446,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           ].map(({ label, action, danger }, i, arr) => (
             <button key={label} onClick={action}
               className="w-full text-left px-4 py-3.5 text-[13.5px] font-medium transition-colors cursor-pointer flex items-center justify-between"
-              style={{ color: danger ? '#EF4444' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none', background: hoveredSettingsIdx === i ? menuHov : 'transparent' }}
+              style={{ color: danger ? '#DC2626' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none', background: hoveredSettingsIdx === i ? menuHov : 'transparent' }}
               onMouseEnter={() => setHoveredSettingsIdx(i)}
               onMouseLeave={() => setHoveredSettingsIdx(null)}>
               {label}
@@ -525,8 +525,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                     </svg>
                   )}
                 </div>
-                {role ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#4B6BFF' }}>{role}</p>
-                  : isOnline ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#22C55E' }}>En ligne</p> : null}
+                {role ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#3A5AEE' }}>{role}</p>
+                  : isOnline ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#15803D' }}>En ligne</p> : null}
               </div>
             </button>
 
@@ -559,18 +559,18 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           {conv?.code_visite && (
             <button onClick={copyCode} className="mt-3 flex items-center gap-2 px-3.5 py-2 rounded-xl w-full cursor-pointer hover:opacity-80 transition-opacity"
               style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}` }}>
-              <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#3A5AEE' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
               </svg>
               <span className="text-[12px] font-semibold flex-1" style={{ color: tp }}>Code visite : {conv.code_visite}</span>
-              <span className="text-[11px] font-bold flex-shrink-0" style={{ color: '#4B6BFF' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
+              <span className="text-[11px] font-bold flex-shrink-0" style={{ color: '#3A5AEE' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
             </button>
           )}
         </div>
 
         {/* Erreur */}
         {error && (
-          <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#EF4444' }}>
+          <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#DC2626' }}>
             <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {error}
           </div>
@@ -584,9 +584,9 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                 className="flex items-center gap-2 w-full rounded-xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
                 style={{ background: pinBg, borderLeftColor: '#4B6BFF', border: `1px solid ${divider}`, borderLeft: '4px solid #4B6BFF' }}>
-                <span style={{ color: '#4B6BFF' }}><PinFill /></span>
+                <span style={{ color: '#3A5AEE' }}><PinFill /></span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#4B6BFF' }}>Épinglé</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#3A5AEE' }}>Épinglé</p>
                   <p className="text-[12px] truncate" style={{ color: tp }}>{pinnedMsg.contenu}</p>
                 </div>
               </button>
@@ -597,8 +597,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               const status = lastSlot.metadata?.status || 'pending'
               const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
               const cfg: Record<string, { accent: string; label: string }> = {
-                accepted: { accent: '#22C55E', label: 'Créneau confirmé' },
-                declined: { accent: '#EF4444', label: 'Créneau refusé' },
+                accepted: { accent: '#15803D', label: 'Créneau confirmé' },
+                declined: { accent: '#DC2626', label: 'Créneau refusé' },
                 countered: { accent: '#FB923C', label: 'Contre-proposition' },
                 pending: { accent: '#4B6BFF', label: 'Créneau en discussion' },
               }
@@ -666,7 +666,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                       <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
                         <p className="text-[12.5px] italic" style={{ color: tm }}>Message supprimé</p>
                         <button onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false) }}
-                          className="text-[11px] underline mt-0.5 cursor-pointer" style={{ color: '#4B6BFF' }}>En savoir plus</button>
+                          className="text-[11px] underline mt-0.5 cursor-pointer" style={{ color: '#3A5AEE' }}>En savoir plus</button>
                         <p className="text-[10px] mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
                       </div>
                     ) : (
@@ -734,7 +734,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             <div className="px-4 pt-3 pb-1 flex items-center gap-2.5">
               <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4B6BFF' }} />
               <div className="flex-1 min-w-0">
-                <p className="text-[11.5px] font-semibold" style={{ color: '#4B6BFF' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
+                <p className="text-[11.5px] font-semibold" style={{ color: '#3A5AEE' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
                 <p className="text-[12px] truncate mt-0.5" style={{ color: ts }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
               </div>
               <button onClick={cancelCtx} className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors hover:opacity-75" style={{ color: tm, background: iconBtn }}><XIcon /></button>
@@ -744,7 +744,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {/* Calendrier */}
             <button onClick={() => setShowSlot(true)} disabled={proposing}
               className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF', border: '1px solid rgba(75,107,255,0.18)' }}>
+              style={{ background: 'rgba(75,107,255,0.10)', color: '#3A5AEE', border: '1px solid rgba(75,107,255,0.18)' }}>
               {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /> : <CalIcon />}
             </button>
             {/* Textarea */}
@@ -808,7 +808,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {m.sender_id === user?.id && !m.supprime_pour_tous && (
               confirmDeleteForAllId === m.id ? (
                 <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
-                  <button onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#EF4444', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
+                  <button onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#DC2626', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
                   <button onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
                 </div>
               ) : (

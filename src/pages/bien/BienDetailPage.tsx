@@ -337,10 +337,10 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
 
   const modBadge = isOwnBien ? (() => {
     const mod = bien.statut_moderation || 'en_attente'
-    if (mod === 'approuve')     return { label: 'Publié',       bg: '#22C55E' }
-    if (mod === 'rejete')       return { label: 'Rejeté',       bg: '#EF4444' }
-    if (mod === 'conditionnel') return { label: 'Conditionnel', bg: '#FF9800' }
-    return                               { label: 'En attente',  bg: '#FF9800' }
+    if (mod === 'approuve')     return { label: 'Publié',       bg: '#15803D' }
+    if (mod === 'rejete')       return { label: 'Rejeté',       bg: '#DC2626' }
+    if (mod === 'conditionnel') return { label: 'Conditionnel', bg: '#B45309' }
+    return                               { label: 'En attente',  bg: '#B45309' }
   })() : null
 
   return (
@@ -460,11 +460,11 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
               <div className="mb-5">
                 {hasPromo && (
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#EF4444' }}>PROMO -{promoPct}%</span>
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
                     <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
                   </div>
                 )}
-                <p className="text-3xl font-bold" style={{ color: hasPromo ? '#EF4444' : accentColor }}>
+                <p className="text-3xl font-bold" style={{ color: hasPromo ? '#DC2626' : accentColor }}>
                   {hasPromo ? prixPromo : prix} <span className="text-base font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
                 </p>
               </div>
@@ -566,11 +566,11 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <h1 className="text-lg font-bold text-text-dark mb-1">{title}</h1>
           {hasPromo && (
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#EF4444' }}>PROMO -{promoPct}%</span>
+              <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
               <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
             </div>
           )}
-          <p className="text-2xl font-bold" style={{ color: hasPromo ? '#EF4444' : accentColor }}>
+          <p className="text-2xl font-bold" style={{ color: hasPromo ? '#DC2626' : accentColor }}>
             {hasPromo ? prixPromo : prix} FCFA{isLocation && <span className="text-base font-medium text-text-grey">/mois</span>}
           </p>
         </div>
@@ -673,18 +673,18 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
             borderColor: rejete ? 'rgba(239,68,68,0.25)' : 'rgba(255,152,0,0.25)',
           }}>
             <div className="flex items-center gap-2">
-              <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: rejete ? '#EF4444' : '#FF9800' }}
+              <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: rejete ? '#DC2626' : '#B45309' }}
                 fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 {rejete
                   ? <><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></>
                   : <><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></>}
               </svg>
-              <p className="text-sm font-bold" style={{ color: rejete ? '#EF4444' : '#FF9800' }}>
+              <p className="text-sm font-bold" style={{ color: rejete ? '#DC2626' : '#B45309' }}>
                 {rejete ? 'Annonce rejetée' : 'En attente de validation'}
               </p>
             </div>
             {rejete && bien.motif_refus && (
-              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#EF4444' }}>{bien.motif_refus}</p>
+              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#DC2626' }}>{bien.motif_refus}</p>
             )}
             {!rejete && (
               <p className="text-xs mt-1.5 text-text-grey">Votre annonce est visible uniquement par vous jusqu'à validation par un administrateur.</p>
@@ -890,7 +890,7 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
 
   const rows: { icon: IconType; color: string; label: string; amount: number; note?: string }[] = []
   if (avanceMois > 0) rows.push({ icon: 'wallet', color: '#7B2FBE', label: `Avance (${avanceMois} mois)`, amount: montantAvance })
-  if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: '#22C55E', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
+  if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: '#15803D', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
   if (cautionEau > 0) rows.push({ icon: 'waterdrop', color: '#2E86C1', label: 'Caution eau', amount: cautionEau })
   if (cautionElec > 0) rows.push({ icon: 'bolt', color: '#FFCC00', label: 'Caution électricité', amount: cautionElec })
   for (const f of autresFrais) {
@@ -947,7 +947,7 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
         </button>
         <button onClick={onToggleDisponibilite} disabled={togglingStatut}
           className="flex-1 h-[54px] rounded-xl font-bold text-white text-[15px] flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity hover:opacity-90"
-          style={{ background: isOccupeLocal ? '#EF4444' : '#22C55E' }}>
+          style={{ background: isOccupeLocal ? '#DC2626' : '#15803D' }}>
           {togglingStatut ? (
             <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
           ) : (
@@ -969,7 +969,7 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
     return (
       <div>
         <div className="flex items-center gap-2 mb-2.5">
-          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: visiteActive.statut === 'confirmee' ? '#22C55E' : '#FF6B35' }} />
+          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: visiteActive.statut === 'confirmee' ? '#15803D' : '#FF6B35' }} />
           <p className="text-xs text-text-grey truncate">
             Visite {visiteActive.statut === 'confirmee' ? 'confirmée' : 'en attente'} · {fmtVisiteDate(visiteActive.date_contre_proposee || visiteActive.date_souhaitee)}
           </p>
@@ -977,7 +977,7 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
         {confirmAnnuler ? (
           <div className="flex gap-2.5">
             <button onClick={() => { onAnnuler(); setConfirmAnnuler(false) }} disabled={annulerBusy}
-              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: '#EF4444' }}>
+              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: '#DC2626' }}>
               {annulerBusy ? '…' : 'Confirmer l\'annulation'}
             </button>
             <button onClick={() => setConfirmAnnuler(false)}
@@ -991,7 +991,7 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
               {fmtVisiteDate(visiteActive.date_contre_proposee || visiteActive.date_souhaitee)}
             </div>
             <button onClick={() => setConfirmAnnuler(true)} disabled={annulerBusy}
-              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: '#EF4444' }}>
+              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: '#DC2626' }}>
               Annuler la visite
             </button>
           </div>
@@ -1004,13 +1004,13 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
     <div>
       {visiteEchouee ? (
         <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border mb-2.5" style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.25)' }}>
-          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: '#EF4444' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          <p className="text-xs font-semibold truncate" style={{ color: '#EF4444' }}>Visite échouée · {fmtVisiteDate(visiteEchouee.date_contre_proposee || visiteEchouee.date_souhaitee)}</p>
+          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <p className="text-xs font-semibold truncate" style={{ color: '#DC2626' }}>Visite échouée · {fmtVisiteDate(visiteEchouee.date_contre_proposee || visiteEchouee.date_souhaitee)}</p>
         </div>
       ) : visiteCancellee ? (
         <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border mb-2.5" style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.25)' }}>
-          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: '#EF4444' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-          <p className="text-xs font-semibold truncate" style={{ color: '#EF4444' }}>Visite annulée · {fmtVisiteDate(visiteCancellee.date_contre_proposee || visiteCancellee.date_souhaitee)}</p>
+          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+          <p className="text-xs font-semibold truncate" style={{ color: '#DC2626' }}>Visite annulée · {fmtVisiteDate(visiteCancellee.date_contre_proposee || visiteCancellee.date_souhaitee)}</p>
         </div>
       ) : null}
       <button onClick={onProposerVisite}

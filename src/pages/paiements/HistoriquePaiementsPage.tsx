@@ -41,7 +41,7 @@ const statutLabel = (t: any) => {
   }
 }
 
-const statutColor = (s: string) => s === 'Payé' ? '#22C55E' : s === 'Échoué' ? '#EF4444' : (s === 'Remboursé' || s === 'En attente') ? '#F59E0B' : '#6B7280'
+const statutColor = (s: string) => s === 'Payé' ? '#15803D' : s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#6B7280'
 
 const iconFor = (t: any) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -145,7 +145,7 @@ export default function HistoriquePaiementsPage() {
             <div className="flex flex-col items-center text-center py-16">
               <p className="font-bold text-text-dark mb-2">Erreur de chargement</p>
               <p className="text-text-grey text-sm mb-4">{error}</p>
-              <button onClick={load} className="text-sm font-bold" style={{ color: '#4B6BFF' }}>Réessayer</button>
+              <button onClick={load} className="text-sm font-bold" style={{ color: '#3A5AEE' }}>Réessayer</button>
             </div>
           ) : (
             <>

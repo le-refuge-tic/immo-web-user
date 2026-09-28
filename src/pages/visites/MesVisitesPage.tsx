@@ -8,13 +8,13 @@ import FaceRating from '../../components/FaceRating'
 import { bienTypeLabel } from '../../utils/bienType'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
-  en_attente:      { label: 'En attente',      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-  contre_proposee: { label: 'Contre-proposée', color: '#E67E22', bg: 'rgba(230,126,34,0.12)' },
-  confirmee:       { label: 'Confirmée',        color: '#22C55E', bg: 'rgba(34,197,94,0.1)' },
-  effectuee:       { label: 'Effectuée',        color: '#4B6BFF', bg: 'rgba(75,107,255,0.1)' },
-  annulee:         { label: 'Annulée',          color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
-  payee:           { label: 'Payée',            color: '#22C55E', bg: 'rgba(34,197,94,0.1)' },
-  echouee:         { label: 'Échouée',          color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
+  en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
+  contre_proposee: { label: 'Contre-proposée', color: '#92400E', bg: 'rgba(230,126,34,0.12)' },
+  confirmee:       { label: 'Confirmée',        color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
+  effectuee:       { label: 'Effectuée',        color: '#3A5AEE', bg: 'rgba(58,90,238,0.1)' },
+  annulee:         { label: 'Annulée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
+  payee:           { label: 'Payée',            color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
+  echouee:         { label: 'Échouée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
 }
 
 // Même règle que côté mobile : une visite non traitée (confirmée ou en attente
@@ -386,7 +386,7 @@ export default function MesVisitesPage() {
                       if (attempts >= 10) { clearInterval(pollRef.current!); setPayState('pending') }
                     }, 5000)
                   }}
-                  className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#F59E0B' }}>
+                  className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#B45309' }}>
                   Vérifier à nouveau
                 </button>
                 <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
@@ -515,7 +515,7 @@ export default function MesVisitesPage() {
                 {needsTags && (
                   <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                     <div className="flex items-center gap-2.5 mb-1.5">
-                      <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: '#EF4444' }} />
+                      <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: '#DC2626' }} />
                       <p className="font-bold text-text-dark text-sm">Qu'est-ce qui n'a pas fonctionné ?</p>
                     </div>
                     <p className="text-xs text-text-grey mb-4">Sélectionnez tout ce qui s'applique (au moins un)</p>
@@ -526,7 +526,7 @@ export default function MesVisitesPage() {
                           <button key={tag} onClick={() => toggleFeedbackTag(tag)}
                             className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
                             style={sel
-                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#EF4444', fontWeight: 600 }
+                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#DC2626', fontWeight: 600 }
                               : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
                             {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                             {tag}
@@ -583,7 +583,7 @@ export default function MesVisitesPage() {
               <button onClick={() => setConfirmDialog(null)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-dark">
                 Garder
               </button>
-              <button onClick={confirmDialog.onConfirm} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ background: '#EF4444' }}>
+              <button onClick={confirmDialog.onConfirm} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ background: '#DC2626' }}>
                 Confirmer
               </button>
             </div>
@@ -613,7 +613,7 @@ type VisiteCardProps = {
 function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {
   const isEchouee = isEchoueeVisite(v)
   const isDatePassee = isDatePasseeVisite(v)
-  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' })
+  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#6B7280', bg: '#F4F6FA' })
   const bien = v.bien
   const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
   const isCP = v.statut === 'contre_proposee' && !isEchouee
@@ -723,14 +723,14 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" />
           </svg>
-          <p className="text-xs font-medium" style={{ color: '#EF4444' }}>Cette visite ne s'est pas tenue.</p>
+          <p className="text-xs font-medium" style={{ color: '#DC2626' }}>Cette visite ne s'est pas tenue.</p>
         </div>
       )}
 
       {isEchouee && bien?.id && (
         <button onClick={() => onContacterEchouee(v)}
           className="w-full py-2.5 rounded-xl text-xs font-bold mb-3 flex items-center justify-center gap-1.5"
-          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: '#EF4444' }}>
+          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: '#DC2626' }}>
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
@@ -759,14 +759,14 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             <button
               onClick={() => onIntegration(v.id, true, bien?.id)}
               className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
+              style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}
             >
               Oui, j'intègre
             </button>
             <button
               onClick={() => onIntegration(v.id, false)}
               className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}
+              style={{ background: 'rgba(239,68,68,0.1)', color: '#DC2626' }}
             >
               Non, je passe
             </button>
@@ -777,7 +777,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
       {/* Décision oui, paiement d'intégration effectué */}
       {v.statut === 'effectuee' && v.client_decision_integration === true && v.paiement_integration_effectue && (
         <div className="rounded-xl p-3 mb-3 text-center" style={{ background: 'rgba(34,197,94,0.1)' }}>
-          <p className="text-xs font-bold" style={{ color: '#22C55E' }}>Intégré · Terminé</p>
+          <p className="text-xs font-bold" style={{ color: '#15803D' }}>Intégré · Terminé</p>
         </div>
       )}
 
@@ -800,21 +800,21 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             <button
               onClick={() => onAccepterCP(v.id)}
               className="flex-1 py-2 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
+              style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}
             >
               Accepter le créneau
             </button>
             <button
               onClick={() => setReproposing(true)}
               className="flex-1 py-2 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(75,107,255,0.1)', color: '#4B6BFF' }}
+              style={{ background: 'rgba(75,107,255,0.1)', color: '#3A5AEE' }}
             >
               Proposer une autre date
             </button>
             <button
               onClick={() => onRefuserCP(v)}
               className="px-3 py-2 rounded-xl text-xs font-bold"
-              style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#EF4444' }}
+              style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#DC2626' }}
             >
               Refuser
             </button>
@@ -836,7 +836,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onMessage(bien.id)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(75,107,255,0.1)', color: '#4B6BFF' }}
+            style={{ background: 'rgba(75,107,255,0.1)', color: '#3A5AEE' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -849,7 +849,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onMarquerEffectuee(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
+            style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -862,7 +862,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onAnnuler(v)}
             className="px-3 py-2 rounded-xl text-xs font-bold"
-            style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#EF4444' }}
+            style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#DC2626' }}
           >
             Annuler
           </button>
@@ -872,7 +872,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onFeedback(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(245,158,11,0.1)', color: '#F59E0B' }}
+            style={{ background: 'rgba(245,158,11,0.1)', color: '#B45309' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
             Donner mon avis

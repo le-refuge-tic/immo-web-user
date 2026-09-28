@@ -65,7 +65,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
             <p className="text-xs text-[#8A9BB5]">Numéro actuel : <span className="font-semibold text-[#F0EDE8]">{current}</span></p>
           )}
           {error && (
-            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#EF4444', border: '1px solid #EF444430' }}>{error}</div>
+            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>{error}</div>
           )}
 
           {step === 'form' ? (

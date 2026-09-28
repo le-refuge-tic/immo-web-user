@@ -262,7 +262,7 @@ export default function TopNav() {
                           >
                             <span>{label}</span>
                             {isCurrent && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
                                 Actif
                               </span>
                             )}
@@ -275,10 +275,10 @@ export default function TopNav() {
                         onClick={() => { navigate('/profil'); setMenuOpen(false) }}
                         role="menuitem"
                         className="menu-item-hover w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left"
-                        style={{ color: '#4B6BFF' }}
+                        style={{ color: '#3A5AEE' }}
                       >
                         <span>{ROLE_ROUTES[activeRole]?.label || 'Mon profil'}</span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
                           Actif
                         </span>
                       </button>

@@ -162,13 +162,13 @@ function useTokens(isDark: boolean) {
     pillActive: {
       background: 'rgba(75,107,255,0.14)',
       border: '1px solid rgba(75,107,255,0.40)',
-      color: '#4B6BFF',
+      color: '#3A5AEE',
       boxShadow: isDark ? '0 0 0 1px rgba(75,107,255,0.20)' : 'inset 0 1.5px 0 rgba(255,255,255,0.9)',
     } as React.CSSProperties,
     chipStyle: {
       background: 'rgba(75,107,255,0.12)',
       border: '1px solid rgba(75,107,255,0.30)',
-      color: '#4B6BFF',
+      color: '#3A5AEE',
     } as React.CSSProperties,
   }
 }
@@ -563,7 +563,7 @@ export default function SearchPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                  style={{ background: 'rgba(75,107,255,0.14)', color: '#4B6BFF' }}>
+                  style={{ background: 'rgba(75,107,255,0.14)', color: '#3A5AEE' }}>
                   <FilterIcon />
                 </div>
                 <h2 className="font-bold text-sm" style={{ color: tk.textClr }}>Filtres</h2>
@@ -571,7 +571,7 @@ export default function SearchPage() {
               {hasFilters && (
                 <button onClick={reset}
                   className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg transition-all"
-                  style={{ color: '#4B6BFF', background: 'rgba(75,107,255,0.10)' }}>
+                  style={{ color: '#3A5AEE', background: 'rgba(75,107,255,0.10)' }}>
                   <ClearIcon />Effacer
                 </button>
               )}
@@ -871,7 +871,7 @@ function Stepper({ label, value, onChange, tk }: {
         </span>
         <button type="button" onClick={() => onChange(String(n + 1))}
           className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold"
-          style={{ background: 'rgba(75,107,255,0.14)', color: '#4B6BFF' }}>
+          style={{ background: 'rgba(75,107,255,0.14)', color: '#3A5AEE' }}>
           +
         </button>
       </div>
@@ -902,7 +902,7 @@ function ResultHeader({ count, loading, hasFilters, reset, inline, sortBy, setSo
         {hasFilters && ` trouvé${count !== 1 ? 's' : ''}`}
       </p>
       {hasFilters && count === 0 && (
-        <button onClick={reset} className="text-xs font-semibold underline" style={{ color: '#4B6BFF' }}>
+        <button onClick={reset} className="text-xs font-semibold underline" style={{ color: '#3A5AEE' }}>
           Effacer les filtres
         </button>
       )}
@@ -1000,7 +1000,7 @@ function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; i
     <div className="rounded-2xl border-l-4 p-3.5 mb-2"
       style={{
         background: isDark ? 'rgba(245,158,11,0.08)' : '#FFF8E7',
-        borderLeftColor: '#F59E0B',
+        borderLeftColor: '#B45309',
       }}>
       <div className="flex items-start gap-3">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">

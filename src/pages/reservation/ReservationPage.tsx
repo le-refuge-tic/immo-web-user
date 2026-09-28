@@ -253,7 +253,7 @@ export default function ReservationPage() {
     <div ref={timeSectionRef} className="rounded-2xl p-5" style={GLASS}>
       <div className="flex items-center justify-between mb-3.5">
         <p className="text-sm font-bold text-text-dark">Heure souhaitée</p>
-        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#4B6BFF' }}>
+        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#3A5AEE' }}>
           {(() => { const d = selectedDate; const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam']; return `${days[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}` })()}
         </span>
       </div>
@@ -278,7 +278,7 @@ export default function ReservationPage() {
               </svg>
               <div>
                 <p className="text-xs font-semibold" style={{ color: '#92400E' }}>Plus de créneaux disponibles aujourd'hui</p>
-                <button className="text-xs mt-1 font-semibold" style={{ color: '#4B6BFF' }}
+                <button className="text-xs mt-1 font-semibold" style={{ color: '#3A5AEE' }}
                   onClick={() => { setSelectedDate(tomorrow); setSelectedTime('') }}>
                   Choisir demain
                 </button>
@@ -318,7 +318,7 @@ export default function ReservationPage() {
           <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p className="text-xs font-semibold" style={{ color: '#22C55E' }}>Créneau proposé : {dateTimeLabel()}</p>
+          <p className="text-xs font-semibold" style={{ color: '#15803D' }}>Créneau proposé : {dateTimeLabel()}</p>
         </div>
       )}
     </div>
@@ -479,7 +479,7 @@ export default function ReservationPage() {
       {/* ── Confirmation d'envoi — équivalent web du snackbar mobile ── */}
       {success && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg anim-fade-in"
-          style={{ background: '#22C55E', maxWidth: 'calc(100% - 32px)' }}>
+          style={{ background: '#15803D', maxWidth: 'calc(100% - 32px)' }}>
           <svg className="w-4 h-4 text-white flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>

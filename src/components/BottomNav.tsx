@@ -100,7 +100,7 @@ export default function BottomNav() {
                 )}
               </span>
               {active && (
-                <span className="text-[10px] font-bold" style={{ color: '#4B6BFF' }}>{item.label}</span>
+                <span className="text-[10px] font-bold" style={{ color: '#3A5AEE' }}>{item.label}</span>
               )}
             </button>
           )

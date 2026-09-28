@@ -45,11 +45,11 @@ const MID_PURPLE  = '#7B2FBE'
 type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
-  en_attente: { label: 'En attente',  color: '#F59E0B' },
-  active:     { label: 'Active',      color: '#22C55E' },
-  revoquee:   { label: 'Révoquée',    color: '#EF4444' },
-  expiree:    { label: 'Expirée',     color: '#9CA3AF' },
-  refusee:    { label: 'Refusée',     color: '#EF4444' },
+  en_attente: { label: 'En attente',  color: '#B45309' },
+  active:     { label: 'Active',      color: '#15803D' },
+  revoquee:   { label: 'Révoquée',    color: '#DC2626' },
+  expiree:    { label: 'Expirée',     color: '#6B7280' },
+  refusee:    { label: 'Refusée',     color: '#DC2626' },
 }
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -74,15 +74,15 @@ function fmtSemaine(raw: string) {
 function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
   if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#FF9800' }
-  return { label: 'En attente', color: '#FF9800' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
   if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: PURPLE }
   if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#E67E22' }
-  return { label: 'En attente', color: '#FF9800' }
+  return { label: 'En attente', color: '#B45309' }
 }
 
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
@@ -121,12 +121,12 @@ function notifTimeAgo(iso?: string): string {
 }
 
 function notifIconD(type: string): { node: React.ReactNode; color: string } {
-  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#22C55E' }
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#15803D' }
   if (type === 'nouveau_message') return { node: <IcChat />, color: '#8B5CF6' }
-  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#EF4444' }
-  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#22C55E' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#DC2626' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#15803D' }
   if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE }
-  return { node: <IcBell />, color: '#9E9E9E' }
+  return { node: <IcBell />, color: '#6B7280' }
 }
 
 function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
@@ -300,7 +300,7 @@ function MesBiensTab() {
           {['Tous', 'Publié', 'En attente', 'Rejeté'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border"
-              style={filter === f ? { background: PURPLE, color: '#fff', borderColor: PURPLE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
+              style={filter === f ? { background: PURPLE, color: '#fff', borderColor: PURPLE } : { color: '#6B7280', borderColor: '#E8EAED' }}>
               {f}
             </button>
           ))}
@@ -343,7 +343,7 @@ function MesBiensTab() {
                       <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
                       {confirmDeleteBienId === b.id ? (
                         <>
-                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#EF4444' }}>Suppr.</button>
+                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#DC2626' }}>Suppr.</button>
                           <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(null) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm" style={{ background: 'rgba(255,255,255,0.2)' }}>✕</button>
                         </>
                       ) : (
@@ -451,7 +451,7 @@ function ReservationsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {chatError && (
-        <div className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444' }}>
+        <div className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#DC2626' }}>
           {chatError}
           <button onClick={() => setChatError('')} className="text-base leading-none flex-shrink-0">✕</button>
         </div>
@@ -460,7 +460,7 @@ function ReservationsTab() {
         {['Toutes', 'À traiter', 'Confirmées', 'Échouées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
-            style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
+            style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: '#6B7280' }}>
             {f}
           </button>
         ))}
@@ -482,7 +482,7 @@ function ReservationsTab() {
         <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:items-start">
         {filtered.map((v, i) => {
           const echouee = isEchouee(v)
-          const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+          const { label, color } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
           const nom = 'Client'
           const init = 'C'
           const bType = v.bien ? bienTypeLabel(v.bien) : ''
@@ -537,13 +537,13 @@ function ReservationsTab() {
               {echouee && (
                 <div className="flex items-center gap-2 p-2.5 rounded-xl mb-3" style={{ background: '#EF444410', border: '1px solid #EF444440' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" /></svg>
-                  <p className="text-xs font-medium" style={{ color: '#EF4444' }}>Cette visite ne s'est pas tenue.</p>
+                  <p className="text-xs font-medium" style={{ color: '#DC2626' }}>Cette visite ne s'est pas tenue.</p>
                 </div>
               )}
               <div className="flex gap-2">
                 {echouee ? (
                   <button onClick={() => ouvrirChatEchouee(v)} disabled={chatLoadingId === v.id}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: '#EF4444', background: '#EF444410' }}>
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: '#DC2626', background: '#EF444410' }}>
                     <IcChat /> {chatLoadingId === v.id ? '…' : 'Contacter le client'}
                   </button>
                 ) : (
@@ -726,7 +726,7 @@ function PortefeuilleTab() {
                 <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: isCredit ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#22C55E' : '#EF4444'} strokeWidth={2.5} className="w-5 h-5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#15803D' : '#DC2626'} strokeWidth={2.5} className="w-5 h-5">
                       {isCredit
                         ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8-8-8 8"/>
                         : <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m8 8l-8 8-8-8"/>}
@@ -737,7 +737,7 @@ function PortefeuilleTab() {
                     <p className="text-xs text-text-grey mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+                    <p className="font-bold text-sm" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
                       {isCredit ? '+' : '-'}{Math.abs(amt).toLocaleString('fr-FR')} F
                     </p>
                     {t.balance_after != null && <p className="text-[10px] text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
@@ -798,7 +798,7 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
             <p className="text-sm text-text-grey text-center px-6">Les propositions de gestion des propriétaires apparaîtront ici.</p>
           </div>
         ) : delegations.map(d => {
-          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#9CA3AF' }
+          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#6B7280' }
           return (
             <div key={d.id} className="card-soft rounded-xl p-4 mb-3">
               <div className="flex items-center justify-between mb-1">
@@ -811,11 +811,11 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
               {d.statut === 'en_attente' && (
                 <div className="flex gap-2">
                   <button onClick={() => repondre(d.id, true)} disabled={actingId === d.id}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}>
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}>
                     Accepter
                   </button>
                   <button onClick={() => repondre(d.id, false)} disabled={actingId === d.id}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(239,68,68,0.1)', color: '#DC2626' }}>
                     Refuser
                   </button>
                 </div>
@@ -1109,9 +1109,9 @@ export default function DemarcheurDashboard() {
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {[
                       { label: 'Biens publiés', value: compteurs.total_publies, color: PURPLE },
-                      { label: 'En vérification', value: compteurs.en_verification, color: '#F59E0B' },
-                      { label: 'Validés', value: compteurs.valides, color: '#22C55E' },
-                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: '#4B6BFF' },
+                      { label: 'En vérification', value: compteurs.en_verification, color: '#B45309' },
+                      { label: 'Validés', value: compteurs.valides, color: '#15803D' },
+                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: '#3A5AEE' },
                     ].map(c => (
                       <div key={c.label} className="card-soft rounded-xl p-4">
                         <p className="text-[26px] font-bold" style={{ color: c.color }}>{c.value}</p>

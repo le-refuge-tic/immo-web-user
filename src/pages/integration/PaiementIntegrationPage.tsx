@@ -77,7 +77,7 @@ export default function PaiementIntegrationPage() {
 
   if (state === 'success') return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F0FDF4' }}>
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: '#22C55E' }}>
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: '#15803D' }}>
         <svg className="w-10 h-10 text-white" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
       </div>
       <h2 className="text-2xl font-bold text-text-dark mb-2">Paiement confirmé !</h2>
@@ -140,7 +140,7 @@ export default function PaiementIntegrationPage() {
                     <span className="text-text-grey">Passez {prepayeMois} mois sans loyer</span>
                     <span className="font-semibold text-text-dark">{prepayeTotal.toLocaleString('fr-FR')} FCFA</span>
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: '#22C55E' }}>Inclus dans votre paiement</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#15803D' }}>Inclus dans votre paiement</p>
                 </div>
               )}
               {cautionEau > 0 && (
@@ -158,10 +158,10 @@ export default function PaiementIntegrationPage() {
               {remiseVisite > 0 && (
                 <div className="flex justify-between text-sm">
                   <div>
-                    <span className="font-semibold" style={{ color: '#22C55E' }}>Remise frais de visite</span>
-                    <p className="text-xs" style={{ color: '#22C55E' }}>Déduits car visite déjà payée</p>
+                    <span className="font-semibold" style={{ color: '#15803D' }}>Remise frais de visite</span>
+                    <p className="text-xs" style={{ color: '#15803D' }}>Déduits car visite déjà payée</p>
                   </div>
-                  <span className="font-semibold" style={{ color: '#22C55E' }}>− {remiseVisite.toLocaleString('fr-FR')} FCFA</span>
+                  <span className="font-semibold" style={{ color: '#15803D' }}>− {remiseVisite.toLocaleString('fr-FR')} FCFA</span>
                 </div>
               )}
               <div className="border-t border-divider pt-3 flex justify-between">

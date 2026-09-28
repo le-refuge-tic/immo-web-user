@@ -15,7 +15,7 @@ const statutLabel = (t: any) => {
   if (s.includes('pending') || s.includes('attente')) return 'En attente'
   return 'Payé'
 }
-const statutColor = (s: string) => s === 'Échoué' ? '#FF3B30' : (s === 'Remboursé' || s === 'En attente') ? '#FF9800' : '#34C759'
+const statutColor = (s: string) => s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#15803D'
 const typeColor = (t: any) => isLoyer(t) ? '#4B6BFF' : isVisite(t) ? '#FF6B35' : '#6E6E73'
 const fieldLabel = (k: string) => k.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ')
 const formatDate = (t: any) => {
@@ -162,7 +162,7 @@ function ClientWalletView() {
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée — en attente de validation.</p>
+              <p className="text-sm font-semibold" style={{ color: '#15803D' }}>Demande de retrait envoyée — en attente de validation.</p>
             </div>
           )}
 
@@ -212,7 +212,7 @@ function ClientWalletView() {
                 <p className="font-semibold text-text-dark text-sm truncate">{t.description || typeLabel(t)}</p>
                 <p className="text-[11px] text-text-grey mt-0.5">Solde après : {Number(t.balance_after ?? 0).toLocaleString('fr-FR')} F · {formatDate(t.created_at)}</p>
               </div>
-              <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? '#EF4444' : '#22C55E' }}>
+              <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? '#DC2626' : '#15803D' }}>
                 {isDebit(t) ? '-' : '+'}{Number(t.amount ?? 0).toLocaleString('fr-FR')} F
               </p>
             </div>
@@ -301,7 +301,7 @@ function WalletCommissionsView() {
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée avec succès.</p>
+              <p className="text-sm font-semibold" style={{ color: '#15803D' }}>Demande de retrait envoyée avec succès.</p>
             </div>
           )}
 

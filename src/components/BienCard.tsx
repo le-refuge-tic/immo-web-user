@@ -193,7 +193,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || '—'}
           </p>
           {distanceKm != null && (
-            <span className="flex-shrink-0 text-[11px] font-semibold" style={{ color: '#4B6BFF' }}>
+            <span className="flex-shrink-0 text-[11px] font-semibold" style={{ color: '#3A5AEE' }}>
               à {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
             </span>
           )}

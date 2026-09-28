@@ -113,7 +113,7 @@ export default function RechargementWalletPage() {
             </div>
             <p className="font-bold text-text-dark text-xl mb-2">Wallet {LABELS[type]} rechargé !</p>
             <p className="text-text-grey text-sm mb-8">Votre solde a été mis à jour.</p>
-            <button onClick={() => navigate(-1)} className="w-full py-3.5 rounded-xl text-white font-bold text-sm" style={{ background: '#22C55E' }}>
+            <button onClick={() => navigate(-1)} className="w-full py-3.5 rounded-xl text-white font-bold text-sm" style={{ background: '#15803D' }}>
               Retour au portefeuille
             </button>
           </div>
@@ -169,7 +169,7 @@ export default function RechargementWalletPage() {
             )}
 
             {state === 'error' && error && (
-              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: '#EF4444', border: '1px solid #EF444430' }}>{error}</div>
+              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>{error}</div>
             )}
 
             <button onClick={recharger}

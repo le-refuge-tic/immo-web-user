@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { loyersApi } from '../../api/loyersApi'
 
-const GREEN = '#22C55E'
+const GREEN = '#15803D'
 
 const AVANTAGES = [
   { icon: '🔔', title: 'Rappels automatiques', desc: 'Alerte 3 jours avant l\'échéance de votre loyer' },

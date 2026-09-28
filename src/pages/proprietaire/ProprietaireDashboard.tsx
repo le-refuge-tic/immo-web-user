@@ -119,15 +119,15 @@ function fmtPrix(p: any) {
 function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
   if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#FF9800' }
-  return { label: 'En attente', color: '#FF9800' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
   if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE }
   if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#E67E22' }
-  return { label: 'En attente', color: '#FF9800' }
+  return { label: 'En attente', color: '#B45309' }
 }
 
 const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
@@ -237,7 +237,7 @@ function StatCard({ icon, color, label, value, trendPct, trendCaption, sparkline
         <p className="text-[10px] font-bold text-[#8A9BB5] uppercase tracking-widest">{label}</p>
         {trendPct != null && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-            style={{ background: up ? '#22C55E18' : '#EF444418', color: up ? '#22C55E' : '#EF4444' }}>
+            style={{ background: up ? '#22C55E18' : '#EF444418', color: up ? '#15803D' : '#DC2626' }}>
             {up ? <IcTrendUp /> : <IcTrendDown />} {Math.abs(trendPct)}%
           </span>
         )}
@@ -461,8 +461,8 @@ function LiveIndicator({ label, refreshing }: { label: string; refreshing: boole
   return (
     <div className="flex items-center gap-1.5">
       <span className="relative flex w-2 h-2">
-        {!refreshing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#22C55E' }} />}
-        <span className="relative inline-flex rounded-full w-2 h-2" style={{ background: refreshing ? '#F59E0B' : '#22C55E' }} />
+        {!refreshing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#15803D' }} />}
+        <span className="relative inline-flex rounded-full w-2 h-2" style={{ background: refreshing ? '#B45309' : '#15803D' }} />
       </span>
       <span className="text-[11px] text-[#8A9BB5]">{refreshing ? 'Synchronisation…' : `À jour · ${label}`}</span>
     </div>
@@ -773,7 +773,7 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
                           {b.statut === 'occupe' && (
-                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#22C55E15', color: '#22C55E' }}>● Occupé</span>
+                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#22C55E15', color: '#15803D' }}>● Occupé</span>
                           )}
                         </div>
 
@@ -804,7 +804,7 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                         )}
 
                         {b.statut_moderation === 'rejete' && b.motif_refus && (
-                          <p className="text-[10px] mb-3 truncate" style={{ color: '#EF4444' }}>⚠ {b.motif_refus}</p>
+                          <p className="text-[10px] mb-3 truncate" style={{ color: '#DC2626' }}>⚠ {b.motif_refus}</p>
                         )}
 
                         {/* Actions */}
@@ -819,13 +819,13 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                           </button>
                           {confirmDeleteBienId === b.id ? (
                             <div className="flex items-center gap-1">
-                              <button onClick={() => del(b.id)} className="px-2 py-1 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ background: '#EF4444', border: 'none' }}>Supprimer</button>
+                              <button onClick={() => del(b.id)} className="px-2 py-1 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ background: '#DC2626', border: 'none' }}>Supprimer</button>
                               <button onClick={() => setConfirmDeleteBienId(null)} className="px-2 py-1 rounded-lg text-xs flex-shrink-0" style={{ background: '#F3F4F6', border: 'none' }}>✕</button>
                             </div>
                           ) : (
                             <button onClick={() => setConfirmDeleteBienId(b.id)}
                               className="flex items-center justify-center w-9 h-9 rounded-xl text-xs transition-all flex-shrink-0"
-                              style={{ background: '#EF444410', color: '#EF4444', border: '1px solid #EF444420' }}>
+                              style={{ background: '#EF444410', color: '#DC2626', border: '1px solid #EF444420' }}>
                               <IcTrash />
                             </button>
                           )}
@@ -872,10 +872,10 @@ const NOTIF_VISITE_TYPES = new Set([
 const NOTIF_BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
 function notifIcon(type: string): { node: React.ReactNode; color: string } {
-  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#22C55E' }
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#15803D' }
   if (type === 'nouveau_message') return { node: <IcMessage />, color: '#8B5CF6' }
-  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#EF4444' }
-  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#22C55E' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#DC2626' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#15803D' }
   if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: BLUE }
   return { node: <IcBell />, color: 'var(--p-muted)' as string }
 }
@@ -1250,7 +1250,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
 }) {
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
-  const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+  const { label, color } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
   // L'identité du client n'est jamais masquée côté API (nom/prénom toujours
   // renvoyés) — miroir exact de proprietaire_reservations.dart, qui affiche
   // le prénom réel sans condition de statut.
@@ -1285,7 +1285,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
         <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
       </div>
       {echouee && (
-        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#EF444410', borderColor: '#EF444430', color: '#EF4444' }}>
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#EF444410', borderColor: '#EF444430', color: '#DC2626' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
           Cette visite ne s'est pas tenue.
         </div>
@@ -1315,10 +1315,10 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
       {v.statut === 'effectuee' && v.feedback_donne && v.note_client != null && (
         <div className="rounded-xl p-3 mb-3" style={{ background: '#F59E0B10', border: '1px solid #F59E0B30' }}>
           <div className="flex items-center justify-between mb-1.5">
-            <p className="text-xs font-bold" style={{ color: '#F59E0B' }}>Avis du client</p>
+            <p className="text-xs font-bold" style={{ color: '#B45309' }}>Avis du client</p>
             <div className="flex items-center gap-0.5">
               {[1, 2, 3, 4, 5].map(n => (
-                <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= v.note_client ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= v.note_client ? '#B45309' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                 </svg>
               ))}
@@ -1327,7 +1327,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
           {v.feedback_tags?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-1.5">
               {v.feedback_tags.map((t: string) => (
-                <span key={t} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: '#F59E0B18', color: '#F59E0B' }}>{t}</span>
+                <span key={t} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: '#F59E0B18', color: '#B45309' }}>{t}</span>
               ))}
             </div>
           )}
@@ -1362,7 +1362,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
       <div className="flex gap-2">
         {echouee ? (
           <button onClick={() => onChat(v)} disabled={chatLoadingId === v.id}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: '#EF4444' }}>
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: '#DC2626' }}>
             <IcChat /> {chatLoadingId === v.id ? '…' : 'Contacter le client'}
           </button>
         ) : <>
@@ -1382,7 +1382,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
           confirmEffectuee ? (
             <div className="flex items-center gap-1 flex-1">
               <button onClick={() => { onMarquerEffectuee(v.id); setConfirmEffectuee(false) }} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
-              <button onClick={() => setConfirmEffectuee(false)} className="py-2 px-3 rounded-xl text-xs font-bold" style={{ background: '#1A3355', color: '#9CA3AF' }}>✕</button>
+              <button onClick={() => setConfirmEffectuee(false)} className="py-2 px-3 rounded-xl text-xs font-bold" style={{ background: '#1A3355', color: '#6B7280' }}>✕</button>
             </div>
           ) : (
             <button onClick={() => setConfirmEffectuee(true)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: BLUE }}>Marquer effectuée</button>
@@ -1442,7 +1442,7 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
   const urgente = !echouee && isUrgente(v, now)
-  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
   const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
   const initiale = clientNom[0]?.toUpperCase() || '?'
   const bType = v.bien ? bienLabel(v.bien) : ''
@@ -1502,16 +1502,16 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
               style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>{initiale}</div>
             <div>
               <p className="font-bold text-[14px] text-gray-900 leading-tight">{clientNom}</p>
-              <p className="text-[11px] text-gray-400">{bType} · {bLoc}</p>
+              <p className="text-[11px] text-gray-500">{bType} · {bLoc}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
-              style={{ background: (urgente ? '#EF4444' : sColor) + '18', color: urgente ? '#EF4444' : sColor }}>
+              style={{ background: (urgente ? '#DC2626' : sColor) + '18', color: urgente ? '#DC2626' : sColor }}>
               {urgente ? '⚡ Urgent' : sLabel}
             </span>
             <button onClick={handleClose}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-700 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-gray-700 transition-colors"
               style={{ background: '#EEF1FA' }}>✕</button>
           </div>
         </div>
@@ -1549,7 +1549,7 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
 
           {/* ── Date ── */}
           <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Créneau demandé</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Créneau demandé</p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: BLUE + '12' }}>
@@ -1567,13 +1567,13 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
           {/* ── Frais + paiement ── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Frais de visite</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Frais de visite</p>
               <p className="font-black text-[18px]" style={{ color: BLUE }}>
                 {Number(v.frais_visite) > 0 ? fmtPrix(v.frais_visite) : 'Gratuit'}
               </p>
             </div>
             <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Paiement</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Paiement</p>
               <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? '#16A34A' : '#9CA3AF' }}>
                 {v.paiement_effectue ? '✓ Payé' : 'En attente'}
               </p>
@@ -1622,7 +1622,7 @@ function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, 
                 <div className="flex gap-0.5">
                   {[1,2,3,4,5].map(n => (
                     <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5"
-                      fill={n <= v.note_client ? '#F59E0B' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                      fill={n <= v.note_client ? '#B45309' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                     </svg>
                   ))}
@@ -1906,7 +1906,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                 const urgente = !echouee && isUrgente(v, now)
                 const mins = urgente ? minutesAvant(v, now) : null
                 const { label: sLabel, color: sColor } = echouee
-                  ? { label: 'Échouée', color: '#EF4444' }
+                  ? { label: 'Échouée', color: '#DC2626' }
                   : statutVisite(v.statut)
                 const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
                 const initiale = clientNom[0]?.toUpperCase() || '?'
@@ -1923,7 +1923,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                 const peutConfirmer = (v.statut === 'en_attente' || v.statut === 'contre_proposee') && !echouee && !isDatePassee(v)
                 const bien = biens?.find((b: any) => b.id === v.bien?.id)
                 const cover = bien?.photos?.find((p: any) => p.is_cover) || bien?.photos?.[0]
-                const accentColor = urgente ? '#EF4444' : sColor
+                const accentColor = urgente ? '#DC2626' : sColor
 
                 return (
                   <div key={v.id}
@@ -1978,7 +1978,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                         <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{clientNom}</p>
                         {v.paiement_effectue && (
                           <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: '#22C55E15', color: '#22C55E' }}>✓ Payé</span>
+                            style={{ background: '#22C55E15', color: '#15803D' }}>✓ Payé</span>
                         )}
                       </div>
 
@@ -1990,7 +1990,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                       {/* Urgence compte à rebours */}
                       {urgente && mins !== null && (
                         <div className="flex items-center gap-1.5 mb-3 px-3 py-2 rounded-lg text-xs font-bold animate-pulse"
-                          style={{ background: '#EF444412', color: '#EF4444' }}>
+                          style={{ background: '#EF444412', color: '#DC2626' }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                           </svg>
@@ -2011,7 +2011,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                           <button
                             onClick={e => { e.stopPropagation(); confirmer(v.id) }}
                             className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
-                            style={{ background: hoveredVisiteEl === `confirmer-${v.id}` ? '#22C55E22' : '#22C55E12', color: '#22C55E', border: '1px solid #22C55E20' }}
+                            style={{ background: hoveredVisiteEl === `confirmer-${v.id}` ? '#22C55E22' : '#22C55E12', color: '#15803D', border: '1px solid #22C55E20' }}
                             onMouseEnter={() => setHoveredVisiteEl(`confirmer-${v.id}`)}
                             onMouseLeave={() => setHoveredVisiteEl(null)}>
                             Confirmer ✓
@@ -2056,7 +2056,7 @@ function loyerStatut(s: string): { label: string; color: string } {
   if (s === 'paye')      return { label: 'Payé',       color: '#4CAF50' }
   if (s === 'en_retard') return { label: 'En retard',  color: '#F44336' }
   if (s === 'impaye')    return { label: 'Impayé',     color: '#C62828' }
-  return { label: 'En attente', color: '#FF9800' }
+  return { label: 'En attente', color: '#B45309' }
 }
 const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
   actif:   { label: 'Actif',   color: '#4CAF50' },
@@ -2174,8 +2174,8 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
           const kpis = [
             { label: 'TOTAL PERÇU', value: `${Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} F`, color: BLUE,      icon: <IcWallet /> },
             { label: 'CE MOIS',     value: `${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`,  color: '#16A34A', icon: <IcPayments /> },
-            { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: '#F59E0B', icon: <IcClock /> },
-            { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? '#EF4444' : '#16A34A', icon: <IcShield /> },
+            { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: '#B45309', icon: <IcClock /> },
+            { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? '#DC2626' : '#16A34A', icon: <IcShield /> },
           ] as { label: string; value: string; color: string; icon: React.ReactNode }[]
           return (
             <div className="rounded-2xl overflow-hidden mb-3"
@@ -2288,7 +2288,7 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                       </div>
                     ) : (
                       <div className="mt-2 px-3 py-2.5 rounded-xl" style={{ background: '#F59E0B12', border: '1px dashed #F59E0B55' }}>
-                        <p className="text-[11px] font-semibold mb-1.5" style={{ color: '#F59E0B' }}>En attente de liaison</p>
+                        <p className="text-[11px] font-semibold mb-1.5" style={{ color: '#B45309' }}>En attente de liaison</p>
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-mono font-bold text-sm tracking-wider" style={{ color: 'var(--p-text)' }}>{b.code_invitation || '—'}</span>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -2647,13 +2647,13 @@ function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () =>
           {/* ── Loyer + progression ── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Loyer mensuel</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Loyer mensuel</p>
               <p className="font-black text-[20px]" style={{ color: BLUE }}>{fmtPrix(c.loyer_mensuel)}</p>
             </div>
             <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Progression</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Progression</p>
               <p className="font-black text-[20px]" style={{ color: progressPct === 100 ? '#16A34A' : BLUE }}>
-                {payesCount}<span className="text-sm font-medium text-gray-400">/{totalCount}</span>
+                {payesCount}<span className="text-sm font-medium text-gray-500">/{totalCount}</span>
               </p>
               <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: '#E8EDFB' }}>
                 <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: progressPct === 100 ? '#16A34A' : BLUE }} />
@@ -2664,7 +2664,7 @@ function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () =>
           {/* ── Infos contrat ── */}
           <div className="rounded-xl border overflow-hidden" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
             <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Détails du contrat</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Détails du contrat</p>
             </div>
             <div className="grid grid-cols-2 divide-x divide-y" style={{ borderColor: '#E8EDFB' }}>
               {[
@@ -2674,13 +2674,13 @@ function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () =>
                 { label: 'Prépayé', value: c.loyer_prepaye_mois > 0 ? `${c.loyer_prepaye_mois} mois` : 'Aucun' },
               ].map(row => (
                 <div key={row.label} className="px-4 py-3" style={{ borderColor: '#E8EDFB' }}>
-                  <p className="text-[10px] text-gray-400 mb-0.5">{row.label}</p>
+                  <p className="text-[10px] text-gray-500 mb-0.5">{row.label}</p>
                   <p className="text-sm font-semibold text-gray-800">{row.value}</p>
                 </div>
               ))}
             </div>
             {c.gestion_via_app === false && (
-              <div className="px-4 py-2.5 border-t text-xs text-gray-400 italic" style={{ borderColor: '#E8EDFB' }}>
+              <div className="px-4 py-2.5 border-t text-xs text-gray-500 italic" style={{ borderColor: '#E8EDFB' }}>
                 Gestion déléguée (hors application)
               </div>
             )}
@@ -2689,10 +2689,10 @@ function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () =>
           {/* ── Historique des échéances ── */}
           <div className="rounded-xl border overflow-hidden" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
             <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Historique des échéances</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Historique des échéances</p>
             </div>
             {(!c.loyersTries || c.loyersTries.length === 0) ? (
-              <p className="text-xs text-gray-400 py-8 text-center">Aucune échéance générée</p>
+              <p className="text-xs text-gray-500 py-8 text-center">Aucune échéance générée</p>
             ) : (
               <div className="divide-y" style={{ borderColor: '#E8EDFB' }}>
                 {[...c.loyersTries].reverse().map((l: any) => {
@@ -2705,7 +2705,7 @@ function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () =>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-800 truncate">{moisLabel(l.mois)}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
+                        <p className="text-[11px] text-gray-500 mt-0.5">
                           Échéance {dateLabel(l.date_echeance)}
                           {l.statut === 'paye' && l.date_paiement && ` · payé le ${dateLabel(l.date_paiement)}`}
                           {l.jours_retard > 0 && l.statut !== 'paye' && ` · ${l.jours_retard} j de retard`}
@@ -2800,7 +2800,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 
         <div className="p-5 space-y-5">
           {error && (
-            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#EF4444', border: '1px solid #EF444430' }}>
+            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>
               {error}
             </div>
           )}
@@ -2941,7 +2941,7 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
             <p className="font-bold text-[#F0EDE8] mb-3">Retraits en cours</p>
             {retraitsEnCours.map((r: any) => {
               const approuve = r.statut === 'approuve'
-              const color = approuve ? '#F59E0B' : '#8A9BB5'
+              const color = approuve ? '#B45309' : '#8A9BB5'
               return (
                 <div key={r.id} className="flex items-center gap-3 p-3.5 rounded-xl mb-2" style={{ background: '#112440', border: `1px solid ${color}40` }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className="w-5 h-5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -2984,7 +2984,7 @@ function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => voi
                   <span className="text-[10px] text-[#8A9BB5]">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                 </div>
               </div>
-              <p className="font-bold text-sm flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+              <p className="font-bold text-sm flex-shrink-0" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
                 {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
               </p>
             </button>
@@ -3004,7 +3004,7 @@ function categorieTransaction(description: string): { label: string; color: stri
   const d = (description || '').toLowerCase()
   if (d.startsWith('loyer')) return { label: 'Loyer', color: BLUE }
   if (d.startsWith('frais de visite')) return { label: 'Visite', color: '#7B2FBE' }
-  if (d.startsWith('intégration') || d.startsWith('integration')) return { label: 'Intégration', color: '#F59E0B' }
+  if (d.startsWith('intégration') || d.startsWith('integration')) return { label: 'Intégration', color: '#B45309' }
   return { label: 'Autre', color: '#6B7280' }
 }
 
@@ -3013,10 +3013,10 @@ function categorieTransaction(description: string): { label: string; color: stri
 // `transactions`). `null` = mouvement sans paiement lié (ex. retrait) : par
 // construction déjà survenu, donc "Complété".
 function txStatutMeta(statut: string | null | undefined): { label: string; color: string } {
-  if (statut === 'en_attente') return { label: 'En attente', color: '#FF9800' }
-  if (statut === 'echoue')     return { label: 'Échoué',     color: '#EF4444' }
+  if (statut === 'en_attente') return { label: 'En attente', color: '#B45309' }
+  if (statut === 'echoue')     return { label: 'Échoué',     color: '#DC2626' }
   if (statut === 'rembourse')  return { label: 'Remboursé',  color: '#6B7280' }
-  return { label: 'Complété', color: '#22C55E' }
+  return { label: 'Complété', color: '#15803D' }
 }
 const METHODE_LABELS: Record<string, string> = { momo: 'MTN MoMo', flooz: 'Moov Flooz', celtiis: 'Celtiis Cash', fedapay: 'FedaPay' }
 
@@ -3042,7 +3042,7 @@ function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void })
               <p className="font-bold text-[#F0EDE8] truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
               <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
             </div>
-            <p className="font-extrabold text-lg flex-shrink-0" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+            <p className="font-extrabold text-lg flex-shrink-0" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
               {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
             </p>
           </div>
@@ -3235,7 +3235,7 @@ function TransactionsTab() {
                         <span className="font-mono text-xs text-[#8A9BB5]">{t.reference || '—'}</span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+                        <span className="font-bold text-sm" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
                           {isCredit ? '+' : '-'}{Math.abs(montantOf(t)).toLocaleString('fr-FR')} F
                         </span>
                       </td>
@@ -3288,10 +3288,10 @@ function MaskIcon({ role, size = 22 }: { role: string; size?: number }) {
 }
 
 const ROLES_META: { key: string; label: string; desc: string; color: string }[] = [
-  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#4B6BFF' },
+  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#3A5AEE' },
   { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: BLUE },
   { key: 'demarcheur',   label: 'Agent',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6' },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: '#22C55E' },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: '#15803D' },
 ]
 
 function RolesTab() {
@@ -3368,7 +3368,7 @@ function RolesTab() {
         {success && (
           <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: '#22C55E14', border: '1px solid #22C55E30' }}>
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-            <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>{success}</p>
+            <p className="text-sm font-semibold" style={{ color: '#15803D' }}>{success}</p>
           </div>
         )}
 
@@ -3436,15 +3436,15 @@ function RolesTab() {
                       {!isPrincipal && (
                         confirmDesactiverRole === r.key ? (
                           <div className="flex items-center gap-1.5">
-                            <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white" style={{ background: '#EF4444', border: 'none' }}>
+                            <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white" style={{ background: '#DC2626', border: 'none' }}>
                               {busy ? '…' : 'Confirmer'}
                             </button>
-                            <button onClick={() => setConfirmDesactiverRole(null)} className="py-2 px-2 rounded-xl text-xs font-bold border" style={{ borderColor: 'rgba(255,255,255,0.15)', color: '#9CA3AF', background: 'transparent' }}>✕</button>
+                            <button onClick={() => setConfirmDesactiverRole(null)} className="py-2 px-2 rounded-xl text-xs font-bold border" style={{ borderColor: 'rgba(255,255,255,0.15)', color: '#6B7280', background: 'transparent' }}>✕</button>
                           </div>
                         ) : (
                           <button onClick={() => setConfirmDesactiverRole(r.key)} disabled={busy}
                             className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#EF4444', background: 'rgba(239,68,68,0.06)' }}>
+                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#DC2626', background: 'rgba(239,68,68,0.06)' }}>
                             Désactiver
                           </button>
                         )
@@ -3508,7 +3508,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
   const kpis = [
     { label: 'Score', value: `${Math.round(score)}`, color: BLUE },
     { label: 'Occupation', value: `${tauxOccupation}%`, color: '#16A34A' },
-    { label: 'Publiés', value: `${tauxPublication}%`, color: '#F59E0B' },
+    { label: 'Publiés', value: `${tauxPublication}%`, color: '#B45309' },
   ]
 
   const menuItems = [
@@ -3517,7 +3517,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: '#0EA5E9', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
-    { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#F59E0B', onClick: onOpenRoles },
+    { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#B45309', onClick: onOpenRoles },
     { icon: <IcPayments />, label: 'Historique des transactions', color: '#16A34A', onClick: onOpenTransactions },
   ]
 
@@ -3603,7 +3603,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
               {[
                 { label: 'Total', value: visites.length, color: BLUE },
                 { label: 'Confirmées', value: visitesConfirmees, color: '#16A34A' },
-                { label: 'En attente', value: visitesEnAttente, color: '#F59E0B' },
+                { label: 'En attente', value: visitesEnAttente, color: '#B45309' },
                 { label: 'Effectuées', value: visitesEffectuees, color: '#7B2FBE' },
               ].map((s, i) => (
                 <div key={s.label} className="flex-1 min-w-0 flex flex-col items-center justify-center"
@@ -3622,7 +3622,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
               {[
                 { label: 'Total', value: biens.length, color: BLUE },
                 { label: 'Publiés', value: approuves, color: '#16A34A' },
-                { label: 'Occupés', value: biensOccupes, color: '#F59E0B' },
+                { label: 'Occupés', value: biensOccupes, color: '#B45309' },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center justify-center py-3 rounded-xl"
                   style={{ background: s.color + '0E' }}>
@@ -3633,7 +3633,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
             </div>
             {user?.nb_etoiles != null && (
               <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid var(--p-border)' }}>
-                <span style={{ color: '#F59E0B' }}><IcStar /></span>
+                <span style={{ color: '#B45309' }}><IcStar /></span>
                 <p className="text-[13px] font-bold" style={{ color: 'var(--p-text)' }}>
                   {user.nb_etoiles} étoile{user.nb_etoiles !== 1 ? 's' : ''}
                 </p>
@@ -3645,7 +3645,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
           {/* Déconnexion */}
           <button onClick={() => { logout(); navigate('/login') }}
             className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
-            style={{ background: hoveredEl === 'logout' ? '#FFE4E4' : '#FFF0F0', color: '#EF4444', border: '1px solid #EF444422' }}
+            style={{ background: hoveredEl === 'logout' ? '#FFE4E4' : '#FFF0F0', color: '#DC2626', border: '1px solid #EF444422' }}
             onMouseEnter={() => setHoveredEl('logout')}
             onMouseLeave={() => setHoveredEl(null)}>
             Se déconnecter
@@ -3946,7 +3946,7 @@ export default function ProprietaireDashboard() {
               {/* Logout — desktop */}
               <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
                 className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
-                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: '#EF4444' }}>
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: '#DC2626' }}>
                 <IcLogout />
               </button>
               {/* Hamburger — mobile */}
@@ -3988,7 +3988,7 @@ export default function ProprietaireDashboard() {
                     })}
                     <button onClick={() => { logout(); navigate('/login') }}
                       className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium"
-                      style={{ color: '#EF4444' }}>
+                      style={{ color: '#DC2626' }}>
                       <IcLogout />
                       <span>Quitter</span>
                     </button>
@@ -4033,8 +4033,8 @@ export default function ProprietaireDashboard() {
                 <div className="flex gap-3 mt-7 overflow-x-auto scrollbar-hide pb-0.5">
                   {[
                     { icon: <IcHome />, value: `${biens.length}`, label: 'Biens', color: BLUE },
-                    { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: '#F59E0B' },
-                    { icon: <IcShield />, value: `${score}`, label: 'Score', color: '#22C55E' },
+                    { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: '#B45309' },
+                    { icon: <IcShield />, value: `${score}`, label: 'Score', color: '#15803D' },
                     { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>, value: `${totalVues}`, label: 'Vues', color: '#A78BFA' },
                   ].map(s => (
                     <div key={s.label} className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3"
@@ -4086,8 +4086,8 @@ export default function ProprietaireDashboard() {
               <div className="flex gap-2.5 mb-7 overflow-x-auto scrollbar-hide pb-1">
                 {[
                   { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
-                  { icon: <IcCal />, color: '#4B6BFF', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
-                  { icon: <IcPayments />, color: '#22C55E', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
+                  { icon: <IcCal />, color: '#3A5AEE', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
+                  { icon: <IcPayments />, color: '#15803D', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
                   { icon: <IcClock />, color: '#0EA5E9', label: 'Créneaux', action: () => setTab('creneaux') },
                   { icon: <IcMessagesNav />, color: '#FF6B35', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
                   { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
@@ -4120,9 +4120,9 @@ export default function ProprietaireDashboard() {
                   dark={isDark}
                   stats={[
                     { label: 'Total',       value: biens.length,   color: BLUE      },
-                    { label: 'Publiés',     value: biensApprouves, color: '#22C55E' },
-                    { label: 'En attente',  value: biensEnAttente, color: '#F59E0B' },
-                    { label: 'Rejetés',     value: biensRejetes,   color: '#EF4444' },
+                    { label: 'Publiés',     value: biensApprouves, color: '#15803D' },
+                    { label: 'En attente',  value: biensEnAttente, color: '#B45309' },
+                    { label: 'Rejetés',     value: biensRejetes,   color: '#DC2626' },
                   ]}
                 />
               </div>
@@ -4137,7 +4137,7 @@ export default function ProprietaireDashboard() {
                       ? `${visitesTrendPct >= 0 ? '↑' : '↓'} ${Math.abs(visitesTrendPct)}% vs mois dernier`
                       : 'ce mois',
                     subColor: hasVisites && visitesTrendPct !== undefined
-                      ? (visitesTrendPct >= 0 ? '#22C55E' : '#EF4444')
+                      ? (visitesTrendPct >= 0 ? '#15803D' : '#DC2626')
                       : undefined,
                     color: '#7B2FBE',
                     icon: <IcCal />,
@@ -4146,7 +4146,7 @@ export default function ProprietaireDashboard() {
                     label: "Taux d'occupation",
                     value: `${tauxOccupation}%`,
                     sub: `${biensOccupes} / ${biens.length} biens`,
-                    color: '#22C55E',
+                    color: '#15803D',
                     icon: <IcHome />,
                   },
                 ].map(card => (

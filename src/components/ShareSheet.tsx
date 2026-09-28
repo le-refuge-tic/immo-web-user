@@ -83,7 +83,7 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
           <span className="flex-1 min-w-0 truncate text-[13px] px-2.5" style={{ color: ts }}>{links.url}</span>
           <button onClick={copy}
             className="flex-shrink-0 px-4 py-2 rounded-xl text-[13px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
-            style={{ background: copied ? '#22C55E' : 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+            style={{ background: copied ? '#15803D' : 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
             {copied ? 'Copié !' : 'Copier'}
           </button>
         </div>
