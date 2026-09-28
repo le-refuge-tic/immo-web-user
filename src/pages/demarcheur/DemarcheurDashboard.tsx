@@ -634,6 +634,7 @@ function CreneauxTab() {
       {showForm && (
         <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
           <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
+            aria-label="Choisir un bien"
             className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
             <option value="">Choisir un bien</option>
             {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}

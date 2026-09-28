@@ -2513,6 +2513,7 @@ function CreneauxTab() {
         <div className="flex-shrink-0 mx-5 md:mx-8 xl:mx-10 mb-4 p-4 rounded-2xl space-y-2.5"
           style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
           <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
+            aria-label="Choisir un bien"
             className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }}>
             <option value="">Choisir un bien</option>
             {biens.map(b => <option key={b.id} value={b.id}>{bienLabel(b)} — {b.localisation?.ville}</option>)}
@@ -3133,6 +3134,7 @@ function TransactionsTab() {
         <h1 className="text-[17px] font-bold uppercase tracking-wide" style={{ color: BLUE }}>Historique des transactions</h1>
         <div className="flex-1" />
         <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+          aria-label="Filtrer par catégorie"
           className="bg-[#112440] border border-[#1A3355] rounded-lg px-2.5 py-1.5 text-sm outline-none text-[#F0EDE8]">
           {categories.map(c => <option key={c} value={c}>{c === 'Tous' ? 'Toutes les catégories' : c}</option>)}
         </select>

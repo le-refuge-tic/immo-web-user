@@ -156,8 +156,8 @@ export default function DelegationModal({ onClose }: Props) {
             </div>
 
             <div>
-              <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Bien concerné</label>
-              <select value={bienId} onChange={e => setBienId(e.target.value)}
+              <label htmlFor="del-bien" className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Bien concerné</label>
+              <select id="del-bien" value={bienId} onChange={e => setBienId(e.target.value)}
                 className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }}>
                 <option value="">Tous mes biens</option>
                 {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}
