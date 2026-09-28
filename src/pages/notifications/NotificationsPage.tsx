@@ -215,6 +215,7 @@ export default function NotificationsPage() {
               <button
                 key={k}
                 onClick={() => setFilter(k as any)}
+                aria-pressed={filter === k}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${filter === k ? 'bg-primary text-white' : 'glass-btn text-text-grey'}`}
               >
                 {l}
@@ -252,8 +253,12 @@ export default function NotificationsPage() {
               return (
                 <div
                   key={n.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => openNotif(n)}
-                  className={`glass-card rounded-2xl p-4 flex items-start gap-4 transition-all cursor-pointer ${n.lu ? '' : 'ring-1 ring-primary/20'}`}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openNotif(n) } }}
+                  aria-label={n.titre || n.message}
+                  className={`glass-card rounded-2xl p-4 flex items-start gap-4 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2 ${n.lu ? '' : 'ring-1 ring-primary/20'}`}
                 >
                   {/* Icon */}
                   <div
