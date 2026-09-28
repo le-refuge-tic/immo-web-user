@@ -115,17 +115,19 @@ function SidePanel() {
 }
 
 // ── Sous-composants UI partagés (inline dans ce fichier standalone) ─────────
-function ErrorBanner({ message }: { message: string }) {
+function ErrorBanner({ message, id }: { message: string; id?: string }) {
   return (
     <AnimatePresence>
       {message && (
         <motion.div
+          id={id}
           key={message}
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           role="alert"
+          aria-live="assertive"
           className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-600 mb-3"
         >
           <AlertTriangle size={15} className="mt-px shrink-0" />
@@ -160,11 +162,11 @@ function PrimaryButton({
 
 // ── Champ téléphone unifié (drapeau + indicatif | numéro) ────────────────────
 function PhoneInput({
-  id, countryCode, phone, onCountryChange, onPhoneChange, autoComplete = 'tel',
+  id, countryCode, phone, onCountryChange, onPhoneChange, autoComplete = 'tel', 'aria-invalid': ariaInvalid,
 }: {
   id?: string; countryCode: string; phone: string
   onCountryChange: (v: string) => void; onPhoneChange: (v: string) => void
-  autoComplete?: string
+  autoComplete?: string; 'aria-invalid'?: boolean
 }) {
   const current = COUNTRY_CODES.find(c => c.code === countryCode) ?? COUNTRY_CODES[0]
   return (
@@ -193,6 +195,7 @@ function PhoneInput({
         onChange={e => onPhoneChange(e.target.value)}
         placeholder="97 00 00 00"
         autoComplete={autoComplete}
+        aria-invalid={ariaInvalid}
       />
     </div>
   )
@@ -305,11 +308,11 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         <motion.div key="creds" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
           <h2 className="auth-title">Bienvenue</h2>
           <p className="auth-sub">Connectez-vous pour accéder à votre espace</p>
-          <ErrorBanner message={error} />
-          <form onSubmit={handleLogin} className="flex flex-col gap-2">
+          <ErrorBanner message={error} id="login-error" />
+          <form onSubmit={handleLogin} className="flex flex-col gap-2" aria-describedby={error ? 'login-error' : undefined}>
             <div className="auth-field">
               <label htmlFor="login-phone" className="auth-label">Numéro de téléphone</label>
-              <PhoneInput id="login-phone" countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
+              <PhoneInput id="login-phone" countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} aria-invalid={!!error} />
             </div>
             <div className="auth-field">
               <label htmlFor="login-password" className="auth-label">Mot de passe</label>
@@ -532,8 +535,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
           <motion.div key="r2" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
             <h2 className="auth-title">Vos informations</h2>
             <p className="auth-sub">Quelques infos pour créer votre compte</p>
-            <ErrorBanner message={error} />
-            <form onSubmit={handleRegister} className="flex flex-col gap-2">
+            <ErrorBanner message={error} id="register-error" />
+            <form onSubmit={handleRegister} className="flex flex-col gap-2" aria-describedby={error ? 'register-error' : undefined}>
               <div className="flex gap-2">
                 <div className="auth-field flex-1">
                   <label htmlFor="reg-nom" className="auth-label">Nom</label>
