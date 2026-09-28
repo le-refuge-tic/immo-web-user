@@ -876,8 +876,8 @@ export default function HomePage() {
 
         {/* Grille */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-            {[1,2,3,4,5,6,7,8].map(n => <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4" aria-busy="true" aria-label="Chargement des annonces…">
+            {[1,2,3,4,5,6,7,8].map(n => <div key={n} className="skeleton rounded-2xl h-52 md:h-64" aria-hidden="true" />)}
           </div>
         ) : displayedBiens.length === 0 ? (
           <Reveal animation="anim-fade-in" className="flex flex-col items-center justify-center py-16 text-center">

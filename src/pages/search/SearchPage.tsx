@@ -943,9 +943,9 @@ type ResultGridProps = {
 
 function ResultGrid({ biens, loading, favIds, onFavToggle, cols, distanceFor, isDark, tk }: ResultGridProps) {
   if (loading) return (
-    <div className={`grid ${cols} gap-3`}>
+    <div className={`grid ${cols} gap-3`} aria-busy="true" aria-label="Chargement des annonces…">
       {[1, 2, 3, 4, 5, 6].map(n => (
-        <div key={n} className="skeleton rounded-2xl h-56" />
+        <div key={n} className="skeleton rounded-2xl h-56" aria-hidden="true" />
       ))}
     </div>
   )
