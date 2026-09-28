@@ -6,6 +6,7 @@ import { paiementApi } from '../../api/paiementApi'
 import { chatApi } from '../../api/chatApi'
 import FaceRating from '../../components/FaceRating'
 import { bienTypeLabel } from '../../utils/bienType'
+import { validateBeninPhone, PHONE_FORMAT_HINT } from '../../utils/phone'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
@@ -209,7 +210,7 @@ export default function MesVisitesPage() {
   const handlePayer = async () => {
     if (!showPay) return
     if (payState === 'pending') return
-    if (operator !== 'fedapay' && !phoneOp) return
+    if (operator !== 'fedapay' && !validateBeninPhone(phoneOp)) return
     setPaying(true)
     setPayError('')
     try {
@@ -460,7 +461,7 @@ export default function MesVisitesPage() {
                 )}
                 <button
                   onClick={handlePayer}
-                  disabled={(operator !== 'fedapay' && !phoneOp) || paying}
+                  disabled={(operator !== 'fedapay' && !validateBeninPhone(phoneOp)) || paying}
                   className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
                   style={{ background: '#FF6B35' }}
                 >

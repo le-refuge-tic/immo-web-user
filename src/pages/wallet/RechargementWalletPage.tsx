@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import type { MethodePaiement } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { validateBeninPhone, PHONE_FORMAT_HINT } from '../../utils/phone'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -54,9 +55,7 @@ export default function RechargementWalletPage() {
     const m = Number(montant.replace(/\D/g, ''))
     if (!m || m < 100) { setState('error'); setError('Montant minimum : 100 FCFA'); return }
     if (op.needsPhone) {
-      const raw = tel.replace(/\D/g, '')
-      const ok = raw.length === 8 || (raw.length === 10 && raw.startsWith('01')) || raw.length === 11
-      if (!ok) { setState('error'); setError('Format : 0196XXXXXX (10 ch.) ou 96XXXXXX (8 ch.)'); return }
+      if (!validateBeninPhone(tel)) { setState('error'); setError(PHONE_FORMAT_HINT); return }
     }
     setState('loading'); setError('')
     try {
