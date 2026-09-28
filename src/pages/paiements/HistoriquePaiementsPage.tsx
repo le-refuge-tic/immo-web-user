@@ -87,7 +87,14 @@ export default function HistoriquePaiementsPage() {
     : filter === 'Loyers' ? transactions.filter(isLoyer)
     : filter === 'Intégration' ? transactions.filter(isInteg)
     : transactions
-  const total = filtered.reduce((s, t) => s + Number(t.montant ?? 0), 0)
+
+  // Total = uniquement les paiements confirmés où l'utilisateur est payeur (exclut loyers reçus)
+  const totalPaye = transactions
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && !isLoyer(t))
+    .reduce((s, t) => s + Number(t.montant ?? 0), 0)
+  const totalRecu = transactions
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && isLoyer(t))
+    .reduce((s, t) => s + Number(t.montant ?? 0), 0)
   const visiteCount = transactions.filter(isVisite).length
   const loyerCount = transactions.filter(isLoyer).length
   const integCount = transactions.filter(isInteg).length
@@ -141,11 +148,12 @@ export default function HistoriquePaiementsPage() {
           ) : (
             <>
               {/* Résumé */}
-              <div className="rounded-2xl p-4.5 mt-4 mb-4 text-white flex items-center justify-between"
+              <div className="rounded-2xl p-5 mt-4 mb-4 text-white flex items-center justify-between"
                 style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
                 <div>
-                  <p className="text-white/70 text-xs">Total payé</p>
-                  <p className="text-xl font-bold mt-0.5">{fmt(total)}</p>
+                  <p className="text-white/70 text-xs">Total payé (confirmé)</p>
+                  <p className="text-xl font-bold mt-0.5">{fmt(totalPaye)}</p>
+                  {totalRecu > 0 && <p className="text-white/70 text-[11px] mt-1">Reçu : {fmt(totalRecu)}</p>}
                   <p className="text-white/55 text-[11px] mt-0.5">{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</p>
                 </div>
                 <div className="flex flex-col gap-1.5 items-end flex-shrink-0">

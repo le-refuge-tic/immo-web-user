@@ -71,7 +71,7 @@ export default function MesVisitesPage() {
   const [phoneOp, setPhoneOp] = useState('')
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
-  const [payState, setPayState] = useState<'idle' | 'waiting' | 'success'>('idle')
+  const [payState, setPayState] = useState<'idle' | 'waiting' | 'pending' | 'success'>('idle')
   const [payRefId, setPayRefId] = useState('')
   const [payUrl, setPayUrl] = useState('')
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -197,6 +197,7 @@ export default function MesVisitesPage() {
 
   const handlePayer = async () => {
     if (!showPay) return
+    if (payState === 'pending') return
     if (operator !== 'fedapay' && !phoneOp) return
     setPaying(true)
     setPayError('')
@@ -236,7 +237,7 @@ export default function MesVisitesPage() {
             setPayState('idle')
           }
         } catch (_) {}
-        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayError('Délai de confirmation expiré.'); setPayState('idle') }
+        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('pending') }
       }, 3000)
     } catch (err: any) {
       setPayError(err?.response?.data?.message || 'Erreur de paiement')
@@ -345,11 +346,41 @@ export default function MesVisitesPage() {
 
       {/* Payment modal */}
       {showPay && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' ? closePayModal : undefined}>
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' || payState === 'pending' ? closePayModal : undefined}>
           <div className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
 
-            {payState === 'success' ? (
+            {payState === 'pending' ? (
+              <div className="flex flex-col items-center text-center py-6">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#FEF3C7' }}>
+                  <svg className="w-8 h-8" fill="none" stroke="#F59E0B" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p className="font-bold text-text-dark mb-2">Confirmation en attente</p>
+                <p className="text-sm text-text-grey mb-6">Nous n'avons pas encore reçu la confirmation de l'opérateur. Si vous avez validé sur votre téléphone, le paiement apparaîtra ici dès réception.</p>
+                <button
+                  onClick={async () => {
+                    if (!payRefId) return
+                    setPayState('waiting')
+                    let attempts = 0
+                    pollRef.current = setInterval(async () => {
+                      attempts++
+                      try {
+                        const status = await paiementApi.statutVisite(payRefId)
+                        if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
+                          clearInterval(pollRef.current!); setPayState('success'); loadVisites()
+                        } else if (status.statut === 'echoue' || status.statut === 'failed') {
+                          clearInterval(pollRef.current!); setPayError('Paiement refusé par l\'opérateur.'); setPayState('idle')
+                        }
+                      } catch (_) {}
+                      if (attempts >= 10) { clearInterval(pollRef.current!); setPayState('pending') }
+                    }, 3000)
+                  }}
+                  className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#F59E0B' }}>
+                  Vérifier à nouveau
+                </button>
+                <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
+              </div>
+            ) : payState === 'success' ? (
               <div className="flex flex-col items-center text-center py-4">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
                   <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>

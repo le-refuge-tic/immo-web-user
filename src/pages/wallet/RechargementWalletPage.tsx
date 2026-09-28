@@ -144,7 +144,16 @@ export default function RechargementWalletPage() {
 
             <p className="font-bold text-text-dark text-sm mb-2">Montant à recharger</p>
             <input type="text" inputMode="numeric" value={montant} onChange={e => setMontant(e.target.value.replace(/\D/g, ''))}
-              placeholder="5 000" className="w-full bg-white border border-divider rounded-xl px-4 py-4 text-lg font-bold outline-none text-text-dark mb-4" />
+              placeholder="Ex. 5 000" className="w-full bg-white border border-divider rounded-xl px-4 py-4 text-lg font-bold outline-none text-text-dark mb-2" />
+            <div className="flex gap-2 mb-4">
+              {[5000, 10000, 25000, 50000].map(v => (
+                <button key={v} type="button" onClick={() => setMontant(String(v))}
+                  className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+                  style={{ background: montant === String(v) ? accent + '20' : 'rgba(0,0,0,0.05)', color: montant === String(v) ? accent : '#64748B', border: `1px solid ${montant === String(v) ? accent + '40' : 'transparent'}` }}>
+                  {(v / 1000)}k
+                </button>
+              ))}
+            </div>
 
             {op.needsPhone && (
               <>
@@ -152,7 +161,7 @@ export default function RechargementWalletPage() {
                 <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-3.5 mb-4 border border-divider">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                    placeholder="96XXXXXX" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
+                    placeholder="0196XXXXXX" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               </>
             )}
@@ -161,11 +170,15 @@ export default function RechargementWalletPage() {
               <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: '#EF4444', border: '1px solid #EF444430' }}>{error}</div>
             )}
 
-            <button onClick={recharger} disabled={state === 'loading'}
-              className="w-full py-4 rounded-xl text-white font-bold text-base disabled:opacity-60"
+            <button onClick={recharger}
+              disabled={state === 'loading' || !montant || Number(montant) < 100}
+              className="w-full py-4 rounded-xl text-white font-bold text-base disabled:opacity-40"
               style={{ background: op.color }}>
               {state === 'loading' ? 'Envoi…' : `Recharger via ${op.label}`}
             </button>
+            {!montant && (
+              <p className="text-center text-xs text-text-grey mt-2">Saisissez un montant (100 FCFA minimum)</p>
+            )}
           </>
         )}
       </div>
