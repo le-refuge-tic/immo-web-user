@@ -35,6 +35,14 @@ export default function MainLayout() {
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden" style={{ background: isDark ? '#0F0F14' : '#F5F5F7' }}>
+      {/* Lien d'évitement clavier — visible uniquement au focus */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold focus:text-white"
+        style={{ background: '#3A5AEE' }}
+      >
+        Aller au contenu principal
+      </a>
 
       {/* Orbes pastel Liquid Glass */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -60,13 +68,14 @@ export default function MainLayout() {
         />
       )}
 
-      <div
+      <main
+        id="main-content"
         ref={ownScroll ? undefined : scrollRef}
         className={`flex-1 min-h-0 relative ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : ownScroll ? 'md:pt-[72px]' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
         onScroll={ownScroll ? undefined : handleScroll}
       >
         <Outlet />
-      </div>
+      </main>
 
       {!hideChrome && (
         <div className="md:hidden relative z-50">
