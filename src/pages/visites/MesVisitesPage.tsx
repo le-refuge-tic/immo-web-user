@@ -423,7 +423,7 @@ export default function MesVisitesPage() {
               <>
                 <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
                 <p className="text-sm text-text-grey mb-4">
-                  Montant : <span className="font-bold text-text-dark">500 FCFA</span>
+                  Montant : <span className="font-bold text-text-dark">{Number(showPay?.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA</span>
                 </p>
                 {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
                 <div className="flex gap-2 mb-4">
@@ -828,7 +828,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
             style={{ background: '#FF6B35' }}
           >
-            Payer les frais de visite (500 FCFA)
+            Payer les frais de visite ({Number(v.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA)
           </button>
         )}
 

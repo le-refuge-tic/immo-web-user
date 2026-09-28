@@ -175,7 +175,7 @@ export default function ReservationPage() {
     ? resolveUrl(bien.photos[0].url)
     : bien?.photo_couverture ? resolveUrl(bien.photo_couverture) : null
 
-  const frais = 500
+  const frais: number = bien?.frais_visite ?? 500
 
   // ── Blocs réutilisables ──────────────────────────────────────────────
 
