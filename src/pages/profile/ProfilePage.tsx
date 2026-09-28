@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { tokenStore } from '../../utils/tokenStore'
 import { authApi } from '../../api/authApi'
 import { userApi } from '../../api/userApi'
 import { visitesApi } from '../../api/visitesApi'
@@ -202,7 +203,7 @@ export default function ProfilePage() {
   const mesAvis = visites.filter(v => v.statut === 'effectuee' && v.feedback_donne && v.note_client != null)
 
   const handleLogout = async () => {
-    const rt = localStorage.getItem('rg_refresh') || ''
+    const rt = tokenStore.getRefresh()
     try { await authApi.logout(rt) } catch (_) {}
     // Naviguer vers l'accueil D'ABORD, puis vider le contexte auth seulement
     // après deux frames (donne à React le temps de démonter /profil, qui est

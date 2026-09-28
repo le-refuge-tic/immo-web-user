@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { tokenStore } from '../utils/tokenStore'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
 
@@ -30,18 +31,15 @@ let refreshing: Promise<string | null> | null = null
  * routes protégées par le nouveau rôle répondent 403 pendant jusqu'à 1h.
  */
 export async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = localStorage.getItem('rg_refresh')
+  const refreshToken = tokenStore.getRefresh()
   if (!refreshToken) return null
   try {
     const { data } = await axios.post(`${BASE}/auth/refresh`, { refresh_token: refreshToken })
-    localStorage.setItem('rg_token', data.access_token)
-    if (data.refresh_token) localStorage.setItem('rg_refresh', data.refresh_token)
-    // Sync rg_user avec les roles_actifs à jour depuis la réponse serveur,
-    // sinon le contexte React conserve les rôles du dernier login.
+    tokenStore.setToken(data.access_token)
+    if (data.refresh_token) tokenStore.setRefresh(data.refresh_token)
     if (data.user) {
       localStorage.setItem('rg_user', JSON.stringify(data.user))
     } else {
-      // Fallback : décoder le payload JWT pour extraire roles_actifs
       try {
         const payload = JSON.parse(atob(data.access_token.split('.')[1]))
         if (payload.roles_actifs) {
@@ -61,8 +59,7 @@ export async function refreshAccessToken(): Promise<string | null> {
 
 function forceLogout() {
   localStorage.removeItem('rg_user')
-  localStorage.removeItem('rg_token')
-  localStorage.removeItem('rg_refresh')
+  tokenStore.clearTokens()
   if (location.pathname !== '/login') location.href = '/login'
 }
 

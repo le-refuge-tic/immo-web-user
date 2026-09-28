@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { tokenStore } from '../../utils/tokenStore'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
@@ -439,7 +440,7 @@ function ReservationsTab() {
       const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
       await fetch(`${BASE}/visites/${cpId}/contre-proposer`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenStore.getToken()}` },
         body: JSON.stringify({ date_proposee: `${cpDate}T${cpTime}:00` }),
       })
       setCpId(null); setCpDate(''); setCpTime(''); load()

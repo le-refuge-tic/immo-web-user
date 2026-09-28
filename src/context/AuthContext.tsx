@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { tokenStore } from '../utils/tokenStore'
 
 type AuthUser = {
   id: number
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     catch { return null }
   })
   const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem('rg_token')
+    tokenStore.getToken() || null
   )
   const [activeRole, setActiveRoleState] = useState<string>(() =>
     localStorage.getItem('rg_active_role') || ''
@@ -69,19 +70,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(u)
     setToken(t)
     localStorage.setItem('rg_user', JSON.stringify(u))
-    localStorage.setItem('rg_token', t)
-    localStorage.setItem('rg_refresh', rt)
+    tokenStore.setToken(t)
+    tokenStore.setRefresh(rt)
     setActiveRole(u.role_principal || u.role)
   }
 
   const logout = () => {
-    setActiveRoleState('')                    // 1. reset activeRole avant user
-    localStorage.removeItem('rg_active_role') // 2. sync localStorage
+    setActiveRoleState('')
+    localStorage.removeItem('rg_active_role')
     setUser(null)
     setToken(null)
     localStorage.removeItem('rg_user')
-    localStorage.removeItem('rg_token')
-    localStorage.removeItem('rg_refresh')
+    tokenStore.clearTokens()
   }
 
   const updateUser = (partial: Partial<AuthUser>) => {

@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { tokenStore } from '../utils/tokenStore'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
-const auth = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` } })
+const auth = () => ({ headers: { Authorization: `Bearer ${tokenStore.getToken()}` } })
 
 export const pushApi = {
   vapidPublicKey: () =>

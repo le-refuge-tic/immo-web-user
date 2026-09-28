@@ -1,9 +1,10 @@
 import axios from 'axios'
+import { tokenStore } from '../utils/tokenStore'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
 
 const auth = () => ({
-  headers: { Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` },
+  headers: { Authorization: `Bearer ${tokenStore.getToken()}` },
 })
 
 export const userApi = {
@@ -21,7 +22,7 @@ export const userApi = {
     form.append('photo', file)
     return axios.post(`${BASE}/users/me/photo`, form, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}`,
+        Authorization: `Bearer ${tokenStore.getToken()}`,
         'Content-Type': 'multipart/form-data',
       },
     }).then(r => r.data)
@@ -32,7 +33,7 @@ export const userApi = {
     form.append('cip', file)
     return axios.post(`${BASE}/users/me/cip`, form, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}`,
+        Authorization: `Bearer ${tokenStore.getToken()}`,
         'Content-Type': 'multipart/form-data',
       },
     }).then(r => r.data)
@@ -43,7 +44,7 @@ export const userApi = {
     form.append('ifu', file)
     return axios.post(`${BASE}/users/me/ifu`, form, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}`,
+        Authorization: `Bearer ${tokenStore.getToken()}`,
         'Content-Type': 'multipart/form-data',
       },
     }).then(r => r.data)

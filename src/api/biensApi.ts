@@ -1,9 +1,10 @@
 import axios from 'axios'
+import { tokenStore } from '../utils/tokenStore'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
 
 const auth = () => ({
-  headers: { Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` },
+  headers: { Authorization: `Bearer ${tokenStore.getToken()}` },
 })
 
 export const biensApi = {
@@ -61,7 +62,7 @@ export const biensApi = {
     form.append('photo', file)
     return axios.post(`${BASE}/biens/${bienId}/photos`, form, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}`,
+        Authorization: `Bearer ${tokenStore.getToken()}`,
         'Content-Type': 'multipart/form-data',
       },
     }).then(r => r.data)
@@ -72,7 +73,7 @@ export const biensApi = {
     form.append('video', file)
     return axios.post(`${BASE}/biens/${bienId}/video`, form, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}`,
+        Authorization: `Bearer ${tokenStore.getToken()}`,
         'Content-Type': 'multipart/form-data',
       },
     }).then(r => r.data)
