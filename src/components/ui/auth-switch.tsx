@@ -427,8 +427,14 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       const body: any = { role, nom, prenom, password }
       if (phone.trim()) body.telephone = telephone
       if (email.trim()) body.email = email.trim()
-      await authApi.register(body)
-      const data = await withColdStartRetry(() => authApi.loginPhone(telephone, password), () => setError('Le serveur se réveille, nouvelle tentative…'))
+      const registerData = await authApi.register(body)
+      if (registerData?.access_token || registerData?.token) {
+        completeLogin(registerData); return
+      }
+      const loginFn = phone.trim()
+        ? () => authApi.loginPhone(telephone, password)
+        : () => authApi.loginEmail(email.trim(), password)
+      const data = await withColdStartRetry(loginFn, () => setError('Le serveur se réveille, nouvelle tentative…'))
       setError('')
       if (data.requires_otp && data.session_token) {
         setSessionToken(data.session_token)
@@ -446,7 +452,10 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     if (resendCooldown > 0) return
     setResending(true); setOtpError('')
     try {
-      const data = await withColdStartRetry(() => authApi.loginPhone(telephone, password), () => setOtpError('Le serveur se réveille…'))
+      const resendFn = phone.trim()
+        ? () => authApi.loginPhone(telephone, password)
+        : () => authApi.loginEmail(email.trim(), password)
+      const data = await withColdStartRetry(resendFn, () => setOtpError('Le serveur se réveille…'))
       setOtpError('')
       if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
     } catch (err: any) {
