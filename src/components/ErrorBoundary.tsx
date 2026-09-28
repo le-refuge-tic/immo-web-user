@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { errorReporter } from '../utils/errorReporter'
 
 interface Props {
   children: ReactNode
@@ -18,7 +19,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[ErrorBoundary]', error, info.componentStack)
+    errorReporter.send(error, { componentStack: info.componentStack })
   }
 
   handleReset = () => this.setState({ hasError: false, error: null })
