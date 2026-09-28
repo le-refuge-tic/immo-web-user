@@ -312,7 +312,7 @@ export default function ReservationPage() {
           Autre…
         </button>
       </div>
-      <input ref={timeInputRef} type="time" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="sr-only" />
+      <input ref={timeInputRef} type="time" aria-label="Heure de visite personnalisée" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="sr-only" />
       {selectedTime && (
         <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-[10px]" style={{ background: 'rgba(34,197,94,0.08)' }}>
           <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2}>
