@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
-import { SKIP_OTP_UI, DUMMY_OTP_CODE } from '../../utils/otpBypass'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Eye, EyeOff, Search, Home, Check, ShieldCheck, AlertTriangle, Loader2, Lock, ChevronDown, Mail } from 'lucide-react'
 import { ImageSlider } from './image-slider'
@@ -247,12 +246,6 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       setError('')
       if (data.requires_otp && data.session_token) {
         setSessionToken(data.session_token)
-        if (SKIP_OTP_UI) {
-          try {
-            const otpData = await withColdStartRetry(() => authApi.verifyOtp(data.session_token, DUMMY_OTP_CODE))
-            completeLogin(otpData); setLoading(false); return
-          } catch (_) {}
-        }
         setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
         setStepDir(1); setFormStep('otp')
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
@@ -438,12 +431,6 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       setError('')
       if (data.requires_otp && data.session_token) {
         setSessionToken(data.session_token)
-        if (SKIP_OTP_UI) {
-          try {
-            const otpData = await withColdStartRetry(() => authApi.verifyOtp(data.session_token, DUMMY_OTP_CODE))
-            completeLogin(otpData); setLoading(false); return
-          } catch (_) {}
-        }
         setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
         setStepDir(1); setStep(3)
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
