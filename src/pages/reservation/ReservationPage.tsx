@@ -150,11 +150,11 @@ export default function ReservationPage() {
       // s'affiche toujours, qu'une conversation ait pu être créée ou non, avant
       // d'enchaîner sur la navigation.
       setSuccess(true)
-      await new Promise(r => setTimeout(r, 700))
+      await new Promise(r => setTimeout(r, 2500))
 
       try {
         const convData = await chatApi.creerConversation(Number(bienId))
-        navigate(`/conversations/${convData.conversationId}`, { replace: true })
+        navigate(`/conversations/${convData.conversationId}`, { replace: true, state: { bienId, bienLabel: bienTypeLabel(bien) } })
         return
       } catch (_) {}
       // Échec de la création de conversation : retour à l'écran d'origine
