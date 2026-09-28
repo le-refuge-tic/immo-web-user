@@ -149,6 +149,8 @@ export default function HomePage() {
   const [showFilters, setShowFilters] = useState(false)
   const [prixMin, setPrixMin] = useState('')
   const [prixMax, setPrixMax] = useState('')
+  const [hoveredSuggestIdx, setHoveredSuggestIdx] = useState<number | null>(null)
+  const [hoveredServiceIdx, setHoveredServiceIdx] = useState<number | null>(null)
 
   const suggestions: Quartier[] = search.trim().length >= 1 ? rechercherQuartiers(search) : []
 
@@ -523,9 +525,9 @@ export default function HomePage() {
                         <button key={`${q.nom}-${i}`} type="button"
                           onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
                           className="w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-2 transition-all"
-                          style={{ borderBottom: `1px solid ${suggestRow}`, color: tk.textPrimary }}
-                          onMouseEnter={e => (e.currentTarget.style.background = suggestHov)}
-                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                          style={{ borderBottom: `1px solid ${suggestRow}`, color: tk.textPrimary, background: hoveredSuggestIdx === i ? suggestHov : 'transparent' }}
+                          onMouseEnter={() => setHoveredSuggestIdx(i)}
+                          onMouseLeave={() => setHoveredSuggestIdx(null)}
                         >
                           <span className="font-medium">{q.nom}</span>
                           <span className="text-xs flex-shrink-0" style={{ color: tk.textMuted }}>{q.ville}</span>
@@ -745,9 +747,9 @@ export default function HomePage() {
                       <button key={`${q.nom}-${i}`} type="button"
                         onClick={() => { setSearch(q.nom); setShowSuggest(false) }}
                         className="w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-2 transition-all"
-                        style={{ borderBottom: `1px solid ${suggestRow}`, color: tk.textPrimary }}
-                        onMouseEnter={e => (e.currentTarget.style.background = suggestHov)}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                        style={{ borderBottom: `1px solid ${suggestRow}`, color: tk.textPrimary, background: hoveredSuggestIdx === i ? suggestHov : 'transparent' }}
+                        onMouseEnter={() => setHoveredSuggestIdx(i)}
+                        onMouseLeave={() => setHoveredSuggestIdx(null)}
                       >
                         <span className="font-medium">{q.nom}</span>
                         <span className="text-xs flex-shrink-0" style={{ color: tk.textMuted }}>{q.ville}</span>
@@ -898,9 +900,10 @@ export default function HomePage() {
           ].map((s, i) => (
             <Reveal key={s.title} animation="anim-fade-up" delay={i * 70}>
               <div
-                className="service-card rounded-3xl p-6 h-full flex flex-col gap-4 cursor-default"
-                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-6px)'; el.style.outline = `1.5px solid ${s.color}44` }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = ''; el.style.outline = 'none' }}
+                className="service-card rounded-3xl p-6 h-full flex flex-col gap-4 cursor-default transition-all duration-200"
+                style={{ outline: hoveredServiceIdx === i ? `1.5px solid ${s.color}44` : 'none', transform: hoveredServiceIdx === i ? 'translateY(-6px)' : 'none' }}
+                onMouseEnter={() => setHoveredServiceIdx(i)}
+                onMouseLeave={() => setHoveredServiceIdx(null)}
               >
                 <div className="flex items-start justify-between">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"

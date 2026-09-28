@@ -735,6 +735,7 @@ const TABS: { key: Tab; label: string; icon: (active: boolean) => React.ReactNod
 // ─── Sidebar (desktop) ──────────────────────────────────────────────────────
 function Sidebar({ tab, setTab, user, navigate, logout }: any) {
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const [hoveredBtn, setHoveredBtn] = useState<string | null>(null)
   return (
     <aside className="hidden md:flex md:flex-col md:w-64 md:flex-shrink-0 md:h-dvh md:sticky md:top-0"
       style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(40px) saturate(180%)', borderRight: '1px solid rgba(0,0,0,0.06)' }}>
@@ -759,8 +760,9 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
       <div className="px-3 pb-5 flex-shrink-0">
         <button onClick={() => navigate('/profil')}
           className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all"
-          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.04)'}
-          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}>
+          style={{ background: hoveredBtn === 'profil' ? 'rgba(0,0,0,0.04)' : 'transparent' }}
+          onMouseEnter={() => setHoveredBtn('profil')}
+          onMouseLeave={() => setHoveredBtn(null)}>
           <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>{initials}</div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-xs font-bold text-text-dark truncate">{user?.prenom} {user?.nom}</p>
@@ -769,9 +771,9 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
         </button>
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-1 flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-          style={{ color: '#EF4444' }}
-          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#EF444408'}
-          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}>
+          style={{ color: '#EF4444', background: hoveredBtn === 'logout' ? '#EF444408' : 'transparent' }}
+          onMouseEnter={() => setHoveredBtn('logout')}
+          onMouseLeave={() => setHoveredBtn(null)}>
           <IcLogout /> Déconnexion
         </button>
       </div>

@@ -269,6 +269,8 @@ export default function NouveauBienPage() {
   const [photos, setPhotos] = useState<File[]>([])
   const [video, setVideo] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [hoveredDropzone, setHoveredDropzone] = useState<string | null>(null)
+  const [hoveredQuartierIdx, setHoveredQuartierIdx] = useState<number | null>(null)
 
   // ── Étape 0 ───────────────────────────────────────────────────────────────
   const [typeBien, setTypeBien] = useState('chambre_salon')
@@ -833,13 +835,13 @@ export default function NouveauBienPage() {
                             ) : (
                               <p className="px-4 py-3 text-sm" style={{ color: 'var(--p-muted)' }}>Commencez à taper…</p>
                             )
-                          ) : filteredQuartiers.map(q => (
+                          ) : filteredQuartiers.map((q, qi) => (
                             <button key={q.nom + q.arrondissement} type="button"
                               onMouseDown={() => selectQuartier(q.nom, q.arrondissement, q.ville)}
                               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-sm border-b transition-colors"
-                              style={{ borderColor: 'var(--p-border)', color: 'var(--p-text)' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = 'var(--p-surface)')}
-                              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                              style={{ borderColor: 'var(--p-border)', color: 'var(--p-text)', background: hoveredQuartierIdx === qi ? 'var(--p-surface)' : 'transparent' }}
+                              onMouseEnter={() => setHoveredQuartierIdx(qi)}
+                              onMouseLeave={() => setHoveredQuartierIdx(null)}>
                               <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--p-muted)' }}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1475,9 +1477,9 @@ export default function NouveauBienPage() {
 
                 {photos.length < 5 && (
                   <label className="block border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors"
-                    style={{ borderColor: 'var(--p-border)' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = BLUE)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--p-border)')}>
+                    style={{ borderColor: hoveredDropzone === 'photos' ? BLUE : 'var(--p-border)' }}
+                    onMouseEnter={() => setHoveredDropzone('photos')}
+                    onMouseLeave={() => setHoveredDropzone(null)}>
                     <div className="flex justify-center mb-3">
                       <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
                         style={{ color: 'var(--p-muted)' }}>
@@ -1552,9 +1554,9 @@ export default function NouveauBienPage() {
                   </div>
                 ) : (
                   <label className="block border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-colors"
-                    style={{ borderColor: 'var(--p-border)' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = BLUE)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--p-border)')}>
+                    style={{ borderColor: hoveredDropzone === 'video' ? BLUE : 'var(--p-border)' }}
+                    onMouseEnter={() => setHoveredDropzone('video')}
+                    onMouseLeave={() => setHoveredDropzone(null)}>
                     <div className="flex justify-center mb-3">
                       <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
                         style={{ color: 'var(--p-muted)' }}>

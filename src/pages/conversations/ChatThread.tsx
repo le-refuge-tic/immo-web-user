@@ -110,6 +110,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const [showProfile, setShowProfile] = useState(false)
   const [atBottom, setAtBottom] = useState(true)
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+  const [hoveredSettingsIdx, setHoveredSettingsIdx] = useState<number | null>(null)
   const socketRef = useRef<Socket | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -299,14 +300,17 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const visible = messages.filter(m => !hidden.has(m.id))
 
   /* ── Menu item ── */
-  const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => (
-    <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
-      style={{ color: danger ? '#EF4444' : tp, width: 'calc(100% - 8px)' }}
-      onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
-      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-      {label}
-    </button>
-  )
+  const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => {
+    const [hov, setHov] = useState(false)
+    return (
+      <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
+        style={{ color: danger ? '#EF4444' : tp, width: 'calc(100% - 8px)', background: hov ? menuHov : 'transparent' }}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}>
+        {label}
+      </button>
+    )
+  }
 
   /* ── Bulle slot ── */
   const SlotBubble = ({ m }: { m: any }) => {
@@ -442,9 +446,9 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           ].map(({ label, action, danger }, i, arr) => (
             <button key={label} onClick={action}
               className="w-full text-left px-4 py-3.5 text-[13.5px] font-medium transition-colors cursor-pointer flex items-center justify-between"
-              style={{ color: danger ? '#EF4444' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none' }}
-              onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              style={{ color: danger ? '#EF4444' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none', background: hoveredSettingsIdx === i ? menuHov : 'transparent' }}
+              onMouseEnter={() => setHoveredSettingsIdx(i)}
+              onMouseLeave={() => setHoveredSettingsIdx(null)}>
               {label}
               {!danger && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>}
             </button>

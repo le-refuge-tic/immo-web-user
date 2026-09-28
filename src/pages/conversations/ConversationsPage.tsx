@@ -42,6 +42,7 @@ export default function ConversationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true); setError('')
@@ -145,11 +146,11 @@ export default function ConversationsPage() {
               onClick={() => navigate(`/conversations/${conv.id}`)}
               className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors duration-150 cursor-pointer relative"
               style={{
-                background: active ? activeBg : 'transparent',
+                background: active ? activeBg : hoveredConvId === conv.id ? hoverBg : 'transparent',
                 borderLeft: `3px solid ${active ? '#4B6BFF' : 'transparent'}`,
               }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = hoverBg }}
-              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}>
+              onMouseEnter={() => { if (!active) setHoveredConvId(conv.id) }}
+              onMouseLeave={() => setHoveredConvId(null)}>
 
               {/* Avatar + présence */}
               <div className="relative flex-shrink-0">

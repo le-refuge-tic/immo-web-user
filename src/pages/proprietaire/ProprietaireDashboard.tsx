@@ -478,6 +478,7 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [sortByVues, setSortByVues] = useState(false)
   const [editingBien, setEditingBien] = useState<any>(null)
   const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
+  const [hoveredEl, setHoveredEl] = useState<string | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
   const [carouselPaused, setCarouselPaused] = useState(false)
   const [carouselIdx, setCarouselIdx] = useState(0)
@@ -564,11 +565,9 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                   return (
                     <div
                       key={b.id}
-                      className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
+                      className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.14)] w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
                       style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
                       onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
-                      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(75,107,255,0.14)'}
-                      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = ''}
                     >
                       <div className="relative overflow-hidden" style={{ height: 160 }}>
                         {cover?.url
@@ -726,14 +725,12 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                     <div key={b.id}
                       onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
                       role="button" tabIndex={0}
-                      className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                      className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.12),_0_2px_8px_rgba(15,23,42,0.08)]"
                       style={{
                         background: 'var(--p-card)',
                         border: '1px solid var(--p-border)',
                         boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 8px 32px rgba(75,107,255,0.12), 0 2px 8px rgba(15,23,42,0.08)`)}
-                      onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)')}>
+                      }}>
 
                       {/* Photo */}
                       <div className="relative overflow-hidden" style={{ height: 192 }}>
@@ -815,9 +812,9 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                           onClick={e => e.stopPropagation()}>
                           <button onClick={() => setEditingBien(b)}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
-                            style={{ background: BLUE + '10', color: BLUE, border: `1px solid ${BLUE}20` }}
-                            onMouseEnter={e => { e.currentTarget.style.background = BLUE + '20' }}
-                            onMouseLeave={e => { e.currentTarget.style.background = BLUE + '10' }}>
+                            style={{ background: hoveredEl === `modifier-${b.id}` ? BLUE + '20' : BLUE + '10', color: BLUE, border: `1px solid ${BLUE}20` }}
+                            onMouseEnter={() => setHoveredEl(`modifier-${b.id}`)}
+                            onMouseLeave={() => setHoveredEl(null)}>
                             <IcEdit /> Modifier
                           </button>
                           {confirmDeleteBienId === b.id ? (
@@ -1043,6 +1040,7 @@ function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: number |
   // appelé côté web, qui ne filtrait que le nom du contact localement).
   const [messageHits, setMessageHits] = useState<any[]>([])
   const [searchingMsgs, setSearchingMsgs] = useState(false)
+  const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -1163,9 +1161,9 @@ function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: number |
                 return (
                   <button key={hit.id} onClick={() => setActiveConvId(hit.conversationId)}
                     className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
-                    style={{ background: 'transparent' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--p-border)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    style={{ background: hoveredConvId === hit.id ? 'var(--p-border)' : 'transparent' }}
+                    onMouseEnter={() => setHoveredConvId(hit.id)}
+                    onMouseLeave={() => setHoveredConvId(null)}>
                     <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: MSG_AVATAR_COLORS[Math.abs(other?.id ?? hit.conversationId) % MSG_AVATAR_COLORS.length] }}>
                       <span className="text-white font-bold text-xs">{initiale}</span>
@@ -1734,6 +1732,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
   const [modalVisiteId, setModalVisiteId] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
   const [chatError, setChatError] = useState('')
+  const [hoveredVisiteEl, setHoveredVisiteEl] = useState<string | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -1928,15 +1927,13 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
 
                 return (
                   <div key={v.id}
-                    className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                    className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.12),_0_2px_8px_rgba(15,23,42,0.08)]"
                     style={{
                       background: 'var(--p-card)',
                       border: '1px solid var(--p-border)',
                       boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
                     }}
-                    onClick={() => setModalVisiteId(v.id)}
-                    onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 8px 32px rgba(75,107,255,0.12), 0 2px 8px rgba(15,23,42,0.08)`)}
-                    onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)')}>
+                    onClick={() => setModalVisiteId(v.id)}>
 
                     {/* ── Photo / Avatar ── */}
                     <div className="relative overflow-hidden" style={{ height: 156 }}>
@@ -2005,18 +2002,18 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                         <button
                           onClick={e => { e.stopPropagation(); setModalVisiteId(v.id) }}
                           className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
-                          style={{ background: BLUE + '12', color: BLUE, border: `1px solid ${BLUE}20` }}
-                          onMouseEnter={e => { e.currentTarget.style.background = BLUE + '22' }}
-                          onMouseLeave={e => { e.currentTarget.style.background = BLUE + '12' }}>
+                          style={{ background: hoveredVisiteEl === `detail-${v.id}` ? BLUE + '22' : BLUE + '12', color: BLUE, border: `1px solid ${BLUE}20` }}
+                          onMouseEnter={() => setHoveredVisiteEl(`detail-${v.id}`)}
+                          onMouseLeave={() => setHoveredVisiteEl(null)}>
                           Voir le détail
                         </button>
                         {peutConfirmer && (
                           <button
                             onClick={e => { e.stopPropagation(); confirmer(v.id) }}
                             className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
-                            style={{ background: '#22C55E12', color: '#22C55E', border: '1px solid #22C55E20' }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#22C55E22' }}
-                            onMouseLeave={e => { e.currentTarget.style.background = '#22C55E12' }}>
+                            style={{ background: hoveredVisiteEl === `confirmer-${v.id}` ? '#22C55E22' : '#22C55E12', color: '#22C55E', border: '1px solid #22C55E20' }}
+                            onMouseEnter={() => setHoveredVisiteEl(`confirmer-${v.id}`)}
+                            onMouseLeave={() => setHoveredVisiteEl(null)}>
                             Confirmer ✓
                           </button>
                         )}
@@ -2024,9 +2021,9 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                           onClick={e => { e.stopPropagation(); ouvrirChat(v) }}
                           disabled={chatLoadingId === v.id}
                           className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
-                          style={{ background: 'var(--p-border)', color: 'var(--p-muted)' }}
-                          onMouseEnter={e => { e.currentTarget.style.background = BLUE + '18'; (e.currentTarget as HTMLElement).style.color = BLUE }}
-                          onMouseLeave={e => { e.currentTarget.style.background = 'var(--p-border)'; (e.currentTarget as HTMLElement).style.color = 'var(--p-muted)' }}>
+                          style={{ background: hoveredVisiteEl === `chat-${v.id}` ? BLUE + '18' : 'var(--p-border)', color: hoveredVisiteEl === `chat-${v.id}` ? BLUE : 'var(--p-muted)' }}
+                          onMouseEnter={() => setHoveredVisiteEl(`chat-${v.id}`)}
+                          onMouseLeave={() => setHoveredVisiteEl(null)}>
                           {chatLoadingId === v.id
                             ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                             : <IcChat />}
@@ -2349,15 +2346,13 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
 
                 return (
                   <div key={c.id}
-                    className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                    className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.12),_0_2px_8px_rgba(15,23,42,0.08)]"
                     style={{
                       background: 'var(--p-card)',
                       border: '1px solid var(--p-border)',
                       boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
                     }}
-                    onClick={() => setDetailContrat(c)}
-                    onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 8px 32px rgba(75,107,255,0.12), 0 2px 8px rgba(15,23,42,0.08)`)}
-                    onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)')}>
+                    onClick={() => setDetailContrat(c)}>
 
                     {/* ── Visuel haut ── */}
                     <div className="relative overflow-hidden" style={{ height: 148 }}>
@@ -3492,6 +3487,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
   const [delegationOpen, setDelegationOpen] = useState(false)
   const [numeroRetraitOpen, setNumeroRetraitOpen] = useState(false)
   const [numeroRetrait, setNumeroRetrait] = useState<{ masque: string | null } | null>(null)
+  const [hoveredEl, setHoveredEl] = useState<string | null>(null)
   useEffect(() => { walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => {}) }, [])
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
@@ -3587,9 +3583,9 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
             {menuItems.map((item, i) => (
               <button key={i} onClick={item.onClick}
                 className="w-full flex items-center gap-3.5 px-4 py-4 text-left transition-colors"
-                style={{ borderTop: i > 0 ? '1px solid var(--p-border)' : 'none' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--p-deep)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                style={{ borderTop: i > 0 ? '1px solid var(--p-border)' : 'none', background: hoveredEl === `menu-${i}` ? 'var(--p-deep)' : 'transparent' }}
+                onMouseEnter={() => setHoveredEl(`menu-${i}`)}
+                onMouseLeave={() => setHoveredEl(null)}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: item.color + '14', color: item.color }}>
                   {item.icon}
@@ -3649,9 +3645,9 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
           {/* Déconnexion */}
           <button onClick={() => { logout(); navigate('/login') }}
             className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
-            style={{ background: '#FFF0F0', color: '#EF4444', border: '1px solid #EF444422' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#FFE4E4')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#FFF0F0')}>
+            style={{ background: hoveredEl === 'logout' ? '#FFE4E4' : '#FFF0F0', color: '#EF4444', border: '1px solid #EF444422' }}
+            onMouseEnter={() => setHoveredEl('logout')}
+            onMouseLeave={() => setHoveredEl(null)}>
             Se déconnecter
           </button>
           </div>{/* /space-y-3 */}
@@ -3747,6 +3743,7 @@ export default function ProprietaireDashboard() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [chartPeriod, setChartPeriod] = useState<3 | 6 | 12>(6)
+  const [hoveredOverviewEl, setHoveredOverviewEl] = useState<string | null>(null)
 
   const loadData = async (silent = false) => {
     if (silent) setRefreshing(true)
@@ -4064,10 +4061,8 @@ export default function ProprietaireDashboard() {
               {/* Alert loyers */}
               {(loyersImpayesCount > 0 || loyersEnRetardCount > 0) && (
                 <button onClick={() => setTab('loyers')} aria-label="Voir les loyers en retard"
-                  className="w-full flex items-center gap-3 rounded-2xl mb-5 p-4 border text-left cursor-pointer"
-                  style={{ background: '#F4433608', borderColor: '#F4433628', transition: 'transform 200ms ease, box-shadow 200ms ease', minHeight: '56px' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.01)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(244,67,54,0.12)' }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
+                  className="w-full flex items-center gap-3 rounded-2xl mb-5 p-4 border text-left cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_4px_16px_rgba(244,67,54,0.12)]"
+                  style={{ background: '#F4433608', borderColor: '#F4433628', minHeight: '56px' }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#F4433618' }}>
                     <span style={{ color: '#F44336' }}><IcClock /></span>
                   </div>
@@ -4098,10 +4093,10 @@ export default function ProprietaireDashboard() {
                   { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
                 ].map(q => (
                   <button key={q.label} onClick={q.action} aria-label={q.label}
-                    className="relative flex-shrink-0 flex items-center gap-2.5 rounded-full px-4 py-2.5"
-                    style={{ background: q.color + '12', border: `1.5px solid ${q.color}30`, minHeight: '44px', transition: 'all 180ms ease' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = q.color + '22'; e.currentTarget.style.boxShadow = `0 4px 16px ${q.color}25` }}
-                    onMouseLeave={e => { e.currentTarget.style.background = q.color + '12'; e.currentTarget.style.boxShadow = '' }}>
+                    className="relative flex-shrink-0 flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all duration-200"
+                    style={{ background: hoveredOverviewEl === `chip-${q.label}` ? q.color + '22' : q.color + '12', border: `1.5px solid ${q.color}30`, minHeight: '44px', boxShadow: hoveredOverviewEl === `chip-${q.label}` ? `0 4px 16px ${q.color}25` : 'none' }}
+                    onMouseEnter={() => setHoveredOverviewEl(`chip-${q.label}`)}
+                    onMouseLeave={() => setHoveredOverviewEl(null)}>
                     <span style={{ color: q.color }}>{q.icon}</span>
                     <span className="text-[12px] font-semibold whitespace-nowrap" style={{ color: 'var(--p-text)' }}>{q.label}</span>
                     {(q.badge ?? 0) > 0 && (
@@ -4208,11 +4203,9 @@ export default function ProprietaireDashboard() {
                         return (
                           <div
                             key={b.id}
-                            className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
+                            className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.14)] w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
                             style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
                             onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
-                            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(75,107,255,0.14)'}
-                            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = ''}
                           >
                             <div className="relative overflow-hidden" style={{ height: 160 }}>
                               {cover?.url

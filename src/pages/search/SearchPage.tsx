@@ -628,6 +628,7 @@ export default function SearchPage() {
 function SuggestDropdown({ suggestions, onPick, tk }: {
   suggestions: Quartier[]; onPick: (q: Quartier) => void; tk: ReturnType<typeof useTokens>
 }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   return (
     <div className="absolute z-40 mt-1 w-full rounded-2xl overflow-hidden"
       style={{
@@ -643,9 +644,10 @@ function SuggestDropdown({ suggestions, onPick, tk }: {
           style={{
             color: tk.textClr,
             borderBottom: i < suggestions.length - 1 ? `1px solid ${tk.suggestBdr}` : 'none',
+            background: hoveredIdx === i ? tk.suggestHover : 'transparent',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = tk.suggestHover)}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          onMouseEnter={() => setHoveredIdx(i)}
+          onMouseLeave={() => setHoveredIdx(null)}
         >
           <span className="font-semibold">{q.nom}</span>
           <span className="text-xs flex-shrink-0" style={{ color: tk.labelClr }}>{q.ville}</span>
