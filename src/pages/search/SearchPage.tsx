@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
 import { useAuth } from '../../context/AuthContext'
@@ -178,23 +178,34 @@ function useTokens(isDark: boolean) {
    ══════════════════════════════════════════════════════════════ */
 export default function SearchPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { isLoggedIn } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const tk = useTokens(isDark)
 
-  const initialParams = new URLSearchParams(window.location.search)
-  const [query,         setQuery]         = useState(initialParams.get('q') || '')
-  const [transaction,   setTransaction]   = useState(initialParams.get('transaction') || '')
-  const [type,          setType]          = useState(initialParams.get('type') || '')
-  const [prixMin,       setPrixMin]       = useState(initialParams.get('prix_min') || '')
-  const [prixMax,       setPrixMax]       = useState(initialParams.get('prix_max') || '')
-  const [sousType,      setSousType]      = useState(initialParams.get('sous_type') || '')
+  const [query,         setQuery]         = useState(searchParams.get('q') || '')
+  const [transaction,   setTransaction]   = useState(searchParams.get('transaction') || '')
+  const [type,          setType]          = useState(searchParams.get('type') || '')
+  const [prixMin,       setPrixMin]       = useState(searchParams.get('prix_min') || '')
+  const [prixMax,       setPrixMax]       = useState(searchParams.get('prix_max') || '')
+  const [sousType,      setSousType]      = useState(searchParams.get('sous_type') || '')
   const [chambresMin,   setChambresMin]   = useState('')
   const [salonsMin,     setSalonsMin]     = useState('')
   const [superficieMin, setSuperficieMin] = useState('')
   const [superficieMax, setSuperficieMax] = useState('')
   const [sortBy,        setSortBy]        = useState<'pertinence' | 'prix_asc' | 'prix_desc'>('pertinence')
+
+  useEffect(() => {
+    const p: Record<string, string> = {}
+    if (query)       p.q           = query
+    if (transaction) p.transaction = transaction
+    if (type)        p.type        = type
+    if (prixMin)     p.prix_min    = prixMin
+    if (prixMax)     p.prix_max    = prixMax
+    if (sousType)    p.sous_type   = sousType
+    setSearchParams(p, { replace: true })
+  }, [query, transaction, type, prixMin, prixMax, sousType, setSearchParams])
 
   const [allBiens,    setAllBiens]    = useState<any[]>([])
   const [wideBiens,   setWideBiens]   = useState<any[]>([])
