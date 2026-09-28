@@ -200,6 +200,7 @@ export default function SearchPage() {
   const [wideBiens,   setWideBiens]   = useState<any[]>([])
   const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
   const [loading,     setLoading]     = useState(false)
+  const [fetchError,  setFetchError]  = useState(false)
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAllAutres, setShowAllAutres] = useState(false)
@@ -361,10 +362,11 @@ export default function SearchPage() {
 
   const fetchBiens = useCallback(async (params: any) => {
     setLoading(true)
+    setFetchError(false)
     try {
       const data = await biensApi.list(params)
       setAllBiens(Array.isArray(data) ? data : data.data || [])
-    } catch (_) { setAllBiens([]) }
+    } catch (_) { setFetchError(true) }
     setLoading(false)
   }, [])
 
@@ -380,6 +382,16 @@ export default function SearchPage() {
       fetchBiens(params)
     }, 420)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [query, transaction, type, fetchBiens])
+
+  const retryFetch = useCallback(() => {
+    const params: any = { limit: 150 }
+    if (transaction) params.transaction = transaction
+    if (type)        params.type        = type
+    const nq = norm(query.trim())
+    const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
+    if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
+    fetchBiens(params)
   }, [query, transaction, type, fetchBiens])
 
   const reset = () => {
@@ -408,7 +420,7 @@ export default function SearchPage() {
     salonsMin, setSalonsMin, superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
   }
 
-  const sharedResults = { search, loading, favIds, isDark, tk, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
+  const sharedResults = { search, loading, fetchError, retryFetch, favIds, isDark, tk, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
   const onFavToggle   = (id: number, added: boolean) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })
 
   return (
@@ -999,14 +1011,33 @@ function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; i
 }
 
 function GuidedResults({
-  search, loading, favIds, onFavToggle, cols, showAllAutres, setShowAllAutres, mainDistanceFor, isDark, tk,
+  search, loading, fetchError, retryFetch, favIds, onFavToggle, cols, showAllAutres, setShowAllAutres, mainDistanceFor, isDark, tk,
 }: {
-  search: GuidedSearch; loading: boolean; favIds: Set<number>; isDark: boolean; tk: ReturnType<typeof useTokens>
+  search: GuidedSearch; loading: boolean; fetchError: boolean; retryFetch: () => void
+  favIds: Set<number>; isDark: boolean; tk: ReturnType<typeof useTokens>
   onFavToggle: (id: number, added: boolean) => void; cols: string
   showAllAutres: boolean; setShowAllAutres: (v: boolean) => void
   mainDistanceFor?: (bien: any) => number | null
 }) {
   if (loading) return <ResultGrid biens={[]} loading favIds={favIds} onFavToggle={onFavToggle} cols={cols} isDark={isDark} tk={tk} />
+
+  if (fetchError) return (
+    <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.08)' }}>
+        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+      </div>
+      <p className="font-bold text-base mb-1" style={{ color: tk.textClr }}>Impossible de charger les biens</p>
+      <p className="text-sm mb-5" style={{ color: tk.labelClr }}>Vérifiez votre connexion et réessayez.</p>
+      <button onClick={retryFetch}
+        className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95"
+        style={{ background: '#4B6BFF' }}>
+        Réessayer
+      </button>
+    </div>
+  )
 
   const { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier, isProximityFallback, quartierRecherche } = search
   const hasMain      = mainResults.length > 0
