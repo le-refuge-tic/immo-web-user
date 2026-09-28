@@ -86,6 +86,17 @@ export default function MesVisitesPage() {
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden && pollRef.current) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
   useEffect(() => { loadVisites() }, [])
 
   // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
@@ -238,7 +249,7 @@ export default function MesVisitesPage() {
           }
         } catch (_) {}
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('pending') }
-      }, 3000)
+      }, 5000)
     } catch (err: any) {
       setPayError(err?.response?.data?.message || 'Erreur de paiement')
       setPayState('idle')
@@ -373,7 +384,7 @@ export default function MesVisitesPage() {
                         }
                       } catch (_) {}
                       if (attempts >= 10) { clearInterval(pollRef.current!); setPayState('pending') }
-                    }, 3000)
+                    }, 5000)
                   }}
                   className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#F59E0B' }}>
                   Vérifier à nouveau
