@@ -1,8 +1,5 @@
 import axios from 'axios'
-import { tokenStore } from '../utils/tokenStore'
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
-const auth = () => ({ headers: { Authorization: `Bearer ${tokenStore.getToken()}` } })
+import { BASE, auth } from './apiBase'
 
 export type MethodePaiement = 'momo' | 'flooz' | 'celtiis' | 'fedapay'
 

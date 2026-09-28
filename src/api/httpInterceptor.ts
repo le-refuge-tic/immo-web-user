@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { tokenStore } from '../utils/tokenStore'
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
+import { BASE } from './apiBase'
 
 /**
  * Sans timeout, une requête lente (ex: réveil à froid du serveur) laisse

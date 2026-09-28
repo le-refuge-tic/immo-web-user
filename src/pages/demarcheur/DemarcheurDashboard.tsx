@@ -10,6 +10,7 @@ import { commercialApi, type CompteursCommercial, type PerfHebdoSemaine } from '
 import { delegationApi } from '../../api/delegationApi'
 import { chatApi } from '../../api/chatApi'
 import { notificationsApi } from '../../api/notificationsApi'
+import { BASE } from '../../api/apiBase'
 import { useNotifications } from '../../context/NotificationsContext'
 import EditProfileModal from '../profile/EditProfileModal'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
@@ -437,7 +438,6 @@ function ReservationsTab() {
     if (!cpId || !cpDate || !cpTime) return
     setSubmitting(true)
     try {
-      const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
       await fetch(`${BASE}/visites/${cpId}/contre-proposer`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenStore.getToken()}` },
