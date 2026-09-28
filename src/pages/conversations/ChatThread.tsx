@@ -466,7 +466,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     const [date, setDate] = useState(tom.toISOString().slice(0, 10))
     const [time, setTime] = useState('09:00')
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
+      <div aria-hidden="true" className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
         <div role="dialog" aria-modal="true" aria-label="Proposer un créneau" className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
           style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
           <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
@@ -775,9 +775,9 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
       {/* ═══ PANNEAU PROFIL — mobile drawer ═══ */}
       {showProfile && (
-        <div className="md:hidden fixed inset-0 z-50 flex" onClick={() => setShowProfile(false)}>
+        <div aria-hidden="true" className="md:hidden fixed inset-0 z-50 flex" onClick={() => setShowProfile(false)}>
           <div className="flex-1 bg-black/40" />
-          <div className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()}>
+          <div className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()} aria-hidden="false">
             <ProfilePanel onClose={() => setShowProfile(false)} />
           </div>
         </div>

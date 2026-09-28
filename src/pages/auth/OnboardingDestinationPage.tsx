@@ -158,11 +158,13 @@ type DarkSelectProps = {
 }
 
 function DarkSelect({ label, placeholder, value, options, onChange, disabled }: DarkSelectProps) {
+  const selectId = `ds-${label.replace(/\s+/g, '-').toLowerCase()}`
   return (
     <div>
-      <label className="block text-white/60 text-sm font-semibold mb-2">{label}</label>
+      <label htmlFor={selectId} className="block text-white/60 text-sm font-semibold mb-2">{label}</label>
       <div className="relative">
         <select
+          id={selectId}
           value={value}
           onChange={e => onChange(e.target.value)}
           disabled={disabled}
