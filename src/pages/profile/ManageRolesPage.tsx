@@ -113,11 +113,13 @@ export default function ManageRolesPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-5 py-6 pb-10">
 
-          {error && (
-            <div className="px-4 py-3 rounded-xl mb-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              <p className="text-red-500 text-sm">{error}</p>
-            </div>
-          )}
+          <div role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="px-4 py-3 rounded-xl mb-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <p className="text-red-500 text-sm">{error}</p>
+              </div>
+            )}
+          </div>
           {success && (
             <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>

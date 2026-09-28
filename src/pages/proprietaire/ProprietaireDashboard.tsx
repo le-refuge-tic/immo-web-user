@@ -2803,11 +2803,13 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
         </div>
 
         <div className="p-5 space-y-5">
-          {error && (
-            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>
-              {error}
-            </div>
-          )}
+          <div role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>
+                {error}
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="text-xs font-bold text-[#F0EDE8] uppercase tracking-wide mb-2 block">Montant à retirer</label>
@@ -3364,11 +3366,13 @@ function RolesTab() {
           <p className="text-sm text-[#8A9BB5] mt-0.5">Basculez entre vos espaces ou activez-en un nouveau — jusqu'à 3 rôles actifs simultanément.</p>
         </div>
 
-        {error && (
-          <div className="px-4 py-3 rounded-xl mb-4" style={{ background: '#EF444414', border: '1px solid #EF444430' }}>
-            <p className="text-danger text-sm">{error}</p>
-          </div>
-        )}
+        <div role="alert" aria-live="assertive" aria-atomic="true">
+          {error && (
+            <div className="px-4 py-3 rounded-xl mb-4" style={{ background: '#EF444414', border: '1px solid #EF444430' }}>
+              <p className="text-danger text-sm">{error}</p>
+            </div>
+          )}
+        </div>
         {success && (
           <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: '#22C55E14', border: '1px solid #22C55E30' }}>
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>

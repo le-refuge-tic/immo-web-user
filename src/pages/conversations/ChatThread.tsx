@@ -569,12 +569,14 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         </div>
 
         {/* Erreur */}
-        {error && (
-          <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#DC2626' }}>
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {error}
-          </div>
-        )}
+        <div role="alert" aria-live="assertive" aria-atomic="true">
+          {error && (
+            <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#DC2626' }}>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              {error}
+            </div>
+          )}
+        </div>
 
         {/* ── Bandeaux fixes (épinglé + créneau) ── */}
         {(pinnedMsg || lastSlot) && (

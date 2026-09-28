@@ -438,11 +438,13 @@ export default function ReservationPage() {
         <PeopleCard />
         <SummaryCard />
         <ProspectNotice />
-        {error && (
-          <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
-            <p className="text-red-500 text-sm">{error}</p>
-          </div>
-        )}
+        <div role="alert" aria-live="assertive" aria-atomic="true">
+          {error && (
+            <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+              <p className="text-red-500 text-sm">{error}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── DESKTOP : deux colonnes ── */}
@@ -461,11 +463,13 @@ export default function ReservationPage() {
           <div className="sticky top-6 space-y-4">
             <SummaryCard />
             <ProspectNotice />
-            {error && (
-              <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
-                <p className="text-red-500 text-sm">{error}</p>
-              </div>
-            )}
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+              {error && (
+                <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                  <p className="text-red-500 text-sm">{error}</p>
+                </div>
+              )}
+            </div>
             <SubmitBtn />
           </div>
         </div>

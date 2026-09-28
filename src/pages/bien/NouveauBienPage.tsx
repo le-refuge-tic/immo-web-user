@@ -680,12 +680,14 @@ export default function NouveauBienPage() {
         <div className="flex-1 overflow-y-auto px-4 py-5 md:max-w-2xl md:mx-auto md:w-full"
           onScroll={e => setIsScrolled(e.currentTarget.scrollTop > 40)}>
 
-          {error && (
-            <div className="rounded-xl px-4 py-3 border mb-4"
-              style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
-              <p className="text-sm" style={{ color: '#DC2626' }}>{error}</p>
-            </div>
-          )}
+          <div id="nouveau-bien-error" role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="rounded-xl px-4 py-3 border mb-4"
+                style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
+                <p className="text-sm" style={{ color: '#DC2626' }}>{error}</p>
+              </div>
+            )}
+          </div>
 
           {/* ═══ ÉTAPE 0 : TYPE & PRIX ═══ */}
           {step === 0 && (

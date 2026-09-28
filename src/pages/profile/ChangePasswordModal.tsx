@@ -85,11 +85,13 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
-          )}
+          <div role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+          </div>
           {success && (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
               <p className="text-green-600 text-sm font-semibold">Mot de passe mis à jour</p>

@@ -101,11 +101,13 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
               <p className="text-success text-sm font-semibold">Bien ajouté avec succès</p>
             </div>
           )}
-          {error && (
-            <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
-              <p className="text-danger text-sm">{error}</p>
-            </div>
-          )}
+          <div role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
+                <p className="text-danger text-sm">{error}</p>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Type de bien</label>
