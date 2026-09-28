@@ -145,6 +145,7 @@ export default function HomePage() {
   const [showSuggest, setShowSuggest] = useState(false)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [favIds, setFavIds] = useState<Set<number>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
   const [prixMin, setPrixMin] = useState('')
@@ -193,7 +194,7 @@ export default function HomePage() {
   const [venteIdx, setVenteIdx] = useState(0)
 
   const loadBiens = async () => {
-    setLoading(true)
+    setLoading(true); setLoadError(false)
     try {
       const [locData, venteData] = await Promise.all([
         biensApi.list({ transaction: 'location', limit: 100 }),
@@ -202,7 +203,9 @@ export default function HomePage() {
       const loc   = Array.isArray(locData)   ? locData   : locData.data   || []
       const vente = Array.isArray(venteData) ? venteData : venteData.data || []
       setBiens([...loc, ...vente])
-    } catch (_) {}
+    } catch (_) {
+      setLoadError(true)
+    }
     setLoading(false)
   }
 
@@ -626,6 +629,13 @@ export default function HomePage() {
       </div>
 
       {/* ══════════════ CARROUSELS DESKTOP ══════════════ */}
+
+      {loadError && (
+        <div className="hidden md:flex items-center justify-center gap-3 py-6 px-8">
+          <p className="text-sm text-red-600">Impossible de charger les annonces.</p>
+          <button onClick={loadBiens} className="text-sm font-bold underline" style={{ color: '#3A5AEE' }}>Réessayer</button>
+        </div>
+      )}
 
       {/* Location récente */}
       {recentLocation.length > 0 && (
