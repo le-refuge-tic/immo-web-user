@@ -10,6 +10,7 @@ export default function FavoritesPage() {
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [favIds, setFavIds] = useState<Set<number>>(new Set())
+  const [confirmClearAll, setConfirmClearAll] = useState(false)
 
   useEffect(() => {
     if (!isLoggedIn) { setLoading(false); return }
@@ -31,10 +32,10 @@ export default function FavoritesPage() {
   }
 
   const handleClearAll = async () => {
-    if (!confirm('Supprimer tous vos favoris ? Cette action est irréversible.')) return
     const ids = Array.from(favIds)
     setBiens([])
     setFavIds(new Set())
+    setConfirmClearAll(false)
     try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (_) {}
   }
 
@@ -52,8 +53,15 @@ export default function FavoritesPage() {
           </div>
           {biens.length > 0 && (
             <div className="flex items-center gap-4">
+              {confirmClearAll ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-danger">Supprimer tous les favoris ?</span>
+                  <button onClick={handleClearAll} className="text-xs font-bold text-white bg-danger rounded-lg px-3 py-1.5">Confirmer</button>
+                  <button onClick={() => setConfirmClearAll(false)} className="text-xs font-semibold text-text-grey">Annuler</button>
+                </div>
+              ) : (
               <button
-                onClick={handleClearAll}
+                onClick={() => setConfirmClearAll(true)}
                 className="flex items-center gap-2 text-sm font-semibold text-danger hover:underline"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -61,6 +69,7 @@ export default function FavoritesPage() {
                 </svg>
                 Tout supprimer
               </button>
+              )}
               <button
                 onClick={() => navigate('/')}
                 className="hidden md:flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
