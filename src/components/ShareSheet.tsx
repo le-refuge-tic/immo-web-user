@@ -59,7 +59,7 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <p id="sharesheet-title" className="text-[16px] font-bold" style={{ color: tp }}>Partager ce bien</p>
-          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer transition-opacity hover:opacity-75"
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer transition-opacity hover:opacity-75"
             style={{ background: fieldBg, color: ts }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>

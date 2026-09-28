@@ -41,7 +41,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (newPwd !== confirm) { setError('Les mots de passe ne correspondent pas'); return }
-    if (newPwd.length < 6) { setError('Mot de passe trop court (6 car. min.)'); return }
+    if (newPwd.length < 8) { setError('Mot de passe trop court (8 caractères min.)'); return }
     setLoading(true)
     setError('')
     try {
@@ -74,7 +74,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
             <h2 className="text-xl font-bold text-text-dark">Sécurité</h2>
             <p className="text-sm text-text-grey mt-0.5">Changez votre mot de passe</p>
           </div>
-          <button onClick={onClose}
+          <button onClick={onClose} aria-label="Fermer"
             className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)' }}>
             <svg className="w-4 h-4 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -103,7 +103,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
           <div>
             <label className="text-sm font-semibold text-text-dark mb-1.5 block">Nouveau mot de passe</label>
             <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} required
-              placeholder="Min. 6 caractères"
+              placeholder="Min. 8 caractères"
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div>

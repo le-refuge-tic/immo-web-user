@@ -93,7 +93,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-text-dark">Modifier le profil</h2>
-          <button onClick={onClose}
+          <button onClick={onClose} aria-label="Fermer"
             className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)' }}>
             <svg className="w-4 h-4 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -113,7 +113,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
                 <span className="text-white text-2xl font-bold">{initials}</span>
               </div>
             )}
-            <button onClick={() => fileRef.current?.click()}
+            <button onClick={() => fileRef.current?.click()} aria-label="Modifier la photo de profil"
               className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white"
               style={{ background: '#4B6BFF' }}>
               {uploading ? (

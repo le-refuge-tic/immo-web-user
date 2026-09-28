@@ -137,6 +137,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
         {/* Bouton favori */}
         <button
           onClick={handleFav}
+          aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
           className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
           style={{
             background: isDark ? 'rgba(30,30,44,0.80)' : 'rgba(255,255,255,0.80)',

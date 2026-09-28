@@ -419,7 +419,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirmPwd) { setError('Les mots de passe ne correspondent pas'); return }
-    if (password.length < 6) { setError('Mot de passe trop court (6 caractères min.)'); return }
+    if (password.length < 8) { setError('Mot de passe trop court (8 caractères min.)'); return }
     if (!acceptedTerms) { setError('Veuillez accepter les conditions d\'utilisation'); return }
     setLoading(true); setError('')
     try {
@@ -549,7 +549,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <label className="auth-label">Mot de passe</label>
                 <div className="relative">
                   <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
-                  <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 6 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
+                  <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
                   <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
                     {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
