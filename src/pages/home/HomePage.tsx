@@ -427,14 +427,33 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Indicateurs */}
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[3] flex items-center gap-2">
+        {/* Indicateurs + bouton pause */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[3] flex items-center gap-3">
           {HERO_SLIDES.map((_, i) => (
             <button key={i} onClick={() => setHeroIdx(i)} aria-label={`Slide ${i + 1}`}
               style={{ width: heroIdx === i ? 20 : 8, height: 8, borderRadius: 4,
                 background: heroIdx === i ? '#fff' : 'rgba(255,255,255,0.4)',
                 transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }} />
           ))}
+          <button
+            onClick={() => setHeroPaused(v => !v)}
+            aria-label={heroPaused ? 'Reprendre le diaporama' : 'Mettre en pause le diaporama'}
+            aria-pressed={heroPaused}
+            style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.7)',
+              background: 'rgba(0,0,0,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', padding: 0, flexShrink: 0 }}
+          >
+            {heroPaused ? (
+              <svg width="10" height="12" viewBox="0 0 10 12" fill="white" aria-hidden="true">
+                <path d="M0 0l10 6-10 6V0z" />
+              </svg>
+            ) : (
+              <svg width="10" height="12" viewBox="0 0 10 12" fill="white" aria-hidden="true">
+                <rect x="0" y="0" width="3.5" height="12" />
+                <rect x="6.5" y="0" width="3.5" height="12" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* ── Panneau recherche flottant ── */}
