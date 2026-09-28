@@ -415,10 +415,10 @@ export default function SearchPage() {
     <div className="min-h-full">
 
       {/* ══════════════ MOBILE ══════════════ */}
-      <div className="lg:hidden">
+      <div className="lg:hidden pt-[72px] md:pt-0">
 
-        {/* Header sticky */}
-        <div className="sticky top-0 z-30 px-4 pt-3 pb-3"
+        {/* Header sticky — top-[72px] pour dégager la TopNav fixe */}
+        <div className="sticky top-[72px] z-30 px-4 pt-3 pb-3"
           style={{
             background: tk.headerBg,
             backdropFilter: 'blur(40px)',

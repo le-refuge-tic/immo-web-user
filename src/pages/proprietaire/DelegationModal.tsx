@@ -30,6 +30,12 @@ export default function DelegationModal({ onClose }: Props) {
   const [error, setError] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
   const chargerListe = () => {
     setLoading(true)
     delegationApi.emises()
@@ -79,7 +85,14 @@ export default function DelegationModal({ onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Déléguer la gestion"
+      onClick={onClose}
+    >
       <div className="rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" style={{ background: 'var(--p-card)' }} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0" style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
           <h2 className="font-bold" style={{ color: 'var(--p-text)' }}>

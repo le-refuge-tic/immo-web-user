@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
@@ -18,6 +18,12 @@ const TYPES_BIEN = [
 const PEUT_ETRE_MEUBLE = new Set(['appartement', 'villa', 'maison'])
 
 export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
   const [typeBien, setTypeBien] = useState('chambre_salon')
   const [meuble, setMeuble] = useState(false)
   const [loyer, setLoyer] = useState('')
@@ -69,7 +75,14 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Ajouter un bien en gestion"
+      onClick={onClose}
+    >
       <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Ajouter un bien en gestion</h2>

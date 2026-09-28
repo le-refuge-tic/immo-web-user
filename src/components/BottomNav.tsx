@@ -78,11 +78,13 @@ export default function BottomNav() {
         {NAV_ITEMS.map(item => {
           const active = isActive(item.path)
           const Icon = item.icon
-          const badge = item.path === '/notifications' ? unreadAlertes : item.path === '/conversations' ? unreadMessages : 0
+          const badge = item.path === '/conversations' ? unreadMessages : 0
           return (
             <button
               key={item.path}
               onClick={() => handleNav(item)}
+              aria-label={item.label + (badge > 0 ? `, ${badge} non lu${badge > 1 ? 's' : ''}` : '')}
+              aria-current={active ? 'page' : undefined}
               className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 btn-press"
               style={{
                 background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
@@ -107,7 +109,7 @@ export default function BottomNav() {
         {/* Toggle thème */}
         <button
           onClick={toggleTheme}
-          aria-label={isDark ? 'Mode clair' : 'Mode sombre'}
+          aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
           className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200"
           style={{ color: inactiveColor }}
         >

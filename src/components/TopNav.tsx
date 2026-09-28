@@ -54,11 +54,18 @@ export default function TopNav() {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [])
 
   const isActive = (path: string) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -194,6 +201,9 @@ export default function TopNav() {
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen(o => !o)}
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
+                  aria-label="Menu utilisateur"
                   className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl transition-all"
                   style={{
                     background: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)',
@@ -246,10 +256,9 @@ export default function TopNav() {
                           <button
                             key={role}
                             onClick={() => { setActiveRole(role); navigate(path); setMenuOpen(false) }}
-                            className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
+                            role="menuitem"
+                            className="menu-item-hover w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left"
                             style={{ color: isCurrent ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
-                            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
-                            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
                           >
                             <span>{label}</span>
                             {isCurrent && (
@@ -264,10 +273,9 @@ export default function TopNav() {
                       /* Rôle unique : le seul "espace" mène au profil. */
                       <button
                         onClick={() => { navigate('/profil'); setMenuOpen(false) }}
-                        className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left transition-all"
+                        role="menuitem"
+                        className="menu-item-hover w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left"
                         style={{ color: '#4B6BFF' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
                       >
                         <span>{ROLE_ROUTES[activeRole]?.label || 'Mon profil'}</span>
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
@@ -281,14 +289,12 @@ export default function TopNav() {
 
               {/* Déconnexion — bouton séparé à côté, comme l'espace propriétaire */}
               <button onClick={handleLogout} title="Se déconnecter" aria-label="Se déconnecter"
-                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
+                className="logout-btn-hover w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{
                   background: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)',
                   border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'),
                   color: '#FF3B30',
                 }}
-                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,59,48,0.10)'}
-                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)'}
               >
                 <LogOutIcon />
               </button>

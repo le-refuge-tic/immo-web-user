@@ -16,6 +16,13 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const { user, updateUser } = useAuth()
   const fileRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    if (!open) return
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [open, onClose])
+
   const [nom, setNom] = useState(user?.nom || '')
   const [prenom, setPrenom] = useState(user?.prenom || '')
   const [email, setEmail] = useState(user?.email || '')
@@ -73,6 +80,9 @@ export default function EditProfileModal({ open, onClose }: Props) {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Modifier le profil"
       onClick={onClose}
     >
       <div

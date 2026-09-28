@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { walletApi } from '../../api/walletApi'
 
 /**
@@ -6,6 +6,12 @@ import { walletApi } from '../../api/walletApi'
  * partagé entre l'espace propriétaire et l'espace locataire.
  */
 export default function NumeroRetraitModal({ current, onClose, onSaved, accent = '#4B6BFF' }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void; accent?: string }) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
   const [step, setStep] = useState<'form' | 'otp'>('form')
   const [numero, setNumero] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
@@ -41,7 +47,14 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.5)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Numéro de retrait"
+      onClick={onClose}
+    >
       <div className="bg-[#0B1C30] rounded-2xl w-full max-w-sm border border-[#1A3355]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355]">
           <h2 className="font-bold text-[#F0EDE8]">Numéro de retrait</h2>

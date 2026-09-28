@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
@@ -6,6 +6,12 @@ import { trouverQuartierExact } from '../../data/quartiers'
 type Props = { bien: any; onClose: () => void; onSaved: (bien: any) => void }
 
 export default function EditBienModal({ bien, onClose, onSaved }: Props) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
   const loc = bien.localisation || {}
   const [prix, setPrix] = useState(String(bien.prix ?? ''))
   const [prixPromo, setPrixPromo] = useState(bien.prix_promo != null ? String(bien.prix_promo) : '')
@@ -58,7 +64,14 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Modifier le bien"
+      onClick={onClose}
+    >
       <div ref={scrollRef} className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Modifier le bien</h2>

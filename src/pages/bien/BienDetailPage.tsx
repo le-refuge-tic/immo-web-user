@@ -354,7 +354,12 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           </div>
         )}
         {showOwnBack && (
-          <button onClick={() => navigate(-1)} className="absolute top-12 left-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Retour"
+            className="absolute left-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm"
+            style={{ top: 'calc(72px + env(safe-area-inset-top, 0px) + 8px)' }}
+          >
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
         )}

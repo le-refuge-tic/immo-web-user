@@ -29,6 +29,13 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
     }
   }, [open])
 
+  useEffect(() => {
+    if (!open) return
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [open, onClose])
+
   if (!open) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,6 +58,9 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Changer le mot de passe"
       onClick={onClose}
     >
       <div
