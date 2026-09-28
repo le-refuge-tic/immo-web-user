@@ -2792,8 +2792,8 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Détail de la transaction" className="bg-[#0B1C30] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-[#1A3355]" onClick={e => e.stopPropagation()}>
+    <div aria-hidden="true" className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label="Détail de la transaction" aria-hidden="false" className="bg-[#0B1C30] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-[#1A3355]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355] sticky top-0 bg-[#0B1C30] z-10">
           <div>
             <h2 className="font-bold text-[#F0EDE8]">Demander un retrait</h2>
@@ -3033,8 +3033,8 @@ function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void })
   const statut = txStatutMeta(t.statut)
   const lien = t.visite_id ? `Visite #${t.visite_id}` : t.loyer_id ? `Loyer #${t.loyer_id}` : t.contrat_id ? `Contrat #${t.contrat_id}` : null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Détail de la transaction" className="bg-[#0B1C30] rounded-2xl w-full max-w-md border border-[#1A3355]" onClick={e => e.stopPropagation()}>
+    <div aria-hidden="true" className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label="Détail de la transaction" aria-hidden="false" className="bg-[#0B1C30] rounded-2xl w-full max-w-md border border-[#1A3355]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355]">
           <h2 className="font-bold text-[#F0EDE8]">Détail de la transaction</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0B1C30] text-[#8A9BB5] flex-shrink-0">✕</button>

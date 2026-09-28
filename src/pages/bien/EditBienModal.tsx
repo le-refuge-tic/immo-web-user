@@ -65,14 +65,17 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
 
   return (
     <div
+      aria-hidden="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.4)' }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Modifier le bien"
       onClick={onClose}
     >
-      <div ref={scrollRef} className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div
+        ref={scrollRef}
+        role="dialog" aria-modal="true" aria-label="Modifier le bien" aria-hidden="false"
+        className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Modifier le bien</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
