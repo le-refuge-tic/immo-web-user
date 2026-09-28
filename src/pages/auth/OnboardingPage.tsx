@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageTitle } from '../../utils/usePageTitle'
 import img1 from '../../assets/onboarding-1.jpg'
 import img2 from '../../assets/onboarding-2.jpg'
 import img3 from '../../assets/onboarding-3.jpg'
@@ -48,6 +49,7 @@ const SLIDES = [
 ]
 
 export default function OnboardingPage() {
+  usePageTitle('Bienvenue sur REFUGE')
   const navigate = useNavigate()
   const [current, setCurrent] = useState(0)
   const touchStartX = useRef(0)

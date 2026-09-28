@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const BLUE = '#2E86C1'
 
 export default function RejoindreBienPage() {
+  usePageTitle('Rejoindre un bien')
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { loyersApi } from '../../api/loyersApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const GREEN = '#15803D'
 
@@ -13,6 +14,7 @@ const AVANTAGES = [
 ]
 
 export default function GestionViaAppPage() {
+  usePageTitle('Gestion via l\'application')
   const { contratId } = useParams<{ contratId: string }>()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)

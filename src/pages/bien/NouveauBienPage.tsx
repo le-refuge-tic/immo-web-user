@@ -1,6 +1,7 @@
 import type { ReactNode, CSSProperties } from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { biensApi } from '../../api/biensApi'
 import { useAuth } from '../../context/AuthContext'
 import { QUARTIERS } from '../../data/quartiers'
@@ -256,6 +257,7 @@ function RecapSection({ title, items }: { title: string; items: string[] }) {
 
 // ─── Page principale ────────────────────────────────────────────────────────
 export default function NouveauBienPage() {
+  usePageTitle('Publier une annonce')
   const navigate = useNavigate()
   const { user } = useAuth()
   const isDemarcheur = (user?.roles_actifs ?? (user?.role_principal ? [user.role_principal] : [])).includes('demarcheur')

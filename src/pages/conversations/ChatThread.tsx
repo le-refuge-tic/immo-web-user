@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
@@ -212,6 +213,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
   const other = conv?.participants?.find((p: any) => p.id !== user?.id) || conv?.participants?.[0] || null
   const otherName = displayName(other)
+  usePageTitle(otherName !== 'Contact' ? `Conversation – ${otherName}` : 'Conversation')
   const role = roleLabel(other)
   const isClientRole = other?.role === 'demarcheur' || other?.role === 'proprietaire'
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
