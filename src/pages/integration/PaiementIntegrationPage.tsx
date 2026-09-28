@@ -175,7 +175,7 @@ export default function PaiementIntegrationPage() {
           {state === 'idle' || state === 'error' ? (
             <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
               <div className="flex items-center gap-3 mb-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/MTN_Logo.svg/200px-MTN_Logo.svg.png" alt="MTN MoMo" className="h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/MTN_Logo.svg/200px-MTN_Logo.svg.png" alt="MTN MoMo" className="h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                 <p className="font-bold text-text-dark">MTN Mobile Money</p>
               </div>
               {state === 'error' && (

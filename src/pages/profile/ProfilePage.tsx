@@ -235,7 +235,7 @@ export default function ProfilePage() {
   const AvatarBlock = ({ size = 88 }: { size?: number }) => (
     <div className="relative inline-block">
       {user.photo_profil ? (
-        <img src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid #4B6BFF' }} />
+        <img loading="lazy" src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid #4B6BFF' }} />
       ) : (
         <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}>
           <span className="text-white font-bold" style={{ fontSize: size * 0.36 }}>{initials}</span>

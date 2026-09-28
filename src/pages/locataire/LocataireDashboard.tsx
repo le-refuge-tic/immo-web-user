@@ -740,7 +740,7 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
     <aside className="hidden md:flex md:flex-col md:w-64 md:flex-shrink-0 md:h-dvh md:sticky md:top-0"
       style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(40px) saturate(180%)', borderRight: '1px solid rgba(0,0,0,0.06)' }}>
       <button onClick={() => navigate('/')} className="flex items-center gap-2.5 px-6 pt-6 pb-5 flex-shrink-0">
-        <img src={logoUrl} alt="REFUGE" style={{ width: 34, height: 34, objectFit: 'contain' }} />
+        <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 34, height: 34, objectFit: 'contain' }} />
         <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
       </button>
       <p className="px-6 mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,0,0,0.35)' }}>Espace Locataire</p>

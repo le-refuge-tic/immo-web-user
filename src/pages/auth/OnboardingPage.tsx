@@ -86,7 +86,7 @@ export default function OnboardingPage() {
       {/* Images de fond — transition opacity */}
       {SLIDES.map((s, i) => (
         <img
-          key={i}
+loading="lazy"           key={i}
           src={s.image}
           alt=""
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
@@ -118,7 +118,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2.5">
               <div className="w-[52px] h-[52px] flex items-center justify-center rounded-[15px] flex-shrink-0"
                 style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
-                <img src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
               </div>
               <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
             </div>

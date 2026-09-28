@@ -30,7 +30,7 @@ export default function SplashPage() {
 
   return (
     <div className="min-h-dvh relative overflow-hidden flex flex-col">
-      <img src={bgImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={bgImg} alt="" loading="eager" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.2) 100%)' }} />
 
       <div className="relative z-10 flex flex-col flex-1 min-h-dvh">
@@ -40,7 +40,7 @@ export default function SplashPage() {
           <div className="flex items-center gap-3 anim-slide-down">
             <div className="anim-bounce-in w-[58px] h-[58px] flex items-center justify-center rounded-[16px] flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
-              <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+              <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} />
             </div>
             <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
           </div>

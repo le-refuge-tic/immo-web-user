@@ -314,12 +314,12 @@ export default function HomePage() {
 
       {/* ══════════════ MOBILE HEADER ══════════════ */}
       <div className="md:hidden relative px-4 pb-10 rounded-b-3xl" style={{ background: '#0a0a0a', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)' }}>
-        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 rounded-b-3xl" />
+        <img loading="lazy" src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 rounded-b-3xl" />
         <div className="absolute inset-0 rounded-b-3xl" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.65))' }} />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
-              <img src={logoUrl} alt="REFUGE" className="object-contain drop-shadow-lg flex-shrink-0" style={{ width: 64, height: 'auto' }} />
+              <img loading="lazy" src={logoUrl} alt="REFUGE" className="object-contain drop-shadow-lg flex-shrink-0" style={{ width: 64, height: 'auto' }} />
               <div>
                 <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: '#00AEEF' }}>REFUGE</p>
                 <p className="text-white/60 text-[11px] mt-0.5">
@@ -333,7 +333,7 @@ export default function HomePage() {
               style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.4)' }}
             >
               {isLoggedIn && user?.photo_profil ? (
-                <img src={user.photo_profil} className="w-10 h-10 object-cover" alt="" />
+                <img loading="lazy" src={user.photo_profil} className="w-10 h-10 object-cover" alt="" />
               ) : isLoggedIn ? (
                 <span className="text-white font-bold text-sm">{initials}</span>
               ) : (
@@ -370,7 +370,10 @@ export default function HomePage() {
         onMouseLeave={() => setHeroPaused(false)}
       >
         {HERO_SLIDES.map((src, i) => (
-          <img key={src} src={src} alt="" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+          <img key={src} src={src} alt=""
+            loading={i === 0 ? 'eager' : 'lazy'}
+            fetchPriority={i === 0 ? 'high' : 'auto'}
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
             style={{ opacity: i === heroIdx ? 1 : 0, zIndex: 0 }} />
         ))}
         <div className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.38) 50%, rgba(0,0,0,0.12) 100%)' }} />
@@ -996,7 +999,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
                 style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.30)' }}>
-                <img src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
               </div>
               <div>
                 <span className="font-extrabold text-xl tracking-tight" style={{ color: '#3A5AEE' }}>REFUGE</span>

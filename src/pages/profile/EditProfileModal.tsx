@@ -106,7 +106,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
         <div className="flex flex-col items-center mb-6">
           <div className="relative">
             {user?.photo_profil ? (
-              <img src={user.photo_profil} alt="" className="w-20 h-20 rounded-full object-cover" />
+              <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-full object-cover" />
             ) : (
               <div className="w-20 h-20 rounded-full flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>

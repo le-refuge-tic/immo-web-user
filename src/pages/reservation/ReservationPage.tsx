@@ -182,7 +182,7 @@ export default function ReservationPage() {
   const PropertyCard = () => !loadingBien && bien ? (
     <div className="rounded-2xl overflow-hidden flex gap-3 p-3" style={GLASS}>
       {cover
-        ? <img src={cover} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+        ? <img loading="lazy" src={cover} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
         : <div className="w-16 h-16 rounded-xl flex-shrink-0" style={{ background: 'rgba(75,107,255,0.1)' }} />
       }
       <div className="flex-1 min-w-0 py-0.5">

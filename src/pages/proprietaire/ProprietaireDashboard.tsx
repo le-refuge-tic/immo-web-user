@@ -571,7 +571,7 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                     >
                       <div className="relative overflow-hidden" style={{ height: 160 }}>
                         {cover?.url
-                          ? <img src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             </div>
@@ -735,7 +735,7 @@ function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                       {/* Photo */}
                       <div className="relative overflow-hidden" style={{ height: 192 }}>
                         {cover?.url
-                          ? <img src={cover.url} alt={bienLabel(b)}
+                          ? <img loading="lazy" src={cover.url} alt={bienLabel(b)}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           : <div className="w-full h-full flex items-center justify-center"
                               style={{ background: `linear-gradient(135deg, #EEF1FB, ${BLUE}18)` }}>
@@ -1941,7 +1941,7 @@ function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; 
                     {/* ── Photo / Avatar ── */}
                     <div className="relative overflow-hidden" style={{ height: 156 }}>
                       {cover?.url
-                        ? <img src={cover.url} alt={bType}
+                        ? <img loading="lazy" src={cover.url} alt={bType}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         : <div className="w-full h-full flex items-center justify-center"
                             style={{ background: `linear-gradient(135deg, ${accentColor}18, ${BLUE}14)` }}>
@@ -2360,7 +2360,7 @@ function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
                     {/* ── Visuel haut ── */}
                     <div className="relative overflow-hidden" style={{ height: 148 }}>
                       {cover?.url
-                        ? <img src={cover.url} alt=""
+                        ? <img loading="lazy" src={cover.url} alt=""
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         : <div className="w-full h-full flex items-center justify-center"
                             style={{ background: `linear-gradient(135deg, ${alertColor}14, ${BLUE}10)` }}>
@@ -2620,7 +2620,7 @@ function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () =>
         {/* ── Photo banner ── */}
         <div className="relative overflow-hidden rounded-t-2xl" style={{ height: 140 }}>
           {cover?.url
-            ? <img src={cover.url} alt="" className="w-full h-full object-cover" />
+            ? <img loading="lazy" src={cover.url} alt="" className="w-full h-full object-cover" />
             : <div className="w-full h-full flex items-center justify-center"
                 style={{ background: `linear-gradient(135deg, ${BLUE}18, ${BLUE}08)` }}>
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-4xl"
@@ -3553,7 +3553,7 @@ function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onSc
                 {/* Avatar + infos */}
                 <div className="flex flex-col items-center text-center">
                   {user?.photo_profil
-                    ? <img src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-lg mb-3"
+                    ? <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-lg mb-3"
                         style={{ border: '3px solid rgba(255,255,255,0.9)' }} />
                     : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg"
                         style={{ background: 'linear-gradient(135deg, #4B6BFF, #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
@@ -3875,7 +3875,7 @@ export default function ProprietaireDashboard() {
 
             {/* Logo */}
             <button onClick={() => { setTab('tableau'); setIsScrolled(false) }} className="flex items-center gap-2 flex-shrink-0">
-              <img src={logoUrl} alt="REFUGE" className="w-8 h-8 rounded-[8px] object-contain" />
+              <img loading="lazy" src={logoUrl} alt="REFUGE" className="w-8 h-8 rounded-[8px] object-contain" />
               <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE }}>REFUGE</span>
             </button>
 
@@ -4010,7 +4010,7 @@ export default function ProprietaireDashboard() {
           <div className="flex-1 overflow-y-auto overflow-x-hidden" onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 50)}>
             {/* ── Hero photo ── */}
             <div className="relative overflow-hidden" style={{ minHeight: '380px' }}>
-              <img src={villaImg} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} />
+              <img loading="lazy" src={villaImg} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} />
               {/* Dégradé sombre — lisibilité texte + fondu vers le fond */}
               <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(6,13,26,0.45) 0%, rgba(6,13,26,0.72) 50%, #060D1A 100%)' }} />
               {/* Accent gold ambiant en haut-gauche */}
@@ -4212,7 +4212,7 @@ export default function ProprietaireDashboard() {
                           >
                             <div className="relative overflow-hidden" style={{ height: 160 }}>
                               {cover?.url
-                                ? <img src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                 : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                                   </div>

@@ -349,7 +349,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       {/* ── MOBILE header / galerie ── */}
       <div className="lg:hidden relative h-72 md:h-[420px]" style={{ background: 'rgba(0,0,0,0.04)' }}>
         {allUrls.length > 0 ? (
-          <img src={allUrls[photoIdx]} alt="photo" className="w-full h-full object-cover" />
+          <img loading="lazy" src={allUrls[photoIdx]} alt="photo" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)' }}>
             <svg className="w-20 h-20 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
@@ -395,7 +395,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <div>
             <div className="relative rounded-2xl overflow-hidden" style={{ height: 480, background: 'rgba(0,0,0,0.04)' }}>
               {allUrls.length > 0 ? (
-                <img src={allUrls[photoIdx]} alt="photo" className="w-full h-full object-cover" />
+                <img loading="lazy" src={allUrls[photoIdx]} alt="photo" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)' }}>
                   <svg className="w-24 h-24 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
@@ -422,7 +422,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                 {allUrls.map((url, i) => (
                   <button key={i} onClick={() => setPhotoIdx(i)}
                     className={`flex-shrink-0 w-20 h-14 rounded-xl overflow-hidden border-2 transition-all ${i === photoIdx ? 'border-primary' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -526,7 +526,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                     <button key={b.id} onClick={() => navigate(`/biens/${b.id}`)}
                       className="w-full flex items-center gap-3 p-2.5 rounded-xl glass-card text-left hover:-translate-y-0.5 transition-transform">
                       <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                        {cover ? <img src={resolveUrl(cover.url)} alt="" className="w-full h-full object-cover" /> : (
+                        {cover ? <img loading="lazy" src={resolveUrl(cover.url)} alt="" className="w-full h-full object-cover" /> : (
                           <div className="w-full h-full flex items-center justify-center">
                             <svg className="w-6 h-6 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                           </div>
@@ -609,7 +609,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                   <button key={b.id} onClick={() => navigate(`/biens/${b.id}`)}
                     className="flex-shrink-0 w-40 text-left rounded-xl overflow-hidden card-soft">
                     <div className="w-40 h-28" style={{ background: 'rgba(0,0,0,0.04)' }}>
-                      {cover ? <img src={resolveUrl(cover.url)} alt="" className="w-full h-full object-cover" /> : (
+                      {cover ? <img loading="lazy" src={resolveUrl(cover.url)} alt="" className="w-full h-full object-cover" /> : (
                         <div className="w-full h-full flex items-center justify-center">
                           <svg className="w-6 h-6 text-text-grey/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                         </div>
@@ -855,9 +855,9 @@ function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: any }) {
           <div key={i} className="flex items-center gap-3 px-4 py-3">
             <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
               {isElec ? (
-                <img src={logoSbee} alt="SBEE" className="h-7 w-auto object-contain" />
+                <img loading="lazy" src={logoSbee} alt="SBEE" className="h-7 w-auto object-contain" />
               ) : isEau && isSonebEau ? (
-                <img src={logoSoneb} alt="SONEB" className="h-7 w-auto object-contain" />
+                <img loading="lazy" src={logoSoneb} alt="SONEB" className="h-7 w-auto object-contain" />
               ) : (
                 <span style={{ color: meta.color }}><Icon type={meta.icon} className="w-[22px] h-[22px]" /></span>
               )}

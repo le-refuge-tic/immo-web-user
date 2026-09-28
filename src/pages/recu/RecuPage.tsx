@@ -226,7 +226,7 @@ export default function RecuPage() {
           style={{ background: `linear-gradient(135deg, ${theme.dark}, ${theme.light})`, boxShadow: `0 6px 16px ${theme.dark}4D` }}
         >
           <div className="flex items-center justify-between mb-5">
-            <img src={logoUrl} alt="REFUGE" className="h-9 object-contain" />
+            <img loading="lazy" src={logoUrl} alt="REFUGE" className="h-9 object-contain" />
             <span className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold tracking-wide border border-white/40" style={{ background: 'rgba(255,255,255,0.2)' }}>
               {titre}
             </span>
