@@ -230,7 +230,7 @@ export default function HistoriquePaiementsPage() {
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
           onClick={() => setDetail(null)}>
-          <div className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white"
+          <div role="dialog" aria-modal="true" aria-label="Détail du paiement" className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${colorFor(detail)}1A`, color: colorFor(detail) }}>

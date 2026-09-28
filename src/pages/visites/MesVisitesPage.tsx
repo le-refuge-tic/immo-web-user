@@ -358,7 +358,7 @@ export default function MesVisitesPage() {
       {/* Payment modal */}
       {showPay && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' || payState === 'pending' ? closePayModal : undefined}>
-          <div className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label="Payer la visite" className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
 
             {payState === 'pending' ? (
@@ -475,7 +475,7 @@ export default function MesVisitesPage() {
 
       {/* Feedback modal */}
       {showFeedback && createPortal(
-        <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#F8F9FA' }}>
+        <div role="dialog" aria-modal="true" aria-label="Donner un avis" className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#F8F9FA' }}>
           {feedbackDone ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
@@ -576,7 +576,7 @@ export default function MesVisitesPage() {
       {/* Confirm dialog */}
       {confirmDialog && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center px-5" onClick={() => setConfirmDialog(null)}>
-          <div className="glass-strong rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label={confirmDialog.title} className="glass-strong rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-text-dark text-base mb-2">{confirmDialog.title}</h3>
             <p className="text-sm text-text-grey leading-relaxed mb-5">{confirmDialog.body}</p>
             <div className="flex gap-3">

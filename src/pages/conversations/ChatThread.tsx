@@ -465,7 +465,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     const [time, setTime] = useState('09:00')
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
-        <div className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
+        <div role="dialog" aria-modal="true" aria-label="Proposer un créneau" className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
           style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
           <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
           <div className="space-y-3">
@@ -827,7 +827,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       {complainMsg && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }}
           onClick={e => { if (e.target === e.currentTarget) setComplainMsg(null) }}>
-          <div className="rounded-3xl p-5 w-full max-w-sm anim-scale-in" onClick={e => e.stopPropagation()}
+          <div role="dialog" aria-modal="true" aria-label="Message supprimé" className="rounded-3xl p-5 w-full max-w-sm anim-scale-in" onClick={e => e.stopPropagation()}
             style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
             <div className="flex items-start justify-between gap-3 mb-3">
               <div><p className="font-bold text-[15px]" style={{ color: tp }}>Message supprimé</p>
