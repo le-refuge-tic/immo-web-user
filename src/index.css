@@ -423,7 +423,7 @@ div:hover > .hero-arrow { opacity: 1; }
 
   /* Textes génériques */
   .dark .text-text-dark { color: #E8E8EF !important; }
-  .dark .text-text-grey { color: rgba(200,200,220,0.55) !important; }
+  .dark .text-text-grey { color: #9898a8 !important; }
 
   /* card-soft (cartes bg-white solides) */
   .dark .card-soft,

@@ -13,7 +13,7 @@ export default {
         'app-bg':      '#F5F5F7',
         'surface-g':   '#FFFFFF',
         'text-dark':   '#1D1D1F',
-        'text-grey':   '#6E6E73',
+        'text-grey':   '#5E5E63',
         divider:       'rgba(0,0,0,0.08)',
         success:       '#34C759',
         warning:       '#FF9800',
