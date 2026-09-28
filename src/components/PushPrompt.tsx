@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { pushSupported, subscribeToPush } from '../lib/push'
 
 const DISMISS_KEY = 'rg_push_dismissed'
+const ENGAGE_DELAY_MS = 45_000
 
 export default function PushPrompt() {
   const { isLoggedIn } = useAuth()
@@ -13,13 +14,14 @@ export default function PushPrompt() {
     if (!isLoggedIn || !pushSupported()) return
 
     if (Notification.permission === 'granted') {
-      // Déjà autorisé — on (ré)abonne silencieusement sans rien montrer.
       subscribeToPush().catch(() => {})
       return
     }
-    if (Notification.permission === 'default' && localStorage.getItem(DISMISS_KEY) !== 'true') {
-      setShow(true)
-    }
+    if (Notification.permission !== 'default') return
+    if (localStorage.getItem(DISMISS_KEY) === 'true') return
+
+    const t = setTimeout(() => setShow(true), ENGAGE_DELAY_MS)
+    return () => clearTimeout(t)
   }, [isLoggedIn])
 
   const activate = async () => {
