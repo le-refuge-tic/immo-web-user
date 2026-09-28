@@ -189,6 +189,11 @@ export default function ConversationsPage() {
                     </span>
                   )}
                 </div>
+                {conv.bien && (
+                  <span className="block mt-0.5 text-[10px] truncate" style={{ color: textMuted }}>
+                    🏠 {conv.bien.titre || conv.bien.localisation?.quartier || `Bien #${conv.bien.id}`}
+                  </span>
+                )}
                 {role && (
                   <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{
                     background: isDark ? 'rgba(75,107,255,0.15)' : 'rgba(75,107,255,0.08)',
