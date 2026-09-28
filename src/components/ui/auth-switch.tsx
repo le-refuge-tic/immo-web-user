@@ -716,5 +716,5 @@ export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 
   )
 }
 
-export { AuthSwitch as Component }
+export { AuthSwitch }
 export default AuthSwitch
