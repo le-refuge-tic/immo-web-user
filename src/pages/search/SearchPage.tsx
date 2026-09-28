@@ -415,7 +415,7 @@ export default function SearchPage() {
     <div className="min-h-full">
 
       {/* ══════════════ MOBILE ══════════════ */}
-      <div className="lg:hidden pt-[72px] md:pt-0">
+      <div className="lg:hidden pt-[72px] md:pt-0 overflow-x-hidden">
 
         {/* Header sticky — top-[72px] pour dégager la TopNav fixe */}
         <div className="sticky top-[72px] z-30 px-4 pt-3 pb-3"
@@ -428,8 +428,9 @@ export default function SearchPage() {
         >
           <div className="flex items-center gap-2 mb-2.5">
             <button onClick={() => navigate(-1)}
-              className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl transition-all"
+              className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl transition-all"
               style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textClr }}
+              aria-label="Retour"
             >
               <BackIcon />
             </button>
@@ -461,7 +462,8 @@ export default function SearchPage() {
 
             <button
               onClick={() => setMobileOpen(o => !o)}
-              className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl relative transition-all"
+              className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl relative transition-all"
+              aria-label="Filtres"
               style={hasFilters ? tk.pillActive : { background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textClr }}
             >
               <FilterIcon />
@@ -475,7 +477,7 @@ export default function SearchPage() {
           </div>
 
           {chips.length > 0 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pr-2 scrollbar-hide">
               {chips.map(chip => (
                 <button key={chip.label} onClick={chip.onRemove}
                   className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -492,7 +494,7 @@ export default function SearchPage() {
         </div>
 
         {mobileOpen && (
-          <div className="px-4 pb-4 pt-4 border-b anim-fade-down"
+          <div className="px-4 pb-4 pt-4 border-b anim-fade-down overflow-hidden"
             style={{
               background: isDark ? 'rgba(16,16,26,0.99)' : 'rgba(255,255,255,0.97)',
               backdropFilter: 'blur(40px)',
@@ -893,6 +895,7 @@ function ResultHeader({ count, loading, hasFilters, reset, inline, sortBy, setSo
               className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all"
               style={active ? tk.pillActive : { color: tk.labelClr }}
               title={s.label}
+              aria-label={s.label}
             >
               {SORT_ICONS[s.key]}
               <span className="hidden sm:inline">{s.label}</span>
