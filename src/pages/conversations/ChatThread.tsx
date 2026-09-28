@@ -472,14 +472,14 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
           <div className="space-y-3">
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
-              <input type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
+              <label htmlFor="slot-date" className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
+              <input id="slot-date" type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
                 className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
             </div>
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
-              <input type="time" value={time} onChange={e => setTime(e.target.value)}
+              <label htmlFor="slot-time" className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
+              <input id="slot-time" type="time" value={time} onChange={e => setTime(e.target.value)}
                 className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
             </div>
