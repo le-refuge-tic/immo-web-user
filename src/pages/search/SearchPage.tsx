@@ -222,10 +222,11 @@ export default function SearchPage() {
   useEffect(() => {
     const params: any = { limit: 200 }
     if (chambresMin) params.chambres_min = chambresMin
+    if (salonsMin)   params.salons_min   = salonsMin
     biensApi.list(params)
       .then(data => { setWideBiens(Array.isArray(data) ? data : data.data || []) })
       .catch(() => {})
-  }, [chambresMin])
+  }, [chambresMin, salonsMin])
 
   useEffect(() => { setShowAllAutres(false) }, [allBiens])
 
@@ -242,12 +243,9 @@ export default function SearchPage() {
       .catch(() => {})
   }, [isLoggedIn])
 
-  const countPiece = (bien: any, nom: string) => (bien.pieces || []).filter((p: any) => p.nom === nom).length
-
   const nonLocationFilters = useCallback((biens: any[]) => {
     let filtered = biens
     if (sousType) filtered = filtered.filter(b => b.amenites?.sous_type === sousType)
-    if (salonsMin) filtered = filtered.filter(b => countPiece(b, 'Salon') >= Number(salonsMin))
     if (superficieMin || superficieMax) {
       filtered = filtered.filter(b => {
         const s = b.details_terrain?.superficie || b.details_maison?.superficie
@@ -258,7 +256,7 @@ export default function SearchPage() {
       })
     }
     return filtered
-  }, [sousType, salonsMin, superficieMin, superficieMax])
+  }, [sousType, superficieMin, superficieMax])
 
   const applySort = useCallback((biens: any[], q: string) => {
     if (sortBy === 'prix_asc')  return [...biens].sort((a, b) => Number(a.prix) - Number(b.prix))
@@ -376,13 +374,14 @@ export default function SearchPage() {
       if (transaction) params.transaction = transaction
       if (type)        params.type        = type
       if (chambresMin) params.chambres_min = chambresMin
+      if (salonsMin)   params.salons_min   = salonsMin
       const nq = norm(query.trim())
       const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
       if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
       fetchBiens(params)
     }, 420)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [query, transaction, type, chambresMin, fetchBiens])
+  }, [query, transaction, type, chambresMin, salonsMin, fetchBiens])
 
   const reset = () => {
     setQuery(''); setTransaction(''); setType(''); setPrixMin(''); setPrixMax('')
