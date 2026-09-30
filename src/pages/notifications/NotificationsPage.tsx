@@ -55,6 +55,11 @@ const BienRejeteIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 )
+const PaiementIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9v6.75A2.25 2.25 0 004.5 18h15a2.25 2.25 0 002.25-2.25V9M2.25 9V6.75A2.25 2.25 0 014.5 4.5h15a2.25 2.25 0 012.25 2.25V9M6 15h3" />
+  </svg>
+)
 
 type TypeCfg = { icon: React.ReactNode; color: string; bg: string }
 const TYPE_CONFIG: Record<string, TypeCfg> = {
@@ -66,6 +71,9 @@ const TYPE_CONFIG: Record<string, TypeCfg> = {
   systeme:      { icon: <SystemeIcon />,      color: '#6B7280', bg: 'rgba(107,114,128,0.08)' },
   bien_approuve: { icon: <BienApprouveIcon />, color: '#22C55E', bg: 'rgba(34,197,94,0.08)' },
   bien_rejete:   { icon: <BienRejeteIcon />,   color: '#EF4444', bg: 'rgba(239,68,68,0.08)' },
+  documents_valides:   { icon: <BienApprouveIcon />, color: '#22C55E', bg: 'rgba(34,197,94,0.08)' },
+  documents_rejetes:   { icon: <BienRejeteIcon />,   color: '#EF4444', bg: 'rgba(239,68,68,0.08)' },
+  paiement_visite_recu: { icon: <PaiementIcon />,    color: '#8E44AD', bg: 'rgba(142,68,173,0.08)' },
 }
 
 function getTypeConfig(type?: string): TypeCfg {
@@ -76,7 +84,7 @@ const VISITE_TYPES = new Set([
   'visite_demande', 'visite_confirmee', 'visite_contre_proposee',
   'visite_client_recontrepropose', 'visite_proposition_envoyee',
   'visite_effectuee', 'visite_echouee', 'visite_annulee',
-  'rappel_visite', 'paiement_visite',
+  'rappel_visite', 'paiement_visite', 'paiement_visite_recu',
 ])
 const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
