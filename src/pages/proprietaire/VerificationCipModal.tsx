@@ -42,7 +42,34 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
   )
 }
 
+function StatutBanner({ icon, color, titre, message }: { icon: string; color: string; titre: string; message: string }) {
+  return (
+    <div className="rounded-xl p-3 flex items-start gap-3" style={{ background: `${color}18`, border: `1px solid ${color}4D` }}>
+      <span className="text-lg leading-none">{icon}</span>
+      <div>
+        <p className="text-sm font-bold" style={{ color }}>{titre}</p>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--p-text)' }}>{message}</p>
+      </div>
+    </div>
+  )
+}
+
+function DocLectureSeule({ label }: { label: string }) {
+  return (
+    <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: 'var(--p-deep)', border: '1px solid var(--p-border)' }}>
+      <span className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold" style={{ background: '#16A34A18', color: '#16A34A' }}>✓</span>
+      <p className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{label}</p>
+    </div>
+  )
+}
+
 export default function VerificationCipModal({ user, onClose }: Props) {
+  const statut: string = user?.statut_verification_documents || 'non_soumis'
+  const motif: string | undefined = user?.motif_rejet_documents
+  // Lecture seule tant que la demande est en attente ou déjà validée : seul un
+  // rejet (ou l'absence de toute soumission) permet de (re)soumettre (C1).
+  const lectureSeule = statut === 'en_attente' || statut === 'valide'
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
       <div className="rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" style={{ background: 'var(--p-card)' }} onClick={e => e.stopPropagation()}>
@@ -56,8 +83,33 @@ export default function VerificationCipModal({ user, onClose }: Props) {
             Une pièce d'identité vérifiée renforce la confiance des locataires et démarcheurs qui interagissent avec vos annonces. Envoyez votre CIP (Carte d'Identité Personnelle) ou votre IFU.
           </p>
 
-          <DocUploader label="CIP (Carte d'Identité Personnelle)" existingUrl={user?.cip_url} onUpload={f => userApi.uploadCip(f)} />
-          <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={f => userApi.uploadIfu(f)} />
+          {statut === 'rejete' && (
+            <StatutBanner icon="✕" color="#DC2626" titre="Documents rejetés"
+              message={motif ? `Motif : ${motif}` : 'Vos documents ont été rejetés. Merci de soumettre de nouveaux documents.'} />
+          )}
+
+          {lectureSeule && (
+            <StatutBanner
+              icon={statut === 'valide' ? '✓' : '⏳'}
+              color={statut === 'valide' ? '#16A34A' : '#F59E0B'}
+              titre={statut === 'valide' ? 'Documents validés' : 'Vérification en cours'}
+              message={statut === 'valide'
+                ? "Votre identité a été vérifiée par notre équipe."
+                : "Vos documents ont été envoyés et sont en cours d'examen par notre équipe."}
+            />
+          )}
+
+          {lectureSeule ? (
+            <>
+              {user?.cip_url && <DocLectureSeule label="CIP (Carte d'Identité Personnelle)" />}
+              {user?.ifu_url && <DocLectureSeule label="IFU (Identifiant Fiscal Unique)" />}
+            </>
+          ) : (
+            <>
+              <DocUploader label="CIP (Carte d'Identité Personnelle)" existingUrl={user?.cip_url} onUpload={f => userApi.uploadCip(f)} />
+              <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={f => userApi.uploadIfu(f)} />
+            </>
+          )}
         </div>
       </div>
     </div>
