@@ -191,8 +191,8 @@ export default function NotificationsPage() {
       <div className="w-full px-4 md:px-16">
 
         {/* Header */}
-        <div className="pt-6 pb-4">
-<div className="flex items-end justify-between mb-4">
+        <div className="pt-[72px] md:pt-6 pb-4">
+          <div className="flex items-end justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-text-dark">Notifications</h1>
               {unread > 0 && (
