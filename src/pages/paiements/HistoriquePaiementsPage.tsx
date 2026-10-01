@@ -233,6 +233,7 @@ export default function HistoriquePaiementsPage() {
       {detail && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
+          aria-hidden="true"
           onClick={() => setDetail(null)}>
           <div role="dialog" aria-modal="true" aria-label="Détail du paiement" className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white"
             onClick={e => e.stopPropagation()}>

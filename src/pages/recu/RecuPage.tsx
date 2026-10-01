@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { paiementApi } from '../../api/paiementApi'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 import { bienTypeLabel } from '../../utils/bienType'
@@ -64,6 +65,7 @@ const IcCheck = () => <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fil
 const IcOp = () => <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="5" y="2" width="14" height="20" rx="2" /><path strokeLinecap="round" d="M11 18h2" /></svg>
 
 export default function RecuPage() {
+  usePageTitle('Reçu de paiement')
   const { type, refId } = useParams<{ type: string; refId: string }>()
   const navigate = useNavigate()
   const [recu, setRecu] = useState<any>(null)

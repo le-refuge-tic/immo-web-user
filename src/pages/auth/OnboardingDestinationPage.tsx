@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { usePageTitle } from '../../utils/usePageTitle'
 import sideImg from '../../assets/onboarding-side.jpg'
 import logoUrl from '../../assets/REFUGE-ICON.png'
 import { QUARTIERS as QUARTIERS_DB, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
@@ -22,6 +23,7 @@ const VILLE_DEP: Record<string, string> = {
 }
 
 export default function OnboardingDestinationPage() {
+  usePageTitle('Ma destination – Inscription')
   const navigate = useNavigate()
   const location = useLocation()
   const objectif: string = (location.state as any)?.objectif || 'louer'

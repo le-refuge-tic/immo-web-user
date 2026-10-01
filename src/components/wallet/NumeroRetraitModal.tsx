@@ -48,13 +48,12 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
 
   return (
     <div
-      aria-hidden="true"
+      role="dialog" aria-modal="true" aria-label="Numéro de retrait"
       className="fixed inset-0 z-[60] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.5)' }}
       onClick={onClose}
     >
       <div
-        role="dialog" aria-modal="true" aria-label="Numéro de retrait" aria-hidden="false"
         className="bg-[#0B1C30] rounded-2xl w-full max-w-sm border border-[#1A3355]"
         onClick={e => e.stopPropagation()}
       >

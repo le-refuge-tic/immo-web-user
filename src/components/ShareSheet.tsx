@@ -50,6 +50,7 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
   return (
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ background: 'rgba(0,0,0,0.55)' }}
+      aria-hidden="true"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div role="dialog" aria-modal="true" aria-labelledby="sharesheet-title"
         className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 anim-scale-in safe-bottom"

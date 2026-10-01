@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { rolesApi } from '../../api/rolesApi'
 
 type RoleInfo = {
@@ -29,6 +30,7 @@ function roleLabel(key: string) {
 }
 
 export default function ManageRolesPage() {
+  usePageTitle('Gérer mes rôles')
   const { user, rolesActifs, updateUser, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState<string | null>(null)

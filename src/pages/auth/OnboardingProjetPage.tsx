@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import sideImg from '../../assets/onboarding-side.jpg'
 import logoUrl from '../../assets/REFUGE-ICON.png'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 export default function OnboardingProjetPage() {
+  usePageTitle('Mon projet – Inscription')
   const navigate = useNavigate()
   const [selected, setSelected] = useState<'proprietaire' | 'louer'>('louer')
 
