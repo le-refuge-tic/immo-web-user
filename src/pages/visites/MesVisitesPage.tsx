@@ -6,7 +6,7 @@ import { paiementApi } from '../../api/paiementApi'
 import { chatApi } from '../../api/chatApi'
 import FaceRating from '../../components/FaceRating'
 import { bienTypeLabel } from '../../utils/bienType'
-import { validateBeninPhone, PHONE_FORMAT_HINT } from '../../utils/phone'
+import { validateBeninPhone } from '../../utils/phone'
 import { usePageTitle } from '../../utils/usePageTitle'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
