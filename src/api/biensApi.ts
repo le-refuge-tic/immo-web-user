@@ -3,6 +3,8 @@ import type { Bien, BienResponse, ListResponse, Photo } from '../types/api'
 import { tokenStore } from '../utils/tokenStore'
 import { BASE, auth } from './apiBase'
 
+const API_MAX_LIMIT = 100
+
 /** Corps d'une création / modification de bien (champs variables selon le type). */
 export type BienPayload = Record<string, unknown>
 
@@ -27,8 +29,11 @@ export interface DemandeGestion {
 }
 
 export const biensApi = {
+  // L'API refuse (400) tout `limit` > 100 : on plafonne ici pour que la recherche ne casse jamais.
   list: (params?: BiensListParams) =>
-    axios.get<ListResponse<Bien>>(`${BASE}/biens`, { params }).then(r => r.data),
+    axios.get<ListResponse<Bien>>(`${BASE}/biens`, {
+      params: params?.limit && params.limit > API_MAX_LIMIT ? { ...params, limit: API_MAX_LIMIT } : params,
+    }).then(r => r.data),
 
   /** NB (FE-E-005) : le client ne doit dépendre d'aucun champ `user.*` (telephone, numero_retrait, cip_url...) de cette réponse publique ; seul `user_id` est utilisé. */
   byId: (id: number) =>

@@ -100,6 +100,10 @@
   width: 100%;
 }
 .auth-input::placeholder { color: #A0A0A8; font-size: 0.8125rem; }
+/* La page d'authentification reste claire en thème sombre : on neutralise la règle
+   globale `.dark input::placeholder` (blanc translucide, invisible sur fond clair). */
+.dark .auth-input::placeholder,
+.dark .auth-phone input::placeholder { color: #8A8A94 !important; }
 .auth-input:focus {
   border-color: #4B6BFF;
   box-shadow: 0 0 0 3px rgba(75, 107, 255, 0.13);
