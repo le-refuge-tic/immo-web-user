@@ -104,7 +104,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
             <input type="number" value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
-            <p className="text-[11px] text-text-grey mt-1">Affiché en avant sur la fiche du bien, à la place du prix normal.</p>
+            <p className="text-caption text-text-grey mt-1">Affiché en avant sur la fiche du bien, à la place du prix normal.</p>
           </div>
           <div>
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Frais de visite (FCFA)</label>

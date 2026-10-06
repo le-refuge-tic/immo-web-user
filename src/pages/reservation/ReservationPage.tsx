@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { API_ORIGIN } from '../../api/apiBase'
 import { useParams, useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
@@ -50,7 +51,7 @@ function gmt1TodayParts() {
   return { y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate() }
 }
 
-const IMG_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
+const IMG_BASE = API_ORIGIN
 function resolveUrl(url: string) {
   if (!url) return ''
   return url.startsWith('http') ? url : `${IMG_BASE}${url}`
@@ -193,7 +194,7 @@ export default function ReservationPage() {
       </div>
       <div className="flex flex-col items-end justify-center flex-shrink-0">
         <p className="text-sm font-bold text-primary">{Number(bien.prix).toLocaleString('fr-FR')} FCFA</p>
-        {bien.transaction === 'location' && <p className="text-[10px] text-text-grey">/mois</p>}
+        {bien.transaction === 'location' && <p className="text-micro text-text-grey">/mois</p>}
       </div>
     </div>
   ) : null
@@ -210,7 +211,7 @@ export default function ReservationPage() {
         </button>
       </div>
       <div className="grid grid-cols-7 mb-2">
-        {DAY_LABELS.map(d => <p key={d} className="text-[11px] font-semibold text-text-grey text-center">{d}</p>)}
+        {DAY_LABELS.map(d => <p key={d} className="text-caption font-semibold text-text-grey text-center">{d}</p>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {Array.from({ length: firstWeekday }).map((_, i) => <div key={`e-${i}`} />)}
@@ -253,7 +254,7 @@ export default function ReservationPage() {
     <div ref={timeSectionRef} className="rounded-2xl p-5" style={GLASS}>
       <div className="flex items-center justify-between mb-3.5">
         <p className="text-sm font-bold text-text-dark">Heure souhaitée</p>
-        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#3A5AEE' }}>
+        <span className="text-caption font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#3A5AEE' }}>
           {(() => { const d = selectedDate; const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam']; return `${days[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}` })()}
         </span>
       </div>
@@ -363,7 +364,7 @@ export default function ReservationPage() {
         <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.54)" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.54)' }}>Les frais de visite seront prélevés à la confirmation</p>
+        <p className="text-caption" style={{ color: 'rgba(255,255,255,0.54)' }}>Les frais de visite seront prélevés à la confirmation</p>
       </div>
     </div>
   )
@@ -425,7 +426,7 @@ export default function ReservationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-white text-[11px] font-bold">{frais.toLocaleString('fr-FR')} FCFA</span>
+            <span className="text-white text-caption font-bold">{frais.toLocaleString('fr-FR')} FCFA</span>
           </div>
         </div>
       </div>

@@ -21,7 +21,7 @@ const IcKey = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" str
 const ROLES: RoleInfo[] = [
   { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#3A5AEE', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
   { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: '#2E86C1', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
-  { key: 'demarcheur',   label: 'Agent',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
+  { key: 'demarcheur',   label: 'Démarcheur',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
   { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: '#15803D', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
 ]
 
@@ -154,7 +154,7 @@ export default function ManageRolesPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-bold text-text-dark text-sm">{r.label}</p>
                         {statusLabel && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.color : r.bg, color: isActiveNow ? '#fff' : r.color }}>
+                          <span className="text-micro font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.color : r.bg, color: isActiveNow ? '#fff' : r.color }}>
                             {statusLabel}
                           </span>
                         )}

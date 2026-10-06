@@ -27,7 +27,7 @@ const TYPES_BIEN = [
 
 const SANITAIRE_OPTS = [
   { value: 'interieur', label: 'Sanitaire',        sub: 'Douche intérieure au logement' },
-  { value: 'cour',      label: 'Non sanitaire',    sub: 'Douche extérieure / commune' },
+  { value: 'cour',      label: 'Douche et WC extérieurs', sub: 'Douche extérieure / commune' },
   { value: 'autre',     label: 'Autre à préciser', sub: '' },
 ]
 
@@ -121,9 +121,9 @@ function Card({ children, className }: { children: ReactNode; className?: string
 function Section({ title, required }: { title: string; required?: boolean }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--p-muted)' }}>{title}</p>
+      <p className="text-caption font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--p-muted)' }}>{title}</p>
       {required && (
-        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+        <span className="text-micro font-bold px-1.5 py-0.5 rounded"
           style={{ color: BLUE, background: BLUE + '20' }}>Obligatoire</span>
       )}
     </div>
@@ -410,7 +410,7 @@ export default function NouveauBienPage() {
 
   // Label helpers (used in récap)
   const labelFinition = (v: string) => ({ ordinaire: 'Ordinaire', semi_staffe: 'Semi-Staffé', staffe_carele: 'Staffé', haut_standing: 'Haut Standing / VIP' } as Record<string,string>)[v] ?? v
-  const labelSanitaire = (v: string) => v === 'interieur' ? 'Sanitaire' : v === 'cour' ? 'Non sanitaire' : (sanitaireAutre.trim() || 'Autre à préciser')
+  const labelSanitaire = (v: string) => v === 'interieur' ? 'Sanitaire' : v === 'cour' ? 'Douche et WC extérieurs' : (sanitaireAutre.trim() || 'Autre à préciser')
   const labelCuisine = (v: string) => v === 'separee_douche' ? 'Cuisine séparée de la douche' : v === 'americaine' ? 'Cuisine américaine' : (cuisineAutre.trim() || 'Autres')
   const labelCour = (v: string) => v === 'entree_personnelle' ? 'Entrée personnelle' : 'Cour commune'
   const labelElec = (v: string) => { const p = parsePrix(prixKwh); return v === 'sbee' ? 'SBEE' : v === 'decompteur' ? `Décompteur${p !== undefined ? ` (${Math.round(p)} FCFA/kWh)` : ''}` : 'Non' }
@@ -658,12 +658,12 @@ export default function NouveauBienPage() {
 
             <div className="flex-1 text-center min-w-0">
               <p className="text-[13px] font-bold truncate" style={{ color: 'var(--p-text)' }}>Nouveau bien</p>
-              <p className="text-[10px] uppercase tracking-[0.12em] truncate" style={{ color: 'var(--p-muted)' }}>
+              <p className="text-micro uppercase tracking-[0.12em] truncate" style={{ color: 'var(--p-muted)' }}>
                 {STEP_LABELS[step]}
               </p>
             </div>
 
-            <div className="flex-shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border"
+            <div className="flex-shrink-0 px-2.5 py-1 rounded-full text-caption font-bold border"
               style={{ borderColor: BLUE + '40', background: BLUE + '15', color: BLUE }}>
               {step + 1}/{STEP_LABELS.length}
             </div>
@@ -792,7 +792,7 @@ export default function NouveauBienPage() {
               <div className="space-y-4">
                 {/* Quartier — recherche inline dark-themed */}
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
+                  <label className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
                     Quartier
                   </label>
                   {quartier ? (
@@ -851,7 +851,7 @@ export default function NouveauBienPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                               </svg>
                               <span className="flex-1">{q.nom}</span>
-                              <span className="text-[11px]" style={{ color: 'var(--p-muted)' }}>{q.arrondissement}</span>
+                              <span className="text-caption" style={{ color: 'var(--p-muted)' }}>{q.arrondissement}</span>
                             </button>
                           ))}
                         </div>
@@ -861,7 +861,7 @@ export default function NouveauBienPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
+                  <label className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
                     Indication précise <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>(optionnel)</span>
                   </label>
                   <input value={indicationAdresse} onChange={e => setIndicationAdresse(e.target.value)}
@@ -1266,7 +1266,7 @@ export default function NouveauBienPage() {
                       <div>
                         <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--p-muted)' }}>Caution eau</p>
                         <MoneyInput value={cautionEau} onChange={setCautionEau} />
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution eau</p>
+                        <p className="text-caption mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution eau</p>
                       </div>
                     )}
                     {electricite !== 'non' && (
@@ -1275,7 +1275,7 @@ export default function NouveauBienPage() {
                           Caution électricité ({electricite === 'sbee' ? 'SBEE' : 'Décompteur'})
                         </p>
                         <MoneyInput value={cautionElec} onChange={setCautionElec} />
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution électricité</p>
+                        <p className="text-caption mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution électricité</p>
                       </div>
                     )}
                   </div>
@@ -1515,7 +1515,7 @@ export default function NouveauBienPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] mt-2" style={{ color: 'var(--p-muted)' }}>
+                    <p className="text-caption mt-2" style={{ color: 'var(--p-muted)' }}>
                       {photos.length}/5 photo{photos.length > 1 ? 's' : ''} — encore {5 - photos.length} possible{5 - photos.length > 1 ? 's' : ''}
                     </p>
                   </>
@@ -1524,7 +1524,7 @@ export default function NouveauBienPage() {
                 {submitting && uploadProgress > 0 && (
                   <div className="mt-3">
                     <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--p-muted)' }}>
-                      <span>Upload photos…</span><span>{uploadProgress}%</span>
+                      <span>Téléversement des photos…</span><span>{uploadProgress}%</span>
                     </div>
                     <div className="h-2 rounded-full" style={{ background: 'var(--p-deep)' }}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${uploadProgress}%`, background: BLUE }} />

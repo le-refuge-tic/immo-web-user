@@ -37,6 +37,7 @@ const PortefeuillePage       = lazy(() => import('./pages/wallet/PortefeuillePag
 const RechargementWalletPage = lazy(() => import('./pages/wallet/RechargementWalletPage'))
 const RejoindreBienPage      = lazy(() => import('./pages/locataire/RejoindreBienPage'))
 const HistoriquePaiementsPage = lazy(() => import('./pages/paiements/HistoriquePaiementsPage'))
+const NotFoundPage           = lazy(() => import('./pages/errors/NotFoundPage'))
 const ManageRolesPage        = lazy(() => import('./pages/profile/ManageRolesPage'))
 const RecuPage               = lazy(() => import('./pages/recu/RecuPage'))
 
@@ -58,14 +59,15 @@ function PrivateRoute({ children }: { children: React.ReactElement }) {
   return children
 }
 
-function RoleRoute({ role, children }: { role: string; children: React.ReactElement }) {
+function RoleRoute({ role, anyOf, redirectTo = '/', children }: { role?: string; anyOf?: string[]; redirectTo?: string; children: React.ReactElement }) {
   const { isLoggedIn, rolesActifs } = useAuth()
   const location = useLocation()
   if (!isLoggedIn) {
     sessionStorage.setItem('post_login_redirect', location.pathname + location.search)
     return <Navigate to="/login" replace />
   }
-  if (!rolesActifs.includes(role)) return <Navigate to="/" replace />
+  const accepted = anyOf ?? (role ? [role] : [])
+  if (!accepted.some(r => rolesActifs.includes(r))) return <Navigate to={redirectTo} replace />
   return children
 }
 
@@ -167,7 +169,7 @@ function App() {
             <PrivateRoute><ReservationPage /></PrivateRoute>
           } />
           <Route path="nouveau-bien" element={
-            <PrivateRoute><NouveauBienPage /></PrivateRoute>
+            <RoleRoute anyOf={['proprietaire', 'demarcheur']} redirectTo="/mes-roles"><NouveauBienPage /></RoleRoute>
           } />
           <Route path="portefeuille" element={
             <PrivateRoute><PortefeuillePage /></PrivateRoute>
@@ -175,9 +177,8 @@ function App() {
           <Route path="mes-roles" element={
             <PrivateRoute><ManageRolesPage /></PrivateRoute>
           } />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>
       </ErrorBoundary>

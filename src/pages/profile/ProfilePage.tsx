@@ -1,8 +1,7 @@
+import { useTheme } from '../../context/ThemeContext'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { tokenStore } from '../../utils/tokenStore'
-import { authApi } from '../../api/authApi'
 import { userApi } from '../../api/userApi'
 import { visitesApi } from '../../api/visitesApi'
 import { walletApi } from '../../api/walletApi'
@@ -130,7 +129,7 @@ function StatBadge({ icon, value, label, color, bg, border }: StatBadgeProps) {
     >
       <div style={{ color }}>{icon}</div>
       <p className="text-base font-bold mt-1" style={{ color }}>{value}</p>
-      <p className="text-[10px] text-text-grey">{label}</p>
+      <p className="text-micro text-text-grey">{label}</p>
     </div>
   )
 }
@@ -161,6 +160,7 @@ function MenuItem({ icon, label, onClick, showDivider = true }: MenuItemProps) {
 export default function ProfilePage() {
   usePageTitle('Profil')
   const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [apiUser, setApiUser] = useState<any>(null)
   const [visites, setVisites] = useState<Visite[]>([])
@@ -182,7 +182,7 @@ export default function ProfilePage() {
         if (u.status === 'fulfilled') setApiUser(u.value)
         if (v.status === 'fulfilled') {
           const list = Array.isArray(v.value) ? v.value : v.value?.data || []
-          setVisites(list)
+          setVisites(list as unknown as Visite[]) // type local divergent de types/api (FE-A-003)
         }
       } catch (_) {}
       setIsLoading(false)
@@ -204,9 +204,8 @@ export default function ProfilePage() {
   const visiteActive = visites.find(v => v.statut === 'en_attente' || v.statut === 'confirmee')
   const mesAvis = visites.filter(v => v.statut === 'effectuee' && v.feedback_donne && v.note_client != null)
 
-  const handleLogout = async () => {
-    const rt = tokenStore.getRefresh()
-    try { await authApi.logout(rt) } catch (_) {}
+  const handleLogout = () => {
+    // La révocation serveur est faite par logout() (AuthContext).
     // Naviguer vers l'accueil D'ABORD, puis vider le contexte auth seulement
     // après deux frames (donne à React le temps de démonter /profil, qui est
     // protégé par PrivateRoute). Sinon PrivateRoute est encore monté quand
@@ -229,7 +228,7 @@ export default function ProfilePage() {
     } finally {
       try {
         const data = await visitesApi.mesVisites()
-        setVisites(Array.isArray(data) ? data : data.data || [])
+        setVisites((Array.isArray(data) ? data : data.data || []) as unknown as Visite[])
       } catch (_) {}
     }
   }
@@ -293,7 +292,7 @@ export default function ProfilePage() {
               {v.feedback_tags && v.feedback_tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-1.5">
                   {v.feedback_tags.map(t => (
-                    <span key={t} className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: '#F59E0B18', color: '#B45309' }}>{t}</span>
+                    <span key={t} className="px-2 py-0.5 rounded text-micro font-semibold" style={{ background: '#F59E0B18', color: '#B45309' }}>{t}</span>
                   ))}
                 </div>
               )}
@@ -329,7 +328,7 @@ export default function ProfilePage() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-bold text-text-dark">{visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}</p>
-          <p className="text-[11px] text-text-grey mt-0.5 truncate">
+          <p className="text-caption text-text-grey mt-0.5 truncate">
             {typeStr}
             {lieu ? ` — ${lieu}` : ''}
             {dateStr ? ` · ${dateStr}` : ''}
@@ -342,13 +341,13 @@ export default function ProfilePage() {
         )}
         {confirmAnnulerVisite ? (
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button onClick={e => { e.stopPropagation(); handleAnnuler() }} className="text-[11px] font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: '#DC2626' }}>Confirmer</button>
-            <button onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(false) }} className="text-[11px] font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#6B7280' }}>✕</button>
+            <button onClick={e => { e.stopPropagation(); handleAnnuler() }} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: '#DC2626' }}>Confirmer</button>
+            <button onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(false) }} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#6B7280' }}>✕</button>
           </div>
         ) : (
           <button
             onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(true) }}
-            className="text-[11px] font-bold text-danger px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
+            className="text-caption font-bold text-danger px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
             style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
             Annuler
           </button>
@@ -393,6 +392,10 @@ export default function ProfilePage() {
           </button>
           <MenuBlock />
           <MesAvisBlock />
+          <button onClick={toggleTheme} role="switch" aria-checked={theme === 'dark'} className="w-full flex items-center justify-between gap-3 p-4 rounded-[16px] glass-card">
+            <span className="text-[15px] font-semibold text-text-dark">Thème sombre</span>
+            <span className="text-[13px] font-semibold text-text-grey">{theme === 'dark' ? 'Activé' : 'Désactivé'}</span>
+          </button>
           <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-full" style={{ backgroundColor: '#FF6B35' }}>
             <LogoutIcon />
             <span className="text-white text-[15px] font-bold">Se déconnecter</span>

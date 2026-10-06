@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_ORIGIN } from '../../api/apiBase'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { biensApi } from '../../api/biensApi'
@@ -12,7 +13,7 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import logoSbee from '../../assets/logo-SBEE.png'
 import logoSoneb from '../../assets/logo-SONEB.png'
 
-const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
+const BACKEND = API_ORIGIN + '/'
 
 function resolveUrl(url: string) {
   if (!url) return ''
@@ -460,7 +461,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
               <div className="mb-5">
                 {hasPromo && (
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
+                    <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
                     <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
                   </div>
                 )}
@@ -566,7 +567,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <h1 className="text-lg font-bold text-text-dark mb-1">{title}</h1>
           {hasPromo && (
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-md text-[11px] font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
+              <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
               <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
             </div>
           )}
@@ -720,7 +721,7 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
           {bien.amenites?.cour && <FeatureChip icon="yard" label="Cour" />}
           {bien.amenites?.boyerie && <FeatureChip icon="person" label="Boyerie" />}
           {bien.amenites?.sanitaire === true && <FeatureChip icon="bathtub" label="Sanitaire" />}
-          {bien.amenites?.sanitaire === false && <FeatureChip icon="people" label="Non sanitaire" />}
+          {bien.amenites?.sanitaire === false && <FeatureChip icon="people" label="Douche et WC extérieurs" />}
         </div>
       )}
 
@@ -863,7 +864,7 @@ function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: any }) {
               )}
             </div>
             <div className="flex-1">
-              <p className="text-[11px] text-text-grey">{r.label}</p>
+              <p className="text-caption text-text-grey">{r.label}</p>
               <p className="text-[13px] font-semibold text-text-dark mt-0.5">{r.value}</p>
             </div>
           </div>
@@ -907,7 +908,7 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
             <span className="flex-shrink-0" style={{ color: r.color }}><Icon type={r.icon} className="w-[22px] h-[22px]" /></span>
             <div className="flex-1">
               <p className="text-[13px] font-medium text-text-dark">{r.label}</p>
-              {r.note && <p className="text-[11px] text-success mt-0.5">{r.note}</p>}
+              {r.note && <p className="text-caption text-success mt-0.5">{r.note}</p>}
             </div>
             <p className="text-[13px] font-bold text-text-dark flex-shrink-0">{fcfa(r.amount)}</p>
           </div>
@@ -917,7 +918,7 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[15px] font-extrabold text-text-dark">Total à verser à l'entrée</p>
-            <p className="text-[11px] text-text-grey">Paiement unique à l'entrée</p>
+            <p className="text-caption text-text-grey">Paiement unique à l'entrée</p>
           </div>
           <p className="text-lg font-black text-primary">{fcfa(total)}</p>
         </div>

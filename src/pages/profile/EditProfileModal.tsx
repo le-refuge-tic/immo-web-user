@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../api/userApi'
+import { PHONE_PLACEHOLDER } from '../../utils/phone'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -162,7 +163,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
           </div>
           <div>
             <label htmlFor="ep-telephone" className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</label>
-            <input id="ep-telephone" type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="+229 00 00 00 00"
+            <input id="ep-telephone" type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder={PHONE_PLACEHOLDER}
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div className="flex gap-3 pt-1">

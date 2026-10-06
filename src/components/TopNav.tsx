@@ -18,7 +18,7 @@ const NAV_ITEMS = [
 const ROLE_ROUTES: Record<string, { label: string; path: string }> = {
   proprietaire: { label: 'Espace Propriétaire', path: '/proprietaire' },
   demarcheur:   { label: 'Espace Démarcheur',   path: '/demarcheur'   },
-  commercial:   { label: 'Espace Agent',         path: '/demarcheur'   },
+  commercial:   { label: 'Espace Démarcheur',    path: '/demarcheur'   },
   locataire:    { label: 'Espace Locataire',     path: '/locataire'    },
   prospect:     { label: 'Espace Client',        path: '/'             },
 }
@@ -147,7 +147,7 @@ export default function TopNav() {
                 >
                   {item.label}
                   {badge > 0 && (
-                    <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                    <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30' }}>
                       {badge > 9 ? '9+' : badge}
                     </span>
                   )}
@@ -225,7 +225,7 @@ export default function TopNav() {
                   )}
                   <div className="text-left hidden lg:block">
                     <p className="text-sm font-semibold leading-none" style={menuItemStyle}>{user?.prenom} {user?.nom}</p>
-                    <p className="text-[11px] mt-0.5 capitalize" style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.4)' }}>{user?.role}</p>
+                    <p className="text-caption mt-0.5 capitalize" style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.4)' }}>{user?.role}</p>
                   </div>
                   <svg className="w-4 h-4 ml-1" style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -244,7 +244,7 @@ export default function TopNav() {
                     }}
                   >
                     <div className="px-4 pt-3 pb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)' }}>
+                      <p className="text-micro font-bold uppercase tracking-widest" style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)' }}>
                         Mes espaces
                       </p>
                     </div>
@@ -263,7 +263,7 @@ export default function TopNav() {
                           >
                             <span>{label}</span>
                             {isCurrent && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
+                              <span className="text-micro font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
                                 Actif
                               </span>
                             )}
@@ -279,7 +279,7 @@ export default function TopNav() {
                         style={{ color: '#3A5AEE' }}
                       >
                         <span>{ROLE_ROUTES[activeRole]?.label || 'Mon profil'}</span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
+                        <span className="text-micro font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
                           Actif
                         </span>
                       </button>

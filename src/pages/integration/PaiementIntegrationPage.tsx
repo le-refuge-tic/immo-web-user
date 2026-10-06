@@ -5,6 +5,7 @@ import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 
 const TEAL = '#0EA5E9'
 
@@ -39,7 +40,7 @@ export default function PaiementIntegrationPage() {
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   const payer = async () => {
-    if (!tel || !visiteId) return
+    if (!validateBeninPhone(tel) || !visiteId) return
     setState('waiting')
     try {
       const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: tel })
@@ -188,14 +189,14 @@ export default function PaiementIntegrationPage() {
                 <span className="font-bold text-text-dark text-sm">+229</span>
                 <div className="w-px h-4 bg-divider" />
                 <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                  placeholder="XX XX XX XX" maxLength={8}
+                  placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                   className="flex-1 min-w-0 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
               </div>
               <div className="flex items-start gap-2 text-xs text-text-grey mb-4">
                 <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>Une demande de paiement sera envoyée à votre téléphone. Validez-la dans les 3 minutes.</span>
               </div>
-              <button onClick={payer} disabled={tel.length < 8 || !visiteId}
+              <button onClick={payer} disabled={!validateBeninPhone(tel) || !visiteId}
                 className="w-full py-4 rounded-xl font-bold text-white disabled:opacity-40"
                 style={{ background: `linear-gradient(135deg, #0F3460, ${TEAL})`, boxShadow: '0 4px 14px rgba(14,165,233,0.35)' }}>
                 Payer {total.toLocaleString('fr-FR')} FCFA

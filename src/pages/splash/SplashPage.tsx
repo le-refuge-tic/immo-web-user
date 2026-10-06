@@ -69,7 +69,7 @@ export default function SplashPage() {
             Trouvez votre<br />logement idéal
           </h1>
           <p className="text-white/55 leading-relaxed mb-8 anim-fade-up d-400" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
-            Des centaines de logements vérifiés à Cotonou et Abomey-Calavi.
+            Maisons, appartements et terrains à Cotonou et Abomey-Calavi, avec visites et paiement par Mobile Money.
           </p>
 
           <div className="space-y-4 md:max-w-xs">
@@ -86,10 +86,10 @@ export default function SplashPage() {
               </div>
             </button>
 
-            <div className="flex items-center gap-5 anim-fade-in d-700">
-              <TrustBadge icon="verified" label="Vérifié" color="#22C55E" />
-              <TrustBadge icon="lock" label="Sécurisé" color="#4B6BFF" />
-              <TrustBadge icon="star" label="Fiable" color="#FF6B35" />
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 anim-fade-in d-700">
+              <TrustBadge icon="verified" label="Annonces modérées" color="#22C55E" />
+              <TrustBadge icon="lock" label="Paiement sécurisé" color="#4B6BFF" />
+              <TrustBadge icon="star" label="Reçus automatiques" color="#FF6B35" />
             </div>
           </div>
         </div>

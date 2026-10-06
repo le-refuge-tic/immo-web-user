@@ -93,7 +93,7 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
       <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
         <span style={{ color }}>{icon}</span>
       </div>
-      <span className="text-[11px] font-semibold text-text-dark text-center leading-tight">{label}</span>
+      <span className="text-caption font-semibold text-text-dark text-center leading-tight">{label}</span>
     </button>
   )
 }
@@ -340,12 +340,12 @@ function MesBiensTab() {
                       : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}cc, ${PURPLE}aa)` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
                     }
                     <div className="absolute inset-0 bg-black/20" />
-                    <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
+                    <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-caption font-bold" style={{ background: color }}>{label}</span>
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
                       {confirmDeleteBienId === b.id ? (
                         <>
-                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#DC2626' }}>Suppr.</button>
+                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: '#DC2626' }}>Suppr.</button>
                           <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(null) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm" style={{ background: 'rgba(255,255,255,0.2)' }}>✕</button>
                         </>
                       ) : (
@@ -502,7 +502,7 @@ function ReservationsTab() {
                   <p className="font-bold text-text-dark text-sm">{nom}</p>
                   <p className="text-xs text-text-grey">Identité masquée avant confirmation</p>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
+                <span className="px-2.5 py-1 rounded-lg text-caption font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
               </div>
               <div className="bg-surface-g rounded-xl p-3 mb-3">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -526,11 +526,11 @@ function ReservationsTab() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
+                    <p className="text-micro font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
                     <p className="text-sm font-bold text-text-dark">{contactNumero}</p>
                   </div>
                   <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#25D366' }}>
+                    className="px-3 py-1.5 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: '#25D366' }}>
                     WhatsApp
                   </a>
                 </div>
@@ -597,12 +597,15 @@ function CreneauxTab() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ bien_id: '', date: '', heure: '' })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const load = async () => {
     setLoading(true)
+    setError('')
     try {
       const [c, b] = await Promise.allSettled([visitesApi.mesCreneaux(), biensApi.mesBiens()])
       if (c.status === 'fulfilled') setCreneaux(Array.isArray(c.value) ? c.value : c.value.data || [])
+      else setError('Impossible de charger les créneaux : ce service est momentanément indisponible.')
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
     } catch (_) {}
     setLoading(false)
@@ -615,12 +618,14 @@ function CreneauxTab() {
     try {
       await visitesApi.creerCreneau({ bien_id: Number(form.bien_id), debut: `${form.date}T${form.heure}:00`, duree_minutes: 60 })
       setShowForm(false); setForm({ bien_id: '', date: '', heure: '' }); load()
-    } catch (_) {}
+    } catch (_) {
+      setError("Le créneau n'a pas pu être créé : ce service est momentanément indisponible.")
+    }
     setSaving(false)
   }
 
   const del = async (id: number) => {
-    try { await visitesApi.supprimerCreneau(id); load() } catch (_) {}
+    try { await visitesApi.supprimerCreneau(id); load() } catch (_) { setError("Le créneau n'a pas pu être supprimé. Réessayez plus tard.") }
   }
 
   return (
@@ -631,6 +636,9 @@ function CreneauxTab() {
           <IcPlus /> Ajouter
         </button>
       </div>
+      {error && (
+        <p role="alert" className="flex-shrink-0 px-4 py-3 text-sm font-semibold bg-red-50 text-red-700 border-b border-red-200">{error}</p>
+      )}
       {showForm && (
         <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
           <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
@@ -742,7 +750,7 @@ function PortefeuilleTab() {
                     <p className="font-bold text-sm" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
                       {isCredit ? '+' : '-'}{Math.abs(amt).toLocaleString('fr-FR')} F
                     </p>
-                    {t.balance_after != null && <p className="text-[10px] text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
+                    {t.balance_after != null && <p className="text-micro text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
                   </div>
                 </div>
               )
@@ -805,7 +813,7 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
             <div key={d.id} className="card-soft rounded-xl p-4 mb-3">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-semibold text-text-dark text-sm">{d.proprietaire?.prenom} {d.proprietaire?.nom}</p>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
+                <span className="text-micro font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
               </div>
               <p className="text-xs text-text-grey mb-3">
                 {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'}
@@ -874,9 +882,9 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
           <p className="text-white text-2xl font-bold mb-3">{score} / 100</p>
           <div className="h-1.5 rounded-full bg-white/20 mb-4"><div className="h-full rounded-full bg-white" style={{ width: `${score}%` }} /></div>
           <div className="flex">
-            <div className="flex-1"><p className="text-white/60 text-[10px]">Biens</p><p className="text-white font-bold text-sm">{user?.nb_biens ?? 0}</p></div>
+            <div className="flex-1"><p className="text-white/60 text-micro">Biens</p><p className="text-white font-bold text-sm">{user?.nb_biens ?? 0}</p></div>
             <div className="w-px bg-white/20 mx-3" />
-            <div className="flex-1"><p className="text-white/60 text-[10px]">Étoiles</p><p className="text-white font-bold text-sm">{user?.nb_etoiles ?? 0}</p></div>
+            <div className="flex-1"><p className="text-white/60 text-micro">Étoiles</p><p className="text-white font-bold text-sm">{user?.nb_etoiles ?? 0}</p></div>
           </div>
         </div>
       </div>
@@ -1045,7 +1053,7 @@ export default function DemarcheurDashboard() {
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0 xl:hidden"
               style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
               <IcVerif />
-              <span className="text-white text-[11px] md:text-xs font-semibold">Agent</span>
+              <span className="text-white text-caption md:text-xs font-semibold">Démarcheur</span>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-2 md:gap-4 md:max-w-xl">
@@ -1059,7 +1067,7 @@ export default function DemarcheurDashboard() {
                 style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.15)' }}>
                 <span className="text-white flex justify-center mb-1">{s.icon}</span>
                 <p className="text-white font-bold text-base md:text-lg leading-none">{s.value}</p>
-                <p className="text-[10px] md:text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
+                <p className="text-micro md:text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
               </div>
             ))}
           </div>
@@ -1097,7 +1105,7 @@ export default function DemarcheurDashboard() {
                     <div key={s.label} className="flex items-center flex-1">
                       {i > 0 && <div className="w-px h-8 mr-3" style={{ background: 'rgba(255,255,255,0.2)' }} />}
                       <div>
-                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{s.label}</p>
+                        <p className="text-micro" style={{ color: 'rgba(255,255,255,0.6)' }}>{s.label}</p>
                         <p className="text-white font-bold text-sm">{s.value}</p>
                       </div>
                     </div>
@@ -1131,11 +1139,11 @@ export default function DemarcheurDashboard() {
                           <div key={s.semaine_debut} className="flex items-center justify-between">
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-xs text-text-grey">{fmtSemaine(s.semaine_debut)}</span>
-                              <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: PURPLE + '15', color: PURPLE }}>
+                              <span className="text-caption px-1.5 py-0.5 rounded" style={{ background: PURPLE + '15', color: PURPLE }}>
                                 {s.nb_biens_valides} bien{s.nb_biens_valides !== 1 ? 's' : ''}
                               </span>
                               {s.palier_atteint && (
-                                <span className="text-[11px] px-1.5 py-0.5 rounded font-semibold" style={{ background: '#22C55E20', color: '#16A34A' }}>Palier 20</span>
+                                <span className="text-caption px-1.5 py-0.5 rounded font-semibold" style={{ background: '#22C55E20', color: '#16A34A' }}>Palier 20</span>
                               )}
                             </div>
                             <span className="text-sm font-bold text-text-dark flex-shrink-0">{fmtPrix(s.montant)}</span>
@@ -1176,7 +1184,7 @@ export default function DemarcheurDashboard() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-bold text-text-dark text-xs">{fmtPrix(b.prix)}</p>
-                      <span className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
+                      <span className="mt-1 inline-block px-2 py-0.5 rounded text-micro font-bold" style={{ background: color + '20', color }}>{label}</span>
                     </div>
                   </div>
                 )

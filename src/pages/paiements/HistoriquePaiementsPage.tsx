@@ -155,13 +155,13 @@ export default function HistoriquePaiementsPage() {
                 <div>
                   <p className="text-white/70 text-xs">Total payé (confirmé)</p>
                   <p className="text-xl font-bold mt-0.5">{fmt(totalPaye)}</p>
-                  {totalRecu > 0 && <p className="text-white/70 text-[11px] mt-1">Reçu : {fmt(totalRecu)}</p>}
-                  <p className="text-white/55 text-[11px] mt-0.5">{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</p>
+                  {totalRecu > 0 && <p className="text-white/70 text-caption mt-1">Reçu : {fmt(totalRecu)}</p>}
+                  <p className="text-white/55 text-caption mt-0.5">{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</p>
                 </div>
                 <div className="flex flex-col gap-1.5 items-end flex-shrink-0">
-                  {visiteCount > 0 && <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{visiteCount} Visites</span>}
-                  {loyerCount > 0 && <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{loyerCount} Loyers</span>}
-                  {integCount > 0 && <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{integCount} Intégration</span>}
+                  {visiteCount > 0 && <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{visiteCount} Visites</span>}
+                  {loyerCount > 0 && <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{loyerCount} Loyers</span>}
+                  {integCount > 0 && <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{integCount} Intégration</span>}
                 </div>
               </div>
 
@@ -204,11 +204,11 @@ export default function HistoriquePaiementsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-text-dark text-sm truncate">{typeLabel(t)}</p>
                         {bien && <p className="text-xs text-text-grey truncate mt-0.5">{bien}</p>}
-                        <p className="text-[11px] text-text-grey mt-0.5">{fmtDate(t.created_at)}</p>
+                        <p className="text-caption text-text-grey mt-0.5">{fmtDate(t.created_at)}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-sm text-text-dark">{fmt(Number(t.montant ?? 0))}</p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${statutColor(statut)}1F`, color: statutColor(statut) }}>{statut}</span>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statut)}1F`, color: statutColor(statut) }}>{statut}</span>
                       </div>
                     </div>
                     {showRecu && (
@@ -247,11 +247,11 @@ export default function HistoriquePaiementsPage() {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-bold text-text-dark">{fmt(Number(detail.montant ?? 0))}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${statutColor(statutLabel(detail))}1F`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statutLabel(detail))}1F`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
               </div>
             </div>
             <div className="border-t border-divider pt-3 space-y-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-1">Détails du paiement</p>
+              <p className="text-micro font-bold uppercase tracking-wide text-text-grey mb-1">Détails du paiement</p>
               <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Référence</span><span className="text-xs font-mono font-semibold text-text-dark break-all">{detail.reference || '—'}</span></div>
               <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Méthode</span><span className="text-xs font-semibold text-text-dark">{methodeLabel(detail.methode_paiement)}</span></div>
               {detail.telephone_paiement && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Téléphone utilisé</span><span className="text-xs font-semibold text-text-dark">{detail.telephone_paiement}</span></div>}
@@ -262,7 +262,7 @@ export default function HistoriquePaiementsPage() {
             </div>
             {isVisite(detail) && detail.bien && (
               <div className="border-t border-divider mt-4 pt-3 space-y-2.5">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-1">Bien concerné</p>
+                <p className="text-micro font-bold uppercase tracking-wide text-text-grey mb-1">Bien concerné</p>
                 {detail.bien.quartier && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Quartier</span><span className="text-xs font-semibold text-text-dark">{detail.bien.quartier}</span></div>}
                 {detail.bien.ville && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Ville</span><span className="text-xs font-semibold text-text-dark">{detail.bien.ville}</span></div>}
                 {detail.date_visite && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Date de visite</span><span className="text-xs font-semibold text-text-dark">{fmtDate(detail.date_visite)}</span></div>}

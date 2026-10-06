@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { API_ORIGIN } from '../api/apiBase'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
 
-const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
+const BACKEND = API_ORIGIN + '/'
 
 function resolveUrl(url: string) {
   if (!url) return '/placeholder.jpg'
@@ -197,13 +198,13 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || '—'}
           </p>
           {distanceKm != null && (
-            <span className="flex-shrink-0 text-[11px] font-semibold" style={{ color: '#3A5AEE' }}>
+            <span className="flex-shrink-0 text-caption font-semibold" style={{ color: '#3A5AEE' }}>
               à {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
             </span>
           )}
         </div>
         {showAddedDate && bien.created_at && (
-          <p className="text-[11px] mt-2" style={{ color: textMuted }}>
+          <p className="text-caption mt-2" style={{ color: textMuted }}>
             Ajouté le {fmtAddedDate(bien.created_at)}
           </p>
         )}

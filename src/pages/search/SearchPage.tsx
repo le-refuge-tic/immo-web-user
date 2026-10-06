@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { favoritesApi } from '../../api/favoritesApi'
@@ -286,10 +286,13 @@ export default function SearchPage() {
     return [...biens].sort((a, b) => score(b) - score(a))
   }, [sortBy])
 
+  // Recalcul filtres/tris/distances différé : la saisie reste fluide sur mobile (FE-D-006)
+  const deferredQuery = useDeferredValue(query)
+
   const matchedQuartier = useMemo(() => {
-    const q = query.trim()
+    const q = deferredQuery.trim()
     return q.length >= 2 ? trouverQuartierExact(q) : undefined
-  }, [query])
+  }, [deferredQuery])
 
   const search = useMemo(() => {
     const base     = nonLocationFilters(allBiens)
@@ -338,8 +341,8 @@ export default function SearchPage() {
       }
     } else {
       mainResults = applySort(
-        base.filter(b => matchLoc(b, query.trim())).filter(b => inBudgetRange(b, prixMin, prixMax)),
-        query.trim()
+        base.filter(b => matchLoc(b, deferredQuery.trim())).filter(b => inBudgetRange(b, prixMin, prixMax)),
+        deferredQuery.trim()
       )
     }
 
@@ -358,11 +361,11 @@ export default function SearchPage() {
     }
 
     return { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier, isProximityFallback, quartierRecherche }
-  }, [allBiens, wideBiens, matchedQuartier, query, prixMin, prixMax, nonLocationFilters, applySort])
+  }, [allBiens, wideBiens, matchedQuartier, deferredQuery, prixMin, prixMax, nonLocationFilters, applySort])
 
   const results = search.mainResults
 
-  const refCoords = !matchedQuartier && query.trim().length >= 2 ? getQuartierCoords(query.trim()) : null
+  const refCoords = !matchedQuartier && deferredQuery.trim().length >= 2 ? getQuartierCoords(deferredQuery.trim()) : null
   const distanceFor = (bien: any): number | null => {
     if (matchedQuartier) return search.distFromQuartier(bien)
     if (!refCoords) return null
@@ -493,7 +496,7 @@ export default function SearchPage() {
             >
               <FilterIcon />
               {hasFilters && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center"
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-micro font-bold text-white flex items-center justify-center"
                   style={{ background: '#4B6BFF' }}>
                   {chips.length}
                 </span>
@@ -597,7 +600,7 @@ export default function SearchPage() {
           <div className="p-5">
             {/* Localisation */}
             <div className="mb-4">
-              <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+              <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
                 Localisation
               </label>
               <div className="relative">
@@ -712,7 +715,7 @@ function FilterPanel({
 
       {/* Transaction */}
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Transaction
         </label>
         <div className="flex gap-1.5">
@@ -729,7 +732,7 @@ function FilterPanel({
 
       {/* Type de bien */}
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Type de bien
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -746,7 +749,7 @@ function FilterPanel({
 
       {/* Sous-type */}
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Sous-type
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -763,7 +766,7 @@ function FilterPanel({
 
       {/* Pièces */}
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Pièces minimum
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -775,7 +778,7 @@ function FilterPanel({
       {/* Superficie */}
       {showSuperficie && (
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+          <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
             Superficie (m²)
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -784,7 +787,7 @@ function FilterPanel({
               { label: 'Max', value: superficieMax, set: setSuperficieMax, ph: '∞' },
             ].map(f => (
               <div key={f.label}>
-                <p className="text-[10px] mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
+                <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
                 <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl"
                   style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                   <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
@@ -800,7 +803,7 @@ function FilterPanel({
 
       {/* Budget */}
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Budget (FCFA)
         </label>
         <div className="flex flex-wrap gap-1.5 pb-1 mb-3">
@@ -827,14 +830,14 @@ function FilterPanel({
             { label: 'Max', value: prixMax, set: setPrixMax, ph: '∞' },
           ].map(f => (
             <div key={f.label}>
-              <p className="text-[10px] mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
+              <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
               <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
                 style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                 <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
                   placeholder={f.ph} min={0}
                   className="flex-1 bg-transparent outline-none text-sm min-w-0"
                   style={{ color: tk.textClr }} />
-                <span className="text-[10px] flex-shrink-0 font-medium" style={{ color: tk.labelClr }}>FCFA</span>
+                <span className="text-micro flex-shrink-0 font-medium" style={{ color: tk.labelClr }}>FCFA</span>
               </div>
             </div>
           ))}
@@ -860,7 +863,7 @@ function Stepper({ label, value, onChange, tk }: {
   const n = Number(value) || 0
   return (
     <div>
-      <p className="text-[10px] mb-1 font-medium" style={{ color: tk.labelClr }}>{label}</p>
+      <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{label}</p>
       <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 rounded-xl"
         style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
         <button type="button" onClick={() => onChange(n > 0 ? String(n - 1) : '')}

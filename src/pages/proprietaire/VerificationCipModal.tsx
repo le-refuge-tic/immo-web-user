@@ -22,7 +22,7 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{label}</p>
         {(existingUrl || done) && (
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#16A34A18', color: '#16A34A' }}>Envoyé</span>
+          <span className="text-caption font-bold px-2 py-0.5 rounded-full" style={{ background: '#16A34A18', color: '#16A34A' }}>Envoyé</span>
         )}
       </div>
       <label className="block border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors" style={{ borderColor: 'var(--p-border)' }}>

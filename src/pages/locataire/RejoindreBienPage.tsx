@@ -56,12 +56,12 @@ export default function RejoindreBienPage() {
           <>
             <div className="flex items-start gap-3 p-4 rounded-2xl mb-8" style={{ background: BLUE + '14', border: `1px solid ${BLUE}30` }}>
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-              <p className="text-sm text-text-grey leading-relaxed">Votre propriétaire vous a partagé un code d'invitation (ex : IMC-4X7K). Entrez-le ci-dessous pour signaler votre présence.</p>
+              <p className="text-sm text-text-grey leading-relaxed">Votre propriétaire vous a partagé un code d'invitation (ex : AB12CD). Entrez-le ci-dessous pour signaler votre présence.</p>
             </div>
 
             <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Code d'invitation</label>
             <input type="text" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }}
-              placeholder="IMC-XXXXXX" maxLength={12}
+              placeholder="Votre code" maxLength={12}
               className="w-full border-2 rounded-xl px-4 py-4 text-2xl font-bold tracking-[0.2em] outline-none mb-2 text-text-dark"
               style={{ borderColor: code ? BLUE : 'rgba(0,0,0,0.12)' }} />
             {error && <p className="text-sm text-red-500 mt-1 mb-4">{error}</p>}

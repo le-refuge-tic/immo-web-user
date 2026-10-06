@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { openPaymentUrl } from '../../utils/paymentUrl'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
@@ -6,8 +7,11 @@ import { paiementApi } from '../../api/paiementApi'
 import { chatApi } from '../../api/chatApi'
 import FaceRating from '../../components/FaceRating'
 import { bienTypeLabel } from '../../utils/bienType'
-import { validateBeninPhone } from '../../utils/phone'
+import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { unwrapList } from '../../utils/unwrapList'
+import { useApiQuery } from '../../hooks/useApiQuery'
+import type { Visite } from '../../types/api'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
@@ -62,13 +66,19 @@ const ISSUES_TAGS = [
   'Le prix annoncé ne reflète pas la réalité',
 ]
 
+const NO_VISITES: Visite[] = []
+
 export default function MesVisitesPage() {
   usePageTitle('Mes visites')
   const navigate = useNavigate()
   const location = useLocation()
   const [tab, setTab] = useState(0)
-  const [visites, setVisites] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  // Chargement annulable, sans réponse périmée (FE-A-004) ; refetch recharge la liste.
+  const { data: visitesData, loading, refetch: loadVisites } = useApiQuery(
+    signal => visitesApi.mesVisites(signal).then(unwrapList),
+    [],
+  )
+  const visites = visitesData ?? NO_VISITES
   const [showPay, setShowPay] = useState<any>(null)
   const [operator, setOperator] = useState('momo')
   const [phoneOp, setPhoneOp] = useState('')
@@ -100,8 +110,6 @@ export default function MesVisitesPage() {
     return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [])
 
-  useEffect(() => { loadVisites() }, [])
-
   // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
   // dans le chat (comme sur mobile) — au lieu de laisser l'utilisateur
   // rechercher lui-même la visite dans la liste.
@@ -114,15 +122,6 @@ export default function MesVisitesPage() {
       navigate(location.pathname, { replace: true, state: {} })
     }
   }, [visites, location.state])
-
-  const loadVisites = async () => {
-    setLoading(true)
-    try {
-      const data = await visitesApi.mesVisites()
-      setVisites(Array.isArray(data) ? data : data.data || [])
-    } catch (_) {}
-    setLoading(false)
-  }
 
   const filtered = visites.filter(v => {
     const echouee = isEchoueeVisite(v)
@@ -229,7 +228,7 @@ export default function MesVisitesPage() {
       // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
       if (res.url_paiement) {
         setPayUrl(res.url_paiement)
-        window.open(res.url_paiement, '_blank', 'noopener')
+        openPaymentUrl(res.url_paiement)
       } else {
         setPayUrl('')
       }
@@ -413,7 +412,7 @@ export default function MesVisitesPage() {
                 {payUrl ? (
                   <>
                     <p className="text-sm text-text-grey mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                    <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                    <button onClick={() => openPaymentUrl(payUrl)}
                       className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#FF6B35' }}>
                       Rouvrir la page de paiement
                     </button>
@@ -456,7 +455,7 @@ export default function MesVisitesPage() {
                       type="tel"
                       value={phoneOp}
                       onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="96XXXXXXXX"
+                      placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                       className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
                     />
                   </div>
@@ -553,7 +552,7 @@ export default function MesVisitesPage() {
                     className="w-full rounded-2xl px-3.5 py-3.5 text-[13.5px] outline-none resize-none"
                     style={{ background: '#F5F5F5' }}
                   />
-                  <p className="text-[11px] text-text-grey text-right mt-1">{feedbackComment.length}/500</p>
+                  <p className="text-caption text-text-grey text-right mt-1">{feedbackComment.length}/500</p>
                 </div>
               </div>
 
@@ -663,7 +662,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           </div>
         </div>
         <span
-          className="text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+          className="text-caption font-bold px-2.5 py-1 rounded-full flex-shrink-0"
           style={{ color: meta.color, background: meta.bg }}
         >
           {meta.label}
@@ -708,11 +707,11 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Infos visite</p>
+            <p className="text-micro font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Infos visite</p>
             <p className="text-[13px] font-bold text-text-dark">+22993463716</p>
           </div>
           <a href="https://wa.me/22993463716" target="_blank" rel="noreferrer"
-            className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex-shrink-0"
+            className="px-2.5 py-1.5 rounded-lg text-caption font-bold flex-shrink-0"
             style={{ background: '#fff', border: '1.5px solid #25D366', color: '#25D366' }}>
             WhatsApp
           </a>

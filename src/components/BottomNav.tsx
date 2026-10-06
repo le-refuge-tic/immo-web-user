@@ -38,6 +38,7 @@ const NAV_ITEMS = [
   { path: '/',              label: 'Accueil',  icon: HomeIcon,     authRequired: false },
   { path: '/favoris',       label: 'Favoris',  icon: BookmarkIcon,    authRequired: true  },
   { path: '/mes-visites',   label: 'Visites',  icon: CalendarIcon, authRequired: true  },
+  { path: '/notifications', label: 'Alertes',  icon: BellIcon,     authRequired: true  },
   { path: '/conversations', label: 'Messages', icon: ChatIcon,     authRequired: true  },
   { path: '/profil',        label: 'Profil',   icon: PersonIcon,   authRequired: true  },
 ]
@@ -45,7 +46,7 @@ const NAV_ITEMS = [
 export default function BottomNav() {
   const { isLoggedIn } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
-  const { theme, toggleTheme } = useTheme()
+  const { theme } = useTheme()
   const isDark = theme === 'dark'
   const location = useLocation()
   const navigate = useNavigate()
@@ -79,14 +80,14 @@ export default function BottomNav() {
         {NAV_ITEMS.map(item => {
           const active = isActive(item.path)
           const Icon = item.icon
-          const badge = item.path === '/conversations' ? unreadMessages : 0
+          const badge = item.path === '/conversations' ? unreadMessages : item.path === '/notifications' ? unreadAlertes : 0
           return (
             <button
               key={item.path}
               onClick={() => handleNav(item)}
               aria-label={item.label + (badge > 0 ? `, ${badge} non lu${badge > 1 ? 's' : ''}` : '')}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 btn-press"
+              className="relative flex flex-col items-center gap-0.5 px-2 py-2 min-w-[48px] rounded-2xl transition-all duration-200 btn-press"
               style={{
                 background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
                 border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',
@@ -95,38 +96,15 @@ export default function BottomNav() {
               <span className="relative" style={{ color: active ? '#4B6BFF' : inactiveColor }}>
                 <Icon active={active} />
                 {badge > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30' }}>
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}
               </span>
-              {active && (
-                <span className="text-[10px] font-bold" style={{ color: '#3A5AEE' }}>{item.label}</span>
-              )}
+              <span className="text-micro font-semibold" style={{ color: active ? '#3A5AEE' : isDark ? 'rgba(255,255,255,0.7)' : '#5E5E63' }}>{item.label}</span>
             </button>
           )
         })}
-
-        {/* Toggle thème */}
-        <button
-          onClick={toggleTheme}
-          aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-          className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200"
-          style={{ color: inactiveColor }}
-        >
-          {isDark ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
-              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-              <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-            </svg>
-          )}
-        </button>
       </div>
     </nav>
   )

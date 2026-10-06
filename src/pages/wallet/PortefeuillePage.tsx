@@ -129,7 +129,7 @@ function ClientWalletView() {
           <div className="rounded-2xl p-5 text-white" style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.18)' }}>
             <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Solde {W_LABEL[tab].toLowerCase()}</p>
             <p className="text-3xl font-bold mb-1">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
-            <p className="text-white/50 text-[11px] mb-4">Mis à jour : {wallets[tab]?.updated_at ? formatDate(wallets[tab].updated_at) : '—'}</p>
+            <p className="text-white/50 text-caption mb-4">Mis à jour : {wallets[tab]?.updated_at ? formatDate(wallets[tab].updated_at) : '—'}</p>
             {tab === 'cotisation' ? (
               <div className="space-y-2.5">
                 <button onClick={() => navigate('/locataire')} disabled={solde <= 0}
@@ -210,7 +210,7 @@ function ClientWalletView() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-text-dark text-sm truncate">{t.description || typeLabel(t)}</p>
-                <p className="text-[11px] text-text-grey mt-0.5">Solde après : {Number(t.balance_after ?? 0).toLocaleString('fr-FR')} F · {formatDate(t.created_at)}</p>
+                <p className="text-caption text-text-grey mt-0.5">Solde après : {Number(t.balance_after ?? 0).toLocaleString('fr-FR')} F · {formatDate(t.created_at)}</p>
               </div>
               <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? '#DC2626' : '#15803D' }}>
                 {isDebit(t) ? '-' : '+'}{Number(t.amount ?? 0).toLocaleString('fr-FR')} F
@@ -348,7 +348,7 @@ function WalletCommissionsView() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="font-bold text-text-dark">{montantOf(detailTx).toLocaleString('fr-FR')} FCFA</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${statutColor(statutLabel(detailTx))}1F`, color: statutColor(statutLabel(detailTx)) }}>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statutLabel(detailTx))}1F`, color: statutColor(statutLabel(detailTx)) }}>
                       {statutLabel(detailTx)}
                     </span>
                   </div>
@@ -388,13 +388,13 @@ function WalletCommissionsView() {
                   <div>
                     <p className="text-white/70 text-xs">Total{filter !== 'Tous' ? ` (${filter})` : ''}</p>
                     <p className="text-xl font-bold mt-0.5">{totalFiltre.toLocaleString('fr-FR')} FCFA</p>
-                    <p className="text-white/55 text-[11px] mt-0.5">{filteredTx.length} transaction{filteredTx.length !== 1 ? 's' : ''}</p>
+                    <p className="text-white/55 text-caption mt-0.5">{filteredTx.length} transaction{filteredTx.length !== 1 ? 's' : ''}</p>
                   </div>
                   <div className="flex flex-col gap-1.5 items-end flex-shrink-0">
-                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
                       {loyerCount} Loyers
                     </span>
-                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
                       {visiteCount} Visites
                     </span>
                   </div>
@@ -433,11 +433,11 @@ function WalletCommissionsView() {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-text-dark text-sm truncate">{typeLabel(t)}</p>
                         {subtitle && <p className="text-xs text-text-grey mt-0.5 truncate">{subtitle}</p>}
-                        <p className="text-[11px] text-text-grey mt-0.5">{formatDate(t)}</p>
+                        <p className="text-caption text-text-grey mt-0.5">{formatDate(t)}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-sm text-text-dark">{montantOf(t).toLocaleString('fr-FR')} FCFA</p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${sColor}1F`, color: sColor }}>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${sColor}1F`, color: sColor }}>
                           {statut}
                         </span>
                       </div>

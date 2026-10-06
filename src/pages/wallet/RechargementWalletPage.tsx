@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
+import { openPaymentUrl } from '../../utils/paymentUrl'
 import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import type { MethodePaiement } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, PHONE_FORMAT_HINT } from '../../utils/phone'
+import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -67,7 +68,7 @@ export default function RechargementWalletPage() {
       const refId = res.reference || res.referenceId || res.reference_id
       if (res.url_paiement) {
         setPayUrl(res.url_paiement)
-        window.open(res.url_paiement, '_blank', 'noopener')
+        openPaymentUrl(res.url_paiement)
         setState('waiting')
         if (refId) startPolling(refId)
         return
@@ -99,7 +100,7 @@ export default function RechargementWalletPage() {
             <p className="font-bold text-text-dark text-lg mb-2">En attente de confirmation…</p>
             <p className="text-text-grey text-sm mb-6">Validez la demande sur votre téléphone {op.label}.</p>
             {payUrl && (
-              <button onClick={() => window.open(payUrl, '_blank', 'noopener')} className="text-xs font-bold mb-4" style={{ color: op.color }}>
+              <button onClick={() => openPaymentUrl(payUrl)} className="text-xs font-bold mb-4" style={{ color: op.color }}>
                 Rouvrir la page de paiement
               </button>
             )}
@@ -162,7 +163,7 @@ export default function RechargementWalletPage() {
                 <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-3.5 mb-4 border border-divider">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                    placeholder="0196XXXXXX" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
+                    placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               </>
             )}

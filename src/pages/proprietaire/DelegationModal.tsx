@@ -133,7 +133,7 @@ export default function DelegationModal({ onClose }: Props) {
                             {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous mes biens'}
                           </p>
                         </div>
-                        <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: st.color + '18', color: st.color }}>{st.label}</span>
+                        <span className="flex-shrink-0 text-micro font-bold px-2 py-0.5 rounded-full" style={{ background: st.color + '18', color: st.color }}>{st.label}</span>
                       </div>
                       {d.statut === 'active' && (
                         <button onClick={() => revoquer(d.id)} className="mt-2 text-xs font-semibold text-danger">Révoquer</button>
@@ -197,7 +197,7 @@ export default function DelegationModal({ onClose }: Props) {
               <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Date de fin (optionnel)</label>
               <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
                 className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }} />
-              <p className="text-[11px] mt-1" style={{ color: 'var(--p-muted)' }}>Laisser vide pour une délégation sans date de fin.</p>
+              <p className="text-caption mt-1" style={{ color: 'var(--p-muted)' }}>Laisser vide pour une délégation sans date de fin.</p>
             </div>
 
             <div className="flex gap-2 pt-1">

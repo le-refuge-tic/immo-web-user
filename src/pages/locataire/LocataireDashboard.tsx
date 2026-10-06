@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { openPaymentUrl } from '../../utils/paymentUrl'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { loyersApi } from '../../api/loyersApi'
@@ -10,6 +11,8 @@ import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { formatMois } from '../../utils/dateFormat'
+import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcHome   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -150,7 +153,7 @@ function MonLogementTab() {
       return
     }
 
-    if (!tel && operateur !== 'fedapay') return
+    if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
     setPaying(true)
     setPayState('waiting')
     try {
@@ -164,7 +167,7 @@ function MonLogementTab() {
         const hasUrl = !!(res as any).url_paiement
         if (hasUrl) {
           setPayUrl((res as any).url_paiement)
-          window.open((res as any).url_paiement, '_blank', 'noopener')
+          openPaymentUrl((res as any).url_paiement)
         } else {
           setPayUrl('')
         }
@@ -205,7 +208,7 @@ function MonLogementTab() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-text-dark text-sm">{gestionnaire.prenom} {gestionnaire.nom}</p>
-        <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'demarcheur' ? 'Agent' : 'Propriétaire'}</p>
+        <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'demarcheur' ? 'Démarcheur' : 'Propriétaire'}</p>
       </div>
       <button onClick={ouvrirChatGestionnaire} disabled={chatLoading}
         className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-50" style={{ background: TEAL + '20', color: TEAL }}>
@@ -240,7 +243,7 @@ function MonLogementTab() {
               ].map(s => (
                 <div key={s.label} className="rounded-xl px-2 py-2 md:py-3 text-center" style={{ background: 'rgba(255,255,255,0.12)' }}>
                   <p className="font-bold text-sm md:text-base leading-tight" style={{ color: s.warn ? '#FCD34D' : 'white' }}>{s.value}</p>
-                  <p className="text-[10px] md:text-xs mt-0.5 text-white/60">{s.label}</p>
+                  <p className="text-micro md:text-xs mt-0.5 text-white/60">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -278,9 +281,9 @@ function MonLogementTab() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-1.5">
-                        <p className="font-semibold text-text-dark text-sm">{l.mois || new Date(l.date_echeance).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+                        <p className="font-semibold text-text-dark text-sm">{formatMois(l.mois || l.date_echeance)}</p>
                         {l.statut === 'en_retard' && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: '#DC2626' }}>En retard</span>
+                          <span className="text-micro font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: '#DC2626' }}>En retard</span>
                         )}
                       </div>
                       <p className="text-xs text-text-grey">Échéance : {new Date(l.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
@@ -310,7 +313,7 @@ function MonLogementTab() {
                       {payUrl ? (
                         <>
                           <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                          <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                          <button onClick={() => openPaymentUrl(payUrl)}
                             className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
                             Rouvrir la page de paiement
                           </button>
@@ -342,12 +345,12 @@ function MonLogementTab() {
                           <span className="text-text-grey text-sm font-semibold">+229</span>
                           <div className="w-px h-4 bg-divider" />
                           <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                            placeholder="XX XX XX XX" maxLength={8}
+                            placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                             className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                         </div>
                       )}
                       <button onClick={payer}
-                        disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !tel))}
+                        disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
                         style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
                         {operateur === 'cotisation' ? 'Payer avec ma cotisation' : `Payer via ${OPERATEURS.find(o => o.id === operateur)?.label}`}
@@ -370,7 +373,7 @@ function MonLogementTab() {
                       <span style={{ color: GREEN }}><IcCheck /></span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-text-dark text-sm">{h.mois || new Date(h.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+                      <p className="font-semibold text-text-dark text-sm">{formatMois(h.mois || h.created_at)}</p>
                       <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
                     </div>
                     <p className="font-bold text-sm flex-shrink-0" style={{ color: GREEN }}>{Number(h.montant).toLocaleString('fr-FR')} F</p>
@@ -481,14 +484,14 @@ function ActiviteTab() {
       setPaying(false)
       return
     }
-    if (operateur !== 'fedapay' && !tel) return
+    if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
     setPaying(true); setPayState('waiting')
     try {
       const res = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
       const refId = res.referenceId || res.reference_id
       if ((res as any).url_paiement) {
         setPayUrl((res as any).url_paiement)
-        window.open((res as any).url_paiement, '_blank', 'noopener')
+        openPaymentUrl((res as any).url_paiement)
       } else {
         setPayUrl('')
       }
@@ -556,7 +559,7 @@ function ActiviteTab() {
               {payUrl ? (
                 <>
                   <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                  <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                  <button onClick={() => openPaymentUrl(payUrl)}
                     className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
                     Rouvrir la page de paiement
                   </button>
@@ -588,14 +591,14 @@ function ActiviteTab() {
                   <span className="text-text-grey text-sm font-semibold">+229</span>
                   <div className="w-px h-4 bg-divider" />
                   <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                    placeholder="XX XX XX XX" maxLength={8}
+                    placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                     className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               )}
               <div className="flex gap-2">
                 <button onClick={() => setShowPay(false)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
                 <button onClick={payer}
-                  disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !tel))}
+                  disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
                   className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: GREEN }}>{operateur === 'cotisation' ? 'Payer avec ma cotisation' : 'Payer'}</button>
               </div>
@@ -617,15 +620,15 @@ function ActiviteTab() {
               <span style={{ color: GREEN }}><IcMoney /></span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-text-dark text-sm">{h.mois || new Date(h.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+              <p className="font-semibold text-text-dark text-sm">{formatMois(h.mois || h.created_at)}</p>
               <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
             </div>
             <div className="text-right">
               <p className="font-bold text-sm" style={{ color: GREEN }}>+{Number(h.montant).toLocaleString('fr-FR')} F</p>
-              <span className="text-[10px] font-semibold" style={{ color: GREEN }}>Payé</span>
+              <span className="text-micro font-semibold" style={{ color: GREEN }}>Payé</span>
               {h.transaction_id && (
                 <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)}
-                  className="block mt-1 text-[10px] font-bold underline" style={{ color: TEAL }}>Reçu</button>
+                  className="block mt-1 text-micro font-bold underline" style={{ color: TEAL }}>Reçu</button>
               )}
             </div>
           </div>
@@ -744,7 +747,7 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
         <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 34, height: 34, objectFit: 'contain' }} />
         <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
       </button>
-      <p className="px-6 mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,0,0,0.35)' }}>Espace Locataire</p>
+      <p className="px-6 mb-2 text-micro font-bold uppercase tracking-wider" style={{ color: 'rgba(0,0,0,0.35)' }}>Espace Locataire</p>
       <nav className="flex-1 px-3 space-y-1">
         {TABS.map(t => {
           const active = tab === t.key
@@ -767,7 +770,7 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
           <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>{initials}</div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-xs font-bold text-text-dark truncate">{user?.prenom} {user?.nom}</p>
-            <p className="text-[10px] text-text-grey">Locataire</p>
+            <p className="text-micro text-text-grey">Locataire</p>
           </div>
         </button>
         <button onClick={() => { logout(); navigate('/login') }}
@@ -846,7 +849,7 @@ export default function LocataireDashboard() {
                   className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all"
                   style={active ? { background: GREEN + '18' } : {}}>
                   <span style={{ color: active ? GREEN : 'rgba(0,0,0,0.35)' }}>{t.icon(active)}</span>
-                  {active && <span className="text-[10px] font-bold" style={{ color: GREEN }}>{t.label}</span>}
+                  {active && <span className="text-micro font-bold" style={{ color: GREEN }}>{t.label}</span>}
                 </button>
               )
             })}

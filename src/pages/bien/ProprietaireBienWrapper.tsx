@@ -100,7 +100,7 @@ export default function ProprietaireBienWrapper() {
                 return (
                   <button key={item.key}
                     onClick={() => goToTab(item.key)}
-                    className="relative whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
+                    className="relative whitespace-nowrap text-caption font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
                       ...(active ? { color: BLUE, background: BLUE + '14' } : { color: 'var(--p-muted)' }),
                       minHeight: 36,
@@ -129,7 +129,7 @@ export default function ProprietaireBienWrapper() {
               <button onClick={() => goToTab('profil')}
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 border transition-colors"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
-                <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                <div className="w-6 h-6 rounded-md flex items-center justify-center text-micro font-bold text-white flex-shrink-0"
                   style={{ background: BLUE }}>
                   {initials || '?'}
                 </div>
@@ -180,14 +180,14 @@ export default function ProprietaireBienWrapper() {
                   return (
                     <button key={item.key}
                       onClick={() => { goToTab(item.key); setMenuOpen(false) }}
-                      className="flex flex-col items-center gap-1 py-3 rounded-xl text-[11px] font-medium transition-all"
+                      className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium transition-all"
                       style={active ? { color: BLUE, background: BLUE + '14', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                       <span className="truncate w-full text-center px-1">{item.label}</span>
                     </button>
                   )
                 })}
                 <button onClick={() => { logout(); navigate('/login') }}
-                  className="flex flex-col items-center gap-1 py-3 rounded-xl text-[11px] font-medium"
+                  className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium"
                   style={{ color: '#DC2626' }}>
                   <span>Quitter</span>
                 </button>

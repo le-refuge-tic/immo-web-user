@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { API_ORIGIN } from '../../api/apiBase'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { useAuth } from '../../context/AuthContext'
@@ -7,7 +8,7 @@ import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
 import { io, Socket } from 'socket.io-client'
 
-const WS_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
+const WS_URL = API_ORIGIN
 
 const BIEN_TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appt. meublé',
@@ -45,7 +46,7 @@ function fmtSlot(dt: Date) {
 }
 function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 function roleLabel(o: any) {
-  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Agent immobilier'
+  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'
   if (o?.role === 'prospect') return 'Client'
@@ -330,9 +331,9 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       <div className={`flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
         <div className="rounded-2xl overflow-hidden max-w-[270px]" style={{ background: pal.bg, border: `1.5px solid ${pal.accent}44` }}>
           <div className="px-3 pt-2.5 pb-0.5">
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: pal.accent }}>Créneau de visite</p>
+            <p className="text-micro font-bold uppercase tracking-widest mb-1.5" style={{ color: pal.accent }}>Créneau de visite</p>
             <p className="text-[13.5px] font-bold leading-snug" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
-            <p className="text-[11px] mt-1 font-medium" style={{ color: pal.accent }}>{pal.label}</p>
+            <p className="text-caption mt-1 font-medium" style={{ color: pal.accent }}>{pal.label}</p>
           </div>
           {!isMe && status === 'pending' && (
             <div className="px-3 pb-2.5 pt-2 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${pal.accent}22` }}>
@@ -351,7 +352,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             </div>
           )}
           <div className="px-3 pb-2">
-            <p className="text-[10px] text-right" style={{ color: tm }}>{timeLabel(m.created_at)}</p>
+            <p className="text-micro text-right" style={{ color: tm }}>{timeLabel(m.created_at)}</p>
           </div>
         </div>
       </div>
@@ -385,7 +386,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               )}
             </div>
             {role && (
-              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
+              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-caption font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
                 {role}
               </span>
             )}
@@ -407,7 +408,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Rôle</p>
+              <p className="text-micro font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Rôle</p>
               <p className="text-[13px] font-semibold" style={{ color: role ? tp : ts }}>{role || 'Non renseigné'}</p>
             </div>
           </div>
@@ -417,11 +418,11 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Bien concerné</p>
+              <p className="text-micro font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Bien concerné</p>
               {conv?.bien?.id ? (
                 <>
                   <p className="text-[13px] font-semibold" style={{ color: tp }}>{bienTypeLabel || 'Bien'}</p>
-                  {bienLoc && <p className="text-[11px] mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+                  {bienLoc && <p className="text-caption mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
                 </>
               ) : (
                 <p className="text-[13px] font-semibold" style={{ color: ts }}>Non renseigné</p>
@@ -472,13 +473,13 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
           <div className="space-y-3">
             <div>
-              <label htmlFor="slot-date" className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
+              <label htmlFor="slot-date" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
               <input id="slot-date" type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
                 className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
             </div>
             <div>
-              <label htmlFor="slot-time" className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
+              <label htmlFor="slot-time" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
               <input id="slot-time" type="time" value={time} onChange={e => setTime(e.target.value)}
                 className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
@@ -538,7 +539,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 className="hidden sm:flex flex-col text-left px-3 py-2 rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, maxWidth: 120 }}>
                 <p className="text-[11.5px] font-semibold truncate" style={{ color: tp }}>{bienTypeLabel}</p>
-                {bienLoc && <p className="text-[10px] truncate mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+                {bienLoc && <p className="text-micro truncate mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
               </button>
             )}
 
@@ -565,7 +566,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
               </svg>
               <span className="text-[12px] font-semibold flex-1" style={{ color: tp }}>Code visite : {conv.code_visite}</span>
-              <span className="text-[11px] font-bold flex-shrink-0" style={{ color: '#3A5AEE' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
+              <span className="text-caption font-bold flex-shrink-0" style={{ color: '#3A5AEE' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
             </button>
           )}
         </div>
@@ -590,7 +591,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 style={{ background: pinBg, borderLeftColor: '#4B6BFF', border: `1px solid ${divider}`, borderLeft: '4px solid #4B6BFF' }}>
                 <span style={{ color: '#3A5AEE' }}><PinFill /></span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#3A5AEE' }}>Épinglé</p>
+                  <p className="text-micro font-bold uppercase tracking-wider" style={{ color: '#3A5AEE' }}>Épinglé</p>
                   <p className="text-[12px] truncate" style={{ color: tp }}>{pinnedMsg.contenu}</p>
                 </div>
               </button>
@@ -615,7 +616,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: c.accent }}>{c.label}</p>
+                    <p className="text-micro font-bold uppercase tracking-wider" style={{ color: c.accent }}>{c.label}</p>
                     <p className="text-[12px] font-semibold truncate" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
                   </div>
                   <ChevDown />
@@ -652,7 +653,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             if (msg.type === 'slot_proposal') {
               return (
                 <div key={msg.id} id={`msg-${msg.id}`}>
-                  {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
+                  {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
                   <SlotBubble m={msg} />
                 </div>
               )
@@ -661,7 +662,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             const isSupprime = msg.supprime_pour_tous
             return (
               <div key={msg.id} id={`msg-${msg.id}`}>
-                {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
+                {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
 
                 <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-[3px]' : 'mb-1'}`}>
                   <div className="relative max-w-[78%] sm:max-w-[62%] md:max-w-[54%]">
@@ -670,8 +671,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                       <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
                         <p className="text-[12.5px] italic" style={{ color: tm }}>Message supprimé</p>
                         <button onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false) }}
-                          className="text-[11px] underline mt-0.5 cursor-pointer" style={{ color: '#3A5AEE' }}>En savoir plus</button>
-                        <p className="text-[10px] mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
+                          className="text-caption underline mt-0.5 cursor-pointer" style={{ color: '#3A5AEE' }}>En savoir plus</button>
+                        <p className="text-micro mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
                       </div>
                     ) : (
                       <div className={`${isMe ? 'rounded-xl rounded-br-[4px]' : 'rounded-xl rounded-bl-[4px]'} ${grouped && isMe ? 'rounded-tr-[6px]' : ''} ${grouped && !isMe ? 'rounded-tl-[6px]' : ''}`}

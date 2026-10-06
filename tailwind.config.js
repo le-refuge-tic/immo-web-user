@@ -5,6 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand:         '#4B6BFF',
         primary:       '#3A5AEE',
         'primary-d':   '#2E4CD4',
         'primary-l':   'rgba(75,107,255,0.12)',
@@ -28,6 +29,11 @@ export default {
         'gold-200':    '#F0D898',
         'proprio-text': '#F0EDE8',
         'proprio-muted': '#8A9BB5',
+      },
+      // Échelle de textes compacts (remplace text-[9px]/[10px]/[11px] écrits en dur)
+      fontSize: {
+        micro:   '10px',
+        caption: '11px',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'sans-serif'],

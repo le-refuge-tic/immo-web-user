@@ -14,6 +14,7 @@ import slide2 from '../../assets/onboarding-2.jpg'
 import slide3 from '../../assets/onboarding-3.jpg'
 import slide4 from '../../assets/hero-interior.jpg'
 import '../../pages/auth/authNew.css'
+import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
 
 const COUNTRY_CODES = [
   { code: '+229', label: 'Bénin' },
@@ -63,7 +64,7 @@ function BrandSlide() {
 const SLIDES = [<BrandSlide key="brand" />, slide1, slide2, slide3, slide4]
 
 const PITCH_ITEMS = [
-  'Maisons, appartements, terrains vérifiés',
+  'Maisons, appartements et terrains à louer ou à acheter',
   'Réservez des visites en quelques clics',
   'Échangez directement avec les propriétaires',
 ]
@@ -193,7 +194,8 @@ function PhoneInput({
         className="auth-phone-number"
         value={phone}
         onChange={e => onPhoneChange(e.target.value)}
-        placeholder="97 00 00 00"
+        placeholder={PHONE_PLACEHOLDER}
+        inputMode="tel"
         autoComplete={autoComplete}
         aria-invalid={ariaInvalid}
       />
@@ -288,11 +290,21 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     setOtpLoading(false)
   }
 
-  const handleOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1)
-    const next = [...otpDigits]; next[index] = digit; setOtpDigits(next)
-    if (digit && index < OTP_LENGTH - 1) otpRefs.current[index + 1]?.focus()
+  // Saisie, collage ou remplissage automatique (SMS) : répartit les chiffres à partir de la case courante
+  const applyOtpChars = (index: number, raw: string) => {
+    let chars = raw.replace(/\D/g, '')
+    if (chars.length === 2 && otpDigits[index]) chars = chars.slice(-1)
+    const next = [...otpDigits]
+    if (!chars) { next[index] = ''; setOtpDigits(next); return }
+    const chunk = chars.length > 1 ? chars.slice(0, OTP_LENGTH - index) : chars
+    chunk.split('').forEach((c, k) => { next[index + k] = c })
+    setOtpDigits(next)
+    otpRefs.current[Math.min(index + chunk.length, OTP_LENGTH - 1)]?.focus()
     const code = next.join(''); if (code.length === OTP_LENGTH) verifyOtp(code)
+  }
+  const handleOtpChange = (index: number, value: string) => applyOtpChars(index, value)
+  const handleOtpPaste = (index: number, e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault(); applyOtpChars(index, e.clipboardData.getData('text'))
   }
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -319,7 +331,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
               <div className="relative">
                 <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
                 <input id="login-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="auth-input pad-icon-left pad-icon-right w-full" />
-                <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer' : 'Afficher'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+                <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer' : 'Afficher'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors">
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -331,7 +343,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             Nouveau ici ?{' '}
             <button type="button" onClick={onSwitch} className="auth-link">Créer un compte</button>
           </p>
-          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour à l'accueil
           </button>
         </motion.div>
@@ -339,33 +351,33 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         <motion.div key="otp" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
           <div className="flex flex-col items-center text-center">
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(75,107,255,0.12)]">
-              <ShieldCheck size={22} className="text-[#4B6BFF]" />
+              <ShieldCheck size={22} className="text-brand" />
             </div>
             <h2 className="auth-title">Vérification</h2>
-            <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-[#1D1D1F]">{maskedPhone}</strong></p>
+            <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-text-dark">{maskedPhone}</strong></p>
           </div>
           <ErrorBanner message={otpError} />
           <div className="flex gap-2 mb-5 justify-center">
             {otpDigits.map((d, i) => (
               <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
-                onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)}
-                inputMode="numeric" maxLength={1} disabled={otpLoading}
+                onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
+                inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
                 animate={{ borderColor: d ? '#4B6BFF' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                 transition={{ duration: 0.15 }}
-                className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-[#1D1D1F] outline-none disabled:opacity-50 focus:border-[#4B6BFF] focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
+                className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                 aria-label={`Chiffre ${i + 1}`}
               />
             ))}
           </div>
           <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
           <div className="mt-3 text-sm text-[#6E6E73] text-center">
-            {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-[#1D1D1F]">{resendCooldown}s</strong></span> : (
-              <button type="button" onClick={resendOtp} disabled={loading} className="font-semibold text-[#4B6BFF] hover:underline disabled:opacity-60">
+            {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
+              <button type="button" onClick={resendOtp} disabled={loading} className="font-semibold text-brand hover:underline disabled:opacity-60">
                 {loading ? 'Envoi…' : 'Renvoyer le code'}
               </button>
             )}
           </div>
-          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour
           </button>
         </motion.div>
@@ -422,6 +434,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (phone.trim() && countryCode === '+229' && !validateBeninPhone(phone)) { setError(PHONE_FORMAT_HINT); return }
     if (password !== confirmPwd) { setError('Les mots de passe ne correspondent pas'); return }
     if (password.length < 8) { setError('Mot de passe trop court (8 caractères min.)'); return }
     if (!acceptedTerms) { setError('Veuillez accepter les conditions d\'utilisation'); return }
@@ -481,11 +494,21 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     setOtpLoading(false)
   }
 
-  const handleOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1)
-    const next = [...otpDigits]; next[index] = digit; setOtpDigits(next)
-    if (digit && index < OTP_LENGTH - 1) otpRefs.current[index + 1]?.focus()
+  // Saisie, collage ou remplissage automatique (SMS) : répartit les chiffres à partir de la case courante
+  const applyOtpChars = (index: number, raw: string) => {
+    let chars = raw.replace(/\D/g, '')
+    if (chars.length === 2 && otpDigits[index]) chars = chars.slice(-1)
+    const next = [...otpDigits]
+    if (!chars) { next[index] = ''; setOtpDigits(next); return }
+    const chunk = chars.length > 1 ? chars.slice(0, OTP_LENGTH - index) : chars
+    chunk.split('').forEach((c, k) => { next[index + k] = c })
+    setOtpDigits(next)
+    otpRefs.current[Math.min(index + chunk.length, OTP_LENGTH - 1)]?.focus()
     const code = next.join(''); if (code.length === OTP_LENGTH) verifyOtp(code)
+  }
+  const handleOtpChange = (index: number, value: string) => applyOtpChars(index, value)
+  const handleOtpPaste = (index: number, e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault(); applyOtpChars(index, e.clipboardData.getData('text'))
   }
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -517,7 +540,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <button key={r.key} type="button" onClick={() => setRole(r.key)} className={`auth-role-card${role === r.key ? ' active' : ''}`}>
                   <div className="auth-role-icon">{r.icon}</div>
                   <div className="flex-1 text-left">
-                    <p className="text-[15px] font-bold text-[#1D1D1F]">{r.label}</p>
+                    <p className="text-[15px] font-bold text-text-dark">{r.label}</p>
                     <p className="text-xs text-[#6E6E73] mt-0.5">{r.desc}</p>
                   </div>
                   <div className="auth-role-check">{role === r.key && <Check size={11} strokeWidth={3} />}</div>
@@ -527,7 +550,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             <PrimaryButton type="button" onClick={() => { if (!role) { setError('Choisissez un profil'); return } setError(''); goTo(2) }} className="mt-5">Continuer</PrimaryButton>
             <div className="auth-divider" />
             <p className="auth-footer">Déjà un compte ?{' '}<button type="button" onClick={onSwitch} className="auth-link">Se connecter</button></p>
-            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
+            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
           </motion.div>
         )}
 
@@ -563,7 +586,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <div className="relative">
                   <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
                   <input id="reg-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
-                  <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+                  <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors">
                     {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -573,7 +596,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <div className="relative">
                   <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
                   <input id="reg-confirm" type={showConfirm ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Répéter le mot de passe" required className="auth-input pad-icon-left pad-icon-right w-full" />
-                  <button type="button" onClick={() => setShowConfirm(v => !v)} tabIndex={-1} aria-label={showConfirm ? 'Masquer la confirmation' : 'Afficher la confirmation'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+                  <button type="button" onClick={() => setShowConfirm(v => !v)} tabIndex={-1} aria-label={showConfirm ? 'Masquer la confirmation' : 'Afficher la confirmation'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors">
                     {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -589,7 +612,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 </span>
               </label>
               <div className="flex gap-2 mt-1">
-                <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-[#1D1D1F] hover:bg-black/5 transition-colors shrink-0">Retour</button>
+                <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-text-dark hover:bg-black/5 transition-colors shrink-0">Retour</button>
                 <PrimaryButton loading={loading} loadingLabel="Création…" className="flex-1">S'inscrire</PrimaryButton>
               </div>
             </form>
@@ -602,28 +625,28 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
           <motion.div key="r3" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
             <div className="flex flex-col items-center text-center">
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[rgba(75,107,255,0.12)]">
-                <ShieldCheck size={28} className="text-[#4B6BFF]" />
+                <ShieldCheck size={28} className="text-brand" />
               </div>
               <h2 className="auth-title">Vérification</h2>
-              <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-[#1D1D1F]">{maskedPhone}</strong></p>
+              <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-text-dark">{maskedPhone}</strong></p>
             </div>
             <ErrorBanner message={otpError} />
             <div className="flex gap-2 mb-5 justify-center">
               {otpDigits.map((d, i) => (
                 <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
-                  onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)}
-                  inputMode="numeric" maxLength={1} disabled={otpLoading}
+                  onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
+                  inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
                   animate={{ borderColor: d ? '#4B6BFF' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                   transition={{ duration: 0.15 }}
-                  className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-[#1D1D1F] outline-none disabled:opacity-50 focus:border-[#4B6BFF] focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
+                  className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                   aria-label={`Chiffre ${i + 1}`}
                 />
               ))}
             </div>
             <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
             <div className="mt-3 text-sm text-[#6E6E73] text-center">
-              {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-[#1D1D1F]">{resendCooldown}s</strong></span> : (
-                <button type="button" onClick={resendOtp} disabled={resending} className="font-semibold text-[#4B6BFF] hover:underline disabled:opacity-60">
+              {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
+                <button type="button" onClick={resendOtp} disabled={resending} className="font-semibold text-brand hover:underline disabled:opacity-60">
                   {resending ? 'Envoi…' : 'Renvoyer le code'}
                 </button>
               )}
@@ -647,8 +670,8 @@ function ModeToggle({ mode, onChange }: { mode: 'login' | 'register'; onChange: 
           className={cn(
             'flex-1 h-8 rounded-[10px] text-[13px] font-bold transition-all duration-200',
             mode === m
-              ? 'bg-white text-[#4B6BFF] shadow-sm'
-              : 'text-[#6E6E73] hover:text-[#1D1D1F]'
+              ? 'bg-white text-brand shadow-sm'
+              : 'text-[#6E6E73] hover:text-text-dark'
           )}
         >
           {m === 'login' ? 'Connexion' : 'Inscription'}
@@ -716,4 +739,3 @@ export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 
   )
 }
 
-export { AuthSwitch }

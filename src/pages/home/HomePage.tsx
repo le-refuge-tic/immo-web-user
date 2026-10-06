@@ -327,7 +327,7 @@ export default function HomePage() {
               <img loading="lazy" src={logoUrl} alt="REFUGE" className="object-contain drop-shadow-lg flex-shrink-0" style={{ width: 64, height: 'auto' }} />
               <div>
                 <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: '#00AEEF' }}>REFUGE</p>
-                <p className="text-white/60 text-[11px] mt-0.5">
+                <p className="text-white/60 text-caption mt-0.5">
                   {isLoggedIn ? `Bonjour, ${firstName}` : 'Trouvez votre bien'}
                 </p>
               </div>
@@ -402,7 +402,7 @@ export default function HomePage() {
         {/* Contenu hero */}
         <div className="relative z-[2] w-full px-8 md:px-16 pb-28 pt-12">
           <p className="text-white/60 text-xs md:text-sm uppercase tracking-widest font-medium mb-3 anim-fade-up">
-            Immobilier au Bénin — Annonces vérifiées
+            Immobilier au Bénin — Annonces modérées
           </p>
           <h1 className="text-white font-bold leading-[1.05] tracking-tight mb-4 anim-blur-up d-100 max-w-2xl"
             style={{ fontSize: 'clamp(2rem, 5vw, 4.5rem)' }}>
@@ -414,10 +414,10 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center gap-6 md:gap-12 pt-6 mt-2 anim-fade-in d-600 max-w-2xl"
             style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
             {[
-              { val: biens.length > 0 ? `${biens.length}+` : '500+', label: 'Annonces disponibles' },
+              { val: biens.length > 0 ? `${biens.length}+` : '—', label: 'Annonces disponibles' },
               { val: '5',    label: 'Villes couvertes' },
-              { val: '100%', label: 'Biens vérifiés' },
-              { val: '24h',  label: 'Réponse garantie' },
+              { val: '100%', label: 'Annonces modérées' },
+              { val: '24h',  label: 'Délai de réponse visé' },
             ].map((s, i) => (
               <div key={s.label} className="anim-fade-up" style={{ animationDelay: `${600 + i * 80}ms` }}>
                 <p className="text-white font-bold text-2xl md:text-3xl tracking-tight">{s.val}</p>
@@ -479,7 +479,7 @@ export default function HomePage() {
                 <p className="font-semibold text-sm truncate text-white">
                   {search.trim() || 'Rechercher un bien…'}
                 </p>
-                <p className="text-[11px] text-white/55 truncate">
+                <p className="text-caption text-white/55 truncate">
                   {[
                     transaction && (transaction === 'location' ? 'Location' : 'Vente'),
                     type && TYPES.find(t => t.key === type)?.label,
@@ -490,7 +490,7 @@ export default function HomePage() {
                 </p>
               </div>
               {(search || transaction || type || prixMin || prixMax) && (
-                <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white"
+                <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-micro font-bold text-white"
                   style={{ background: '#4B6BFF' }}>
                   {[search, transaction, type, prixMin, prixMax].filter(Boolean).length}
                 </span>
@@ -566,7 +566,7 @@ export default function HomePage() {
 
                 {/* Opération */}
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Opération</p>
+                  <p className="text-micro font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Opération</p>
                   <div className="flex gap-2">
                     {TRANSACTIONS.map(t => (
                       <button key={t.key} onClick={() => setTransaction(t.key)}
@@ -580,7 +580,7 @@ export default function HomePage() {
 
                 {/* Type */}
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Type de bien</p>
+                  <p className="text-micro font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Type de bien</p>
                   <div className="flex flex-wrap gap-1.5">
                     {TYPES.slice(0, 5).map(t => (
                       <button key={t.key} onClick={() => setType(t.key)}
@@ -594,14 +594,14 @@ export default function HomePage() {
 
                 {/* Budget */}
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Budget (FCFA)</p>
+                  <p className="text-micro font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Budget (FCFA)</p>
                   <div className="flex flex-wrap gap-1.5 mb-2.5">
                     {BUDGET_PRESETS.map(p => {
                       const active = prixMax === String(p.max)
                       return (
                         <button key={p.label}
                           onClick={() => { setPrixMin(''); setPrixMax(active ? '' : String(p.max)) }}
-                          className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                          className="px-2.5 py-1 rounded-lg text-caption font-semibold transition-all"
                           style={active ? panelPillActive : panelPillIdle}>
                           {p.label}
                         </button>
@@ -628,7 +628,7 @@ export default function HomePage() {
                   </div>
                   {(prixMin || prixMax) && (
                     <button onClick={() => { setPrixMin(''); setPrixMax('') }}
-                      className="mt-1.5 text-[11px] font-semibold transition-opacity hover:opacity-70"
+                      className="mt-1.5 text-caption font-semibold transition-opacity hover:opacity-70"
                       style={{ color: '#3A5AEE' }}>
                       Effacer le budget
                     </button>
@@ -929,7 +929,7 @@ export default function HomePage() {
             { title: 'Visites en ligne',    desc: 'Réservez votre créneau en quelques clics. Confirmation en temps réel, rappel automatique.', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l2 2 4-4" /></svg>, color: '#7B4BFF', bg: 'rgba(123,75,255,0.12)', tag: 'Agenda intelligent' },
             { title: 'Paiement sécurisé',  desc: 'Réglez via MTN MoMo ou FedaPay. Vos transactions sont chiffrées et tracées.', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>, color: '#00B087', bg: 'rgba(0,176,135,0.12)', tag: 'Mobile Money' },
             { title: 'Messagerie intégrée', desc: 'Discutez directement avec propriétaires et démarcheurs, sans intermédiaires.', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>, color: '#FF6B35', bg: 'rgba(255,107,53,0.12)', tag: 'Communication directe' },
-            { title: 'Biens vérifiés',     desc: 'Chaque annonce est contrôlée avant publication. Zéro fausse annonce, zéro arnaque.', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>, color: '#3A5AEE', bg: 'rgba(75,107,255,0.12)', tag: '100% fiable' },
+            { title: 'Annonces modérées',  desc: 'Chaque annonce est examinée par notre équipe avant publication.', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>, color: '#3A5AEE', bg: 'rgba(75,107,255,0.12)', tag: '100% fiable' },
             { title: 'Support réactif',    desc: "Une équipe disponible à chaque étape — de la recherche à l'emménagement.", icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-2a4 4 0 014-4h10a4 4 0 014 4v2M3 18a2 2 0 002 2h1a1 1 0 001-1v-4a1 1 0 00-1-1H3v6zm18 0a2 2 0 01-2 2h-1a1 1 0 01-1-1v-4a1 1 0 011-1h3v6z" /></svg>, color: '#B45309', bg: 'rgba(255,152,0,0.12)', tag: 'Assistance 24h' },
           ].map((s, i) => (
             <Reveal key={s.title} animation="anim-fade-up" delay={i * 70}>
@@ -944,7 +944,7 @@ export default function HomePage() {
                     style={{ background: s.bg, color: s.color }}>
                     {s.icon}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex-shrink-0"
+                  <span className="text-micro font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex-shrink-0"
                     style={{ background: s.bg, color: s.color }}>
                     {s.tag}
                   </span>
@@ -1002,7 +1002,7 @@ export default function HomePage() {
                         <span className="text-sm font-semibold whitespace-nowrap" style={{ color: tk.textPrimary }}>
                           {capitalizeQuartier(q)}
                         </span>
-                        <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                        <span className="text-caption font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
                           style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
                           {count}
                         </span>
@@ -1065,7 +1065,7 @@ export default function HomePage() {
                   {col.links.map(l => (
                     <li key={l.path}>
                       <button onClick={() => navigate(l.path)}
-                        className="text-sm transition-colors hover:text-[#4B6BFF]"
+                        className="text-sm transition-colors hover:text-brand"
                         style={{ color: tk.textSecond }}>
                         {l.label}
                       </button>
@@ -1089,7 +1089,7 @@ export default function HomePage() {
             ].map((l, i) => (
               <span key={l.path} className="flex items-center gap-4">
                 {i > 0 && <span style={{ color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.20)' }}>·</span>}
-                <button onClick={() => navigate(l.path)} className="text-xs hover:text-[#4B6BFF] transition-colors"
+                <button onClick={() => navigate(l.path)} className="text-xs hover:text-brand transition-colors"
                   style={{ color: tk.textMuted }}>
                   {l.label}
                 </button>

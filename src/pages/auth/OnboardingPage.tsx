@@ -16,7 +16,7 @@ const SLIDES = [
       </svg>
     ),
     title: 'Trouvez votre\nlogement idéal',
-    subtitle: 'Recherchez parmi des centaines de logements vérifiés à Cotonou et Abomey-Calavi.',
+    subtitle: 'Recherchez des logements à Cotonou et Abomey-Calavi et réservez vos visites en quelques clics.',
     features: ['Recherche avancée', 'Filtres intelligents', 'Résultats en temps réel'],
     btnLabel: 'Commencer',
   },
@@ -42,8 +42,8 @@ const SLIDES = [
       </svg>
     ),
     title: 'Sécurisé et\ntransparent',
-    subtitle: 'Paiements via Mobile Money, reçus automatiques et logements vérifiés.',
-    features: ['Mobile Money', 'Reçus automatiques', 'Biens vérifiés'],
+    subtitle: 'Paiements via Mobile Money, reçus automatiques et annonces modérées avant publication.',
+    features: ['Mobile Money', 'Reçus automatiques', 'Annonces modérées'],
     btnLabel: "C'est parti",
   },
 ]

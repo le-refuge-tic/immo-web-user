@@ -74,7 +74,7 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
               <span className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: n.bg, color: (n as any).iconColor || '#fff' }}>
                 {n.icon}
               </span>
-              <span className="text-[11px] font-medium" style={{ color: ts }}>{n.label}</span>
+              <span className="text-caption font-medium" style={{ color: ts }}>{n.label}</span>
             </a>
           ))}
         </div>
