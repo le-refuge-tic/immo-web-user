@@ -1,42 +1,40 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { unwrapList } from '../../utils/unwrapList'
+import { useApiQuery } from '../../hooks/useApiQuery'
+import type { Bien } from '../../types/api'
+
+// Les favoris sont parfois renvoyés avec l'identifiant du bien dans `bien_id`.
+type Favori = Bien & { bien_id?: number; bien?: Bien }
+const NO_FAVORIS: Favori[] = []
 
 export default function FavoritesPage() {
   usePageTitle('Favoris')
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
-  const [biens, setBiens] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [favIds, setFavIds] = useState<Set<number>>(new Set())
+  // Chargement annulable, sans réponse périmée (FE-A-004).
+  const { data, setData, loading } = useApiQuery(
+    signal => favoritesApi.list(signal).then(unwrapList),
+    [isLoggedIn],
+    { enabled: isLoggedIn },
+  )
+  const biens: Favori[] = data ?? NO_FAVORIS
+  const favIds = useMemo(() => new Set<number>(biens.map(f => (f as Favori).bien_id || f.id)), [biens])
   const [confirmClearAll, setConfirmClearAll] = useState(false)
-
-  useEffect(() => {
-    if (!isLoggedIn) { setLoading(false); return }
-    favoritesApi.list()
-      .then(data => {
-        const list = Array.isArray(data) ? data : data.data || []
-        setBiens(list)
-        setFavIds(new Set(list.map((f: any) => f.bien_id || f.id)))
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [isLoggedIn])
 
   const handleFavToggle = (id: number, added: boolean) => {
     if (!added) {
-      setBiens(prev => prev.filter(b => (b.bien_id || b.id) !== id))
-      setFavIds(prev => { const next = new Set(prev); next.delete(id); return next })
+      setData(prev => (prev ?? NO_FAVORIS).filter(b => ((b as Favori).bien_id || b.id) !== id))
     }
   }
 
   const handleClearAll = async () => {
     const ids = Array.from(favIds)
-    setBiens([])
-    setFavIds(new Set())
+    setData([])
     setConfirmClearAll(false)
     try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (_) {}
   }

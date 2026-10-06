@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { notificationsApi } from '../../api/notificationsApi'
 import { visitesApi } from '../../api/visitesApi'
 import { chatApi } from '../../api/chatApi'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { unwrapList } from '../../utils/unwrapList'
+import { useApiQuery } from '../../hooks/useApiQuery'
+import type { Notification } from '../../types/api'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -92,21 +95,22 @@ function chipLabel(n: any): string | null {
 
 const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/mes-visites', prospect: '/mes-visites' }
 
+const NO_NOTIFS: Notification[] = []
+
 export default function NotificationsPage() {
   usePageTitle('Notifications')
   const { isLoggedIn, user, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
-  const [notifs, setNotifs] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  // Chargement annulable, sans réponse périmée (FE-A-004) ; les mises à jour
+  // locales (lu / tout lu) passent par setNotifsData.
+  const { data: notifsData, setData: setNotifsData, loading } = useApiQuery(
+    signal => notificationsApi.list(signal).then(unwrapList),
+    [isLoggedIn],
+    { enabled: isLoggedIn },
+  )
+  const notifs = notifsData ?? NO_NOTIFS
+  const setNotifs = (update: (prev: Notification[]) => Notification[]) => setNotifsData(prev => update(prev ?? NO_NOTIFS))
   const [filter, setFilter] = useState<'toutes'|'non_lues'>('toutes')
-
-  useEffect(() => {
-    if (!isLoggedIn) { setLoading(false); return }
-    notificationsApi.list()
-      .then(d => setNotifs(Array.isArray(d) ? d : d.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [isLoggedIn])
 
   const markRead = async (id: number) => {
     try {
@@ -197,7 +201,7 @@ export default function NotificationsPage() {
               <h1 className="text-2xl font-bold text-text-dark">Notifications</h1>
               {unread > 0 && (
                 <p className="text-sm text-text-grey mt-1">
-                  <span className="inline-flex items-center justify-center w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full mr-1.5">{unread > 9 ? '9+' : unread}</span>
+                  <span className="inline-flex items-center justify-center w-5 h-5 bg-primary text-white text-micro font-bold rounded-full mr-1.5">{unread > 9 ? '9+' : unread}</span>
                   non lue{unread > 1 ? 's' : ''}
                 </p>
               )}
@@ -278,7 +282,7 @@ export default function NotificationsPage() {
                     )}
                     <p className="text-xs text-text-grey mt-1.5">{timeAgo(n.created_at)}</p>
                     {chip && (
-                      <span className="inline-block mt-2 px-2.5 py-1 rounded-lg text-[11px] font-bold" style={{ background: cfg.bg, color: cfg.color }}>
+                      <span className="inline-block mt-2 px-2.5 py-1 rounded-lg text-caption font-bold" style={{ background: cfg.bg, color: cfg.color }}>
                         {chip}
                       </span>
                     )}

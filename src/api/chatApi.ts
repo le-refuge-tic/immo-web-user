@@ -1,21 +1,24 @@
 import axios from 'axios'
+import type { ChatSearchResponse, Conversation, ConversationResponse, ListResponse, Message, PlainteBody } from '../types/api'
 import { BASE, auth } from './apiBase'
+
+export interface MessagesParams { limit?: number; before?: number | string; [cle: string]: string | number | undefined }
 
 export const chatApi = {
   conversations: () =>
-    axios.get(`${BASE}/chat/conversations`, auth()).then(r => r.data),
+    axios.get<ListResponse<Conversation>>(`${BASE}/chat/conversations`, auth()).then(r => r.data),
 
   creerConversation: (bienId: number) =>
-    axios.post(`${BASE}/chat/conversations`, { bienId }, auth()).then(r => r.data),
+    axios.post<ConversationResponse>(`${BASE}/chat/conversations`, { bienId }, auth()).then(r => r.data),
 
   search: (q: string) =>
-    axios.get(`${BASE}/chat/search`, { ...auth(), params: { q } }).then(r => r.data),
+    axios.get<ChatSearchResponse>(`${BASE}/chat/search`, { ...auth(), params: { q } }).then(r => r.data),
 
-  messages: (convId: number, params?: any) =>
-    axios.get(`${BASE}/chat/conversations/${convId}/messages`, { ...auth(), params }).then(r => r.data),
+  messages: (convId: number, params?: MessagesParams) =>
+    axios.get<ListResponse<Message>>(`${BASE}/chat/conversations/${convId}/messages`, { ...auth(), params }).then(r => r.data),
 
   envoyer: (convId: number, contenu: string, replyToId?: number, replyToContenu?: string) =>
-    axios.post(`${BASE}/chat/conversations/${convId}/messages`,
+    axios.post<Message>(`${BASE}/chat/conversations/${convId}/messages`,
       { contenu, reply_to_id: replyToId, reply_to_contenu: replyToContenu }, auth()).then(r => r.data),
 
   marquerLus: (convId: number) =>
@@ -25,7 +28,7 @@ export const chatApi = {
     axios.post(`${BASE}/chat/conversations/${convId}/pin`, { msgId }, auth()).then(r => r.data),
 
   modifierMessage: (msgId: number, contenu: string) =>
-    axios.patch(`${BASE}/chat/messages/${msgId}`, { contenu }, auth()).then(r => r.data),
+    axios.patch<Message>(`${BASE}/chat/messages/${msgId}`, { contenu }, auth()).then(r => r.data),
 
   supprimerMessage: (msgId: number) =>
     axios.delete(`${BASE}/chat/messages/${msgId}`, auth()).then(r => r.data),
@@ -36,6 +39,6 @@ export const chatApi = {
   repondreProposition: (messageId: number, response: 'accepted' | 'declined' | 'countered', proposedAt?: string) =>
     axios.patch(`${BASE}/chat/slots/${messageId}`, { response, proposed_at: proposedAt }, auth()).then(r => r.data),
 
-  creerPlainte: (body: { message_id?: number; conversation_id?: number; contenu: string }) =>
+  creerPlainte: (body: PlainteBody) =>
     axios.post(`${BASE}/users/me/plainte`, body, auth()).then(r => r.data),
 }
