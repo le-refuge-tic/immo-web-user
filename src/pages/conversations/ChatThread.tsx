@@ -859,7 +859,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                   <button disabled={!complainText.trim() || complainSending} onClick={async () => {
                     if (!complainText.trim()) return; setComplainSending(true)
                     try { await chatApi.creerPlainte({ message_id: complainMsg.id, conversation_id: convId, contenu: complainText.trim() }); setComplainSent(true) }
-                    catch { setError("Impossible d'envoyer."); setTimeout(() => setError(''), 5000) }
+                    catch (err) { showError(err) }
                     setComplainSending(false)
                   }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center cursor-pointer" style={{ background: '#4B6BFF' }}>
                     {complainSending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Envoyer'}
