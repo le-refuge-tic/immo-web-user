@@ -12,9 +12,11 @@ function send(error: unknown, ctx?: ErrorContext): void {
   }
   if (DSN) {
     // Sentry lazy-loaded when DSN is configured
-    import('@sentry/react')
-      .then(({ captureException, withScope }) => {
-        withScope(scope => {
+    // Spécificateur dynamique : @sentry/react est une dépendance optionnelle (non installée par défaut).
+    const sentryModule = '@sentry/react'
+    import(/* @vite-ignore */ sentryModule)
+      .then(({ captureException, withScope }: any) => {
+        withScope((scope: any) => {
           if (ctx?.componentStack) scope.setExtra('componentStack', ctx.componentStack)
           if (ctx?.extra) Object.entries(ctx.extra).forEach(([k, v]) => scope.setExtra(k, v))
           captureException(error)

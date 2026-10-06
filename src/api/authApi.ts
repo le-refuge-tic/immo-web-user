@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { tokenStore } from '../utils/tokenStore'
 import { BASE, auth } from './apiBase'
 
 export const authApi = {
@@ -21,4 +22,17 @@ export const authApi = {
   // désormais { requires_otp, session_token } au lieu des tokens directs).
   verifyOtp: (session_token: string, code: string) =>
     axios.post(`${BASE}/auth/otp/verify`, { session_token, code }).then(r => r.data),
+}
+
+/**
+ * Révocation serveur de la session (FE-E-003). Best effort : ne lève jamais,
+ * délai court, et lit les jetons de façon synchrone pour pouvoir être appelée
+ * juste avant leur effacement local.
+ */
+export function revokeSession(): void {
+  const refresh = tokenStore.getRefresh()
+  if (!refresh) return
+  axios
+    .post(`${BASE}/auth/logout`, { refresh_token: refresh }, { ...auth(), timeout: 5000 })
+    .catch(() => {})
 }

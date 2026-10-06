@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { tokenStore } from '../utils/tokenStore'
+import { readStoredUser, writeStoredUser } from '../utils/storedUser'
+import { revokeSession } from '../api/authApi'
+import { userApi } from '../api/userApi'
 
 type AuthUser = {
   id: number
@@ -47,10 +50,7 @@ const AuthContext = createContext<AuthCtx>({
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    try { return JSON.parse(localStorage.getItem('rg_user') || 'null') }
-    catch { return null }
-  })
+  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser<AuthUser>())
   const [token, setToken] = useState<string | null>(() =>
     tokenStore.getToken() || null
   )
@@ -69,13 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const rt: string = data.refresh_token
     setUser(u)
     setToken(t)
-    localStorage.setItem('rg_user', JSON.stringify(u))
+    writeStoredUser(u)
     tokenStore.setToken(t)
     tokenStore.setRefresh(rt)
     setActiveRole(u.role_principal || u.role)
   }
 
   const logout = () => {
+    // Révocation serveur d'abord (lit les jetons avant leur effacement), puis nettoyage local.
+    revokeSession()
     setActiveRoleState('')
     localStorage.removeItem('rg_active_role')
     setUser(null)
@@ -88,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return
     const updated = { ...user, ...partial }
     setUser(updated)
-    localStorage.setItem('rg_user', JSON.stringify(updated))
+    writeStoredUser(updated)
   }
 
   const rolesActifs: string[] = user?.roles_actifs ?? (user?.role ? [user.role] : [])
@@ -98,6 +100,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fallbackRole = user?.role_principal || user?.role || ''
   const candidate = activeRole || fallbackRole
   const computedActiveRole = (candidate && rolesActifs.includes(candidate)) ? candidate : fallbackRole
+
+  // Après rechargement, seul le profil minimal est persisté (FE-E-006) :
+  // les coordonnées sont rechargées en mémoire depuis GET /users/me, sans persistance.
+  useEffect(() => {
+    if (!token) return
+    let cancelled = false
+    userApi.me().then((full) => {
+      if (cancelled || !full || typeof full !== 'object') return
+      const { roles_actifs: _r, role_principal: _p, role: _ro, ...details } = full as Record<string, unknown>
+      setUser(prev => (prev ? { ...prev, ...details } : prev))
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [token])
 
   // Resynchronise localStorage si activeRole stocké n'est plus valide
   useEffect(() => {

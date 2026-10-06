@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { tokenStore } from '../utils/tokenStore'
 import { BASE } from './apiBase'
+import { revokeSession } from './authApi'
+import { readStoredUser, writeStoredUser } from '../utils/storedUser'
 
 /**
  * Sans timeout, une requête lente (ex: réveil à froid du serveur) laisse
@@ -37,16 +39,13 @@ export async function refreshAccessToken(): Promise<string | null> {
     tokenStore.setToken(data.access_token)
     if (data.refresh_token) tokenStore.setRefresh(data.refresh_token)
     if (data.user) {
-      localStorage.setItem('rg_user', JSON.stringify(data.user))
+      writeStoredUser(data.user)
     } else {
       try {
         const payload = JSON.parse(atob(data.access_token.split('.')[1]))
         if (payload.roles_actifs) {
-          const stored = localStorage.getItem('rg_user')
-          if (stored) {
-            const u = JSON.parse(stored)
-            localStorage.setItem('rg_user', JSON.stringify({ ...u, roles_actifs: payload.roles_actifs }))
-          }
+          const u = readStoredUser<object>()
+          if (u) writeStoredUser({ ...u, roles_actifs: payload.roles_actifs })
         }
       } catch {}
     }
@@ -57,7 +56,9 @@ export async function refreshAccessToken(): Promise<string | null> {
 }
 
 function forceLogout() {
+  revokeSession()
   localStorage.removeItem('rg_user')
+  localStorage.removeItem('rg_active_role')
   tokenStore.clearTokens()
   if (location.pathname !== '/login') location.href = '/login'
 }
