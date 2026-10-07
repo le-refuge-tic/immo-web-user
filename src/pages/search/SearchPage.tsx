@@ -443,10 +443,10 @@ export default function SearchPage() {
     <div className="min-h-full">
 
       {/* ══════════════ MOBILE ══════════════ */}
-      <div className="lg:hidden pt-[72px] md:pt-0 overflow-x-hidden">
+      <div className="lg:hidden overflow-x-hidden">
 
-        {/* Header sticky — top-[72px] pour dégager la TopNav fixe */}
-        <div className="sticky top-[72px] z-30 px-4 pt-3 pb-3"
+        {/* Header sticky : top-0 sur téléphone (pas de barre en haut), top-[72px] dès que la TopNav fixe est visible */}
+        <div className="sticky top-0 md:top-[72px] z-30 px-4 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] md:pt-3 pb-3"
           style={{
             background: tk.headerBg,
             backdropFilter: 'blur(40px)',

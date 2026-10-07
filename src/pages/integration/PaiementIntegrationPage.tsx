@@ -100,7 +100,7 @@ export default function PaiementIntegrationPage() {
   return (
     <div className="min-h-dvh flex flex-col" style={{ background: '#F8FAFC' }}>
       {/* Header */}
-      <div className="flex-shrink-0 px-5 pt-[72px] md:pt-6 pb-5"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5"
         style={{ background: `linear-gradient(135deg, #0F3460, ${TEAL})`, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-[11px]"

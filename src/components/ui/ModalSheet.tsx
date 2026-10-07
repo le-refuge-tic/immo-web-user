@@ -60,7 +60,6 @@ export function ModalSheet({ open, onClose, children, label, className = '' }: M
       ref={overlayRef}
       className={`fixed inset-0 z-50 flex items-end justify-center ${className}`}
       style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)' }}
-      aria-hidden="true"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div

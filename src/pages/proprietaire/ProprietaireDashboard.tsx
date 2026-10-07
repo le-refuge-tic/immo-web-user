@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationsContext'
+import { ModalSheet } from '../../components/ui/ModalSheet'
+import { useTheme } from '../../context/ThemeContext'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
@@ -27,13 +29,17 @@ import { RolesTab } from './tabs/RolesTab'
 import { ProfilTab } from './tabs/ProfilTab'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
+
+const PRIMARY_TABS: Tab[] = ['tableau', 'biens', 'reservations', 'loyers']
+
 export default function ProprietaireDashboard() {
   usePageTitle('Espace propriétaire')
   const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const { unreadMessages, unreadAlertes, refresh: refreshNotifications } = useNotifications()
   const navigate = useNavigate()
   const location = useLocation()
-  const [isDark, setIsDark] = useState(false)
+  // Le thème suit le réglage global (Profil > Paramètres > Apparence).
+  const isDark = useTheme().theme === 'dark'
   const fromDetail = !!(location.state as any)?.fromDetail
   const [isScrolled, setIsScrolled] = useState(fromDetail)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -63,6 +69,7 @@ export default function ProprietaireDashboard() {
     navigate(ROLE_ROUTES[role] || '/')
   }
   const [tab, setTab] = useState<Tab>((location.state as any)?.tab ?? 'tableau')
+  const [moreOpen, setMoreOpen] = useState(false)
   const [messagesInitConvId, setMessagesInitConvId] = useState<number | null>((location.state as any)?.convId ?? null)
   const [messagesInitDraft, setMessagesInitDraft] = useState<string | null>(null)
   const openTab = (t: Tab, convId?: number, draftMessage?: string) => {
@@ -235,8 +242,8 @@ export default function ProprietaireDashboard() {
               <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE }}>REFUGE</span>
             </button>
 
-            {/* Nav tabs — desktop */}
-            <div className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
+            {/* Nav tabs — desktop large uniquement : en dessous, la barre du bas (4 onglets + Plus) prend le relais */}
+            <div className="hidden xl:flex items-center gap-0.5 flex-1 justify-center">
               {NAV_ITEMS.map(item => {
                 const active = tab === item.key
                 const badge = item.key === 'messages' ? unreadMessages : item.key === 'reservations' ? reservationsEnAttente : 0
@@ -258,15 +265,6 @@ export default function ProprietaireDashboard() {
 
             {/* Right actions */}
             <div className="flex items-center gap-2 ml-auto">
-              {/* Theme toggle */}
-              <button onClick={() => setIsDark(d => !d)} title={isDark ? 'Mode clair' : 'Mode sombre'} aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-                className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
-                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: BLUE, minWidth: '32px', minHeight: '32px' }}>
-                {isDark
-                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m8.66-9h-1M4.34 12H3.34m14.66-6.34-.7.7M6.7 17.3l-.7.7m12.02.02-.7-.7M6.7 6.7 6 6m6 3a3 3 0 110 6 3 3 0 010-6z"/></svg>
-                  : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-                }
-              </button>
               {/* Alertes — onglet notifications interne à l'espace propriétaire */}
               <button onClick={() => setTab('notifications')} title="Notifications"
                 className="relative w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
@@ -653,28 +651,72 @@ export default function ProprietaireDashboard() {
       <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div style={{ background: 'var(--p-surface)', borderTop: '1px solid var(--p-border)', boxShadow: '0 -4px 24px rgba(0,0,0,0.30)' }}>
           <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
-            {TABS.map(t => {
+            {/* 4 onglets principaux + « Plus » (barre limitée à 5 entrées, comme l'app mobile) */}
+            {TABS.filter(t => PRIMARY_TABS.includes(t.key)).map(t => {
               const active = tab === t.key
-              const badge = t.key === 'messages' ? unreadMessages : 0
               return (
-                <button key={t.key} onClick={() => { setTab(t.key); if (t.key === 'messages') refreshNotifications() }}
-                  className="relative flex items-center gap-1.5 px-2 py-2 rounded-[14px] transition-all"
+                <button key={t.key} onClick={() => setTab(t.key)}
+                  aria-label={t.label} aria-current={active ? 'page' : undefined}
+                  className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
                   style={active ? { background: BLUE + '14' } : {}}>
-                  <span className="relative" style={{ color: active ? BLUE : 'var(--p-muted)' }}>
-                    {t.icon}
-                    {badge > 0 && (
-                      <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
-                        {badge > 9 ? '9+' : badge}
-                      </span>
-                    )}
-                  </span>
-                  {active && <span className="text-xs font-bold" style={{ color: BLUE }}>{t.label}</span>}
+                  <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.icon}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.label}</span>
                 </button>
               )
             })}
+            {(() => {
+              const moreActive = !PRIMARY_TABS.includes(tab)
+              const moreBadge = unreadMessages + unreadAlertes
+              return (
+                <button onClick={() => setMoreOpen(true)} aria-haspopup="dialog" aria-expanded={moreOpen}
+                  aria-label={'Plus' + (moreBadge > 0 ? `, ${moreBadge} non lu${moreBadge > 1 ? 's' : ''}` : '')}
+                  className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
+                  style={moreActive ? { background: BLUE + '14' } : {}}>
+                  <span className="relative" style={{ color: moreActive ? BLUE : 'var(--p-muted)' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    {moreBadge > 0 && (
+                      <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                        {moreBadge > 9 ? '9+' : moreBadge}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[10px] font-semibold" style={{ color: moreActive ? BLUE : 'var(--p-muted)' }}>
+                    {moreActive ? (NAV_ITEMS.find(n => n.key === tab)?.label ?? 'Plus') : 'Plus'}
+                  </span>
+                </button>
+              )
+            })()}
           </div>
         </div>
       </div>
+
+      <ModalSheet open={moreOpen} onClose={() => setMoreOpen(false)} label="Plus d'options">
+        <div className="rounded-t-3xl p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]" style={{ background: 'var(--p-surface)' }}>
+          <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: 'var(--p-border)' }} />
+          <ul className="grid grid-cols-3 gap-2">
+            {NAV_ITEMS.filter(n => !PRIMARY_TABS.includes(n.key)).map(n => {
+              const badge = n.key === 'messages' ? unreadMessages : n.key === 'notifications' ? unreadAlertes : 0
+              const active = tab === n.key
+              return (
+                <li key={n.key}>
+                  <button
+                    onClick={() => { setTab(n.key); setMoreOpen(false); if (n.key === 'messages' || n.key === 'notifications') refreshNotifications() }}
+                    className="relative w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold"
+                    style={{ background: active ? BLUE + '14' : 'var(--p-bg, transparent)', color: active ? BLUE : 'var(--p-text)', border: '1px solid var(--p-border)' }}>
+                    <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{n.icon}</span>
+                    {n.label}
+                    {badge > 0 && (
+                      <span className="absolute top-2 right-3 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                        {badge > 9 ? '9+' : badge}
+                      </span>
+                    )}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </ModalSheet>
     </div>
   )
 }

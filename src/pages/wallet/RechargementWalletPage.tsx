@@ -83,7 +83,7 @@ export default function RechargementWalletPage() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <div className="flex-shrink-0 px-5 pt-[72px] md:pt-6 pb-5 flex items-center gap-4" style={{ background: accent }}>
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5 flex items-center gap-4" style={{ background: accent }}>
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
           style={{ background: 'rgba(255,255,255,0.15)' }}>
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>

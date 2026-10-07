@@ -1,5 +1,4 @@
-import { useTheme } from '../../context/ThemeContext'
-import type { ThemePreference } from '../../context/ThemeContext'
+import AppearanceSetting from '../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -88,11 +87,6 @@ const CalendarMenuIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
   </svg>
 )
-const MoonMenuIcon = () => (
-  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-  </svg>
-)
 const LogoutIcon = () => (
   <svg className="w-[18px] h-[18px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -166,42 +160,6 @@ function MenuGroup({ title, children }: { title: string; children: React.ReactNo
       <h2 className="px-1 text-micro font-bold uppercase tracking-wider text-text-grey">{title}</h2>
       <div className="glass-card rounded-[16px] overflow-hidden">{children}</div>
     </section>
-  )
-}
-
-const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
-  { value: 'light',  label: 'Clair'   },
-  { value: 'dark',   label: 'Sombre'  },
-  { value: 'system', label: 'Système' },
-]
-
-/** Seul endroit de l'app où l'on choisit le thème. */
-function AppearanceRow() {
-  const { preference, setPreference } = useTheme()
-  return (
-    <div className="px-4 py-3.5">
-      <div className="flex items-center gap-3.5 mb-3">
-        <MoonMenuIcon />
-        <span id="apparence-label" className="flex-1 text-sm text-text-dark font-medium">Apparence</span>
-      </div>
-      <div role="radiogroup" aria-labelledby="apparence-label" className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06]">
-        {THEME_OPTIONS.map(o => {
-          const selected = preference === o.value
-          return (
-            <button
-              key={o.value}
-              role="radio"
-              aria-checked={selected}
-              onClick={() => setPreference(o.value)}
-              className={`py-2 rounded-lg text-[13px] font-semibold transition-all ${selected ? 'bg-white dark:bg-white/15 text-primary dark:text-white shadow-sm' : 'text-text-grey'}`}
-            >
-              {o.label}
-            </button>
-          )
-        })}
-      </div>
-      {preference === 'system' && <p className="text-caption text-text-grey mt-2">Suit le réglage de votre téléphone ou ordinateur.</p>}
-    </div>
   )
 }
 
@@ -315,7 +273,7 @@ export default function ProfilePage() {
         <MenuItem icon={<ReceiptMenuIcon />} label="Mes transactions" onClick={() => navigate('/mes-paiements')} showDivider={false} />
       </MenuGroup>
       <MenuGroup title="Paramètres">
-        <AppearanceRow />
+        <AppearanceSetting />
         <div className="h-px bg-divider ml-[50px]" />
         <MenuItem icon={<LockMenuIcon />} label="Sécurité et mot de passe" onClick={() => setPasswordOpen(true)} />
         <MenuItem icon={<StarMenuIcon />} label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />

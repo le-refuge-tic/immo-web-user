@@ -1,3 +1,4 @@
+import AppearanceSetting from '../../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
@@ -174,10 +175,15 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
             )}
           </div>
 
+          {/* Apparence (seul réglage de thème de l'espace propriétaire) */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+            <AppearanceSetting />
+          </div>
+
           {/* Déconnexion */}
           <button onClick={() => { logout(); navigate('/login') }}
             className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
-            style={{ background: hoveredEl === 'logout' ? '#FFE4E4' : '#FFF0F0', color: 'var(--tx-red)', border: '1px solid #EF444422' }}
+            style={{ background: hoveredEl === 'logout' ? 'rgba(239,68,68,0.16)' : 'rgba(239,68,68,0.08)', color: 'var(--tx-red)', border: '1px solid #EF444433' }}
             onMouseEnter={() => setHoveredEl('logout')}
             onMouseLeave={() => setHoveredEl(null)}>
             Se déconnecter

@@ -107,7 +107,7 @@ function ClientWalletView() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <div className="flex-shrink-0 px-5 pt-[72px] md:pt-6 pb-6"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
         style={{ background: `linear-gradient(135deg, ${color}CC, ${color})`, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-5">
@@ -267,7 +267,7 @@ function WalletCommissionsView() {
   return (
     <div className="min-h-full flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 px-5 pt-[72px] md:pt-6 pb-6"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
         style={{ background: 'linear-gradient(135deg,#1A1A2E,#4B6BFF)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">

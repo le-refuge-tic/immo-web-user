@@ -96,9 +96,9 @@ export default function ManageRolesPage() {
   })
 
   return (
-    <div className="min-h-full flex flex-col bg-[#F4F6FA]">
+    <div className="min-h-full flex flex-col bg-[#F4F6FA] dark:bg-[#0F0F14]">
       {/* Header */}
-      <div className="flex-shrink-0 px-5 pt-[72px] md:pt-8 pb-6 md:pb-8"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-8 pb-6 md:pb-8"
         style={{ background: 'linear-gradient(135deg,#1A1A2E,#4B6BFF)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"

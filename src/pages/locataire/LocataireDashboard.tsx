@@ -1,3 +1,4 @@
+import AppearanceSetting from '../../components/AppearanceSetting'
 import { useState, useEffect, useRef } from 'react'
 import { openPaymentUrl } from '../../utils/paymentUrl'
 import { useNavigate } from 'react-router-dom'
@@ -709,6 +710,7 @@ function ProfilTab() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-text-grey"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
           </button>
         ))}
+        <div className="w-full glass-card rounded-xl"><AppearanceSetting /></div>
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-2 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2"
           style={{ color: 'var(--tx-red)', borderColor: '#EF444430', background: '#EF444408' }}>
@@ -804,7 +806,7 @@ export default function LocataireDashboard() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <div className="md:hidden flex-shrink-0 px-5 pt-[72px] pb-5" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
+        <div className="md:hidden flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-5" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/60 text-xs uppercase tracking-wider">REFUGE · Locataire</p>
@@ -840,16 +842,18 @@ export default function LocataireDashboard() {
         </div>
 
         {/* Bottom Nav — mobile only */}
-        <div className="md:hidden flex-shrink-0 border-t" style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.06)' }}>
+        <div className="md:hidden flex-shrink-0 border-t bg-[rgba(255,255,255,0.92)] dark:bg-[rgba(20,22,30,0.95)] border-black/[0.06] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(20px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="flex items-center justify-around px-2 py-2">
             {TABS.map(t => {
               const active = tab === t.key
               return (
                 <button key={t.key} onClick={() => t.key === 'messages' ? navigate('/conversations') : setTab(t.key)}
-                  className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all"
-                  style={active ? { background: GREEN + '18' } : {}}>
-                  <span style={{ color: active ? GREEN : 'rgba(0,0,0,0.35)' }}>{t.icon(active)}</span>
-                  {active && <span className="text-micro font-bold" style={{ color: GREEN }}>{t.label}</span>}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[56px] rounded-2xl transition-all ${active ? '' : 'text-black/55 dark:text-white/60'}`}
+                  style={active ? { background: GREEN + '18', color: GREEN } : {}}>
+                  <span>{t.icon(active)}</span>
+                  {/* Libellé toujours visible : une icône seule n'est pas assez explicite */}
+                  <span className={`text-micro ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>
                 </button>
               )
             })}

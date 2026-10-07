@@ -1,3 +1,4 @@
+import AppearanceSetting from '../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -14,6 +15,7 @@ import { BASE } from '../../api/apiBase'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { useNotifications } from '../../context/NotificationsContext'
 import EditProfileModal from '../profile/EditProfileModal'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
 import { bienTypeLabel } from '../../utils/bienType'
@@ -63,6 +65,8 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'portefeuille',  label: 'Portefeuille', icon: <IcWallet /> },
   { key: 'profil',        label: 'Profil',       icon: <IcPerson /> },
 ]
+
+const PRIMARY_TABS: Tab[] = ['tableau', 'biens', 'reservations', 'creneaux']
 
 function fmtPrix(p: any) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
@@ -938,6 +942,7 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
           <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
           <IcChevron />
         </button>
+        <div className="w-full card-soft rounded-xl"><AppearanceSetting /></div>
         <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
           Se déconnecter
         </button>
@@ -955,6 +960,7 @@ export default function DemarcheurDashboard() {
   const { unreadAlertes } = useNotifications()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
+  const [moreOpen, setMoreOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -991,7 +997,7 @@ export default function DemarcheurDashboard() {
   const score = me?.score_credibilite ?? 100
 
   return (
-    <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] relative">
+    <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] dark:bg-[#0F0F14] relative">
 
       {/* Sidebar (desktop only) */}
       <aside className="hidden xl:flex xl:flex-col xl:w-64 2xl:w-72 flex-shrink-0 bg-white border-r border-divider">
@@ -1030,7 +1036,7 @@ export default function DemarcheurDashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
       {/* Header */}
-      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-[72px] md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
         <div className="md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0">
           <div className="flex items-center gap-3 mb-5 md:mb-6">
             <div className="w-11 h-11 md:w-12 md:h-12 rounded-[13px] flex items-center justify-center border flex-shrink-0"
@@ -1213,24 +1219,59 @@ export default function DemarcheurDashboard() {
         </div>
       )}
 
-      {/* Bottom Nav (mobile & tablet only — desktop uses the sidebar) */}
-      <div className="xl:hidden flex-shrink-0 md:px-6 md:pb-4">
-        <div className="bg-white border-t border-divider md:border md:rounded-2xl" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
+      {/* Bottom Nav (mobile & tablet only — desktop uses the sidebar) : 4 onglets + « Plus », libellés visibles */}
+      <div className="xl:hidden flex-shrink-0 md:px-6 md:pb-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="bg-white dark:bg-[#14161E] border-t border-divider dark:border-white/10 md:border md:rounded-2xl" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           <div className="flex items-center justify-around px-2 py-2 md:max-w-lg md:mx-auto">
-            {TABS.map(t => {
+            {TABS.filter(t => PRIMARY_TABS.includes(t.key)).map(t => {
               const active = tab === t.key
               return (
-                <button key={t.key} onClick={() => setTab(t.key)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] transition-all"
-                  style={active ? { background: PURPLE + '18' } : {}}>
-                  <span style={{ color: active ? PURPLE : '#9E9E9E' }}>{t.icon}</span>
-                  {active && <span className="text-xs font-bold" style={{ color: PURPLE }}>{t.label}</span>}
+                <button key={t.key} onClick={() => setTab(t.key)} aria-current={active ? 'page' : undefined}
+                  className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${active ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
+                  style={active ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                  <span>{t.icon}</span>
+                  <span className={`text-[10px] ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>
                 </button>
               )
             })}
+            {(() => {
+              const moreActive = !PRIMARY_TABS.includes(tab)
+              return (
+                <button onClick={() => setMoreOpen(true)} aria-haspopup="dialog" aria-expanded={moreOpen}
+                  className={`relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${moreActive ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
+                  style={moreActive ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                  <span className="relative">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    {unreadAlertes > 0 && <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+                  </span>
+                  <span className={`text-[10px] ${moreActive ? 'font-bold' : 'font-semibold'}`}>{moreActive ? (TABS.find(t => t.key === tab)?.label ?? 'Plus') : 'Plus'}</span>
+                </button>
+              )
+            })()}
           </div>
         </div>
       </div>
+
+      <ModalSheet open={moreOpen} onClose={() => setMoreOpen(false)} label="Plus d'options">
+        <div className="rounded-t-3xl p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] bg-white dark:bg-[#14161E]">
+          <div className="w-10 h-1 rounded-full mx-auto mb-4 bg-black/10 dark:bg-white/15" />
+          <ul className="grid grid-cols-3 gap-2">
+            {TABS.filter(t => !PRIMARY_TABS.includes(t.key)).map(t => {
+              const active = tab === t.key
+              return (
+                <li key={t.key}>
+                  <button onClick={() => { setTab(t.key); setMoreOpen(false) }}
+                    className={`w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold border border-divider dark:border-white/10 ${active ? '' : 'text-text-dark'}`}
+                    style={active ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                    <span style={{ color: active ? PURPLE : undefined }} className={active ? '' : 'text-text-grey'}>{t.icon}</span>
+                    {t.label}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </ModalSheet>
       </div>
     </div>
   )

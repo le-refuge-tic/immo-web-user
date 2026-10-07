@@ -112,7 +112,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           {/* ── Bannière urgence / échouée ── */}
           {urgente && mins !== null && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
-              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: 'var(--tx-red)' }}>
+              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -121,7 +121,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           )}
           {echouee && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
-              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: 'var(--tx-red)' }}>
+              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
               </svg>

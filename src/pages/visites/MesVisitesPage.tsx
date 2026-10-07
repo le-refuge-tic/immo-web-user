@@ -306,7 +306,7 @@ export default function MesVisitesPage() {
     <div className="min-h-full">
 
       {/* ── Header (mobile sticky + desktop glass bar) ── */}
-      <div className="sticky top-0 z-10 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(15,15,20,0.88)] border-b border-black/[0.07] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
+      <div className="sticky top-0 md:top-[72px] z-10 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(15,15,20,0.88)] border-b border-black/[0.07] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
         <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="flex items-center gap-3 pt-6 md:pt-5 pb-3">
             <button onClick={() => navigate(-1)}

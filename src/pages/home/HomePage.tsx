@@ -457,7 +457,8 @@ export default function HomePage() {
         </div>
 
         {/* ── Panneau recherche flottant ── */}
-        <div ref={searchPanelRef} className="absolute right-10 xl:right-20 top-1/2 -translate-y-1/2 z-[4] w-80">
+        {/* Tablette : en haut à gauche, hors du titre. Desktop : à droite, centré verticalement. */}
+        <div ref={searchPanelRef} className="absolute z-[4] left-8 top-24 w-[min(22rem,calc(100%-4rem))] lg:left-auto lg:right-10 xl:right-20 lg:top-1/2 lg:-translate-y-1/2 lg:w-80">
           {!searchOpen ? (
             <button onClick={() => setSearchOpen(true)}
               className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
