@@ -254,7 +254,7 @@ export default function ReservationPage() {
     <div ref={timeSectionRef} className="rounded-2xl p-5" style={GLASS}>
       <div className="flex items-center justify-between mb-3.5">
         <p className="text-sm font-bold text-text-dark">Heure souhaitée</p>
-        <span className="text-caption font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#3A5AEE' }}>
+        <span className="text-caption font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: 'var(--tx-blue)' }}>
           {(() => { const d = selectedDate; const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam']; return `${days[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}` })()}
         </span>
       </div>
@@ -278,8 +278,8 @@ export default function ReservationPage() {
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
               <div>
-                <p className="text-xs font-semibold" style={{ color: '#92400E' }}>Plus de créneaux disponibles aujourd'hui</p>
-                <button className="text-xs mt-1 font-semibold" style={{ color: '#3A5AEE' }}
+                <p className="text-xs font-semibold" style={{ color: 'var(--tx-amber)' }}>Plus de créneaux disponibles aujourd'hui</p>
+                <button className="text-xs mt-1 font-semibold" style={{ color: 'var(--tx-blue)' }}
                   onClick={() => { setSelectedDate(tomorrow); setSelectedTime('') }}>
                   Choisir demain
                 </button>
@@ -319,7 +319,7 @@ export default function ReservationPage() {
           <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p className="text-xs font-semibold" style={{ color: '#15803D' }}>Créneau proposé : {dateTimeLabel()}</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--tx-green)' }}>Créneau proposé : {dateTimeLabel()}</p>
         </div>
       )}
     </div>

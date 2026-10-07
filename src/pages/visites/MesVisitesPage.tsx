@@ -14,13 +14,13 @@ import { useApiQuery } from '../../hooks/useApiQuery'
 import type { Visite } from '../../types/api'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
-  en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
-  contre_proposee: { label: 'Contre-proposée', color: '#92400E', bg: 'rgba(230,126,34,0.12)' },
-  confirmee:       { label: 'Confirmée',        color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
-  effectuee:       { label: 'Effectuée',        color: '#3A5AEE', bg: 'rgba(58,90,238,0.1)' },
-  annulee:         { label: 'Annulée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
-  payee:           { label: 'Payée',            color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
-  echouee:         { label: 'Échouée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
+  en_attente:      { label: 'En attente',      color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.1)' },
+  contre_proposee: { label: 'Contre-proposée', color: 'var(--tx-amber)', bg: 'rgba(230,126,34,0.12)' },
+  confirmee:       { label: 'Confirmée',        color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)' },
+  effectuee:       { label: 'Effectuée',        color: 'var(--tx-blue)', bg: 'rgba(58,90,238,0.1)' },
+  annulee:         { label: 'Annulée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
+  payee:           { label: 'Payée',            color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)' },
+  echouee:         { label: 'Échouée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
 }
 
 // Même règle que côté mobile : une visite non traitée (confirmée ou en attente
@@ -306,9 +306,9 @@ export default function MesVisitesPage() {
     <div className="min-h-full">
 
       {/* ── Header (mobile sticky + desktop glass bar) ── */}
-      <div style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+      <div className="sticky top-0 z-10 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(15,15,20,0.88)] border-b border-black/[0.07] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
         <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="flex items-center gap-3 pt-[72px] md:pt-5 pb-3">
+          <div className="flex items-center gap-3 pt-6 md:pt-5 pb-3">
             <button onClick={() => navigate(-1)}
               className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0">
               <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -321,13 +321,13 @@ export default function MesVisitesPage() {
             </div>
           </div>
           {/* Tabs */}
-          <div className="flex md:gap-2">
+          {/* Onglets : défilent horizontalement sur petit écran au lieu d'être écrasés */}
+          <div role="tablist" aria-label="Filtrer les visites" className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {TABS.map((t, i) => (
-              <button key={t} onClick={() => setTab(i)}
-                className="flex-1 md:flex-none md:px-6 pb-3 text-[13px] font-semibold transition-all relative"
-                style={{ color: tab === i ? '#4B6BFF' : '#9CA3AF' }}>
+              <button key={t} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}
+                className={`flex-shrink-0 px-3 md:px-6 pb-3 text-[13px] font-semibold transition-all relative whitespace-nowrap ${tab === i ? 'text-[#3A5AEE] dark:text-[#9DB0FF]' : 'text-[#6B7280] dark:text-[#9CA3AF]'}`}>
                 {t}
-                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full" style={{ background: '#4B6BFF' }} />}
+                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#4B6BFF]" />}
               </button>
             ))}
           </div>
@@ -528,7 +528,7 @@ export default function MesVisitesPage() {
                           <button key={tag} onClick={() => toggleFeedbackTag(tag)}
                             className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
                             style={sel
-                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#DC2626', fontWeight: 600 }
+                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: 'var(--tx-red)', fontWeight: 600 }
                               : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
                             {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                             {tag}
@@ -669,31 +669,24 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
         </span>
       </div>
 
-      {/* Date */}
-      <div className="flex items-center gap-1.5 text-xs text-text-grey mb-2">
-        <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <span>
-          {v.statut === 'contre_proposee' && v.date_contre_proposee
-            ? <>Proposé : <span className="line-through opacity-50">{fmtDate(v.date_souhaitee)}</span></>
-            : `Souhaitée : ${fmtDate(v.date_souhaitee)}`}
-        </span>
-      </div>
-
-      {/* Contre-proposition banner */}
-      {isCP && v.date_contre_proposee && (
-        <div
-          className="flex items-start gap-2 p-3 rounded-xl mb-3"
-          style={{ background: 'rgba(230,126,34,0.08)', border: '1px solid rgba(230,126,34,0.2)' }}
-        >
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <p className="text-xs font-bold" style={{ color: '#E67E22' }}>Nouveau créneau proposé</p>
-            <p className="text-xs text-text-grey mt-0.5">{fmtDate(v.date_contre_proposee)}</p>
+      {/* Dates : « Votre demande » face à « Le gestionnaire propose » (comme sur le mobile) */}
+      {isCP && v.date_contre_proposee ? (
+        <div className="space-y-1.5 mb-3">
+          <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs border border-dashed border-divider">
+            <span className="text-text-grey">Votre demande</span>
+            <span className="text-text-grey font-medium">{fmtDate(v.date_souhaitee)}</span>
           </div>
+          <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(230,126,34,0.10)', border: '1px solid rgba(230,126,34,0.25)' }}>
+            <span className="font-semibold text-[#B45309] dark:text-[#FBBF24]">Le gestionnaire propose</span>
+            <span className="font-bold text-text-dark">{fmtDate(v.date_contre_proposee)}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 text-xs text-text-grey mb-2">
+          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>{v.statut === 'confirmee' ? 'Prévue' : 'Souhaitée'} : {fmtDate(v.date_souhaitee || v.creneau?.debut)}</span>
         </div>
       )}
 
@@ -725,14 +718,14 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" />
           </svg>
-          <p className="text-xs font-medium" style={{ color: '#DC2626' }}>Cette visite ne s'est pas tenue.</p>
+          <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
         </div>
       )}
 
       {isEchouee && bien?.id && (
         <button onClick={() => onContacterEchouee(v)}
           className="w-full py-2.5 rounded-xl text-xs font-bold mb-3 flex items-center justify-center gap-1.5"
-          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: '#DC2626' }}>
+          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: 'var(--tx-red)' }}>
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
@@ -747,7 +740,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
-          <p className="text-xs leading-relaxed" style={{ color: '#E67E22' }}>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--tx-amber)' }}>
             Le créneau proposé est dépassé. Attendez que le gestionnaire propose une nouvelle date.
           </p>
         </div>
@@ -761,14 +754,14 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             <button
               onClick={() => onIntegration(v.id, true, bien?.id)}
               className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}
+              style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}
             >
               Oui, j'intègre
             </button>
             <button
               onClick={() => onIntegration(v.id, false)}
               className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(239,68,68,0.1)', color: '#DC2626' }}
+              style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--tx-red)' }}
             >
               Non, je passe
             </button>
@@ -779,7 +772,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
       {/* Décision oui, paiement d'intégration effectué */}
       {v.statut === 'effectuee' && v.client_decision_integration === true && v.paiement_integration_effectue && (
         <div className="rounded-xl p-3 mb-3 text-center" style={{ background: 'rgba(34,197,94,0.1)' }}>
-          <p className="text-xs font-bold" style={{ color: '#15803D' }}>Intégré · Terminé</p>
+          <p className="text-xs font-bold" style={{ color: 'var(--tx-green)' }}>Intégré · Terminé</p>
         </div>
       )}
 
@@ -799,26 +792,26 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
         {/* Contre-proposition: accept / propose another date / refuse */}
         {isCP && !isDatePassee && !reproposing && (
           <>
+            {/* Ordre mobile : action destructive à gauche, action principale à droite */}
             <button
-              onClick={() => onAccepterCP(v.id)}
-              className="flex-1 py-2 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}
+              onClick={() => onRefuserCP(v)}
+              className="px-3 py-2.5 rounded-xl text-xs font-bold text-[#DC2626] dark:text-[#F87171]"
+              style={{ border: '1.5px solid rgba(239,68,68,0.4)' }}
             >
-              Accepter le créneau
+              Refuser
             </button>
             <button
               onClick={() => setReproposing(true)}
-              className="flex-1 py-2 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(75,107,255,0.1)', color: '#3A5AEE' }}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary/10 text-[#3A5AEE] dark:text-[#9DB0FF]"
             >
-              Proposer une autre date
+              Autre date
             </button>
             <button
-              onClick={() => onRefuserCP(v)}
-              className="px-3 py-2 rounded-xl text-xs font-bold"
-              style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#DC2626' }}
+              onClick={() => onAccepterCP(v.id)}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white"
+              style={{ background: '#3A5AEE' }}
             >
-              Refuser
+              Accepter
             </button>
           </>
         )}
@@ -838,7 +831,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onMessage(bien.id)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(75,107,255,0.1)', color: '#3A5AEE' }}
+            style={{ background: 'rgba(75,107,255,0.1)', color: 'var(--tx-blue)' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -851,7 +844,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onMarquerEffectuee(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}
+            style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -864,7 +857,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onAnnuler(v)}
             className="px-3 py-2 rounded-xl text-xs font-bold"
-            style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#DC2626' }}
+            style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: 'var(--tx-red)' }}
           >
             Annuler
           </button>
@@ -874,7 +867,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onFeedback(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(245,158,11,0.1)', color: '#B45309' }}
+            style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--tx-amber)' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
             Donner mon avis

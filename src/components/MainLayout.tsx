@@ -96,7 +96,7 @@ export default function MainLayout() {
           className="fixed z-50 bottom-24 md:bottom-6 left-4 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-sm font-semibold transition-transform hover:scale-105"
           style={{
             background: isDark ? 'rgba(30,30,40,0.85)' : 'rgba(255,255,255,0.9)',
-            color: '#3A5AEE',
+            color: 'var(--tx-blue)',
             border: '1px solid rgba(100,130,255,0.3)',
             backdropFilter: 'blur(12px)',
           }}

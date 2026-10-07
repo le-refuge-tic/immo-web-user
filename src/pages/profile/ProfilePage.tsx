@@ -1,4 +1,5 @@
 import { useTheme } from '../../context/ThemeContext'
+import type { ThemePreference } from '../../context/ThemeContext'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -21,12 +22,6 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 // SVG icons
-const SettingsIcon = () => (
-  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-  </svg>
-)
 const CalendarStatIcon = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -35,16 +30,6 @@ const CalendarStatIcon = () => (
 const ShieldIcon = () => (
   <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-  </svg>
-)
-const CalendarCardIcon = () => (
-  <svg className="w-[22px] h-[22px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-)
-const ArrowRightSmIcon = () => (
-  <svg className="w-3.5 h-3.5 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
   </svg>
 )
 const EyeActiveIcon = () => (
@@ -93,6 +78,21 @@ const PhoneMenuIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
   </svg>
 )
+const UsersMenuIcon = () => (
+  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+)
+const CalendarMenuIcon = () => (
+  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+)
+const MoonMenuIcon = () => (
+  <svg className="w-5 h-5 text-text-grey" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+  </svg>
+)
 const LogoutIcon = () => (
   <svg className="w-[18px] h-[18px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -137,19 +137,22 @@ function StatBadge({ icon, value, label, color, bg, border }: StatBadgeProps) {
 type MenuItemProps = {
   icon: React.ReactNode
   label: string
+  /** Valeur actuelle affichée à droite (ex. numéro masqué, nombre de visites). */
+  value?: string
   onClick: () => void
   showDivider?: boolean
 }
 
-function MenuItem({ icon, label, onClick, showDivider = true }: MenuItemProps) {
+function MenuItem({ icon, label, value, onClick, showDivider = true }: MenuItemProps) {
   return (
     <>
       <button
         onClick={onClick}
-        className="w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-black/5 transition-colors"
+        className="w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-black/5 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors"
       >
         {icon}
-        <span className="flex-1 text-left text-sm text-text-dark font-medium">{label}</span>
+        <span className="flex-1 min-w-0 text-left text-sm text-text-dark font-medium">{label}</span>
+        {value && <span className="text-xs text-text-grey truncate max-w-[40%]">{value}</span>}
         <ChevronRightIcon />
       </button>
       {showDivider && <div className="h-px bg-divider ml-[50px]" />}
@@ -157,10 +160,54 @@ function MenuItem({ icon, label, onClick, showDivider = true }: MenuItemProps) {
   )
 }
 
+function MenuGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section aria-label={title} className="space-y-2">
+      <h2 className="px-1 text-micro font-bold uppercase tracking-wider text-text-grey">{title}</h2>
+      <div className="glass-card rounded-[16px] overflow-hidden">{children}</div>
+    </section>
+  )
+}
+
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'light',  label: 'Clair'   },
+  { value: 'dark',   label: 'Sombre'  },
+  { value: 'system', label: 'Système' },
+]
+
+/** Seul endroit de l'app où l'on choisit le thème. */
+function AppearanceRow() {
+  const { preference, setPreference } = useTheme()
+  return (
+    <div className="px-4 py-3.5">
+      <div className="flex items-center gap-3.5 mb-3">
+        <MoonMenuIcon />
+        <span id="apparence-label" className="flex-1 text-sm text-text-dark font-medium">Apparence</span>
+      </div>
+      <div role="radiogroup" aria-labelledby="apparence-label" className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06]">
+        {THEME_OPTIONS.map(o => {
+          const selected = preference === o.value
+          return (
+            <button
+              key={o.value}
+              role="radio"
+              aria-checked={selected}
+              onClick={() => setPreference(o.value)}
+              className={`py-2 rounded-lg text-[13px] font-semibold transition-all ${selected ? 'bg-white dark:bg-white/15 text-primary dark:text-white shadow-sm' : 'text-text-grey'}`}
+            >
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+      {preference === 'system' && <p className="text-caption text-text-grey mt-2">Suit le réglage de votre téléphone ou ordinateur.</p>}
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   usePageTitle('Profil')
   const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [apiUser, setApiUser] = useState<any>(null)
   const [visites, setVisites] = useState<Visite[]>([])
@@ -249,21 +296,31 @@ export default function ProfilePage() {
   const StatsRow = () => (
     <div className="flex gap-3">
       <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="#4B6BFF" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
-      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="#4CAF50" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
+      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="#15803D" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
+      <StatBadge icon={<StarMenuIcon />} value={String(mesAvis.length)} label="Avis" color="#B45309" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
     </div>
   )
 
-  const MenuBlock = () => (
-    <div className="glass-card rounded-[16px] overflow-hidden">
-      <MenuItem icon={<PersonMenuIcon />} label="Modifier le profil" onClick={() => setEditOpen(true)} />
-      <MenuItem icon={<PersonMenuIcon />} label="Gérer mes rôles" onClick={() => navigate('/mes-roles')} />
-      <MenuItem icon={<KeyMenuIcon />}    label="Rejoindre un bien (code d'invitation)" onClick={() => navigate('/rejoindre-bien')} />
-      <MenuItem icon={<WalletMenuIcon />} label="Mon portefeuille" onClick={() => navigate('/portefeuille')} />
-      <MenuItem icon={<PhoneMenuIcon />}  label={`Numéro de retrait MoMo${numeroInfo?.masque ? ` (${numeroInfo.masque})` : ''}`} onClick={() => setNumeroOpen(true)} />
-      <MenuItem icon={<ReceiptMenuIcon />} label="Mes transactions" onClick={() => navigate('/mes-paiements')} />
-      <MenuItem icon={<LockMenuIcon />}   label="Sécurité & Mot de passe" onClick={() => setPasswordOpen(true)} />
-      <MenuItem icon={<StarMenuIcon />}   label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />
-    </div>
+  const MenuBlocks = () => (
+    <>
+      <MenuGroup title="Mon compte">
+        <MenuItem icon={<PersonMenuIcon />}   label="Modifier le profil" onClick={() => setEditOpen(true)} />
+        <MenuItem icon={<CalendarMenuIcon />} label="Mes visites" value={visiteActive ? '1 en cours' : String(visitCount)} onClick={() => navigate('/mes-visites')} />
+        <MenuItem icon={<UsersMenuIcon />}    label="Rôles et espaces" value={roleLabel} onClick={() => navigate('/mes-roles')} />
+        <MenuItem icon={<KeyMenuIcon />}      label="Rejoindre un bien (code d'invitation)" onClick={() => navigate('/rejoindre-bien')} showDivider={false} />
+      </MenuGroup>
+      <MenuGroup title="Paiements">
+        <MenuItem icon={<WalletMenuIcon />}  label="Mon portefeuille" onClick={() => navigate('/portefeuille')} />
+        <MenuItem icon={<PhoneMenuIcon />}   label="Numéro de retrait MoMo" value={numeroInfo?.masque ?? undefined} onClick={() => setNumeroOpen(true)} />
+        <MenuItem icon={<ReceiptMenuIcon />} label="Mes transactions" onClick={() => navigate('/mes-paiements')} showDivider={false} />
+      </MenuGroup>
+      <MenuGroup title="Paramètres">
+        <AppearanceRow />
+        <div className="h-px bg-divider ml-[50px]" />
+        <MenuItem icon={<LockMenuIcon />} label="Sécurité et mot de passe" onClick={() => setPasswordOpen(true)} />
+        <MenuItem icon={<StarMenuIcon />} label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />
+      </MenuGroup>
+    </>
   )
 
   const MesAvisBlock = () => (
@@ -292,7 +349,7 @@ export default function ProfilePage() {
               {v.feedback_tags && v.feedback_tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-1.5">
                   {v.feedback_tags.map(t => (
-                    <span key={t} className="px-2 py-0.5 rounded text-micro font-semibold" style={{ background: '#F59E0B18', color: '#B45309' }}>{t}</span>
+                    <span key={t} className="px-2 py-0.5 rounded text-micro font-semibold" style={{ background: '#F59E0B18', color: 'var(--tx-amber)' }}>{t}</span>
                   ))}
                 </div>
               )}
@@ -358,133 +415,35 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-full">
+      {/* Une seule mise en page : 1 colonne sur téléphone/tablette, identité à gauche + réglages à droite sur desktop. */}
+      <div className="w-full max-w-5xl mx-auto px-4 md:px-8 pt-6 md:pt-8 lg:pt-10 pb-28 md:pb-12">
+        <h1 className="text-xl lg:text-2xl font-bold text-text-dark mb-5 lg:mb-8">Profil</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-5 lg:gap-6 items-start">
 
-      {/* ── MOBILE / TABLETTE layout ── */}
-      <div className="lg:hidden">
-        <div className="flex items-center justify-between px-5 md:px-10 pt-[72px] md:pt-8 pb-4">
-          <h1 className="text-xl font-bold text-text-dark">Profil</h1>
-          <div className="glass-btn w-[38px] h-[38px] rounded-[10px] flex items-center justify-center">
-            <SettingsIcon />
-          </div>
-        </div>
-        <div className="px-5 md:px-10 pb-28 space-y-5 md:max-w-2xl md:mx-auto">
-          <div className="flex flex-col items-center gap-3">
-            <AvatarBlock size={88} />
-            <div className="text-center">
-              <p className="text-[18px] font-bold text-text-dark">{fullName}</p>
-              {(apiUser?.email || user.email) && <p className="text-[13px] text-text-grey mt-1">{apiUser?.email || user.email}</p>}
-              <div className="flex justify-center mt-1.5">
-                <span className="text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full">{roleLabel}</span>
+          {/* Identité */}
+          <div className="lg:sticky lg:top-24 space-y-4">
+            <div className="glass-card rounded-2xl p-5 md:p-6 flex flex-col items-center text-center gap-3">
+              <AvatarBlock size={88} />
+              <div>
+                <p className="text-[18px] font-bold text-text-dark">{fullName}</p>
+                {(apiUser?.email || user.email) && <p className="text-[13px] text-text-grey mt-1 break-all">{apiUser?.email || user.email}</p>}
+                <span className="inline-block text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
               </div>
+              <StatsRow />
             </div>
-            <StatsRow />
-          </div>
-          {isLoading ? (
-            <div className="flex justify-center py-4"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-          ) : <VisiteActiveBlock />}
-          <button onClick={() => navigate('/mes-visites')} className="w-full flex items-center gap-3.5 p-4 rounded-[16px]" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }}>
-            <div className="w-11 h-11 rounded-[12px] bg-white/15 flex items-center justify-center"><CalendarCardIcon /></div>
-            <div className="flex-1 text-left">
-              <p className="text-white text-[15px] font-bold">Mes visites</p>
-              <p className="text-white/70 text-[12px]">{visitCount} visite{visitCount > 1 ? 's' : ''} au total</p>
-            </div>
-            <ArrowRightSmIcon />
-          </button>
-          <MenuBlock />
-          <MesAvisBlock />
-          <button onClick={toggleTheme} role="switch" aria-checked={theme === 'dark'} className="w-full flex items-center justify-between gap-3 p-4 rounded-[16px] glass-card">
-            <span className="text-[15px] font-semibold text-text-dark">Thème sombre</span>
-            <span className="text-[13px] font-semibold text-text-grey">{theme === 'dark' ? 'Activé' : 'Désactivé'}</span>
-          </button>
-          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-full" style={{ backgroundColor: '#FF6B35' }}>
-            <LogoutIcon />
-            <span className="text-white text-[15px] font-bold">Se déconnecter</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── DESKTOP layout ── */}
-      <div className="hidden lg:block w-full px-6 md:px-16 py-10">
-        <h1 className="text-2xl font-bold text-text-dark mb-8">Mon profil</h1>
-        <div className="grid grid-cols-[300px_1fr] gap-6 items-start">
-
-          {/* Left panel */}
-          <div className="space-y-4">
-            <div className="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
-              <AvatarBlock size={100} />
-              <h2 className="text-lg font-bold text-text-dark mt-4">{fullName}</h2>
-              {(apiUser?.email || user.email) && <p className="text-sm text-text-grey mt-1">{apiUser?.email || user.email}</p>}
-              <span className="text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
-              <div className="mt-4 w-full flex justify-center"><StatsRow /></div>
-            </div>
-
-            <MenuBlock />
-
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white" style={{ background: '#FF6B35' }}>
-              <LogoutIcon />
-              <span>Se déconnecter</span>
-            </button>
-          </div>
-
-          {/* Right panel */}
-          <div className="space-y-4">
-            {/* Visite CTA */}
-            <button onClick={() => navigate('/mes-visites')} className="w-full flex items-center gap-4 p-5 rounded-2xl text-left" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.3)' }}>
-              <div className="w-14 h-14 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
-                <CalendarCardIcon />
-              </div>
-              <div className="flex-1">
-                <p className="text-white text-base font-bold">Mes visites</p>
-                <p className="text-white/70 text-sm">{visitCount} visite{visitCount > 1 ? 's' : ''} au total — cliquez pour voir le détail</p>
-              </div>
-              <ArrowRightSmIcon />
-            </button>
-
-            {/* Visite active */}
             {isLoading ? (
-              <div className="glass-card rounded-2xl p-6 flex justify-center"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-            ) : visiteActive ? (
-              <div className="glass-card rounded-2xl p-5">
-                <h3 className="font-bold text-text-dark mb-3">Visite en cours</h3>
-                <VisiteActiveBlock />
-              </div>
-            ) : (
-              <div className="glass-card rounded-2xl p-6 text-center">
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(75,107,255,0.10)' }}>
-                  <svg className="w-7 h-7 text-text-grey" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                </div>
-                <p className="text-text-grey text-sm">Aucune visite en cours</p>
-              </div>
-            )}
+              <div className="flex justify-center py-4"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            ) : <VisiteActiveBlock />}
+          </div>
 
-            {/* Compte info */}
-            <div className="glass-card rounded-2xl p-5">
-              <h3 className="font-bold text-text-dark mb-4">Informations du compte</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-text-grey mb-1">Prénom</p>
-                  <p className="text-sm font-semibold text-text-dark">{user.prenom || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-text-grey mb-1">Nom</p>
-                  <p className="text-sm font-semibold text-text-dark">{user.nom || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-text-grey mb-1">Email</p>
-                  <p className="text-sm font-semibold text-text-dark">{apiUser?.email || user.email || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-text-grey mb-1">Rôle</p>
-                  <p className="text-sm font-semibold text-text-dark capitalize">{roleLabel}</p>
-                </div>
-              </div>
-              <button onClick={() => setEditOpen(true)} className="mt-4 text-sm text-primary font-semibold flex items-center gap-1 hover:underline">
-                Modifier mes informations
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-              </button>
-            </div>
-
+          {/* Réglages */}
+          <div className="space-y-5 min-w-0">
+            <MenuBlocks />
             <MesAvisBlock />
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-2xl font-bold text-white" style={{ backgroundColor: '#C2410C' }}>
+              <LogoutIcon />
+              <span className="text-[15px]">Se déconnecter</span>
+            </button>
           </div>
         </div>
       </div>

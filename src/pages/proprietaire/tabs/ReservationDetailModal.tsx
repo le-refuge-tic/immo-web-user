@@ -30,7 +30,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
   const urgente = !echouee && isUrgente(v, now)
-  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
+  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: 'var(--tx-red)' } : statutVisite(v.statut)
   const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
   const initiale = clientNom[0]?.toUpperCase() || '?'
   const bType = v.bien ? bienLabel(v.bien) : ''
@@ -112,7 +112,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           {/* ── Bannière urgence / échouée ── */}
           {urgente && mins !== null && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
-              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626' }}>
+              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: 'var(--tx-red)' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -121,7 +121,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           )}
           {echouee && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
-              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626' }}>
+              style={{ background: '#FEF2F2', borderColor: '#FECACA', color: 'var(--tx-red)' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
               </svg>
@@ -223,7 +223,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {v.feedback_tags.map((t: string) => (
                     <span key={t} className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                      style={{ background: '#F59E0B18', color: '#B45309' }}>{t}</span>
+                      style={{ background: '#F59E0B18', color: 'var(--tx-amber)' }}>{t}</span>
                   ))}
                 </div>
               )}

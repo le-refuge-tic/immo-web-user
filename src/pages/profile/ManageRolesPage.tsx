@@ -19,10 +19,10 @@ const IcBriefcase = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="non
 const IcKey = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a4 4 0 11-8.6 2.4L2 14v3h3v-2h2v-2h2l1.6-1.6A4 4 0 0115 7z" /><circle cx="15.5" cy="6.5" r=".6" fill="currentColor" /></svg>
 
 const ROLES: RoleInfo[] = [
-  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#3A5AEE', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
+  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
   { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: '#2E86C1', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
   { key: 'demarcheur',   label: 'Démarcheur',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: '#15803D', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
 ]
 
 function roleLabel(key: string) {
@@ -125,7 +125,7 @@ export default function ManageRolesPage() {
           {success && (
             <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-              <p className="text-sm font-semibold" style={{ color: '#15803D' }}>{success}</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>{success}</p>
             </div>
           )}
 
@@ -199,7 +199,7 @@ export default function ManageRolesPage() {
                           ) : (
                             <button onClick={() => setConfirmDesactiver(r.key)} disabled={busy}
                               className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                              style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#DC2626', background: 'rgba(239,68,68,0.06)' }}>
+                              style={{ borderColor: 'rgba(239,68,68,0.3)', color: 'var(--tx-red)', background: 'rgba(239,68,68,0.06)' }}>
                               Désactiver
                             </button>
                           )

@@ -6,11 +6,11 @@ import { bienTypeLabel } from '../../utils/bienType'
 type Props = { onClose: () => void }
 
 const STATUT_LABELS: Record<string, { label: string; color: string }> = {
-  en_attente: { label: 'En attente', color: '#B45309' },
+  en_attente: { label: 'En attente', color: 'var(--tx-amber)' },
   active:     { label: 'Active',     color: '#16A34A' },
   revoquee:   { label: 'Révoquée',   color: '#6B7280' },
   expiree:    { label: 'Expirée',    color: '#6B7280' },
-  refusee:    { label: 'Refusée',    color: '#DC2626' },
+  refusee:    { label: 'Refusée',    color: 'var(--tx-red)' },
 }
 
 

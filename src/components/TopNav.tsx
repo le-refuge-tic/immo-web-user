@@ -6,14 +6,19 @@ import { useScrolled } from '../context/ScrollContext'
 import { useTheme } from '../context/ThemeContext'
 import logoUrl from '../assets/REFUGE-LOGO.png'
 
+// Liens texte : 4 entrées max. Alertes et Messages passent en boutons icône
+// (avec badge) à droite, Profil et Mes visites dans le menu de l'avatar.
 const NAV_ITEMS = [
-  { path: '/',              label: 'Accueil',     authRequired: false },
-  { path: '/favoris',       label: 'Favoris',     authRequired: true  },
-  { path: '/mes-visites',   label: 'Mes visites', authRequired: true  },
-  { path: '/notifications', label: 'Alertes',     authRequired: true  },
-  { path: '/conversations', label: 'Messages',    authRequired: true  },
-  { path: '/profil',        label: 'Profil',      authRequired: true  },
+  { path: '/',             label: 'Accueil',         authRequired: false },
+  { path: '/search',       label: 'Rechercher',      authRequired: false },
+  { path: '/favoris',      label: 'Favoris',         authRequired: true  },
+  { path: '/nouveau-bien', label: 'Publier un bien', authRequired: true  },
 ]
+
+const ICON_ITEMS = [
+  { path: '/notifications', label: 'Alertes'  },
+  { path: '/conversations', label: 'Messages' },
+] as const
 
 const ROLE_ROUTES: Record<string, { label: string; path: string }> = {
   proprietaire: { label: 'Espace Propriétaire', path: '/proprietaire' },
@@ -24,17 +29,14 @@ const ROLE_ROUTES: Record<string, { label: string; path: string }> = {
 }
 
 // Icônes inline légères
-const SunIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+const BellIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 21a1.94 1.94 0 003.4 0"/>
   </svg>
 )
-const MoonIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+const ChatIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/>
   </svg>
 )
 const LogOutIcon = () => (
@@ -47,7 +49,7 @@ export default function TopNav() {
   const { isLoggedIn, user, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
   const { scrolled } = useScrolled()
-  const { theme, toggleTheme } = useTheme()
+  const { theme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -70,7 +72,7 @@ export default function TopNav() {
 
   const isActive = (path: string) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
 
-  const handleNav = (item: typeof NAV_ITEMS[0]) => {
+  const handleNav = (item: { path: string; authRequired: boolean }) => {
     if (item.authRequired && !isLoggedIn) {
       sessionStorage.setItem('post_login_redirect', item.path)
       navigate('/login')
@@ -125,14 +127,14 @@ export default function TopNav() {
           {/* Logo */}
           <button onClick={() => navigate('/')} className="flex items-center gap-2.5 lg:gap-3 flex-shrink-0">
             <img src={logoUrl} alt="REFUGE" style={{ width: 60, height: 60, objectFit: 'contain', filter: isDark ? 'brightness(1.15) drop-shadow(0 0 6px rgba(0,174,239,0.35))' : 'none' }} className="lg:w-[68px] lg:h-[68px]" />
-            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: '#00AEEF' }}>REFUGE</span>
+            {/* #0077B6 en clair : #00AEEF sur fond clair ne passe pas le contraste AA (2,6:1) */}
+            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: isDark ? '#00AEEF' : '#0077B6' }}>REFUGE</span>
           </button>
 
           {/* Nav centré */}
           <nav aria-label="Liens rapides" className="flex items-center justify-center gap-0.5 lg:gap-1">
             {NAV_ITEMS.map(item => {
               const active = isActive(item.path)
-              const badge = item.path === '/notifications' ? unreadAlertes : item.path === '/conversations' ? unreadMessages : 0
               return (
                 <button
                   key={item.path}
@@ -146,32 +148,40 @@ export default function TopNav() {
                   }}
                 >
                   {item.label}
+                </button>
+              )
+            })}
+          </nav>
+
+          {/* Droite : Alertes, Messages, auth. Le thème se règle dans Profil → Apparence. */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+
+            {isLoggedIn && ICON_ITEMS.map(item => {
+              const active = isActive(item.path)
+              const badge = item.path === '/notifications' ? unreadAlertes : unreadMessages
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  aria-label={item.label + (badge > 0 ? `, ${badge} non lu${badge > 1 ? 's' : ''}` : '')}
+                  aria-current={active ? 'page' : undefined}
+                  title={item.label}
+                  className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
+                  style={{
+                    color: active ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.60)'),
+                    background: active ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.75)'),
+                    border: '1px solid ' + (active ? 'rgba(75,107,255,0.25)' : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')),
+                  }}
+                >
+                  {item.path === '/notifications' ? <BellIcon /> : <ChatIcon />}
                   {badge > 0 && (
-                    <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30' }}>
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30', border: '2px solid ' + (isDark ? '#0F0F14' : '#F5F5F7') }}>
                       {badge > 9 ? '9+' : badge}
                     </span>
                   )}
                 </button>
               )
             })}
-          </nav>
-
-          {/* Droite : toggle thème + auth */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-
-            {/* Toggle clair/sombre */}
-            <button
-              onClick={toggleTheme}
-              aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-              className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
-              style={{
-                color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.50)',
-                background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'),
-              }}
-            >
-              {isDark ? <SunIcon /> : <MoonIcon />}
-            </button>
 
             {/* Auth */}
             {!isLoggedIn ? (
@@ -243,6 +253,14 @@ export default function TopNav() {
                       boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.45)' : 'inset 0 1.5px 0 rgba(255,255,255,1), 0 20px 60px rgba(0,0,0,0.14)',
                     }}
                   >
+                    <div className="py-1.5" style={{ borderBottom: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') }}>
+                      {[{ path: '/profil', label: 'Mon profil' }, { path: '/mes-visites', label: 'Mes visites' }].map(l => (
+                        <button key={l.path} onClick={() => { navigate(l.path); setMenuOpen(false) }} role="menuitem"
+                          className="menu-item-hover w-full flex items-center px-4 py-2.5 text-sm font-medium text-left" style={menuItemStyle}>
+                          {l.label}
+                        </button>
+                      ))}
+                    </div>
                     <div className="px-4 pt-3 pb-1">
                       <p className="text-micro font-bold uppercase tracking-widest" style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)' }}>
                         Mes espaces
@@ -263,7 +281,7 @@ export default function TopNav() {
                           >
                             <span>{label}</span>
                             {isCurrent && (
-                              <span className="text-micro font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
+                              <span className="text-micro font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: 'var(--tx-blue)' }}>
                                 Actif
                               </span>
                             )}
@@ -276,29 +294,23 @@ export default function TopNav() {
                         onClick={() => { navigate('/profil'); setMenuOpen(false) }}
                         role="menuitem"
                         className="menu-item-hover w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left"
-                        style={{ color: '#3A5AEE' }}
+                        style={{ color: 'var(--tx-blue)' }}
                       >
                         <span>{ROLE_ROUTES[activeRole]?.label || 'Mon profil'}</span>
-                        <span className="text-micro font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: '#3A5AEE' }}>
+                        <span className="text-micro font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(75,107,255,0.12)', color: 'var(--tx-blue)' }}>
                           Actif
                         </span>
                       </button>
                     )}
+                    <div className="py-1.5 mt-1.5" style={{ borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') }}>
+                      <button onClick={handleLogout} role="menuitem"
+                        className="menu-item-hover w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-left" style={{ color: '#FF3B30' }}>
+                        <LogOutIcon /> Se déconnecter
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
-
-              {/* Déconnexion — bouton séparé à côté, comme l'espace propriétaire */}
-              <button onClick={handleLogout} title="Se déconnecter" aria-label="Se déconnecter"
-                className="logout-btn-hover w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.75)',
-                  border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'),
-                  color: '#FF3B30',
-                }}
-              >
-                <LogOutIcon />
-              </button>
               </div>
             )}
           </div>

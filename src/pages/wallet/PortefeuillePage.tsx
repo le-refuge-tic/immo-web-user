@@ -162,7 +162,7 @@ function ClientWalletView() {
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: '#15803D' }}>Demande de retrait envoyée — en attente de validation.</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée — en attente de validation.</p>
             </div>
           )}
 
@@ -301,7 +301,7 @@ function WalletCommissionsView() {
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: '#15803D' }}>Demande de retrait envoyée avec succès.</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée avec succès.</p>
             </div>
           )}
 

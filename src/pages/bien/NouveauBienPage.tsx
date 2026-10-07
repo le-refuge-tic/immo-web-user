@@ -686,7 +686,7 @@ export default function NouveauBienPage() {
             {error && (
               <div className="rounded-xl px-4 py-3 border mb-4"
                 style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
-                <p className="text-sm" style={{ color: '#DC2626' }}>{error}</p>
+                <p className="text-sm" style={{ color: 'var(--tx-red)' }}>{error}</p>
               </div>
             )}
           </div>
@@ -770,7 +770,7 @@ export default function NouveauBienPage() {
                         <div className="w-28">
                           <MoneyInput value={t.prix} onChange={v => setTarifsAutres(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
                         </div>
-                        <button type="button" onClick={() => setTarifsAutres(a => a.filter((_, idx) => idx !== i))} style={{ color: '#DC2626' }}>✕</button>
+                        <button type="button" onClick={() => setTarifsAutres(a => a.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
                       </div>
                     ))}
                     <button type="button" onClick={() => setTarifsAutres(a => [...a, { label: '', prix: '' }])}
@@ -984,7 +984,7 @@ export default function NouveauBienPage() {
                           placeholder="Ex: Distance de la route"
                           className="flex-1 text-sm font-semibold outline-none bg-transparent"
                           style={{ color: 'var(--p-text)' }} />
-                        <button type="button" onClick={() => setDetailsSupplementaires(arr => arr.filter((_, idx) => idx !== i))} style={{ color: '#DC2626' }}>✕</button>
+                        <button type="button" onClick={() => setDetailsSupplementaires(arr => arr.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
                       </div>
                       <input value={d.valeur}
                         onChange={e => setDetailsSupplementaires(arr => arr.map((x, idx) => idx === i ? { ...x, valeur: e.target.value } : x))}
@@ -1372,7 +1372,7 @@ export default function NouveauBienPage() {
                         <div className="w-28">
                           <MoneyInput value={f.prix} onChange={v => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
                         </div>
-                        <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} style={{ color: '#DC2626' }}>✕</button>
+                        <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
                       </div>
                     ))}
                     <button type="button" onClick={() => setAutresFrais(a => [...a, { label: '', prix: '' }])}

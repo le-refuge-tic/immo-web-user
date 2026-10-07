@@ -312,7 +312,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
                           {b.statut === 'occupe' && (
-                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#22C55E15', color: '#15803D' }}>● Occupé</span>
+                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#22C55E15', color: 'var(--tx-green)' }}>● Occupé</span>
                           )}
                         </div>
 
@@ -343,7 +343,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         )}
 
                         {b.statut_moderation === 'rejete' && b.motif_refus && (
-                          <p className="text-[10px] mb-3 truncate" style={{ color: '#DC2626' }}>⚠ {b.motif_refus}</p>
+                          <p className="text-[10px] mb-3 truncate" style={{ color: 'var(--tx-red)' }}>⚠ {b.motif_refus}</p>
                         )}
 
                         {/* Actions */}
@@ -364,7 +364,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                           ) : (
                             <button onClick={() => setConfirmDeleteBienId(b.id)}
                               className="flex items-center justify-center w-9 h-9 rounded-xl text-xs transition-all flex-shrink-0"
-                              style={{ background: '#EF444410', color: '#DC2626', border: '1px solid #EF444420' }}>
+                              style={{ background: '#EF444410', color: 'var(--tx-red)', border: '1px solid #EF444420' }}>
                               <IcTrash />
                             </button>
                           )}

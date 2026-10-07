@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Couleurs de texte sémantiques : éclaircies en mode sombre pour garder un
+   contraste AA (≥ 4,5:1) sur les fonds #0F0F14 / glass-card sombres. */
+:root {
+  --tx-red: #DC2626;
+  --tx-green: #15803D;
+  --tx-amber: #B45309;
+  --tx-blue: #3A5AEE;
+}
+.dark {
+  --tx-red: #F87171;
+  --tx-green: #4ADE80;
+  --tx-amber: #FBBF24;
+  --tx-blue: #9DB0FF;
+}
+
 @layer base {
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; padding: 0; }

@@ -47,11 +47,11 @@ const MID_PURPLE  = '#7B2FBE'
 type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
-  en_attente: { label: 'En attente',  color: '#B45309' },
-  active:     { label: 'Active',      color: '#15803D' },
-  revoquee:   { label: 'Révoquée',    color: '#DC2626' },
+  en_attente: { label: 'En attente',  color: 'var(--tx-amber)' },
+  active:     { label: 'Active',      color: 'var(--tx-green)' },
+  revoquee:   { label: 'Révoquée',    color: 'var(--tx-red)' },
   expiree:    { label: 'Expirée',     color: '#6B7280' },
-  refusee:    { label: 'Refusée',     color: '#DC2626' },
+  refusee:    { label: 'Refusée',     color: 'var(--tx-red)' },
 }
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -76,15 +76,15 @@ function fmtSemaine(raw: string) {
 function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
   if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#B45309' }
-  return { label: 'En attente', color: '#B45309' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)' }
+  return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
   if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: PURPLE }
-  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#E67E22' }
-  return { label: 'En attente', color: '#B45309' }
+  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)' }
+  return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
@@ -123,10 +123,10 @@ function notifTimeAgo(iso?: string): string {
 }
 
 function notifIconD(type: string): { node: React.ReactNode; color: string } {
-  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#15803D' }
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: 'var(--tx-green)' }
   if (type === 'nouveau_message') return { node: <IcChat />, color: '#8B5CF6' }
-  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#DC2626' }
-  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#15803D' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: 'var(--tx-red)' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: 'var(--tx-green)' }
   if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE }
   return { node: <IcBell />, color: '#6B7280' }
 }
@@ -452,7 +452,7 @@ function ReservationsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {chatError && (
-        <div className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#DC2626' }}>
+        <div className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: 'var(--tx-red)' }}>
           {chatError}
           <button onClick={() => setChatError('')} className="text-base leading-none flex-shrink-0">✕</button>
         </div>
@@ -483,7 +483,7 @@ function ReservationsTab() {
         <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:items-start">
         {filtered.map((v, i) => {
           const echouee = isEchouee(v)
-          const { label, color } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
+          const { label, color } = echouee ? { label: 'Échouée', color: 'var(--tx-red)' } : statutVisite(v.statut)
           const nom = 'Client'
           const init = 'C'
           const bType = v.bien ? bienTypeLabel(v.bien) : ''
@@ -538,13 +538,13 @@ function ReservationsTab() {
               {echouee && (
                 <div className="flex items-center gap-2 p-2.5 rounded-xl mb-3" style={{ background: '#EF444410', border: '1px solid #EF444440' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" /></svg>
-                  <p className="text-xs font-medium" style={{ color: '#DC2626' }}>Cette visite ne s'est pas tenue.</p>
+                  <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
                 </div>
               )}
               <div className="flex gap-2">
                 {echouee ? (
                   <button onClick={() => ouvrirChatEchouee(v)} disabled={chatLoadingId === v.id}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: '#DC2626', background: '#EF444410' }}>
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: 'var(--tx-red)', background: '#EF444410' }}>
                     <IcChat /> {chatLoadingId === v.id ? '…' : 'Contacter le client'}
                   </button>
                 ) : (
@@ -821,11 +821,11 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
               {d.statut === 'en_attente' && (
                 <div className="flex gap-2">
                   <button onClick={() => repondre(d.id, true)} disabled={actingId === d.id}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.12)', color: '#15803D' }}>
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}>
                     Accepter
                   </button>
                   <button onClick={() => repondre(d.id, false)} disabled={actingId === d.id}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(239,68,68,0.1)', color: '#DC2626' }}>
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--tx-red)' }}>
                     Refuser
                   </button>
                 </div>
@@ -1120,9 +1120,9 @@ export default function DemarcheurDashboard() {
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {[
                       { label: 'Biens publiés', value: compteurs.total_publies, color: PURPLE },
-                      { label: 'En vérification', value: compteurs.en_verification, color: '#B45309' },
-                      { label: 'Validés', value: compteurs.valides, color: '#15803D' },
-                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: '#3A5AEE' },
+                      { label: 'En vérification', value: compteurs.en_verification, color: 'var(--tx-amber)' },
+                      { label: 'Validés', value: compteurs.valides, color: 'var(--tx-green)' },
+                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: 'var(--tx-blue)' },
                     ].map(c => (
                       <div key={c.label} className="card-soft rounded-xl p-4">
                         <p className="text-[26px] font-bold" style={{ color: c.color }}>{c.value}</p>

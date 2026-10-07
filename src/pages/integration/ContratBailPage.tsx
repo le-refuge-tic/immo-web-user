@@ -96,7 +96,7 @@ export default function ContratBailPage() {
                 <div className="flex-1">
                   <p className="font-bold text-text-dark text-sm">{bienType}</p>
                   <p className="text-text-grey text-xs mt-0.5">{bienAdresse}</p>
-                  <p className="text-xs font-semibold mt-0.5" style={{ color: '#3A5AEE' }}>Loyer : {loyer} / mois</p>
+                  <p className="text-xs font-semibold mt-0.5" style={{ color: 'var(--tx-blue)' }}>Loyer : {loyer} / mois</p>
                   {gestionnaire !== '---' && <p className="text-text-grey text-xs mt-0.5">Bailleur / gestionnaire : {gestionnaire}</p>}
                 </div>
               </div>

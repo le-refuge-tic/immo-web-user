@@ -34,10 +34,10 @@ function MaskIcon({ role, size = 22 }: { role: string; size?: number }) {
 }
 
 const ROLES_META: { key: string; label: string; desc: string; color: string }[] = [
-  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#3A5AEE' },
+  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)' },
   { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: BLUE },
   { key: 'demarcheur',   label: 'Agent',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6' },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: '#15803D' },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: 'var(--tx-green)' },
 ]
 
 export function RolesTab() {
@@ -116,7 +116,7 @@ export function RolesTab() {
         {success && (
           <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: '#22C55E14', border: '1px solid #22C55E30' }}>
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-            <p className="text-sm font-semibold" style={{ color: '#15803D' }}>{success}</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>{success}</p>
           </div>
         )}
 
@@ -192,7 +192,7 @@ export function RolesTab() {
                         ) : (
                           <button onClick={() => setConfirmDesactiverRole(r.key)} disabled={busy}
                             className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#DC2626', background: 'rgba(239,68,68,0.06)' }}>
+                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: 'var(--tx-red)', background: 'rgba(239,68,68,0.06)' }}>
                             Désactiver
                           </button>
                         )

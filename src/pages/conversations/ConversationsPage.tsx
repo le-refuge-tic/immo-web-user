@@ -199,7 +199,7 @@ export default function ConversationsPage() {
                 {role && (
                   <span className="inline-block mt-1 text-micro font-semibold px-2 py-0.5 rounded-full" style={{
                     background: isDark ? 'rgba(75,107,255,0.15)' : 'rgba(75,107,255,0.08)',
-                    color: '#3A5AEE',
+                    color: 'var(--tx-blue)',
                   }}>
                     {role}
                   </span>

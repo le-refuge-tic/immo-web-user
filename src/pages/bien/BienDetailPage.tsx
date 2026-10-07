@@ -685,7 +685,7 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
               </p>
             </div>
             {rejete && bien.motif_refus && (
-              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#DC2626' }}>{bien.motif_refus}</p>
+              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--tx-red)' }}>{bien.motif_refus}</p>
             )}
             {!rejete && (
               <p className="text-xs mt-1.5 text-text-grey">Votre annonce est visible uniquement par vous jusqu'à validation par un administrateur.</p>
@@ -833,12 +833,12 @@ const INFO_ROW_META: Record<string, { icon: IconType; color: string }> = {
   'Accès véhicule': { icon: 'car', color: '#5E6AD2' },
   'Maison à couloir': { icon: 'slidingdoor', color: '#8E6ABE' },
   'Sanitaires': { icon: 'shower', color: '#26A69A' },
-  'Finition': { icon: 'paintroller', color: '#E67E22' },
+  'Finition': { icon: 'paintroller', color: 'var(--tx-amber)' },
   'Loyer': { icon: 'clockrepeat', color: '#7B2FBE' },
   'Document disponible': { icon: 'document', color: '#2980B9' },
   'Terrain loti': { icon: 'gridon', color: '#27AE60' },
   'Titre foncier': { icon: 'verified', color: '#16A085' },
-  'Permission de construire': { icon: 'construction', color: '#E67E22' },
+  'Permission de construire': { icon: 'construction', color: 'var(--tx-amber)' },
   'Angle de rue': { icon: 'turnright', color: '#8E6ABE' },
   'Position': { icon: 'map', color: '#2980B9' },
   'Construction existante': { icon: 'homework', color: '#5D6D7E' },
@@ -891,7 +891,7 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
 
   const rows: { icon: IconType; color: string; label: string; amount: number; note?: string }[] = []
   if (avanceMois > 0) rows.push({ icon: 'wallet', color: '#7B2FBE', label: `Avance (${avanceMois} mois)`, amount: montantAvance })
-  if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: '#15803D', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
+  if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: 'var(--tx-green)', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
   if (cautionEau > 0) rows.push({ icon: 'waterdrop', color: '#2E86C1', label: 'Caution eau', amount: cautionEau })
   if (cautionElec > 0) rows.push({ icon: 'bolt', color: '#FFCC00', label: 'Caution électricité', amount: cautionElec })
   for (const f of autresFrais) {
@@ -1005,13 +1005,13 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
     <div>
       {visiteEchouee ? (
         <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border mb-2.5" style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.25)' }}>
-          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          <p className="text-xs font-semibold truncate" style={{ color: '#DC2626' }}>Visite échouée · {fmtVisiteDate(visiteEchouee.date_contre_proposee || visiteEchouee.date_souhaitee)}</p>
+          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: 'var(--tx-red)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <p className="text-xs font-semibold truncate" style={{ color: 'var(--tx-red)' }}>Visite échouée · {fmtVisiteDate(visiteEchouee.date_contre_proposee || visiteEchouee.date_souhaitee)}</p>
         </div>
       ) : visiteCancellee ? (
         <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border mb-2.5" style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.25)' }}>
-          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-          <p className="text-xs font-semibold truncate" style={{ color: '#DC2626' }}>Visite annulée · {fmtVisiteDate(visiteCancellee.date_contre_proposee || visiteCancellee.date_souhaitee)}</p>
+          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: 'var(--tx-red)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+          <p className="text-xs font-semibold truncate" style={{ color: 'var(--tx-red)' }}>Visite annulée · {fmtVisiteDate(visiteCancellee.date_contre_proposee || visiteCancellee.date_souhaitee)}</p>
         </div>
       ) : null}
       <button onClick={onProposerVisite}

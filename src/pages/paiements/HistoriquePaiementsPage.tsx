@@ -145,7 +145,7 @@ export default function HistoriquePaiementsPage() {
             <div className="flex flex-col items-center text-center py-16">
               <p className="font-bold text-text-dark mb-2">Erreur de chargement</p>
               <p className="text-text-grey text-sm mb-4">{error}</p>
-              <button onClick={load} className="text-sm font-bold" style={{ color: '#3A5AEE' }}>Réessayer</button>
+              <button onClick={load} className="text-sm font-bold" style={{ color: 'var(--tx-blue)' }}>Réessayer</button>
             </div>
           ) : (
             <>

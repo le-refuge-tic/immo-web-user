@@ -9,7 +9,7 @@ export function categorieTransaction(description: string): { label: string; colo
   const d = (description || '').toLowerCase()
   if (d.startsWith('loyer')) return { label: 'Loyer', color: BLUE }
   if (d.startsWith('frais de visite')) return { label: 'Visite', color: '#7B2FBE' }
-  if (d.startsWith('intégration') || d.startsWith('integration')) return { label: 'Intégration', color: '#B45309' }
+  if (d.startsWith('intégration') || d.startsWith('integration')) return { label: 'Intégration', color: 'var(--tx-amber)' }
   return { label: 'Autre', color: '#6B7280' }
 }
 
@@ -18,10 +18,10 @@ export function categorieTransaction(description: string): { label: string; colo
 // `transactions`). `null` = mouvement sans paiement lié (ex. retrait) : par
 // construction déjà survenu, donc "Complété".
 function txStatutMeta(statut: string | null | undefined): { label: string; color: string } {
-  if (statut === 'en_attente') return { label: 'En attente', color: '#B45309' }
-  if (statut === 'echoue')     return { label: 'Échoué',     color: '#DC2626' }
+  if (statut === 'en_attente') return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (statut === 'echoue')     return { label: 'Échoué',     color: 'var(--tx-red)' }
   if (statut === 'rembourse')  return { label: 'Remboursé',  color: '#6B7280' }
-  return { label: 'Complété', color: '#15803D' }
+  return { label: 'Complété', color: 'var(--tx-green)' }
 }
 const METHODE_LABELS: Record<string, string> = { momo: 'MTN MoMo', flooz: 'Moov Flooz', celtiis: 'Celtiis Cash', fedapay: 'FedaPay' }
 

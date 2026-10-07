@@ -283,7 +283,7 @@ function MonLogementTab() {
                       <div className="flex items-center gap-1.5">
                         <p className="font-semibold text-text-dark text-sm">{formatMois(l.mois || l.date_echeance)}</p>
                         {l.statut === 'en_retard' && (
-                          <span className="text-micro font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: '#DC2626' }}>En retard</span>
+                          <span className="text-micro font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: 'var(--tx-red)' }}>En retard</span>
                         )}
                       </div>
                       <p className="text-xs text-text-grey">Échéance : {new Date(l.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
@@ -336,7 +336,7 @@ function MonLogementTab() {
                       <OperateurChips value={operateur} onChange={setOperateur} cotisationSolde={cotisationSolde} />
                       {operateur === 'cotisation' ? (
                         !cotisationSuffisante && (
-                          <p className="text-xs font-semibold mb-3" style={{ color: '#DC2626' }}>
+                          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--tx-red)' }}>
                             Solde cotisation insuffisant ({cotisationSolde.toLocaleString('fr-FR')} F disponibles).
                           </p>
                         )
@@ -464,7 +464,7 @@ function ActiviteTab() {
     if (!prochainLoyer) return null
     const diff = new Date(prochainLoyer.date_echeance).getTime() - Date.now()
     const jours = Math.ceil(diff / 86400000)
-    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: '#DC2626', bg: '#EF444420' }
+    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: 'var(--tx-red)', bg: '#EF444420' }
     if (jours <= 3) return { label: `Dû dans ${jours}j`, color: ORANGE, bg: ORANGE + '20' }
     if (jours <= 7) return { label: `À payer dans ${jours}j`, color: TEAL, bg: TEAL + '20' }
     return { label: `${jours} jours`, color: GREEN, bg: GREEN + '20' }
@@ -711,7 +711,7 @@ function ProfilTab() {
         ))}
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-2 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2"
-          style={{ color: '#DC2626', borderColor: '#EF444430', background: '#EF444408' }}>
+          style={{ color: 'var(--tx-red)', borderColor: '#EF444430', background: '#EF444408' }}>
           <IcLogout /> Se déconnecter
         </button>
       </div>
@@ -775,7 +775,7 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
         </button>
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-1 flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-          style={{ color: '#DC2626', background: hoveredBtn === 'logout' ? '#EF444408' : 'transparent' }}
+          style={{ color: 'var(--tx-red)', background: hoveredBtn === 'logout' ? '#EF444408' : 'transparent' }}
           onMouseEnter={() => setHoveredBtn('logout')}
           onMouseLeave={() => setHoveredBtn(null)}>
           <IcLogout /> Déconnexion

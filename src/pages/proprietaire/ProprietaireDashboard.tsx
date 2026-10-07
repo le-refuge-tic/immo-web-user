@@ -305,7 +305,7 @@ export default function ProprietaireDashboard() {
               {/* Logout — desktop */}
               <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
                 className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
-                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: '#DC2626' }}>
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <IcLogout />
               </button>
               {/* Hamburger — mobile */}
@@ -347,7 +347,7 @@ export default function ProprietaireDashboard() {
                     })}
                     <button onClick={() => { logout(); navigate('/login') }}
                       className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium"
-                      style={{ color: '#DC2626' }}>
+                      style={{ color: 'var(--tx-red)' }}>
                       <IcLogout />
                       <span>Quitter</span>
                     </button>
@@ -392,8 +392,8 @@ export default function ProprietaireDashboard() {
                 <div className="flex gap-3 mt-7 overflow-x-auto scrollbar-hide pb-0.5">
                   {[
                     { icon: <IcHome />, value: `${biens.length}`, label: 'Biens', color: BLUE },
-                    { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: '#B45309' },
-                    { icon: <IcShield />, value: `${score}`, label: 'Score', color: '#15803D' },
+                    { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: 'var(--tx-amber)' },
+                    { icon: <IcShield />, value: `${score}`, label: 'Score', color: 'var(--tx-green)' },
                     { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>, value: `${totalVues}`, label: 'Vues', color: '#A78BFA' },
                   ].map(s => (
                     <div key={s.label} className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3"
@@ -445,8 +445,8 @@ export default function ProprietaireDashboard() {
               <div className="flex gap-2.5 mb-7 overflow-x-auto scrollbar-hide pb-1">
                 {[
                   { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
-                  { icon: <IcCal />, color: '#3A5AEE', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
-                  { icon: <IcPayments />, color: '#15803D', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
+                  { icon: <IcCal />, color: 'var(--tx-blue)', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
+                  { icon: <IcPayments />, color: 'var(--tx-green)', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
                   { icon: <IcClock />, color: '#0EA5E9', label: 'Créneaux', action: () => setTab('creneaux') },
                   { icon: <IcMessagesNav />, color: '#FF6B35', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
                   { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
@@ -479,9 +479,9 @@ export default function ProprietaireDashboard() {
                   dark={isDark}
                   stats={[
                     { label: 'Total',       value: biens.length,   color: BLUE      },
-                    { label: 'Publiés',     value: biensApprouves, color: '#15803D' },
-                    { label: 'En attente',  value: biensEnAttente, color: '#B45309' },
-                    { label: 'Rejetés',     value: biensRejetes,   color: '#DC2626' },
+                    { label: 'Publiés',     value: biensApprouves, color: 'var(--tx-green)' },
+                    { label: 'En attente',  value: biensEnAttente, color: 'var(--tx-amber)' },
+                    { label: 'Rejetés',     value: biensRejetes,   color: 'var(--tx-red)' },
                   ]}
                 />
               </div>
@@ -505,7 +505,7 @@ export default function ProprietaireDashboard() {
                     label: "Taux d'occupation",
                     value: `${tauxOccupation}%`,
                     sub: `${biensOccupes} / ${biens.length} biens`,
-                    color: '#15803D',
+                    color: 'var(--tx-green)',
                     icon: <IcHome />,
                   },
                 ].map(card => (

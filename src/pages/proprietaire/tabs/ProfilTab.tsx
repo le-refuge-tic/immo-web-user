@@ -40,7 +40,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
   const kpis = [
     { label: 'Score', value: `${Math.round(score)}`, color: BLUE },
     { label: 'Occupation', value: `${tauxOccupation}%`, color: '#16A34A' },
-    { label: 'Publiés', value: `${tauxPublication}%`, color: '#B45309' },
+    { label: 'Publiés', value: `${tauxPublication}%`, color: 'var(--tx-amber)' },
   ]
 
   const menuItems = [
@@ -49,7 +49,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: '#0EA5E9', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
-    { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#B45309', onClick: onOpenRoles },
+    { icon: <IcPerson />, label: 'Gérer mes rôles', color: 'var(--tx-amber)', onClick: onOpenRoles },
     { icon: <IcPayments />, label: 'Historique des transactions', color: '#16A34A', onClick: onOpenTransactions },
   ]
 
@@ -135,7 +135,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
               {[
                 { label: 'Total', value: visites.length, color: BLUE },
                 { label: 'Confirmées', value: visitesConfirmees, color: '#16A34A' },
-                { label: 'En attente', value: visitesEnAttente, color: '#B45309' },
+                { label: 'En attente', value: visitesEnAttente, color: 'var(--tx-amber)' },
                 { label: 'Effectuées', value: visitesEffectuees, color: '#7B2FBE' },
               ].map((s, i) => (
                 <div key={s.label} className="flex-1 min-w-0 flex flex-col items-center justify-center"
@@ -154,7 +154,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
               {[
                 { label: 'Total', value: biens.length, color: BLUE },
                 { label: 'Publiés', value: approuves, color: '#16A34A' },
-                { label: 'Occupés', value: biensOccupes, color: '#B45309' },
+                { label: 'Occupés', value: biensOccupes, color: 'var(--tx-amber)' },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center justify-center py-3 rounded-xl"
                   style={{ background: s.color + '0E' }}>
@@ -165,7 +165,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
             </div>
             {user?.nb_etoiles != null && (
               <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid var(--p-border)' }}>
-                <span style={{ color: '#B45309' }}><IcStar /></span>
+                <span style={{ color: 'var(--tx-amber)' }}><IcStar /></span>
                 <p className="text-[13px] font-bold" style={{ color: 'var(--p-text)' }}>
                   {user.nb_etoiles} étoile{user.nb_etoiles !== 1 ? 's' : ''}
                 </p>
@@ -177,7 +177,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
           {/* Déconnexion */}
           <button onClick={() => { logout(); navigate('/login') }}
             className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
-            style={{ background: hoveredEl === 'logout' ? '#FFE4E4' : '#FFF0F0', color: '#DC2626', border: '1px solid #EF444422' }}
+            style={{ background: hoveredEl === 'logout' ? '#FFE4E4' : '#FFF0F0', color: 'var(--tx-red)', border: '1px solid #EF444422' }}
             onMouseEnter={() => setHoveredEl('logout')}
             onMouseLeave={() => setHoveredEl(null)}>
             Se déconnecter

@@ -141,7 +141,7 @@ export default function PaiementIntegrationPage() {
                     <span className="text-text-grey">Passez {prepayeMois} mois sans loyer</span>
                     <span className="font-semibold text-text-dark">{prepayeTotal.toLocaleString('fr-FR')} FCFA</span>
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: '#15803D' }}>Inclus dans votre paiement</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--tx-green)' }}>Inclus dans votre paiement</p>
                 </div>
               )}
               {cautionEau > 0 && (
@@ -159,10 +159,10 @@ export default function PaiementIntegrationPage() {
               {remiseVisite > 0 && (
                 <div className="flex justify-between text-sm">
                   <div>
-                    <span className="font-semibold" style={{ color: '#15803D' }}>Remise frais de visite</span>
-                    <p className="text-xs" style={{ color: '#15803D' }}>Déduits car visite déjà payée</p>
+                    <span className="font-semibold" style={{ color: 'var(--tx-green)' }}>Remise frais de visite</span>
+                    <p className="text-xs" style={{ color: 'var(--tx-green)' }}>Déduits car visite déjà payée</p>
                   </div>
-                  <span className="font-semibold" style={{ color: '#15803D' }}>− {remiseVisite.toLocaleString('fr-FR')} FCFA</span>
+                  <span className="font-semibold" style={{ color: 'var(--tx-green)' }}>− {remiseVisite.toLocaleString('fr-FR')} FCFA</span>
                 </div>
               )}
               <div className="border-t border-divider pt-3 flex justify-between">

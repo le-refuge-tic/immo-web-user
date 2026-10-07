@@ -142,7 +142,7 @@ export default function ProprietaireBienWrapper() {
               {/* Déconnexion — desktop */}
               <button onClick={() => { logout(); navigate('/login') }}
                 className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
-                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: '#DC2626' }}>
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -188,7 +188,7 @@ export default function ProprietaireBienWrapper() {
                 })}
                 <button onClick={() => { logout(); navigate('/login') }}
                   className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium"
-                  style={{ color: '#DC2626' }}>
+                  style={{ color: 'var(--tx-red)' }}>
                   <span>Quitter</span>
                 </button>
               </div>

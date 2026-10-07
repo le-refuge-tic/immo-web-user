@@ -80,7 +80,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
         <div className="p-5 space-y-5">
           <div role="alert" aria-live="assertive" aria-atomic="true">
             {error && (
-              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: '#DC2626', border: '1px solid #EF444430' }}>
+              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: 'var(--tx-red)', border: '1px solid #EF444430' }}>
                 {error}
               </div>
             )}

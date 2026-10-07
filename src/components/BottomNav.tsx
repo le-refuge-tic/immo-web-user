@@ -28,19 +28,14 @@ const PersonIcon = ({ active }: { active: boolean }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 )
-const CalendarIcon = ({ active }: { active: boolean }) => (
-  <svg viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 0 : 2} className="w-6 h-6">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-)
-
+// 5 entrées, même ordre que l'app mobile. « Mes visites » est accessible
+// depuis le Profil (l'onglet Profil reste actif sur /mes-visites).
 const NAV_ITEMS = [
-  { path: '/',              label: 'Accueil',  icon: HomeIcon,     authRequired: false },
-  { path: '/favoris',       label: 'Favoris',  icon: BookmarkIcon,    authRequired: true  },
-  { path: '/mes-visites',   label: 'Visites',  icon: CalendarIcon, authRequired: true  },
-  { path: '/notifications', label: 'Alertes',  icon: BellIcon,     authRequired: true  },
-  { path: '/conversations', label: 'Messages', icon: ChatIcon,     authRequired: true  },
-  { path: '/profil',        label: 'Profil',   icon: PersonIcon,   authRequired: true  },
+  { path: '/',              label: 'Accueil',  icon: HomeIcon,     authRequired: false, also: [] as string[] },
+  { path: '/favoris',       label: 'Favoris',  icon: BookmarkIcon, authRequired: true,  also: [] },
+  { path: '/conversations', label: 'Messages', icon: ChatIcon,     authRequired: true,  also: [] },
+  { path: '/notifications', label: 'Alertes',  icon: BellIcon,     authRequired: true,  also: [] },
+  { path: '/profil',        label: 'Profil',   icon: PersonIcon,   authRequired: true,  also: ['/mes-visites', '/mes-roles', '/portefeuille'] },
 ]
 
 export default function BottomNav() {
@@ -51,9 +46,9 @@ export default function BottomNav() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/'
-    return location.pathname.startsWith(path)
+  const isActive = (item: typeof NAV_ITEMS[0]) => {
+    if (item.path === '/') return location.pathname === '/'
+    return [item.path, ...item.also].some(p => location.pathname.startsWith(p))
   }
 
   const handleNav = (item: typeof NAV_ITEMS[0]) => {
@@ -63,7 +58,7 @@ export default function BottomNav() {
     } else navigate(item.path)
   }
 
-  const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'
+  const inactiveColor = isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'
 
   return (
     <nav
@@ -76,9 +71,9 @@ export default function BottomNav() {
         borderTop: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.07)',
       }}
     >
-      <div className="flex items-center justify-around px-1 py-2 md:hidden">
+      <div className="flex items-center justify-around px-2 py-2 md:hidden">
         {NAV_ITEMS.map(item => {
-          const active = isActive(item.path)
+          const active = isActive(item)
           const Icon = item.icon
           const badge = item.path === '/conversations' ? unreadMessages : item.path === '/notifications' ? unreadAlertes : 0
           return (
@@ -87,7 +82,7 @@ export default function BottomNav() {
               onClick={() => handleNav(item)}
               aria-label={item.label + (badge > 0 ? `, ${badge} non lu${badge > 1 ? 's' : ''}` : '')}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-col items-center gap-0.5 px-2 py-2 min-w-[48px] rounded-2xl transition-all duration-200 btn-press"
+              className="relative flex flex-col items-center gap-0.5 px-2 py-2 min-w-[56px] rounded-2xl transition-all duration-200 btn-press"
               style={{
                 background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
                 border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',
@@ -101,7 +96,7 @@ export default function BottomNav() {
                   </span>
                 )}
               </span>
-              <span className="text-micro font-semibold" style={{ color: active ? '#3A5AEE' : isDark ? 'rgba(255,255,255,0.7)' : '#5E5E63' }}>{item.label}</span>
+              <span className="text-micro font-semibold" style={{ color: active ? (isDark ? '#9DB0FF' : '#3A5AEE') : isDark ? 'rgba(255,255,255,0.7)' : '#5E5E63' }}>{item.label}</span>
             </button>
           )
         })}

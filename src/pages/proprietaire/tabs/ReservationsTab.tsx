@@ -197,7 +197,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                 const urgente = !echouee && isUrgente(v, now)
                 const mins = urgente ? minutesAvant(v, now) : null
                 const { label: sLabel, color: sColor } = echouee
-                  ? { label: 'Échouée', color: '#DC2626' }
+                  ? { label: 'Échouée', color: 'var(--tx-red)' }
                   : statutVisite(v.statut)
                 const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
                 const initiale = clientNom[0]?.toUpperCase() || '?'
@@ -269,7 +269,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                         <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{clientNom}</p>
                         {v.paiement_effectue && (
                           <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: '#22C55E15', color: '#15803D' }}>✓ Payé</span>
+                            style={{ background: '#22C55E15', color: 'var(--tx-green)' }}>✓ Payé</span>
                         )}
                       </div>
 
@@ -281,7 +281,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                       {/* Urgence compte à rebours */}
                       {urgente && mins !== null && (
                         <div className="flex items-center gap-1.5 mb-3 px-3 py-2 rounded-lg text-xs font-bold animate-pulse"
-                          style={{ background: '#EF444412', color: '#DC2626' }}>
+                          style={{ background: '#EF444412', color: 'var(--tx-red)' }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                           </svg>
@@ -302,7 +302,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                           <button
                             onClick={e => { e.stopPropagation(); confirmer(v.id) }}
                             className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
-                            style={{ background: hoveredVisiteEl === `confirmer-${v.id}` ? '#22C55E22' : '#22C55E12', color: '#15803D', border: '1px solid #22C55E20' }}
+                            style={{ background: hoveredVisiteEl === `confirmer-${v.id}` ? '#22C55E22' : '#22C55E12', color: 'var(--tx-green)', border: '1px solid #22C55E20' }}
                             onMouseEnter={() => setHoveredVisiteEl(`confirmer-${v.id}`)}
                             onMouseLeave={() => setHoveredVisiteEl(null)}>
                             Confirmer ✓
