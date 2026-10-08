@@ -22,6 +22,18 @@ export const authApi = {
   // désormais { requires_otp, session_token } au lieu des tokens directs).
   verifyOtp: (session_token: string, code: string) =>
     axios.post(`${BASE}/auth/otp/verify`, { session_token, code }).then(r => r.data),
+
+  // Mot de passe oublié — étape 1 : envoi d'un code par SMS.
+  forgotPassword: (telephone: string) =>
+    axios.post(`${BASE}/auth/forgot-password`, { telephone }).then(r => r.data),
+
+  // Mot de passe oublié — étape 2 : vérifier le code (sans le consommer).
+  verifyResetCode: (telephone: string, code: string) =>
+    axios.post(`${BASE}/auth/reset-password/verify`, { telephone, code }).then(r => r.data),
+
+  // Mot de passe oublié — étape 3 : vérifier le code et définir le nouveau mot de passe.
+  resetPassword: (telephone: string, code: string, nouveau_mot_de_passe: string) =>
+    axios.post(`${BASE}/auth/reset-password`, { telephone, code, nouveau_mot_de_passe }).then(r => r.data),
 }
 
 /**

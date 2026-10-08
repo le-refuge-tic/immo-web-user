@@ -76,7 +76,7 @@ const stepVariants = {
 }
 
 // ── Panneau gauche : ImageSlider + overlay REFUGE ──────────────────────────
-function SidePanel() {
+export function SidePanel() {
   return (
     <div className="auth-side hidden lg:flex">
       <ImageSlider slides={SLIDES} interval={4000} className="absolute inset-0" />
@@ -116,7 +116,7 @@ function SidePanel() {
 }
 
 // ── Sous-composants UI partagés (inline dans ce fichier standalone) ─────────
-function ErrorBanner({ message, id }: { message: string; id?: string }) {
+export function ErrorBanner({ message, id }: { message: string; id?: string }) {
   return (
     <AnimatePresence>
       {message && (
@@ -139,7 +139,7 @@ function ErrorBanner({ message, id }: { message: string; id?: string }) {
   )
 }
 
-function PrimaryButton({
+export function PrimaryButton({
   loading, disabled, loadingLabel, children, onClick, type = 'submit', className = '',
 }: {
   loading?: boolean; disabled?: boolean; loadingLabel?: string
@@ -162,7 +162,7 @@ function PrimaryButton({
 }
 
 // ── Champ téléphone unifié (drapeau + indicatif | numéro) ────────────────────
-function PhoneInput({
+export function PhoneInput({
   id, countryCode, phone, onCountryChange, onPhoneChange, autoComplete = 'tel', 'aria-invalid': ariaInvalid,
 }: {
   id?: string; countryCode: string; phone: string
@@ -335,6 +335,9 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              <button type="button" onClick={() => navigate('/mot-de-passe-oublie')} className="mt-1.5 text-right text-[13px] font-semibold text-[#4B6BFF] hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'block', width: '100%' }}>
+                Mot de passe oublié ?
+              </button>
             </div>
             <PrimaryButton loading={loading} loadingLabel="Connexion…" className="mt-1">Se connecter</PrimaryButton>
           </form>
