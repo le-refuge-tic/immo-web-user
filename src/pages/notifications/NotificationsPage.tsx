@@ -7,6 +7,7 @@ import { chatApi } from '../../api/chatApi'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
+import { useNotifications } from '../../context/NotificationsContext'
 import type { Notification } from '../../types/api'
 
 function timeAgo(dateStr: string) {
@@ -163,18 +164,21 @@ export default function NotificationsPage() {
   // Comme sur le mobile : toutes les « Nouvelles », puis les « Précédentes » par lots de 10.
   const [readLimit, setReadLimit] = useState(PAGE_SIZE)
 
+  const { markAlertesRead, refresh: refreshCounts } = useNotifications()
+
+  // Mise à jour optimiste : la liste et le badge changent tout de suite,
+  // puis on resynchronise avec le serveur (y compris en cas d'échec).
   const markRead = async (id: number) => {
-    try {
-      await notificationsApi.markRead(id)
-      setNotifs(prev => prev.map(n => n.id === id ? { ...n, lu: true } : n))
-    } catch (_) {}
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, lu: true } : n))
+    markAlertesRead(1)
+    try { await notificationsApi.markRead(id) } catch { refreshCounts() }
   }
 
   const markAll = async () => {
-    try {
-      await notificationsApi.markAllRead()
-      setNotifs(prev => prev.map(n => ({ ...n, lu: true })))
-    } catch (_) {}
+    const nb = notifs.filter(n => !n.lu).length
+    setNotifs(prev => prev.map(n => ({ ...n, lu: true })))
+    markAlertesRead(nb)
+    try { await notificationsApi.markAllRead() } catch { refreshCounts() }
   }
 
   // Les échanges autour d'une visite (proposition/réponse de créneau) se

@@ -32,7 +32,7 @@ export default function ProprietaireBienWrapper() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
-  const { unreadMessages, unreadAlertes } = useNotifications()
+  const { unreadMessages, unreadAlertesEspace: unreadAlertes } = useNotifications()
   const fromDashboard = !!(location.state as any)?.fromDashboard
   const [isScrolled, setIsScrolled] = useState(fromDashboard)
   const [menuOpen, setMenuOpen] = useState(false)

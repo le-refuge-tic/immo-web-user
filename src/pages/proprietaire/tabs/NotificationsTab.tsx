@@ -36,7 +36,7 @@ function notifIcon(type: string): { node: React.ReactNode; color: string } {
 export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: number, draftMessage?: string) => void }) {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { refresh: refreshCounts } = useNotifications()
+  const { refresh: refreshCounts, markAlertesRead } = useNotifications()
   const [notifs, setNotifs] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
@@ -55,19 +55,18 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
   const unread = mine.filter(n => !n.lu).length
   const displayed = filter === 'non_lues' ? mine.filter(n => !n.lu) : mine
 
+  // Optimiste : liste et badges changent tout de suite, resynchronisés en cas d'échec.
   const markRead = async (id: number) => {
-    try {
-      await notificationsApi.markRead(id)
-      setNotifs(p => p.map(n => n.id === id ? { ...n, lu: true } : n))
-      refreshCounts()
-    } catch (_) {}
+    setNotifs(p => p.map(n => n.id === id ? { ...n, lu: true } : n))
+    markAlertesRead(1)
+    try { await notificationsApi.markRead(id) } catch { refreshCounts() }
   }
+  // « Tout lire » ne concerne que les alertes de cet espace.
   const markAll = async () => {
-    try {
-      await notificationsApi.markAllRead()
-      setNotifs(p => p.map(n => ({ ...n, lu: true })))
-      refreshCounts()
-    } catch (_) {}
+    const ids = new Set(mine.filter(n => !n.lu).map(n => n.id))
+    setNotifs(p => p.map(n => ids.has(n.id) ? { ...n, lu: true } : n))
+    markAlertesRead(ids.size)
+    try { await notificationsApi.markAllRead('proprietaire') } catch { refreshCounts() }
   }
 
   // Retrouve la conversation liée à une visite pour l'ouvrir en un clic.

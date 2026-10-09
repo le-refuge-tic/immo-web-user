@@ -136,9 +136,9 @@ function notifIconD(type: string): { node: React.ReactNode; color: string } {
 }
 
 function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
-  const { user } = useAuth()
+  const { user, activeRole } = useAuth()
   const navigate = useNavigate()
-  const { refresh: refreshCounts } = useNotifications()
+  const { refresh: refreshCounts, markAlertesRead } = useNotifications()
   const [notifs, setNotifs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
@@ -155,19 +155,18 @@ function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
   const unread = mine.filter(n => !n.lu).length
   const displayed = filter === 'non_lues' ? mine.filter(n => !n.lu) : mine
 
+  // Optimiste : liste et badges changent tout de suite, resynchronisés en cas d'échec.
   const markRead = async (id: number) => {
-    try {
-      await notificationsApi.markRead(id)
-      setNotifs(p => p.map(n => n.id === id ? { ...n, lu: true } : n))
-      refreshCounts()
-    } catch (_) {}
+    setNotifs(p => p.map(n => n.id === id ? { ...n, lu: true } : n))
+    markAlertesRead(1)
+    try { await notificationsApi.markRead(id) } catch { refreshCounts() }
   }
+  // « Tout lire » ne concerne que les alertes de cet espace.
   const markAll = async () => {
-    try {
-      await notificationsApi.markAllRead()
-      setNotifs(p => p.map(n => ({ ...n, lu: true })))
-      refreshCounts()
-    } catch (_) {}
+    const ids = new Set(mine.filter(n => !n.lu).map(n => n.id))
+    setNotifs(p => p.map(n => ids.has(n.id) ? { ...n, lu: true } : n))
+    markAlertesRead(ids.size)
+    try { await notificationsApi.markAllRead(activeRole || 'demarcheur') } catch { refreshCounts() }
   }
 
   const ouvrirConversationPourVisite = async (visiteId: number): Promise<boolean> => {
@@ -957,7 +956,7 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
 export default function DemarcheurDashboard() {
   usePageTitle('Espace démarcheur')
   const { user: authUser } = useAuth()
-  const { unreadAlertes } = useNotifications()
+  const { unreadAlertesEspace: unreadAlertes } = useNotifications()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
   const [moreOpen, setMoreOpen] = useState(false)

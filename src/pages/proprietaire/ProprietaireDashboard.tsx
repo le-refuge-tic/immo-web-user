@@ -35,7 +35,7 @@ const PRIMARY_TABS: Tab[] = ['tableau', 'biens', 'reservations', 'loyers']
 export default function ProprietaireDashboard() {
   usePageTitle('Espace propriétaire')
   const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
-  const { unreadMessages, unreadAlertes, refresh: refreshNotifications } = useNotifications()
+  const { unreadMessages, unreadAlertesEspace: unreadAlertes, refresh: refreshNotifications } = useNotifications()
   const navigate = useNavigate()
   const location = useLocation()
   // Le thème suit le réglage global (Profil > Paramètres > Apparence).
