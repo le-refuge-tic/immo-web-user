@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
-import sideImg from '../../assets/onboarding-side.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import sideImg from '../../assets/onboarding-side.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
 import { QUARTIERS as QUARTIERS_DB, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 
 // Mêmes villes/quartiers que le reste de l'app (data/quartiers.ts, utilisé

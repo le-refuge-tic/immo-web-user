@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationsContext'
 import BienDetailPage from './BienDetailPage'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-LOGO.webp'
 
 const BLUE = '#4B6BFF'
 

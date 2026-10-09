@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { tokenStore } from '../utils/tokenStore'
 import { BASE, auth } from './apiBase'
+import { compressImage } from '../utils/compressImage'
 
 export const userApi = {
   me: () =>
@@ -12,9 +13,9 @@ export const userApi = {
   changePassword: (body: any) =>
     axios.patch(`${BASE}/users/me/password`, body, auth()).then(r => r.data),
 
-  uploadAvatar: (file: File) => {
+  uploadAvatar: async (file: File) => {
     const form = new FormData()
-    form.append('photo', file)
+    form.append('photo', await compressImage(file, 800))
     return axios.post(`${BASE}/users/me/photo`, form, {
       headers: {
         Authorization: `Bearer ${tokenStore.getToken()}`,

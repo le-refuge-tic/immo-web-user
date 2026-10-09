@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import sideImg from '../../assets/onboarding-side.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import sideImg from '../../assets/onboarding-side.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
 import { usePageTitle } from '../../utils/usePageTitle'
 
 export default function OnboardingProjetPage() {

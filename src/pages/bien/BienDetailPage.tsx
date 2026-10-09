@@ -11,7 +11,7 @@ import { shareBien } from '../../services/shareService'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import logoSbee from '../../assets/logo-SBEE.png'
-import logoSoneb from '../../assets/logo-SONEB.png'
+import logoSoneb from '../../assets/logo-SONEB.webp'
 import { track } from '../../lib/analytics'
 
 const BACKEND = API_ORIGIN + '/'
@@ -448,7 +448,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <div className="sticky top-20">
             <div className="glass-card rounded-2xl p-6">
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className={`px-3 py-1.5 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-secondary'}`}>
+                <span className={`px-3 py-1.5 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-[#C2410C]'}`}>
                   {isLocation ? 'À LOUER' : 'À VENDRE'}
                 </span>
                 <span className="px-3 py-1.5 rounded-full text-xs font-bold glass-btn text-text-dark">{typeLabel}</span>
@@ -556,7 +556,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       <div className="lg:hidden px-4 md:px-8 py-5 md:py-8 space-y-4 md:max-w-2xl md:mx-auto">
         <div>
           <div className="flex flex-wrap gap-2 mb-3">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-secondary'}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-[#C2410C]'}`}>
               {isLocation ? 'À LOUER' : 'À VENDRE'}
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-bold text-text-dark" style={{ background: 'rgba(0,0,0,0.05)' }}>{typeLabel}</span>

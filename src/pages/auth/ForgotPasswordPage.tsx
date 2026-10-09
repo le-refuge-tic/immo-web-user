@@ -10,7 +10,7 @@ import {
   PrimaryButton,
   PhoneInput,
 } from '../../components/ui/auth-switch'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import './authNew.css'
 import { apiMessage } from '../../utils/apiMessage'
 

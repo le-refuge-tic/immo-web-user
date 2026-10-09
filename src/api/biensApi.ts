@@ -2,6 +2,7 @@ import axios from 'axios'
 import type { Bien, BienResponse, ListResponse, Photo } from '../types/api'
 import { tokenStore } from '../utils/tokenStore'
 import { BASE, auth } from './apiBase'
+import { compressImage } from '../utils/compressImage'
 
 const API_MAX_LIMIT = 100
 
@@ -82,9 +83,9 @@ export const biensApi = {
   delete: (id: number) =>
     axios.delete(`${BASE}/biens/${id}`, auth()).then(r => r.data),
 
-  uploadPhoto: (bienId: number, file: File) => {
+  uploadPhoto: async (bienId: number, file: File) => {
     const form = new FormData()
-    form.append('photo', file)
+    form.append('photo', await compressImage(file))
     return axios.post<Photo>(`${BASE}/biens/${bienId}/photos`, form, {
       headers: {
         Authorization: `Bearer ${tokenStore.getToken()}`,

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import bgImg from '../../assets/hero-interior.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import bgImg from '../../assets/hero-interior.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
 
 export default function SplashPage() {
   const navigate = useNavigate()

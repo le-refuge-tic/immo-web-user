@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
-import img1 from '../../assets/onboarding-1.jpg'
-import img2 from '../../assets/onboarding-2.jpg'
-import img3 from '../../assets/onboarding-3.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import img1 from '../../assets/onboarding-1.webp'
+import img2 from '../../assets/onboarding-2.webp'
+import img3 from '../../assets/onboarding-3.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
 
 const SLIDES = [
   {

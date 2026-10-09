@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationsContext'
 import { useScrolled } from '../context/ScrollContext'
 import { useTheme } from '../context/ThemeContext'
-import logoUrl from '../assets/REFUGE-LOGO.png'
+import logoUrl from '../assets/REFUGE-LOGO.webp'
 
 // Liens texte : 4 entrées max. Alertes et Messages passent en boutons icône
 // (avec badge) à droite, Profil et Mes visites dans le menu de l'avatar.

@@ -131,7 +131,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           <span
             className="px-2.5 py-1 rounded-full text-xs font-bold text-white"
             style={{
-              background: isLocation ? 'rgba(75,107,255,0.88)' : 'rgba(255,107,53,0.88)',
+              background: isLocation ? 'rgba(58,90,238,0.94)' : 'rgba(194,65,12,0.94)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255,255,255,0.3)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',

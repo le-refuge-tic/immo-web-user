@@ -5,7 +5,7 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { biensApi } from '../../api/biensApi'
 import { useAuth } from '../../context/AuthContext'
 import { QUARTIERS } from '../../data/quartiers'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { track } from '../../lib/analytics'
 import { apiMessage } from '../../utils/apiMessage'
 

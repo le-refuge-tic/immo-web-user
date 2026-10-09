@@ -416,7 +416,7 @@ export default function MesVisitesPage() {
                   <>
                     <p className="text-sm text-text-grey mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
                     <button onClick={() => openPaymentUrl(payUrl)}
-                      className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#FF6B35' }}>
+                      className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#C2410C' }}>
                       Rouvrir la page de paiement
                     </button>
                   </>
@@ -467,7 +467,7 @@ export default function MesVisitesPage() {
                   onClick={handlePayer}
                   disabled={(operator !== 'fedapay' && !validateBeninPhone(phoneOp)) || paying}
                   className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
-                  style={{ background: '#FF6B35' }}
+                  style={{ background: '#C2410C' }}
                 >
                   {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Confirmer le paiement'}
                 </button>
@@ -824,7 +824,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onPay(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
-            style={{ background: '#FF6B35' }}
+            style={{ background: '#C2410C' }}
           >
             Payer les frais de visite ({Number(v.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA)
           </button>
