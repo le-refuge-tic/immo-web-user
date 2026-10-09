@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { io } from 'socket.io-client'
+import type { Socket } from 'socket.io-client'
 import { useAuth } from './AuthContext'
 import { useBanner } from './BannerContext'
 import { notificationsApi } from '../api/notificationsApi'
@@ -143,11 +143,17 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     if (!isLoggedIn) return
     const token = tokenStore.getToken()
     if (!token) return
-    const socket = io(`${API_ORIGIN}/chat`, { auth: { token }, transports: ['websocket'], reconnectionDelay: 2000 })
-    socket.on('alertes:maj', refreshAlertes)
-    socket.on('messages:maj', refreshMessages)
-    socket.on('connect', refresh)
-    return () => { socket.disconnect() }
+    // socket.io est chargé à la demande : il ne pèse pas sur le premier affichage.
+    let socket: Socket | null = null
+    let cancelled = false
+    void import('socket.io-client').then(({ io }) => {
+      if (cancelled) return
+      socket = io(`${API_ORIGIN}/chat`, { auth: { token }, transports: ['websocket'], reconnectionDelay: 2000 })
+      socket.on('alertes:maj', refreshAlertes)
+      socket.on('messages:maj', refreshMessages)
+      socket.on('connect', refresh)
+    })
+    return () => { cancelled = true; socket?.disconnect() }
   }, [isLoggedIn, refresh, refreshAlertes, refreshMessages])
 
   // Titre d'onglet « (3) … » : visible même quand l'onglet est en arrière-plan.
