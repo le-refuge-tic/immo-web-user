@@ -18,6 +18,9 @@ import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../
 import { track } from '../../lib/analytics'
 import { apiMessage } from '../../utils/apiMessage'
 
+/** Délai minimal entre l'affichage du formulaire et l'envoi (anti-robot). */
+const MIN_FORM_MS = 3000
+
 const COUNTRY_CODES = [
   { code: '+229', label: 'Bénin' },
   { code: '+228', label: 'Togo' },
@@ -410,6 +413,9 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const [password, setPassword] = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+  // Anti-spam : champ piège invisible + délai minimal avant envoi (un humain met plus de 3 s).
+  const [siteWeb, setSiteWeb] = useState('')
+  const formShownAtRef = useRef(Date.now())
   const [showPwd, setShowPwd] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -443,9 +449,10 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     if (password !== confirmPwd) { setError('Les mots de passe ne correspondent pas'); return }
     if (password.length < 8) { setError('Mot de passe trop court (8 caractères min.)'); return }
     if (!acceptedTerms) { setError('Veuillez accepter les conditions d\'utilisation'); return }
+    if (Date.now() - formShownAtRef.current < MIN_FORM_MS) { setError('Vérifiez vos informations puis validez à nouveau.'); return }
     setLoading(true); setError('')
     try {
-      const body: any = { role, nom, prenom, password }
+      const body: any = { role, nom, prenom, password, site_web: siteWeb }
       if (phone.trim()) body.telephone = telephone
       if (email.trim()) body.email = email.trim()
       const registerData = await authApi.register(body)
@@ -606,6 +613,11 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                     {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+              </div>
+              {/* Champ piège : hors écran, ignoré par les lecteurs d'écran et l'autoremplissage */}
+              <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+                <label htmlFor="site_web">Site web</label>
+                <input id="site_web" name="site_web" type="text" tabIndex={-1} autoComplete="off" value={siteWeb} onChange={e => setSiteWeb(e.target.value)} />
               </div>
               <label className="auth-terms">
                 <input type="checkbox" className="sr-only" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
