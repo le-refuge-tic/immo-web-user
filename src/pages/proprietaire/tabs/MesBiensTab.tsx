@@ -241,12 +241,12 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               </div>
               <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun bien trouvé</p>
               <p className="text-sm mb-6" style={{ color: 'var(--p-muted)' }}>
-                {search ? 'Essayez un autre terme de recherche' : 'Publiez votre premier bien dès maintenant'}
+                {search ? 'Essayez un autre terme de recherche' : 'Vérifié sous 24 h, visible par des locataires sérieux.'}
               </p>
               <button onClick={() => navigate('/nouveau-bien')}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
                 style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)`, color: '#fff', boxShadow: `0 4px 16px ${BLUE}40` }}>
-                <IcPlus /> Ajouter un bien
+                <IcPlus /> {search ? 'Ajouter un bien' : 'Publier mon premier bien'}
               </button>
             </div>
           ) : (

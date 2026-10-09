@@ -366,6 +366,10 @@ export default function HomePage() {
               {search.trim() || 'Ville, quartier, type de bien…'}
             </span>
           </button>
+          <button onClick={() => navigate(isLoggedIn ? '/nouveau-bien' : '/register')}
+            className="mt-3 text-xs font-semibold text-white/80 underline underline-offset-4 decoration-white/40">
+            Vous êtes propriétaire ? Publier mon bien gratuitement
+          </button>
         </div>
       </div>
 
@@ -413,6 +417,18 @@ export default function HomePage() {
           <p className="text-white/60 text-base md:text-lg leading-relaxed mb-6 max-w-xl anim-fade-up d-300">
             Maisons, appartements, terrains — à Cotonou, Abomey-Calavi et partout au Bénin.
           </p>
+          {/* CTA principal (orange réservé au parcours de location) + secondaire propriétaire */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-2 anim-fade-up d-300">
+            <button onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-[15px] transition-transform hover:-translate-y-0.5"
+              style={{ background: '#FF6B35', color: '#1A1A2E', boxShadow: '0 6px 24px rgba(255,107,53,0.40)' }}>
+              <SearchIcon /> Trouver mon logement
+            </button>
+            <button onClick={() => navigate(isLoggedIn ? '/nouveau-bien' : '/register')}
+              className="text-sm font-semibold text-white/85 underline underline-offset-4 decoration-white/40 hover:text-white">
+              Vous êtes propriétaire ? Publier mon bien gratuitement
+            </button>
+          </div>
           <div className="flex flex-wrap items-center gap-6 md:gap-12 pt-6 mt-2 anim-fade-in d-600 max-w-2xl"
             style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
             {[
@@ -641,10 +657,10 @@ export default function HomePage() {
                 {/* CTA */}
                 <button
                   onClick={() => { goToSearch(); setSearchOpen(false) }}
-                  className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 20px rgba(75,107,255,0.45)' }}
+                  className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90 active:scale-[0.98]"
+                  style={{ background: '#FF6B35', color: '#1A1A2E', boxShadow: '0 4px 20px rgba(255,107,53,0.40)' }}
                 >
-                  <SearchIcon />Rechercher
+                  <SearchIcon />Trouver mon logement
                 </button>
               </div>
             </div>

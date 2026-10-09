@@ -94,13 +94,12 @@ export default function FavoritesPage() {
             <p className="text-text-grey text-sm mb-8 max-w-xs">
               Connectez-vous pour retrouver facilement tous les biens qui vous ont plu
             </p>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
-            >
-              Se connecter
-            </button>
+            <div className="flex flex-col items-center gap-3">
+              <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#3A5AEE,#6D3FE0)' }}>
+                Créer mon compte en 1 minute
+              </button>
+              <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-[#9DB0FF]">J’ai déjà un compte</button>
+            </div>
           </div>
 
         ) : loading ? (
