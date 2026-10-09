@@ -60,15 +60,14 @@ function courLabel(a: any): string | null {
   }
 }
 
-function finitionLabel(a: any): string | null {
-  switch (a.finition) {
-    case 'ordinaire': return 'Finition ordinaire'
-    case 'semi_staffe': return 'Semi-staffé'
-    case 'staffe_carele': return 'Staffé / Carrelé'
-    case 'standard': return 'Finition standard'
-    case 'moderne': return 'Finition moderne'
-    case 'haut_standing': return 'Haut standing'
-    case 'vip': return 'VIP / Luxe'
+function standingLabel(a: any): string | null {
+  switch (a.standing) {
+    case 'sanitaire': return 'Sanitaire'
+    case 'semi_sanitaire': return 'Semi sanitaire'
+    case 'sanitaire_semi_staffe': return 'Sanitaire semi-staffé'
+    case 'sanitaire_staffe': return 'Sanitaire staffé'
+    case 'haut_standing_vip': return 'Haut standing / VIP'
+    case 'autre': return a.standing_autre || 'Autre'
     default: return null
   }
 }
@@ -129,13 +128,8 @@ export function infosLogementRows(a: any): InfoRow[] {
     rows.push({ label: 'Maison à couloir', value: a.chambre_couloir ? 'Oui' : 'Non' })
   }
 
-  if (a.sanitaire != null) {
-    const interne = a.sanitaire === true || a.sanitaire === 'interieur'
-    rows.push({ label: 'Sanitaires', value: interne ? 'Intérieur' : 'Extérieur' })
-  }
-
-  const finition = finitionLabel(a)
-  if (finition) rows.push({ label: 'Finition', value: finition })
+  const standing = standingLabel(a)
+  if (standing) rows.push({ label: 'Standing', value: standing })
 
   if (a.echeance_mois != null && a.echeance_mois > 1) {
     rows.push({ label: 'Loyer', value: `Tous les ${a.echeance_mois} du mois` })
@@ -185,7 +179,6 @@ function actifLabels(a: any): string[] {
   if (a.boyerie) result.push(a.boyerie_type ? `Boyerie (${a.boyerie_type})` : 'Boyerie')
   if (a.boutique) result.push(a.boutique_position ? `Boutique (${a.boutique_position})` : 'Boutique')
   if (a.armoires_chambre) result.push('Armoires chambre')
-  if (a.sanitaire === true) result.push('Sanitaire intérieur')
   if (Array.isArray(a.equipements)) result.push(...a.equipements)
   return result
 }

@@ -668,7 +668,7 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
   const hasFeatureChips = (bien.details_maison?.superficie > 0) ||
     (bien.details_terrain?.superficie > 0) || bien.details_appart?.entree_personnelle ||
     bien.details_maison?.cloture || bien.details_terrain?.cloture ||
-    bien.amenites?.parking || bien.amenites?.cour || bien.amenites?.boyerie || bien.amenites?.sanitaire != null
+    bien.amenites?.parking || bien.amenites?.cour || bien.amenites?.boyerie
 
   return (
     <div className="space-y-6">
@@ -727,8 +727,6 @@ function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows,
           {bien.amenites?.parking && <FeatureChip icon="parking" label={bien.amenites?.parking_capacite ? `Parking ×${bien.amenites.parking_capacite}` : 'Parking'} />}
           {bien.amenites?.cour && <FeatureChip icon="yard" label="Cour" />}
           {bien.amenites?.boyerie && <FeatureChip icon="person" label="Boyerie" />}
-          {bien.amenites?.sanitaire === true && <FeatureChip icon="bathtub" label="Sanitaire" />}
-          {bien.amenites?.sanitaire === false && <FeatureChip icon="people" label="Douche et WC extérieurs" />}
         </div>
       )}
 
@@ -839,8 +837,7 @@ const INFO_ROW_META: Record<string, { icon: IconType; color: string }> = {
   'Cour / Accès': { icon: 'plant', color: '#4CAF50' },
   'Accès véhicule': { icon: 'car', color: '#5E6AD2' },
   'Maison à couloir': { icon: 'slidingdoor', color: '#8E6ABE' },
-  'Sanitaires': { icon: 'shower', color: '#26A69A' },
-  'Finition': { icon: 'paintroller', color: '#B45309' },
+  'Standing': { icon: 'shower', color: '#26A69A' },
   'Loyer': { icon: 'clockrepeat', color: '#7B2FBE' },
   'Document disponible': { icon: 'document', color: '#2980B9' },
   'Terrain loti': { icon: 'gridon', color: '#27AE60' },

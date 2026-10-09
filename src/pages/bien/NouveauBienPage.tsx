@@ -27,17 +27,13 @@ const TYPES_BIEN = [
   { key: 'boutique', label: 'Boutique' },
 ]
 
-const SANITAIRE_OPTS = [
-  { value: 'interieur', label: 'Sanitaire',        sub: 'Douche intérieure au logement' },
-  { value: 'cour',      label: 'Douche et WC extérieurs', sub: 'Douche extérieure / commune' },
-  { value: 'autre',     label: 'Autre à préciser', sub: '' },
-]
-
-const FINITION_OPTS = [
-  { value: 'ordinaire',     label: 'Ordinaire',           sub: '' },
-  { value: 'semi_staffe',   label: 'Semi-Staffé',         sub: 'Salon staffé et carrelé ; chambre au plafond propre, sans carrelage.' },
-  { value: 'staffe_carele', label: 'Staffé',              sub: 'Staff complet moderne et carreaux récents partout.' },
-  { value: 'haut_standing', label: 'Haut Standing / VIP', sub: 'Baies vitrées, douche moderne, climatisation.' },
+const STANDING_OPTS = [
+  { value: 'sanitaire',              label: 'Sanitaire',              sub: '' },
+  { value: 'semi_sanitaire',         label: 'Semi sanitaire',         sub: '' },
+  { value: 'sanitaire_semi_staffe',  label: 'Sanitaire semi-staffé',  sub: '' },
+  { value: 'sanitaire_staffe',       label: 'Sanitaire staffé',       sub: '' },
+  { value: 'haut_standing_vip',      label: 'Haut Standing / VIP',    sub: 'Baies vitrées, douche moderne, climatisation.' },
+  { value: 'autre',                  label: 'Autre à préciser',       sub: '' },
 ]
 
 const CUISINE_OPTS = [
@@ -281,18 +277,8 @@ export default function NouveauBienPage() {
   const [typeTransaction, setTypeTransaction] = useState<'location' | 'vente'>('location')
   const [prix, setPrix] = useState('')
   const [estMeuble, setEstMeuble] = useState(false)
-  const [sanitaire, setSanitaire] = useState<string | null>(null)
-  const [sanitaireAutre, setSanitaireAutre] = useState('')
-  const [finition, setFinition] = useState<string | null>(null)
-  // Mutual exclusion (Flutter): sanitaire=interieur ↔ finition≠ordinaire
-  const onSelectSanitaire = (v: string) => {
-    setSanitaire(v)
-    if (v === 'interieur' && finition === 'ordinaire') setFinition(null)
-  }
-  const onSelectFinition = (v: string) => {
-    setFinition(v)
-    if (v === 'ordinaire' && sanitaire === 'interieur') setSanitaire('cour')
-  }
+  const [standing, setStanding] = useState<string | null>(null)
+  const [standingAutre, setStandingAutre] = useState('')
   const [prixLongSejour, setPrixLongSejour] = useState('')
   const [prixSejourRestreint, setPrixSejourRestreint] = useState('')
   const [prixHeure, setPrixHeure] = useState('')
@@ -411,8 +397,7 @@ export default function NouveauBienPage() {
   const clearQuartier = () => { setQuartier(''); setArrondissement(''); setVille(''); setQuartierSearch('') }
 
   // Label helpers (used in récap)
-  const labelFinition = (v: string) => ({ ordinaire: 'Ordinaire', semi_staffe: 'Semi-Staffé', staffe_carele: 'Staffé', haut_standing: 'Haut Standing / VIP' } as Record<string,string>)[v] ?? v
-  const labelSanitaire = (v: string) => v === 'interieur' ? 'Sanitaire' : v === 'cour' ? 'Douche et WC extérieurs' : (sanitaireAutre.trim() || 'Autre à préciser')
+  const labelStanding = (v: string) => v === 'autre' ? (standingAutre.trim() || 'Autre à préciser') : (STANDING_OPTS.find(o => o.value === v)?.label ?? v)
   const labelCuisine = (v: string) => v === 'separee_douche' ? 'Cuisine séparée de la douche' : v === 'americaine' ? 'Cuisine américaine' : (cuisineAutre.trim() || 'Autres')
   const labelCour = (v: string) => v === 'entree_personnelle' ? 'Entrée personnelle' : 'Cour commune'
   const labelElec = (v: string) => { const p = parsePrix(prixKwh); return v === 'sbee' ? 'SBEE' : v === 'decompteur' ? `Décompteur${p !== undefined ? ` (${Math.round(p)} FCFA/kWh)` : ''}` : 'Non' }
@@ -464,10 +449,8 @@ export default function NouveauBienPage() {
       return a
     }
 
-    if (sanitaire === 'interieur') a.sanitaire = true
-    if (sanitaire === 'cour') a.sanitaire = false
-    if (sanitaire === 'autre' && sanitaireAutre.trim()) a.sanitaire_autre = sanitaireAutre.trim()
-    if (finition) a.finition = finition
+    if (standing) a.standing = standing
+    if (standing === 'autre' && standingAutre.trim()) a.standing_autre = standingAutre.trim()
     a.disponibilite = disponibilite
     if (equipementsBonus.length) a.equipements = equipementsBonus
     if (alentours.length) a.voisinage = alentours
@@ -716,18 +699,14 @@ export default function NouveauBienPage() {
 
               {isSmallUnit && (
                 <Card>
-                  <Section title="Sanitaires" />
-                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} onDeselect={() => setSanitaire(null)} />
-                  {sanitaire === 'autre' && (
-                    <input value={sanitaireAutre} onChange={e => setSanitaireAutre(e.target.value)}
-                      placeholder="Précisez la configuration des sanitaires"
+                  <Section title="Standing" />
+                  <ChoiceList options={STANDING_OPTS} value={standing} onChange={setStanding} onDeselect={() => setStanding(null)} />
+                  {standing === 'autre' && (
+                    <input value={standingAutre} onChange={e => setStandingAutre(e.target.value)}
+                      placeholder="Précisez le standing"
                       className="mt-2 w-full rounded-xl px-4 py-2.5 text-sm outline-none border"
                       style={baseInputStyle} />
                   )}
-                  <div className="mt-5">
-                    <Section title="Finition / Standing" />
-                    <ChoiceList options={FINITION_OPTS} value={finition} onChange={onSelectFinition} />
-                  </div>
                 </Card>
               )}
 
@@ -1093,20 +1072,16 @@ export default function NouveauBienPage() {
 
               {!isSmallUnit && (
                 <Card>
-                  <Section title="Sanitaires" />
-                  <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} onDeselect={() => setSanitaire(null)} />
-                  {sanitaire === 'autre' && (
-                    <input value={sanitaireAutre} onChange={e => setSanitaireAutre(e.target.value)}
-                      placeholder="Précisez la configuration des sanitaires"
+                  <Section title="Standing" />
+                  <ChoiceList options={STANDING_OPTS} value={standing} onChange={setStanding} onDeselect={() => setStanding(null)} />
+                  {standing === 'autre' && (
+                    <input value={standingAutre} onChange={e => setStandingAutre(e.target.value)}
+                      placeholder="Précisez le standing"
                       className="mt-2 w-full rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors"
                       style={baseInputStyle}
                       onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
                       onBlur={e => (e.currentTarget.style.borderColor = 'var(--p-border)')} />
                   )}
-                  <div className="mt-5">
-                    <Section title="Finition / Standing" />
-                    <ChoiceList options={FINITION_OPTS} value={finition} onChange={onSelectFinition} />
-                  </div>
                 </Card>
               )}
 
@@ -1285,7 +1260,7 @@ export default function NouveauBienPage() {
                 </Card>
               )}
 
-              {(!isSmallUnit || finition === 'haut_standing') && (
+              {(!isSmallUnit || standing === 'haut_standing_vip') && (
                 <>
                   <button type="button" onClick={() => setShowMoreOptions(v => !v)}
                     className="text-sm font-bold" style={{ color: BLUE }}>
@@ -1304,7 +1279,7 @@ export default function NouveauBienPage() {
                           </div>
                         </Card>
                       )}
-                      {finition === 'haut_standing' && (
+                      {standing === 'haut_standing_vip' && (
                         <Card>
                           <Section title="À proximité du bien" />
                           <div className="flex flex-wrap gap-2">
@@ -1406,8 +1381,7 @@ export default function NouveauBienPage() {
 
                 <RecapSection title="Type de bien" items={[
                   TYPES_BIEN.find(t => t.key === typeBien)?.label ?? typeBien,
-                  ...(finition ? [labelFinition(finition)] : []),
-                  ...(sanitaire ? [labelSanitaire(sanitaire)] : []),
+                  ...(standing ? [labelStanding(standing)] : []),
                   ...(isMeuble ? ['Meublé / Guesthouse'] : []),
                 ]} />
 
