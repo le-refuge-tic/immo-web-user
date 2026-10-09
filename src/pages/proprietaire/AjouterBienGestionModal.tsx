@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { onClose: () => void; onCreated: (bien: any) => void }
 
@@ -69,7 +70,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
       setSuccess(true)
       setTimeout(() => onCreated(saved), 900)
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Erreur lors de l'ajout du bien")
+      setError(apiMessage(err) || "Erreur lors de l'ajout du bien")
     }
     setSaving(false)
   }

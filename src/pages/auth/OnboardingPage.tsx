@@ -88,7 +88,8 @@ export default function OnboardingPage() {
       {/* Images de fond — transition opacity */}
       {SLIDES.map((s, i) => (
         <img
-loading="lazy"           key={i}
+          key={i}
+          loading="lazy"
           src={s.image}
           alt=""
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"

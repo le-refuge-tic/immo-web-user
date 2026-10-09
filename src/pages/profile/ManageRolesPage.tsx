@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { rolesApi } from '../../api/rolesApi'
+import { apiMessage } from '../../utils/apiMessage'
 
 type RoleInfo = {
   key: string
@@ -53,7 +54,7 @@ export default function ManageRolesPage() {
       setSuccess(`Rôle "${roleLabel(role)}" activé avec succès.`)
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.response?.data?.message || `Impossible d'activer ce rôle.`)
+      setError(apiMessage(e) || `Impossible d'activer ce rôle.`)
     } finally {
       setLoading(null)
     }
@@ -71,7 +72,7 @@ export default function ManageRolesPage() {
       setSuccess(`Rôle "${roleLabel(role)}" désactivé.`)
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Impossible de désactiver ce rôle.')
+      setError(apiMessage(e) || 'Impossible de désactiver ce rôle.')
       // Ne pas toucher activeRole en cas d'échec API
     } finally {
       setLoading(null)

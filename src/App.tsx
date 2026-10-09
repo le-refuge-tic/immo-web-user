@@ -8,6 +8,7 @@ import MainLayout from './components/MainLayout'
 import SplashPage from './pages/splash/SplashPage'
 import { AuthSwitch } from './components/ui/auth-switch'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import CookieBanner from './components/CookieBanner'
 
 /* Pages légères chargées immédiatement (premier rendu critique) */
 import HomePage from './pages/home/HomePage'
@@ -183,6 +184,7 @@ function App() {
         </Route>
       </Routes>
       </Suspense>
+      <CookieBanner />
       </ErrorBoundary>
     </NotificationsProvider>
     </BannerProvider>

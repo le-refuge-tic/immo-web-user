@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext'
 import { rolesApi } from '../../../api/rolesApi'
 import { BLUE, ROLE_ROUTES, shade } from './shared'
 import type { Tab } from './shared'
+import { apiMessage } from '../../../utils/apiMessage'
 
 // ─── Tab: Profil ──────────────────────────────────────────────────────────────
 // ─── Tab: Gérer mes rôles ───────────────────────────────────────────────────────
@@ -67,7 +68,7 @@ export function RolesTab() {
       setSuccess(`Rôle « ${ROLES_META.find(r => r.key === role)?.label} » activé avec succès.`)
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.response?.data?.message || "Impossible d'activer ce rôle.")
+      setError(apiMessage(e) || "Impossible d'activer ce rôle.")
     }
     setLoadingRole(null)
   }
@@ -86,7 +87,7 @@ export function RolesTab() {
       setSuccess('Rôle désactivé.')
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Impossible de désactiver ce rôle.')
+      setError(apiMessage(e) || 'Impossible de désactiver ce rôle.')
     }
     setLoadingRole(null)
   }

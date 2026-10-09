@@ -13,7 +13,9 @@ import slide4 from '../../assets/onboarding-3.jpg'
 import slide5 from '../../assets/onboarding-side.jpg'
 import logoUrl from '../../assets/REFUGE-ICON.png'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
+import { openConsentSettings } from '../../lib/analytics'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { track } from '../../lib/analytics'
 
 const HERO_SLIDES = [HERO_IMG, slide2, slide3, slide4, slide5]
 
@@ -298,6 +300,7 @@ export default function HomePage() {
     if (minVal != null) params.set('prix_min', String(minVal))
     if (maxVal != null) params.set('prix_max', String(maxVal))
     const qs = params.toString()
+    track('recherche', { transaction: transaction || 'toutes', type: type || 'tous' })
     navigate(qs ? `/search?${qs}` : '/search')
   }
 
@@ -1051,11 +1054,9 @@ export default function HomePage() {
                 { label: 'Mes favoris', path: '/favoris' },
                 { label: 'Mes visites', path: '/mes-visites' },
               ]},
+              // Pages légales (confidentialité, conditions, mentions) à réintégrer quand leur contenu sera rédigé.
               { heading: 'Légal', links: [
-                { label: 'Politique de confidentialité', path: '/confidentialite' },
-                { label: "Conditions d'utilisation", path: '/conditions' },
-                { label: 'Mentions légales', path: '/mentions-legales' },
-                { label: 'Cookies', path: '/cookies' },
+                { label: 'Gérer les cookies', path: '#cookies' },
               ]},
             ].map(col => (
               <div key={col.heading}>
@@ -1065,7 +1066,7 @@ export default function HomePage() {
                 <ul className="space-y-2.5">
                   {col.links.map(l => (
                     <li key={l.path}>
-                      <button onClick={() => navigate(l.path)}
+                      <button onClick={() => (l.path === '#cookies' ? openConsentSettings() : navigate(l.path))}
                         className="text-sm transition-colors hover:text-brand"
                         style={{ color: tk.textSecond }}>
                         {l.label}

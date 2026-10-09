@@ -6,6 +6,8 @@ import { biensApi } from '../../api/biensApi'
 import { useAuth } from '../../context/AuthContext'
 import { QUARTIERS } from '../../data/quartiers'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
+import { track } from '../../lib/analytics'
+import { apiMessage } from '../../utils/apiMessage'
 
 const normalizeStr = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -570,6 +572,7 @@ export default function NouveauBienPage() {
       const data = await biensApi.create(body)
       const bien = data.data || data.bien || data
       setCreatedId(bien.id)
+      track('annonce_publiee', { type: String(bien.type ?? '') })
 
       if (photos.length > 0 && bien.id) {
         for (let i = 0; i < photos.length; i++) {
@@ -585,7 +588,7 @@ export default function NouveauBienPage() {
 
       setCreated(true)
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erreur lors de la création')
+      setError(apiMessage(err) || 'Erreur lors de la création')
     }
     setSubmitting(false)
   }

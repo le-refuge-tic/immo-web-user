@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 
@@ -79,7 +80,7 @@ export default function HistoriquePaiementsPage() {
       const data = await paiementApi.historique()
       setTransactions(Array.isArray(data) ? data : data?.data || [])
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Impossible de charger vos paiements.')
+      setError(apiMessage(e) || 'Impossible de charger vos paiements.')
     }
     setLoading(false)
   }

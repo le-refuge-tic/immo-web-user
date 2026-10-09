@@ -6,6 +6,7 @@ import { BLUE, DARK_BLUE } from './shared'
 import type { Tab } from './shared'
 import { categorieTransaction, TransactionDetailModal } from './TransactionsTab'
 import { svgMaskUrl } from './RolesTab'
+import { apiMessage } from '../../../utils/apiMessage'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -43,7 +44,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
       setSuccessMsg(true)
       onSuccess()
     } catch (e: any) {
-      setError(e?.response?.data?.message || "Impossible d'envoyer la demande. Réessayez.")
+      setError(apiMessage(e) || "Impossible d'envoyer la demande. Réessayez.")
     }
     setSubmitting(false)
   }

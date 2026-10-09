@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../api/userApi'
 import { PHONE_PLACEHOLDER } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -61,7 +62,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       setSuccess(true)
       setTimeout(onClose, 1000)
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erreur de mise à jour')
+      setError(apiMessage(err) || 'Erreur de mise à jour')
     }
     setLoading(false)
   }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { apiMessage } from '../../utils/apiMessage'
 
 const BLUE = '#2E86C1'
 
@@ -26,7 +27,7 @@ export default function RejoindreBienPage() {
         ? 'Une demande est déjà en cours pour ce bien.'
         : status === 404
           ? 'Code invalide ou expiré. Vérifiez avec votre propriétaire.'
-          : e?.response?.data?.message || 'Une erreur est survenue.'
+          : apiMessage(e) || 'Une erreur est survenue.'
       setError(msg)
     }
     setLoading(false)

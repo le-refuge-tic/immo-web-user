@@ -5,6 +5,7 @@ import { paiementApi } from '../../api/paiementApi'
 import type { MethodePaiement } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -77,7 +78,7 @@ export default function RechargementWalletPage() {
       setState('waiting')
       startPolling(refId)
     } catch (e: any) {
-      setState('error'); setError(e?.response?.data?.message || 'Erreur lors de la recharge.')
+      setState('error'); setError(apiMessage(e) || 'Erreur lors de la recharge.')
     }
   }
 

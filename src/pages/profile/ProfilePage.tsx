@@ -1,4 +1,5 @@
 import AppearanceSetting from '../../components/AppearanceSetting'
+import { openConsentSettings } from '../../lib/analytics'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -276,6 +277,7 @@ export default function ProfilePage() {
         <AppearanceSetting />
         <div className="h-px bg-divider ml-[50px]" />
         <MenuItem icon={<LockMenuIcon />} label="Sécurité et mot de passe" onClick={() => setPasswordOpen(true)} />
+        <MenuItem icon={<ShieldIcon />} label="Cookies et mesure d’audience" onClick={openConsentSettings} />
         <MenuItem icon={<StarMenuIcon />} label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />
       </MenuGroup>
     </>

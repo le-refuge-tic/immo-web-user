@@ -7,6 +7,8 @@ import { chatApi } from '../../api/chatApi'
 import { rolesApi } from '../../api/rolesApi'
 import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { track } from '../../lib/analytics'
+import { apiMessage } from '../../utils/apiMessage'
 
 /** Rôles autorisés par le backend à réserver une visite (POST /visites → CLIENTS). */
 const ROLES_RESERVATION = ['prospect', 'locataire']
@@ -125,7 +127,7 @@ export default function ReservationPage() {
       await rolesApi.activer('prospect')
       updateUser({ roles_actifs: [...rolesActifs, 'prospect'] })
     } catch (e: any) {
-      setError(e?.response?.data?.message || "Impossible d'activer le profil prospect. Réessayez.")
+      setError(apiMessage(e) || "Impossible d'activer le profil prospect. Réessayez.")
     } finally {
       setActivatingRole(false)
     }
@@ -146,6 +148,7 @@ export default function ReservationPage() {
       const [h, m] = selectedTime.split(':').map(Number)
       const dt = new Date(selectedDate); dt.setHours(h, m, 0, 0)
       await visitesApi.reserverVisite(Number(bienId), dt.toISOString())
+      track('visite_demandee')
 
       // Miroir du mobile : "Demande envoyée ! Démarrez la conversation ci-dessous."
       // s'affiche toujours, qu'une conversation ait pu être créée ou non, avant
@@ -166,7 +169,7 @@ export default function ReservationPage() {
       // message explicite au lieu du « Forbidden resource » brut du backend.
       const msg = e?.response?.status === 403
         ? 'Activez le profil prospect pour proposer une visite.'
-        : (e?.response?.data?.message || 'Erreur lors de la réservation')
+        : (apiMessage(e) || 'Erreur lors de la réservation')
       setError(msg)
       setSubmitting(false)
     }

@@ -6,6 +6,7 @@ import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 const TEAL = '#0EA5E9'
 
@@ -62,7 +63,7 @@ export default function PaiementIntegrationPage() {
         if (attempts >= 20) { clearInterval(pollRef.current!); setState('error'); setErrMsg('Délai de confirmation expiré.') }
       }, 3000)
     } catch (e: any) {
-      setState('error'); setErrMsg(e?.response?.data?.message || 'Erreur lors du paiement')
+      setState('error'); setErrMsg(apiMessage(e) || 'Erreur lors du paiement')
     }
   }
 

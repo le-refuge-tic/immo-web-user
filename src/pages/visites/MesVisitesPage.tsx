@@ -12,6 +12,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
 import type { Visite } from '../../types/api'
+import { track } from '../../lib/analytics'
+import { apiMessage } from '../../utils/apiMessage'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
@@ -243,6 +245,7 @@ export default function MesVisitesPage() {
           if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
             clearInterval(pollRef.current!)
             setPayState('success')
+            track('visite_payee')
             loadVisites()
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
             clearInterval(pollRef.current!)
@@ -253,7 +256,7 @@ export default function MesVisitesPage() {
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('pending') }
       }, 5000)
     } catch (err: any) {
-      setPayError(err?.response?.data?.message || 'Erreur de paiement')
+      setPayError(apiMessage(err) || 'Erreur de paiement')
       setPayState('idle')
     }
     setPaying(false)
@@ -297,7 +300,7 @@ export default function MesVisitesPage() {
       setFeedbackDone(true)
       loadVisites()
     } catch (err: any) {
-      setFeedbackError(err?.response?.data?.message || "Impossible d'envoyer l'avis")
+      setFeedbackError(apiMessage(err) || "Impossible d'envoyer l'avis")
     }
     setFeedbackSaving(false)
   }
@@ -380,7 +383,7 @@ export default function MesVisitesPage() {
                       try {
                         const status = await paiementApi.statutVisite(payRefId)
                         if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
-                          clearInterval(pollRef.current!); setPayState('success'); loadVisites()
+                          clearInterval(pollRef.current!); setPayState('success'); track('visite_payee'); loadVisites()
                         } else if (status.statut === 'echoue' || status.statut === 'failed') {
                           clearInterval(pollRef.current!); setPayError('Paiement refusé par l\'opérateur.'); setPayState('idle')
                         }

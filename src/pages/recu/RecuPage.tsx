@@ -5,6 +5,7 @@ import { paiementApi } from '../../api/paiementApi'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 import { bienTypeLabel } from '../../utils/bienType'
 import { generateRecuPdf, type RecuSection } from '../../utils/recuPdf'
+import { apiMessage } from '../../utils/apiMessage'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
 const VISITE = { dark: '#1A6B3C', light: '#27AE60' } // vert
@@ -83,7 +84,7 @@ export default function RecuPage() {
       : paiementApi.recuVisite(refId)
     call
       .then(setRecu)
-      .catch(e => setError(e?.response?.data?.message || 'Reçu introuvable'))
+      .catch(e => setError(apiMessage(e) || 'Reçu introuvable'))
       .finally(() => setLoading(false))
   }, [type, refId])
 

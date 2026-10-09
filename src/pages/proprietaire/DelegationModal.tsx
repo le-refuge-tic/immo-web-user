@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { delegationApi } from '../../api/delegationApi'
 import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { onClose: () => void }
 
@@ -72,7 +73,7 @@ export default function DelegationModal({ onClose }: Props) {
       setDemarcheur(null); setSearch(''); setBienId(''); setDateFin('')
       chargerListe()
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Erreur lors de l'envoi de la proposition")
+      setError(apiMessage(err) || "Erreur lors de l'envoi de la proposition")
     }
     setSaving(false)
   }

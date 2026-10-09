@@ -178,7 +178,7 @@ function useTokens(isDark: boolean) {
    Composant principal
    ══════════════════════════════════════════════════════════════ */
 export default function SearchPage() {
-  usePageTitle('Recherche')
+  usePageTitle('Rechercher un logement', 'Maisons, appartements et terrains à louer ou à vendre au Bénin : filtrez par ville, quartier, type et budget.')
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { isLoggedIn } = useAuth()

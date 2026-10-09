@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
+import { track } from '../lib/analytics'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -85,6 +86,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     try {
       const { isFavori } = await favoritesApi.toggle(bien.id)
       setIsFav(isFavori)
+      if (isFavori) track('favori_ajoute', { type: bien.type })
       onFavoriteToggle?.(bien.id, isFavori)
     } catch (_) {}
     setToggling(false)

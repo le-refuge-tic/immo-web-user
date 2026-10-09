@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { bien: any; onClose: () => void; onSaved: (bien: any) => void }
 
@@ -57,7 +58,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       setTimeout(() => onSaved(saved), 900)
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erreur lors de la mise à jour')
+      setError(apiMessage(err) || 'Erreur lors de la mise à jour')
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
     setSaving(false)

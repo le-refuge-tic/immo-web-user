@@ -7,6 +7,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
 import { io, Socket } from 'socket.io-client'
+import { apiMessage } from '../../utils/apiMessage'
 
 const WS_URL = API_ORIGIN
 
@@ -222,7 +223,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
   const isOnline = !!(other?.isOnline ?? conv?.isOnline)
 
-  const showError = (e: any) => { setError(e?.response?.data?.message || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
+  const showError = (e: any) => { setError(apiMessage(e) || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
   const scrollBot = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
 
   const send = async () => {

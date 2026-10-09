@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { walletApi } from '../../api/walletApi'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 /**
  * Changement du numéro de retrait Mobile Money (flow OTP en 2 étapes),
@@ -30,7 +31,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
       setSessionToken(res.session_token)
       setStep('otp')
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Impossible de vérifier ces informations.')
+      setError(apiMessage(e) || 'Impossible de vérifier ces informations.')
     }
     setSubmitting(false)
   }
@@ -42,7 +43,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
       await walletApi.confirmerChangementNumeroRetrait(sessionToken, otp.trim(), numero.trim())
       onSaved(numero.trim())
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Code invalide ou expiré.')
+      setError(apiMessage(e) || 'Code invalide ou expiré.')
     }
     setSubmitting(false)
   }

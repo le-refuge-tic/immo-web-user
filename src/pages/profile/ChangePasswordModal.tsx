@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { userApi } from '../../api/userApi'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -49,7 +50,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
       setSuccess(true)
       setTimeout(onClose, 1200)
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Mot de passe actuel incorrect')
+      setError(apiMessage(err) || 'Mot de passe actuel incorrect')
     }
     setLoading(false)
   }

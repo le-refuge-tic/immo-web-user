@@ -14,6 +14,7 @@ import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { formatMois } from '../../utils/dateFormat'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcHome   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -148,7 +149,7 @@ function MonLogementTab() {
         await paiementApi.payerLoyersAvecCotisation(selected)
         setPayState('success'); setSelected([]); load()
       } catch (e: any) {
-        setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur de paiement')
+        setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
       }
       setPaying(false)
       return
@@ -183,7 +184,7 @@ function MonLogementTab() {
       setPayProgress('')
       setPayState('success'); setSelected([]); load()
     } catch (e: any) {
-      setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur de paiement')
+      setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
     }
     setPaying(false)
   }
@@ -480,7 +481,7 @@ function ActiviteTab() {
         await paiementApi.payerLoyersAvecCotisation([prochainLoyer.id])
         setPayState('success'); setShowPay(false); load()
       } catch (e: any) {
-        setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur')
+        setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur')
       }
       setPaying(false)
       return
@@ -511,7 +512,7 @@ function ActiviteTab() {
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
     } catch (e: any) {
-      setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur')
+      setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur')
     }
     setPaying(false)
   }

@@ -12,6 +12,7 @@ import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import logoSbee from '../../assets/logo-SBEE.png'
 import logoSoneb from '../../assets/logo-SONEB.png'
+import { track } from '../../lib/analytics'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -182,7 +183,11 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const { isLoggedIn, user } = useAuth()
   const [bien, setBien] = useState<any>(null)
   const bienTitle = bien ? (bien.localisation?.quartier ? `${bienTypeLabel(bien)} — ${bien.localisation.quartier}` : bienTypeLabel(bien)) : ''
-  usePageTitle(bienTitle)
+  const bienDescription = bien
+    ? `${bienTitle}${bien.localisation?.ville ? `, ${bien.localisation.ville}` : ''} : ${Number(bien.prix).toLocaleString('fr-FR')} FCFA${bien.transaction === 'location' ? ' par mois' : ''}. ${String(bien.description ?? '').slice(0, 110)}`.trim()
+    : undefined
+  usePageTitle(bienTitle, bienDescription)
+  useEffect(() => { if (bien?.id) track('vue_annonce', { type: bien.type, transaction: bien.transaction }) }, [bien?.id])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [photoIdx, setPhotoIdx] = useState(0)

@@ -12,6 +12,7 @@ import {
 } from '../../components/ui/auth-switch'
 import logoUrl from '../../assets/REFUGE-LOGO.png'
 import './authNew.css'
+import { apiMessage } from '../../utils/apiMessage'
 
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
@@ -64,7 +65,7 @@ export default function ForgotPasswordPage() {
       setResendCooldown(RESEND_COOLDOWN)
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
     } catch (err: any) {
-      setError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : "Impossible d'envoyer le code"))
+      setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || "Impossible d'envoyer le code"))
     }
     setLoading(false)
   }
@@ -77,7 +78,7 @@ export default function ForgotPasswordPage() {
       setError('')
       setResendCooldown(RESEND_COOLDOWN)
     } catch (err: any) {
-      setError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : "Impossible de renvoyer le code"))
+      setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setResending(false)
   }
@@ -102,7 +103,7 @@ export default function ForgotPasswordPage() {
       setError('')
       setStepDir(1); setStep('password')
     } catch (err: any) {
-      setError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code invalide ou expiré'))
+      setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code invalide ou expiré'))
     }
     setLoading(false)
   }
@@ -118,7 +119,7 @@ export default function ForgotPasswordPage() {
       await authApi.resetPassword(telephone, code, newPassword)
       setStepDir(1); setStep('done')
     } catch (err: any) {
-      setError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code invalide ou expiré'))
+      setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code invalide ou expiré'))
     }
     setLoading(false)
   }

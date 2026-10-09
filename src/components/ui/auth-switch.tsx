@@ -15,6 +15,8 @@ import slide3 from '../../assets/onboarding-3.jpg'
 import slide4 from '../../assets/hero-interior.jpg'
 import '../../pages/auth/authNew.css'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
+import { track } from '../../lib/analytics'
+import { apiMessage } from '../../utils/apiMessage'
 
 const COUNTRY_CODES = [
   { code: '+229', label: 'Bénin' },
@@ -257,7 +259,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
     } catch (err: any) {
-      setError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : 'Identifiants incorrects'))
+      setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || 'Identifiants incorrects'))
     }
     setLoading(false)
   }
@@ -271,7 +273,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       setOtpError('')
       if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
     } catch (err: any) {
-      setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : "Impossible de renvoyer le code"))
+      setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setLoading(false)
   }
@@ -283,7 +285,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
     } catch (err: any) {
-      setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code incorrect'))
+      setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code incorrect'))
       setOtpDigits(Array(OTP_LENGTH).fill(''))
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
     }
@@ -447,6 +449,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       if (phone.trim()) body.telephone = telephone
       if (email.trim()) body.email = email.trim()
       const registerData = await authApi.register(body)
+      track('inscription')
       if (registerData?.access_token || registerData?.token) {
         completeLogin(registerData); return
       }
@@ -462,7 +465,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
     } catch (err: any) {
-      setError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : "Erreur lors de l'inscription"))
+      setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || "Erreur lors de l'inscription"))
     }
     setLoading(false)
   }
@@ -478,7 +481,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       setOtpError('')
       if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
     } catch (err: any) {
-      setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : "Impossible de renvoyer le code"))
+      setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setResending(false)
   }
@@ -490,7 +493,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
     } catch (err: any) {
-      setOtpError(err?.response?.data?.message || (isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : 'Code incorrect'))
+      setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code incorrect'))
       setOtpDigits(Array(OTP_LENGTH).fill(''))
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
     }
