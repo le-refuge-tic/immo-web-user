@@ -74,7 +74,9 @@ export default function EditProfileModal({ open, onClose }: Props) {
     try {
       const data = await userApi.uploadAvatar(file)
       updateUser({ photo_profil: data.url || data.photo_profil })
-    } catch (_) {}
+    } catch (err) {
+      setError(apiMessage(err) || 'La photo n’a pas pu être envoyée. Essayez une autre image.')
+    }
     setUploading(false)
   }
 

@@ -1099,20 +1099,6 @@ export default function HomePage() {
           <p className="text-xs" style={{ color: tk.textMuted }}>
             © {new Date().getFullYear()} REFUGE. Tous droits réservés. Bénin 🇧🇯
           </p>
-          <div className="flex items-center gap-4">
-            {[
-              { label: 'Confidentialité', path: '/confidentialite' },
-              { label: 'CGU', path: '/conditions' },
-            ].map((l, i) => (
-              <span key={l.path} className="flex items-center gap-4">
-                {i > 0 && <span style={{ color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.20)' }}>·</span>}
-                <button onClick={() => navigate(l.path)} className="text-xs hover:text-brand transition-colors"
-                  style={{ color: tk.textMuted }}>
-                  {l.label}
-                </button>
-              </span>
-            ))}
-          </div>
         </div>
       </footer>
 

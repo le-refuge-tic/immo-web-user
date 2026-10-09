@@ -26,6 +26,13 @@ export function saveConsent(analytics: boolean) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ analytics, date: Date.now() })) } catch { /* stockage indisponible */ }
   window.dispatchEvent(new CustomEvent(CONSENT_EVENT))
   if (analytics) loadAnalytics()
+  else unloadAnalytics()
+}
+
+/** Retrait du consentement : la mesure s'arrête immédiatement, sans rechargement. */
+function unloadAnalytics() {
+  document.getElementById('umami-script')?.remove()
+  delete window.umami
 }
 
 /** Rouvre le bandeau (lien « Gérer les cookies »). */
@@ -51,5 +58,6 @@ export type AnalyticsEvent =
   | 'visite_payee' | 'inscription' | 'annonce_publiee'
 
 export function track(event: AnalyticsEvent, data?: Record<string, string | number | boolean>) {
+  if (!readConsent()?.analytics) return
   try { window.umami?.track(event, data) } catch { /* la mesure ne doit jamais casser l'app */ }
 }

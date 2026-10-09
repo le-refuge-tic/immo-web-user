@@ -611,10 +611,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <input type="checkbox" className="sr-only" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
                 <span className="auth-terms-box">{acceptedTerms && <Check size={12} strokeWidth={3} />}</span>
                 <span className="auth-terms-text">
-                  J'accepte les{' '}
-                  <a href="/conditions" target="_blank" rel="noreferrer" className="auth-link">conditions d'utilisation</a>
-                  {' '}et la{' '}
-                  <a href="/confidentialite" target="_blank" rel="noreferrer" className="auth-link">politique de confidentialité</a>.
+                  {/* Liens à rétablir quand les pages /conditions et /confidentialite existeront (textes à fournir). */}
+                  J'accepte les conditions d'utilisation et la politique de confidentialité de REFUGE.
                 </span>
               </label>
               <div className="flex gap-2 mt-1">

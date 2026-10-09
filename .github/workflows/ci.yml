@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, staging]
   pull_request:
 
 jobs:
@@ -21,4 +21,5 @@ jobs:
       - run: npx tsc -b
       - run: npm run lint
       - run: npm test
+      - run: npm run check:links
       - run: npm run build
