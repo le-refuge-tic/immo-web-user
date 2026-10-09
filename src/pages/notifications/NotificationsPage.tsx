@@ -73,15 +73,15 @@ const PaiementIcon = () => (
 
 type TypeCfg = { icon: React.ReactNode; color: string; bg: string }
 const TYPE_CONFIG: Record<string, TypeCfg> = {
-  visite:       { icon: <VisiteIcon />,       color: 'var(--tx-blue)', bg: 'rgba(75,107,255,0.08)' },
-  annulation:   { icon: <AnnulationIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
-  confirmation: { icon: <ConfirmationIcon />, color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.08)' },
-  loyer:        { icon: <LoyerIcon />,        color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.08)' },
+  visite:       { icon: <VisiteIcon />,       color: '#3A5AEE', bg: 'rgba(75,107,255,0.08)' },
+  annulation:   { icon: <AnnulationIcon />,   color: '#DC2626', bg: 'rgba(239,68,68,0.08)' },
+  confirmation: { icon: <ConfirmationIcon />, color: '#15803D', bg: 'rgba(34,197,94,0.08)' },
+  loyer:        { icon: <LoyerIcon />,        color: '#B45309', bg: 'rgba(245,158,11,0.08)' },
   message:      { icon: <MessageIcon />,      color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)' },
   systeme:      { icon: <SystemeIcon />,      color: '#6B7280', bg: 'rgba(107,114,128,0.08)' },
-  bien_approuve: { icon: <BienApprouveIcon />, color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.08)' },
-  bien_rejete:   { icon: <BienRejeteIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
-  proposition:   { icon: <SwapIcon />,         color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.10)' },
+  bien_approuve: { icon: <BienApprouveIcon />, color: '#15803D', bg: 'rgba(34,197,94,0.08)' },
+  bien_rejete:   { icon: <BienRejeteIcon />,   color: '#DC2626', bg: 'rgba(239,68,68,0.08)' },
+  proposition:   { icon: <SwapIcon />,         color: '#B45309', bg: 'rgba(245,158,11,0.10)' },
   paiement:      { icon: <PaiementIcon />,     color: '#7C3AED', bg: 'rgba(124,58,237,0.08)' },
 }
 

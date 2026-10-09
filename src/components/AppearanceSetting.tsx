@@ -21,20 +21,33 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
 export default function AppearanceSetting({ className = 'px-4 py-3.5' }: { className?: string }) {
   const { preference, setPreference } = useTheme()
   const labelId = useId()
+  // Radiogroup ARIA : une seule option tabulable, flèches pour changer d'option.
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const delta = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
+    if (!delta) return
+    e.preventDefault()
+    const i = THEME_OPTIONS.findIndex(o => o.value === preference)
+    const next = THEME_OPTIONS[(i + delta + THEME_OPTIONS.length) % THEME_OPTIONS.length]
+    setPreference(next.value)
+    e.currentTarget.querySelector<HTMLButtonElement>(`[data-value="${next.value}"]`)?.focus()
+  }
   return (
     <div className={className}>
       <div className="flex items-center gap-3.5 mb-3">
         <MoonMenuIcon />
         <span id={labelId} className="flex-1 text-sm text-text-dark font-medium">Apparence</span>
       </div>
-      <div role="radiogroup" aria-labelledby={labelId} className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06]">
+      <div role="radiogroup" aria-labelledby={labelId} onKeyDown={onKeyDown} className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06]">
         {THEME_OPTIONS.map(o => {
           const selected = preference === o.value
           return (
             <button
               key={o.value}
+              type="button"
               role="radio"
               aria-checked={selected}
+              tabIndex={selected ? 0 : -1}
+              data-value={o.value}
               onClick={() => setPreference(o.value)}
               className={`py-2 rounded-lg text-[13px] font-semibold transition-all ${selected ? 'bg-white dark:bg-white/15 text-primary dark:text-white shadow-sm' : 'text-text-grey'}`}
             >

@@ -14,13 +14,13 @@ import { useApiQuery } from '../../hooks/useApiQuery'
 import type { Visite } from '../../types/api'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
-  en_attente:      { label: 'En attente',      color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.1)' },
-  contre_proposee: { label: 'Contre-proposée', color: 'var(--tx-amber)', bg: 'rgba(230,126,34,0.12)' },
-  confirmee:       { label: 'Confirmée',        color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)' },
-  effectuee:       { label: 'Effectuée',        color: 'var(--tx-blue)', bg: 'rgba(58,90,238,0.1)' },
-  annulee:         { label: 'Annulée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
-  payee:           { label: 'Payée',            color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)' },
-  echouee:         { label: 'Échouée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
+  en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
+  contre_proposee: { label: 'Contre-proposée', color: '#B45309', bg: 'rgba(230,126,34,0.12)' },
+  confirmee:       { label: 'Confirmée',        color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
+  effectuee:       { label: 'Effectuée',        color: '#3A5AEE', bg: 'rgba(58,90,238,0.1)' },
+  annulee:         { label: 'Annulée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
+  payee:           { label: 'Payée',            color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
+  echouee:         { label: 'Échouée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
 }
 
 // Même règle que côté mobile : une visite non traitée (confirmée ou en attente
@@ -322,9 +322,9 @@ export default function MesVisitesPage() {
           </div>
           {/* Tabs */}
           {/* Onglets : défilent horizontalement sur petit écran au lieu d'être écrasés */}
-          <div role="tablist" aria-label="Filtrer les visites" className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          <div role="group" aria-label="Filtrer les visites" className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {TABS.map((t, i) => (
-              <button key={t} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}
+              <button key={t} type="button" aria-pressed={tab === i} onClick={() => setTab(i)}
                 className={`flex-shrink-0 px-3 md:px-6 pb-3 text-[13px] font-semibold transition-all relative whitespace-nowrap ${tab === i ? 'text-[#3A5AEE] dark:text-[#9DB0FF]' : 'text-[#6B7280] dark:text-[#9CA3AF]'}`}>
                 {t}
                 {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#4B6BFF]" />}
@@ -528,7 +528,7 @@ export default function MesVisitesPage() {
                           <button key={tag} onClick={() => toggleFeedbackTag(tag)}
                             className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
                             style={sel
-                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: 'var(--tx-red)', fontWeight: 600 }
+                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#DC2626', fontWeight: 600 }
                               : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
                             {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                             {tag}

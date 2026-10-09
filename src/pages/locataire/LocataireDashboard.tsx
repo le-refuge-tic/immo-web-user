@@ -465,7 +465,7 @@ function ActiviteTab() {
     if (!prochainLoyer) return null
     const diff = new Date(prochainLoyer.date_echeance).getTime() - Date.now()
     const jours = Math.ceil(diff / 86400000)
-    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: 'var(--tx-red)', bg: '#EF444420' }
+    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: '#DC2626', bg: '#EF444420' }
     if (jours <= 3) return { label: `Dû dans ${jours}j`, color: ORANGE, bg: ORANGE + '20' }
     if (jours <= 7) return { label: `À payer dans ${jours}j`, color: TEAL, bg: TEAL + '20' }
     return { label: `${jours} jours`, color: GREEN, bg: GREEN + '20' }

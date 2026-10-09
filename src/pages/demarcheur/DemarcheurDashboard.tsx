@@ -49,11 +49,11 @@ const MID_PURPLE  = '#7B2FBE'
 type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
-  en_attente: { label: 'En attente',  color: 'var(--tx-amber)' },
-  active:     { label: 'Active',      color: 'var(--tx-green)' },
-  revoquee:   { label: 'Révoquée',    color: 'var(--tx-red)' },
+  en_attente: { label: 'En attente',  color: '#B45309' },
+  active:     { label: 'Active',      color: '#15803D' },
+  revoquee:   { label: 'Révoquée',    color: '#DC2626' },
   expiree:    { label: 'Expirée',     color: '#6B7280' },
-  refusee:    { label: 'Refusée',     color: 'var(--tx-red)' },
+  refusee:    { label: 'Refusée',     color: '#DC2626' },
 }
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -80,15 +80,15 @@ function fmtSemaine(raw: string) {
 function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
   if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
   if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: PURPLE }
-  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
@@ -127,10 +127,10 @@ function notifTimeAgo(iso?: string): string {
 }
 
 function notifIconD(type: string): { node: React.ReactNode; color: string } {
-  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: 'var(--tx-green)' }
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#15803D' }
   if (type === 'nouveau_message') return { node: <IcChat />, color: '#8B5CF6' }
-  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: 'var(--tx-red)' }
-  if (type === 'visite_confirmee') return { node: <IcBell />, color: 'var(--tx-green)' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#DC2626' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#15803D' }
   if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE }
   return { node: <IcBell />, color: '#6B7280' }
 }
@@ -487,7 +487,7 @@ function ReservationsTab() {
         <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:items-start">
         {filtered.map((v, i) => {
           const echouee = isEchouee(v)
-          const { label, color } = echouee ? { label: 'Échouée', color: 'var(--tx-red)' } : statutVisite(v.statut)
+          const { label, color } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
           const nom = 'Client'
           const init = 'C'
           const bType = v.bien ? bienTypeLabel(v.bien) : ''
@@ -1126,9 +1126,9 @@ export default function DemarcheurDashboard() {
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {[
                       { label: 'Biens publiés', value: compteurs.total_publies, color: PURPLE },
-                      { label: 'En vérification', value: compteurs.en_verification, color: 'var(--tx-amber)' },
-                      { label: 'Validés', value: compteurs.valides, color: 'var(--tx-green)' },
-                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: 'var(--tx-blue)' },
+                      { label: 'En vérification', value: compteurs.en_verification, color: '#B45309' },
+                      { label: 'Validés', value: compteurs.valides, color: '#15803D' },
+                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: '#3A5AEE' },
                     ].map(c => (
                       <div key={c.label} className="card-soft rounded-xl p-4">
                         <p className="text-[26px] font-bold" style={{ color: c.color }}>{c.value}</p>
@@ -1238,6 +1238,8 @@ export default function DemarcheurDashboard() {
               const moreActive = !PRIMARY_TABS.includes(tab)
               return (
                 <button onClick={() => setMoreOpen(true)} aria-haspopup="dialog" aria-expanded={moreOpen}
+                  aria-current={moreActive ? 'page' : undefined}
+                  aria-label={'Plus' + (unreadAlertes > 0 ? ', alertes non lues' : '')}
                   className={`relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${moreActive ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
                   style={moreActive ? { background: PURPLE + '18', color: PURPLE } : {}}>
                   <span className="relative">

@@ -833,12 +833,12 @@ const INFO_ROW_META: Record<string, { icon: IconType; color: string }> = {
   'Accès véhicule': { icon: 'car', color: '#5E6AD2' },
   'Maison à couloir': { icon: 'slidingdoor', color: '#8E6ABE' },
   'Sanitaires': { icon: 'shower', color: '#26A69A' },
-  'Finition': { icon: 'paintroller', color: 'var(--tx-amber)' },
+  'Finition': { icon: 'paintroller', color: '#B45309' },
   'Loyer': { icon: 'clockrepeat', color: '#7B2FBE' },
   'Document disponible': { icon: 'document', color: '#2980B9' },
   'Terrain loti': { icon: 'gridon', color: '#27AE60' },
   'Titre foncier': { icon: 'verified', color: '#16A085' },
-  'Permission de construire': { icon: 'construction', color: 'var(--tx-amber)' },
+  'Permission de construire': { icon: 'construction', color: '#B45309' },
   'Angle de rue': { icon: 'turnright', color: '#8E6ABE' },
   'Position': { icon: 'map', color: '#2980B9' },
   'Construction existante': { icon: 'homework', color: '#5D6D7E' },
@@ -891,7 +891,7 @@ function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean })
 
   const rows: { icon: IconType; color: string; label: string; amount: number; note?: string }[] = []
   if (avanceMois > 0) rows.push({ icon: 'wallet', color: '#7B2FBE', label: `Avance (${avanceMois} mois)`, amount: montantAvance })
-  if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: 'var(--tx-green)', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
+  if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: '#15803D', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
   if (cautionEau > 0) rows.push({ icon: 'waterdrop', color: '#2E86C1', label: 'Caution eau', amount: cautionEau })
   if (cautionElec > 0) rows.push({ icon: 'bolt', color: '#FFCC00', label: 'Caution électricité', amount: cautionElec })
   for (const f of autresFrais) {

@@ -16,7 +16,7 @@ export function loyerStatut(s: string): { label: string; color: string } {
   if (s === 'paye')      return { label: 'Payé',       color: '#4CAF50' }
   if (s === 'en_retard') return { label: 'En retard',  color: '#F44336' }
   if (s === 'impaye')    return { label: 'Impayé',     color: '#C62828' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  return { label: 'En attente', color: '#B45309' }
 }
 export const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
   actif:   { label: 'Actif',   color: '#4CAF50' },
@@ -134,7 +134,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
           const kpis = [
             { label: 'TOTAL PERÇU', value: `${Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} F`, color: BLUE,      icon: <IcWallet /> },
             { label: 'CE MOIS',     value: `${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`,  color: '#16A34A', icon: <IcPayments /> },
-            { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: 'var(--tx-amber)', icon: <IcClock /> },
+            { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: '#B45309', icon: <IcClock /> },
             { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? '#DC2626' : '#16A34A', icon: <IcShield /> },
           ] as { label: string; value: string; color: string; icon: React.ReactNode }[]
           return (

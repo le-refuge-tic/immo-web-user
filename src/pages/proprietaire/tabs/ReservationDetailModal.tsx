@@ -30,7 +30,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
   const urgente = !echouee && isUrgente(v, now)
-  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: 'var(--tx-red)' } : statutVisite(v.statut)
+  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
   const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
   const initiale = clientNom[0]?.toUpperCase() || '?'
   const bType = v.bien ? bienLabel(v.bien) : ''

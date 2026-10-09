@@ -197,7 +197,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                 const urgente = !echouee && isUrgente(v, now)
                 const mins = urgente ? minutesAvant(v, now) : null
                 const { label: sLabel, color: sColor } = echouee
-                  ? { label: 'Échouée', color: 'var(--tx-red)' }
+                  ? { label: 'Échouée', color: '#DC2626' }
                   : statutVisite(v.statut)
                 const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
                 const initiale = clientNom[0]?.toUpperCase() || '?'

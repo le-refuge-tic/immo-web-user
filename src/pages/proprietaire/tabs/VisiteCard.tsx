@@ -50,7 +50,7 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
 }) {
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
-  const { label, color } = echouee ? { label: 'Échouée', color: 'var(--tx-red)' } : statutVisite(v.statut)
+  const { label, color } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
   // L'identité du client n'est jamais masquée côté API (nom/prénom toujours
   // renvoyés) — miroir exact de proprietaire_reservations.dart, qui affiche
   // le prénom réel sans condition de statut.

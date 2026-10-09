@@ -41,7 +41,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
   const kpis = [
     { label: 'Score', value: `${Math.round(score)}`, color: BLUE },
     { label: 'Occupation', value: `${tauxOccupation}%`, color: '#16A34A' },
-    { label: 'Publiés', value: `${tauxPublication}%`, color: 'var(--tx-amber)' },
+    { label: 'Publiés', value: `${tauxPublication}%`, color: '#B45309' },
   ]
 
   const menuItems = [
@@ -50,7 +50,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: '#0EA5E9', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
-    { icon: <IcPerson />, label: 'Gérer mes rôles', color: 'var(--tx-amber)', onClick: onOpenRoles },
+    { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#B45309', onClick: onOpenRoles },
     { icon: <IcPayments />, label: 'Historique des transactions', color: '#16A34A', onClick: onOpenTransactions },
   ]
 
@@ -136,7 +136,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
               {[
                 { label: 'Total', value: visites.length, color: BLUE },
                 { label: 'Confirmées', value: visitesConfirmees, color: '#16A34A' },
-                { label: 'En attente', value: visitesEnAttente, color: 'var(--tx-amber)' },
+                { label: 'En attente', value: visitesEnAttente, color: '#B45309' },
                 { label: 'Effectuées', value: visitesEffectuees, color: '#7B2FBE' },
               ].map((s, i) => (
                 <div key={s.label} className="flex-1 min-w-0 flex flex-col items-center justify-center"
@@ -155,7 +155,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
               {[
                 { label: 'Total', value: biens.length, color: BLUE },
                 { label: 'Publiés', value: approuves, color: '#16A34A' },
-                { label: 'Occupés', value: biensOccupes, color: 'var(--tx-amber)' },
+                { label: 'Occupés', value: biensOccupes, color: '#B45309' },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center justify-center py-3 rounded-xl"
                   style={{ background: s.color + '0E' }}>

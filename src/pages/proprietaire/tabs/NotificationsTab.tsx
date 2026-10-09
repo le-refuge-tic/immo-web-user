@@ -25,10 +25,10 @@ const NOTIF_VISITE_TYPES = new Set([
 const NOTIF_BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
 function notifIcon(type: string): { node: React.ReactNode; color: string } {
-  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: 'var(--tx-green)' }
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#15803D' }
   if (type === 'nouveau_message') return { node: <IcMessage />, color: '#8B5CF6' }
-  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: 'var(--tx-red)' }
-  if (type === 'visite_confirmee') return { node: <IcBell />, color: 'var(--tx-green)' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#DC2626' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#15803D' }
   if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: BLUE }
   return { node: <IcBell />, color: 'var(--p-muted)' as string }
 }

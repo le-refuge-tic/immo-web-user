@@ -91,15 +91,15 @@ export function fmtPrix(p: any) {
 export function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
   if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 export function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
   if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE }
-  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 
 const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
