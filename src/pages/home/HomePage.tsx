@@ -1069,8 +1069,10 @@ export default function HomePage() {
                 { label: 'Mes favoris', path: '/favoris' },
                 { label: 'Mes visites', path: '/mes-visites' },
               ]},
-              // Pages légales (confidentialité, conditions, mentions) à réintégrer quand leur contenu sera rédigé.
+              // CGU à ajouter quand leur texte sera fourni par l'éditeur.
               { heading: 'Légal', links: [
+                { label: 'Mentions légales', path: '/mentions-legales' },
+                { label: 'Politique de confidentialité', path: '/confidentialite' },
                 { label: 'Gérer les cookies', path: '#cookies' },
               ]},
             ].map(col => (

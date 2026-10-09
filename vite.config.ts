@@ -2,7 +2,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
 /** Pages publiques déclarées dans le sitemap (les annonces sont rendues côté client). */
-const PAGES_PUBLIQUES = ['/', '/search', '/login', '/register']
+const PAGES_PUBLIQUES = ['/', '/search', '/login', '/register', '/mentions-legales', '/confidentialite']
 
 /**
  * SEO selon l'environnement :

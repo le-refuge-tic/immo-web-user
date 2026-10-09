@@ -41,6 +41,8 @@ const RejoindreBienPage      = lazy(() => import('./pages/locataire/RejoindreBie
 const HistoriquePaiementsPage = lazy(() => import('./pages/paiements/HistoriquePaiementsPage'))
 const NotFoundPage           = lazy(() => import('./pages/errors/NotFoundPage'))
 const ManageRolesPage        = lazy(() => import('./pages/profile/ManageRolesPage'))
+const MentionsLegalesPage    = lazy(() => import('./pages/legal/MentionsLegalesPage'))
+const ConfidentialitePage    = lazy(() => import('./pages/legal/ConfidentialitePage'))
 const RecuPage               = lazy(() => import('./pages/recu/RecuPage'))
 
 function PageLoader() {
@@ -180,6 +182,8 @@ function App() {
           <Route path="mes-roles" element={
             <PrivateRoute><ManageRolesPage /></PrivateRoute>
           } />
+          <Route path="mentions-legales" element={<MentionsLegalesPage />} />
+          <Route path="confidentialite" element={<ConfidentialitePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
