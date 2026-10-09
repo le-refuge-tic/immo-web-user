@@ -14,11 +14,3 @@ export function formatMois(raw: unknown): string {
   const label = MOIS_FR[idx]
   return `${label.charAt(0).toUpperCase()}${label.slice(1)} ${m[1]}`
 }
-
-/** Date lisible en français (« 1 septembre 2026 ») ; « — » si absente ou invalide. */
-export function formatDate(raw: unknown): string {
-  if (!raw) return '—'
-  const d = new Date(String(raw))
-  if (isNaN(d.getTime())) return '—'
-  return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
-}

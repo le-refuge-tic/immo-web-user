@@ -38,8 +38,6 @@ function unloadAnalytics() {
 /** Rouvre le bandeau (lien « Gérer les cookies »). */
 export const openConsentSettings = () => window.dispatchEvent(new CustomEvent(OPEN_CONSENT_EVENT))
 
-export const analyticsConfigured = () => Boolean(import.meta.env.VITE_UMAMI_WEBSITE_ID)
-
 export function loadAnalytics() {
   const id = import.meta.env.VITE_UMAMI_WEBSITE_ID
   if (!id || !readConsent()?.analytics || document.getElementById('umami-script')) return

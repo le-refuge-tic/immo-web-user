@@ -8,6 +8,7 @@ export const pushApi = {
   subscribe: (subscription: PushSubscriptionJSON) =>
     axios.post(`${BASE}/push/subscribe`, subscription, auth()).then(r => r.data),
 
-  unsubscribe: (endpoint: string) =>
-    axios.delete(`${BASE}/push/unsubscribe`, { ...auth(), data: { endpoint } }).then(r => r.data),
+  /** `headers` : jeton capturé avant la déconnexion (les jetons sont effacés juste après). */
+  unsubscribe: (endpoint: string, headers = auth().headers) =>
+    axios.delete(`${BASE}/push/unsubscribe`, { headers, data: { endpoint } }).then(r => r.data),
 }

@@ -9,7 +9,7 @@ export const PHONE_PLACEHOLDER = '01 97 00 00 00'
 export const PHONE_FORMAT_HINT = 'Numéro invalide : saisissez 10 chiffres commençant par 01 (ex. 01 97 00 00 00).'
 
 /** Ramène la saisie à 10 chiffres (retire l'indicatif 229 éventuel). */
-export function localBeninDigits(raw: string): string {
+function localBeninDigits(raw: string): string {
   const digits = raw.replace(/\D/g, '')
   return digits.length === 13 && digits.startsWith('229') ? digits.slice(3) : digits
 }
@@ -25,8 +25,3 @@ export function normaliseBeninPhone(raw: string, countryCode = BENIN_PREFIX): st
   return `${countryCode}${localBeninDigits(raw)}`
 }
 
-/** Affichage groupé : 0197000000 -> 01 97 00 00 00. */
-export function formatBeninPhone(raw: string): string {
-  const digits = localBeninDigits(raw).slice(0, BENIN_PHONE_LENGTH)
-  return digits.replace(/(\d{2})(?=\d)/g, '$1 ')
-}

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { tokenStore } from '../utils/tokenStore'
 import { readStoredUser, writeStoredUser } from '../utils/storedUser'
 import { revokeSession } from '../api/authApi'
+import { unsubscribeFromPush } from '../lib/push'
 import { userApi } from '../api/userApi'
 
 type AuthUser = {
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     // Révocation serveur d'abord (lit les jetons avant leur effacement), puis nettoyage local.
     revokeSession()
+    void unsubscribeFromPush().catch(() => {})
     setActiveRoleState('')
     localStorage.removeItem('rg_active_role')
     setUser(null)

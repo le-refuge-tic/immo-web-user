@@ -1,4 +1,5 @@
 import { pushApi } from '../api/pushApi'
+import { auth } from '../api/apiBase'
 
 export function pushSupported(): boolean {
   return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
@@ -39,11 +40,16 @@ export async function subscribeToPush(): Promise<boolean> {
   return true
 }
 
+/**
+ * Désabonne l'appareil des notifications push (appelé à la déconnexion : un
+ * appareil partagé ne doit plus recevoir les notifications du compte précédent).
+ */
 export async function unsubscribeFromPush(): Promise<void> {
   if (!pushSupported()) return
+  const headers = auth().headers // capturé avant l'effacement des jetons
   const registration = await navigator.serviceWorker.ready
   const sub = await registration.pushManager.getSubscription()
   if (!sub) return
-  await pushApi.unsubscribe(sub.endpoint).catch(() => {})
+  await pushApi.unsubscribe(sub.endpoint, headers).catch(() => {})
   await sub.unsubscribe()
 }
