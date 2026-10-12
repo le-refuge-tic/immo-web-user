@@ -84,6 +84,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
                   className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm outline-none text-proprio-text focus:border-brand" />
               </div>
               <p className="text-caption text-proprio-muted">Un code sera envoyé par SMS sur le numéro principal de votre compte pour confirmer ce changement.</p>
+              {current && <p className="text-caption text-proprio-muted">L'ancien numéro recevra un SMS avec un lien pour annuler ce changement pendant 7 jours.</p>}
               <button onClick={initier} disabled={submitting}
                 className="w-full py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60" style={{ background: accent }}>
                 {submitting ? 'Vérification…' : 'Recevoir le code'}

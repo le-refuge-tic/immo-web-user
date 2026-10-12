@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../api/userApi'
-import { PHONE_PLACEHOLDER } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
+import VerifyPhoneSection from './VerifyPhoneSection'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -28,7 +28,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const [nom, setNom] = useState(user?.nom || '')
   const [prenom, setPrenom] = useState(user?.prenom || '')
   const [email, setEmail] = useState(user?.email || '')
-  const [telephone, setTelephone] = useState((user as any)?.telephone || '')
+  const [editingPhone, setEditingPhone] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -39,7 +39,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       setNom(user?.nom || '')
       setPrenom(user?.prenom || '')
       setEmail(user?.email || '')
-      setTelephone((user as any)?.telephone || '')
+      setEditingPhone(false)
       setError('')
       setSuccess(false)
     }
@@ -48,17 +48,20 @@ export default function EditProfileModal({ open, onClose }: Props) {
   if (!open) return null
 
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const currentPhone: string = (user as any)?.telephone || ''
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
-      const data = await userApi.updateProfil({ nom, prenom, email: email || undefined, telephone: telephone || undefined })
+      // `telephone` est exclu volontairement : il ne change que par le flux
+      // vérifié par SMS (VerifyPhoneSection), jamais par ce PATCH.
+      const data = await userApi.updateProfil({ nom, prenom, email: email || undefined })
       // Le endpoint renvoie l'entité User mise à jour directement (pas de wrapper
       // { user }). On applique donc soit data.user, soit l'entité elle-même, avec
       // repli sur les valeurs saisies si la réponse est vide.
-      updateUser(data.user || data || { nom, prenom, email, telephone })
+      updateUser(data.user || data || { nom, prenom, email })
       setSuccess(true)
       setTimeout(onClose, 1000)
     } catch (err: any) {
@@ -165,9 +168,31 @@ export default function EditProfileModal({ open, onClose }: Props) {
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div>
-            <label htmlFor="ep-telephone" className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</label>
-            <input id="ep-telephone" type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder={PHONE_PLACEHOLDER}
-              className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
+            <span className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</span>
+            {editingPhone ? (
+              <VerifyPhoneSection
+                currentPhone={currentPhone}
+                onVerified={tel => {
+                  updateUser({ telephone: tel } as any)
+                  setEditingPhone(false)
+                  setSuccess(true)
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+                style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}>
+                <span className="text-sm text-text-dark">
+                  {currentPhone || <span className="text-text-grey">Aucun numéro enregistré</span>}
+                </span>
+                <button type="button" onClick={() => setEditingPhone(true)}
+                  className="text-xs font-semibold text-primary whitespace-nowrap">
+                  {currentPhone ? 'Modifier' : 'Ajouter'}
+                </button>
+              </div>
+            )}
+            <p className="text-xs text-text-grey mt-1.5">
+              Le numéro sert à la connexion en deux étapes : il est confirmé par un code SMS.
+            </p>
           </div>
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}

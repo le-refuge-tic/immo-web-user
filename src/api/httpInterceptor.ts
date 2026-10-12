@@ -51,6 +51,10 @@ export async function refreshAccessToken(): Promise<string | null> {
     }
     return data.access_token as string
   } catch {
+    // Un autre onglet a pu rafraîchir juste avant avec ce même refresh token
+    // (usage unique) : on reprend alors ses jetons au lieu de déconnecter.
+    const actuel = tokenStore.getRefresh()
+    if (actuel && actuel !== refreshToken) return tokenStore.getToken() || null
     return null
   }
 }
@@ -64,7 +68,7 @@ function forceLogout() {
 }
 
 /**
- * Le token d'accès expire après 1h. Sans ceci, toute requête faite après
+ * Le token d'accès expire après 15 min. Sans ceci, toute requête faite après
  * expiration échoue avec "Unauthorized" — même en pleine saisie d'un
  * formulaire — sans que l'utilisateur puisse s'en douter ni se rattraper.
  * On rafraîchit une fois via le refresh_token et on rejoue la requête.
@@ -73,8 +77,12 @@ axios.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config
+    // Les routes /auth/ renvoient aussi 401 pour une erreur métier (mot de
+    // passe ou code faux) : on ne rafraîchit que sur l'expiration du jeton,
+    // que le garde JWT signale par le message générique « Unauthorized ».
     const isAuthRoute = typeof original?.url === 'string' && original.url.includes('/auth/')
-    if (error.response?.status === 401 && original && !original._retry && !isAuthRoute) {
+    const jetonExpire = error.response?.data?.message === 'Unauthorized'
+    if (error.response?.status === 401 && original && !original._retry && (!isAuthRoute || jetonExpire)) {
       original._retry = true
       if (!refreshing) refreshing = refreshAccessToken().finally(() => { refreshing = null })
       const newToken = await refreshing

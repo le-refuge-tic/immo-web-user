@@ -26,6 +26,7 @@ const NotificationsPage      = lazy(() => import('./pages/notifications/Notifica
 const ProfilePage            = lazy(() => import('./pages/profile/ProfilePage'))
 const MesVisitesPage         = lazy(() => import('./pages/visites/MesVisitesPage'))
 const ForgotPasswordPage     = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const AnnulerChangementPage  = lazy(() => import('./pages/auth/AnnulerChangementPage'))
 const ProprietaireDashboard  = lazy(() => import('./pages/proprietaire/ProprietaireDashboard'))
 const DemarcheurDashboard    = lazy(() => import('./pages/demarcheur/DemarcheurDashboard'))
 const LocataireDashboard     = lazy(() => import('./pages/locataire/LocataireDashboard'))
@@ -114,6 +115,7 @@ function App() {
         <Route path="/login" element={<AuthSwitch defaultMode="login" />} />
         <Route path="/register" element={<AuthSwitch defaultMode="register" />} />
         <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
+        <Route path="/annuler-changement" element={<AnnulerChangementPage />} />
 
         {/* Dashboards rôle : sans MainLayout (ont leur propre nav interne) */}
         <Route path="/proprietaire" element={
