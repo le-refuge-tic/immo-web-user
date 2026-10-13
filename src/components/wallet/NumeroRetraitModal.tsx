@@ -8,7 +8,7 @@ import { apiMessage } from '../../utils/apiMessage'
  * Changement du numéro de retrait Mobile Money (flow OTP en 2 étapes),
  * partagé entre l'espace propriétaire et l'espace locataire.
  */
-export default function NumeroRetraitModal({ current, onClose, onSaved, accent = '#4B6BFF' }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void; accent?: string }) {
+export default function NumeroRetraitModal({ current, onClose, onSaved, accent = '#4160F2' }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void; accent?: string }) {
   const [step, setStep] = useState<'form' | 'otp'>('form')
   const [numero, setNumero] = useState('')
   const [motDePasse, setMotDePasse] = useState('')

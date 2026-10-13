@@ -1,6 +1,7 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils";
+import { usePrefersReducedMotion } from "../../hooks/useCarouselAutoplay";
 
 type SlideItem = string | React.ReactNode;
 
@@ -16,12 +17,17 @@ const ImageSlider = React.forwardRef<HTMLDivElement, ImageSliderProps>(
     const slides: SlideItem[] = slidesProp ?? images ?? [];
     const [currentIndex, setCurrentIndex] = React.useState(0);
 
+    // Décor sans contenu essentiel : il s'immobilise si l'appareil demande moins d'animation.
+    const reducedMotion = usePrefersReducedMotion();
+
     React.useEffect(() => {
+      if (reducedMotion) return;
       const timer = setInterval(() => {
+        if (document.hidden) return;
         setCurrentIndex((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
       }, interval);
       return () => clearInterval(timer);
-    }, [slides.length, interval]);
+    }, [slides.length, interval, reducedMotion]);
 
     return (
       <div

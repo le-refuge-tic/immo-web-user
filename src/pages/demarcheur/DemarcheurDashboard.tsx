@@ -1,6 +1,7 @@
 import AppearanceSetting from '../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { onActivateKey } from '../../utils/keyboard'
 import { useAuth } from '../../context/AuthContext'
 import { tokenStore } from '../../utils/tokenStore'
 import { biensApi } from '../../api/biensApi'
@@ -335,8 +336,8 @@ function MesBiensTab() {
               const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
               const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
               return (
-                <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} role="button" tabIndex={0}
-                  className="card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
+                <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} onKeyDown={onActivateKey(() => navigate(`/biens/${b.id}`))} role="button" tabIndex={0}
+                  className="focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2 card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
                   <div className="relative h-32">
                     {cover?.url
                       ? <img loading="lazy" src={cover.url} className="w-full h-full object-cover" alt="" />
@@ -1017,7 +1018,7 @@ export default function DemarcheurDashboard() {
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                 style={active ? { background: PURPLE + '15', color: PURPLE } : { color: '#5F6B7A' }}>
-                <span style={{ color: active ? PURPLE : '#9E9E9E' }}>{t.icon}</span>
+                <span style={{ color: active ? PURPLE : '#5F6672' }}>{t.icon}</span>
                 {t.label}
               </button>
             )
@@ -1087,7 +1088,7 @@ export default function DemarcheurDashboard() {
               <p className="text-[17px] md:text-lg font-bold text-text-dark mb-3.5">Actions rapides</p>
               <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={PURPLE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
-                <QuickAction icon={<IcCal />} color="#4B6BFF" label="Réservations" onClick={() => setTab('reservations')} />
+                <QuickAction icon={<IcCal />} color="#4160F2" label="Réservations" onClick={() => setTab('reservations')} />
                 <QuickAction icon={<IcClock />} color="#FF6B35" label="Créneaux" onClick={() => setTab('creneaux')} />
               </div>
 

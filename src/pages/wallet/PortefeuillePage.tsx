@@ -16,7 +16,7 @@ const statutLabel = (t: any) => {
   return 'Payé'
 }
 const statutColor = (s: string) => s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#15803D'
-const typeColor = (t: any) => isLoyer(t) ? '#4B6BFF' : isVisite(t) ? '#FF6B35' : '#6E6E73'
+const typeColor = (t: any) => isLoyer(t) ? '#4160F2' : isVisite(t) ? '#FF6B35' : '#6E6E73'
 const fieldLabel = (k: string) => k.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ')
 const formatDate = (t: any) => {
   const raw = String(t.created_at ?? t.date ?? '')
@@ -45,7 +45,7 @@ export default function PortefeuillePage() {
 // ─── Vue client/locataire : Cotisation / Épargne (mirroir de portefeuille_screen.dart) ─
 type WType = 'cotisation' | 'epargne'
 const W_LABEL: Record<WType, string> = { cotisation: 'Cotisation', epargne: 'Épargne' }
-const W_COLOR: Record<WType, string> = { cotisation: '#4B6BFF', epargne: '#7B4BFF' }
+const W_COLOR: Record<WType, string> = { cotisation: '#4160F2', epargne: '#7B4BFF' }
 
 function ClientWalletView() {
   const navigate = useNavigate()
@@ -268,7 +268,7 @@ function WalletCommissionsView() {
     <div className="min-h-full flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
-        style={{ background: 'linear-gradient(135deg,#1A1A2E,#4B6BFF)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: 'linear-gradient(135deg,#1A1A2E,#4160F2)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
@@ -323,7 +323,7 @@ function WalletCommissionsView() {
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
                   <button onClick={demanderRetrait} disabled={submitting || !montant || Number(montant) > solde}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
-                    style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                    style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
                     {submitting ? 'Envoi…' : 'Envoyer'}
                   </button>
                 </div>
@@ -375,7 +375,7 @@ function WalletCommissionsView() {
             ) : transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: 'rgba(75,107,255,0.1)' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
                 <p className="text-text-grey text-sm">Vos commissions apparaîtront ici.</p>
@@ -384,7 +384,7 @@ function WalletCommissionsView() {
               <>
                 {/* Résumé */}
                 <div className="rounded-2xl p-4 mb-4 text-white flex items-center justify-between"
-                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
+                  style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
                   <div>
                     <p className="text-white/70 text-xs">Total{filter !== 'Tous' ? ` (${filter})` : ''}</p>
                     <p className="text-xl font-bold mt-0.5">{totalFiltre.toLocaleString('fr-FR')} FCFA</p>
@@ -406,7 +406,7 @@ function WalletCommissionsView() {
                     <button key={f} onClick={() => setFilter(f)}
                       className="px-4 py-2 rounded-full text-xs font-bold transition-colors"
                       style={filter === f
-                        ? { background: '#4B6BFF', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
+                        ? { background: '#4160F2', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
                         : { background: '#fff', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
                       {f}
                     </button>
@@ -426,7 +426,7 @@ function WalletCommissionsView() {
                       onClick={() => setDetailTx(t)}
                       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailTx(t) } }}
                       aria-label={`${typeLabel(t)} — ${String(t.bien ?? t.reference ?? t.libelle ?? '')} — ${montantOf(t).toLocaleString('fr-FR')} FCFA`}
-                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2">
+                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2">
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tColor}1A` }}>
                         <TypeIcon t={t} color={tColor} className="w-5 h-5" />
                       </div>

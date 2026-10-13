@@ -77,8 +77,8 @@ export default function OnboardingDestinationPage() {
           </div>
           {/* Progress */}
           <div className="flex gap-1.5">
-            <div className="w-8 h-1 rounded-full" style={{ background: '#4B6BFF' }} />
-            <div className="w-8 h-1 rounded-full" style={{ background: '#4B6BFF' }} />
+            <div className="w-8 h-1 rounded-full" style={{ background: '#4160F2' }} />
+            <div className="w-8 h-1 rounded-full" style={{ background: '#4160F2' }} />
           </div>
         </div>
 
@@ -129,7 +129,7 @@ export default function OnboardingDestinationPage() {
               onClick={handleNext}
               disabled={!ville}
               className="flex-1 h-14 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
+              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
             >
               Terminer
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
@@ -173,7 +173,7 @@ function DarkSelect({ label, placeholder, value, options, onChange, disabled }: 
           className="w-full appearance-none px-4 py-3.5 rounded-xl text-sm outline-none transition-all"
           style={{
             background: value ? 'rgba(75,107,255,0.15)' : 'rgba(255,255,255,0.07)',
-            border: value ? '1.5px solid #4B6BFF' : '1px solid rgba(255,255,255,0.15)',
+            border: value ? '1.5px solid #4160F2' : '1px solid rgba(255,255,255,0.15)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             color: value ? '#fff' : 'rgba(255,255,255,0.4)',

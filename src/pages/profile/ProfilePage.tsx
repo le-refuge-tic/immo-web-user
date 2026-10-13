@@ -242,9 +242,9 @@ export default function ProfilePage() {
   const AvatarBlock = ({ size = 88 }: { size?: number }) => (
     <div className="relative inline-block">
       {user.photo_profil ? (
-        <img loading="lazy" src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid #4B6BFF' }} />
+        <img loading="lazy" src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid #4160F2' }} />
       ) : (
-        <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}>
+        <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, #4160F2 0%, #7B4BFF 100%)' }}>
           <span className="text-white font-bold" style={{ fontSize: size * 0.36 }}>{initials}</span>
         </div>
       )}
@@ -254,7 +254,7 @@ export default function ProfilePage() {
 
   const StatsRow = () => (
     <div className="flex gap-3">
-      <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="#4B6BFF" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
+      <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="#4160F2" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
       <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="#15803D" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
       <StatBadge icon={<StarMenuIcon />} value={String(mesAvis.length)} label="Avis" color="#B45309" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
     </div>
@@ -288,7 +288,7 @@ export default function ProfilePage() {
       <div className="glass-card rounded-[16px] p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-text-dark text-sm">Mes avis</h3>
-          <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">{mesAvis.length}</span>
+          <span className="text-xs font-semibold text-primary dark:text-[#9DB0FF] bg-primary/10 px-2.5 py-0.5 rounded-full">{mesAvis.length}</span>
         </div>
         <div className="space-y-3">
           {mesAvis.map(v => (
@@ -333,38 +333,40 @@ export default function ProfilePage() {
     const goToBien = () => { if (bienId) navigate(`/biens/${bienId}`) }
 
     return (
-      <div
-        onClick={goToBien}
-        role={bienId ? 'button' : undefined}
-        tabIndex={bienId ? 0 : undefined}
-        onKeyDown={e => { if (bienId && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); goToBien() } }}
-        className={`glass-card rounded-[14px] p-3.5 flex items-center gap-3 ${bienId ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
-      >
-        <div className="w-[42px] h-[42px] rounded-[11px] bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <EyeActiveIcon />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-bold text-text-dark">{visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}</p>
-          <p className="text-caption text-text-grey mt-0.5 truncate">
-            {typeStr}
-            {lieu ? ` — ${lieu}` : ''}
-            {dateStr ? ` · ${dateStr}` : ''}
-          </p>
-        </div>
-        {bienId && (
-          <svg className="w-4 h-4 flex-shrink-0 text-text-grey/50" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        )}
+      <div className="glass-card rounded-[14px] p-3.5 flex items-center gap-3">
+        {/* Zone cliquable séparée des boutons d'annulation : pas de contrôle imbriqué dans un contrôle */}
+        <button
+          type="button"
+          onClick={goToBien}
+          disabled={!bienId}
+          className={`flex items-center gap-3 flex-1 min-w-0 text-left ${bienId ? 'cursor-pointer hover:opacity-90 transition-opacity' : 'cursor-default'}`}
+        >
+          <span className="w-[42px] h-[42px] rounded-[11px] bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <EyeActiveIcon />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[13px] font-bold text-text-dark">{visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}</span>
+            <span className="block text-caption text-text-grey mt-0.5 truncate">
+              {typeStr}
+              {lieu ? ` — ${lieu}` : ''}
+              {dateStr ? ` · ${dateStr}` : ''}
+            </span>
+          </span>
+          {bienId && (
+            <svg className="w-4 h-4 flex-shrink-0 text-text-grey/50" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          )}
+        </button>
         {confirmAnnulerVisite ? (
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button onClick={e => { e.stopPropagation(); handleAnnuler() }} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: '#DC2626' }}>Confirmer</button>
-            <button onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(false) }} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#6B7280' }}>✕</button>
+            <button onClick={handleAnnuler} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: '#DC2626' }}>Confirmer</button>
+            <button onClick={() => setConfirmAnnulerVisite(false)} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#6B7280' }}>✕</button>
           </div>
         ) : (
           <button
-            onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(true) }}
-            className="text-caption font-bold text-danger px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
+            onClick={() => setConfirmAnnulerVisite(true)}
+            className="text-caption font-bold text-[color:var(--tx-red)] px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
             style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
             Annuler
           </button>
@@ -387,7 +389,7 @@ export default function ProfilePage() {
               <div>
                 <p className="text-[18px] font-bold text-text-dark">{fullName}</p>
                 {(apiUser?.email || user.email) && <p className="text-[13px] text-text-grey mt-1 break-all">{apiUser?.email || user.email}</p>}
-                <span className="inline-block text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
+                <span className="inline-block text-xs font-semibold text-primary dark:text-[#9DB0FF] bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
               </div>
               <StatsRow />
             </div>

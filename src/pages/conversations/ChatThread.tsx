@@ -20,7 +20,7 @@ const SOUS_TYPE_LABELS: Record<string, string> = {
   chambre_salon: 'Chambre-Salon', entree_coucher: 'Entrée-Coucher', boutique: 'Boutique', terrain: 'Terrain',
 }
 const AVATAR_PALETTE = [
-  'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
+  'linear-gradient(135deg,#4160F2,#7B4BFF)',
   'linear-gradient(135deg,#FF6B35,#FF3B7A)',
   'linear-gradient(135deg,#00C6A2,#0099CC)',
   'linear-gradient(135deg,#F7B731,#F55252)',
@@ -57,7 +57,7 @@ function roleLabel(o: any) {
 /* ── Statut lecture ── */
 function MsgStatus({ status, isMe }: { status?: string; isMe: boolean }) {
   if (!isMe) return null
-  const color = status === 'read' ? '#4B6BFF' : 'rgba(255,255,255,0.55)'
+  const color = status === 'read' ? '#4160F2' : 'rgba(255,255,255,0.55)'
   if (status === 'sent') return (
     <svg width="11" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
@@ -124,7 +124,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   // Text
   const tp  = isDark ? '#E8E9F0' : '#111827'          // primary — lisible 7:1+
   const ts  = isDark ? 'rgba(232,233,240,0.62)' : '#4B5563'  // secondary — 4.5:1+
-  const tm  = isDark ? 'rgba(232,233,240,0.40)' : '#9CA3AF'  // muted
+  const tm  = isDark ? 'rgba(232,233,240,0.60)' : '#5F6672'  // muted
   // Surfaces
   const chatBg     = isDark ? '#0F1117' : '#EEF0F7'
   const hdrBg      = isDark ? '#161820' : '#FFFFFF'
@@ -135,7 +135,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const profileBg  = isDark ? '#161820' : '#FFFFFF'
   const profileBdr = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
   // Bubbles
-  const bubbleMeBg      = isDark ? 'linear-gradient(135deg,#3B55D4,#5B30C4)' : 'linear-gradient(135deg,#4B6BFF,#7B4BFF)'
+  const bubbleMeBg      = isDark ? 'linear-gradient(135deg,#3B55D4,#5B30C4)' : 'linear-gradient(135deg,#4160F2,#7B4BFF)'
   const bubbleOtherBg   = isDark ? '#1E2130' : '#FFFFFF'
   const bubbleOtherBdr  = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
   // Menus & overlays
@@ -325,7 +325,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       accepted: { bg: 'rgba(34,197,94,0.10)', accent: '#15803D', label: 'Confirmé ✓' },
       declined:  { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', accent: '#94A3B8', label: 'Refusé' },
       countered: { bg: 'rgba(251,146,60,0.10)', accent: '#FB923C', label: 'Contre-proposé' },
-      pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: '#4B6BFF', label: isMe ? 'En attente…' : 'Créneau proposé' },
+      pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: '#4160F2', label: isMe ? 'En attente…' : 'Créneau proposé' },
     }
     const pal = p[status] || p.pending
     return (
@@ -380,7 +380,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             <div className="flex items-center justify-center gap-1.5">
               <p className="text-[16px] font-bold" style={{ color: tp }}>{otherName}</p>
               {isVerified && (
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#4160F2" aria-label="Vérifié">
                   <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
                   <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
                 </svg>
@@ -488,7 +488,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           </div>
           <div className="flex gap-2 mt-5">
             <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
-            <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>Confirmer</button>
+            <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>Confirmer</button>
           </div>
         </div>
       </div>
@@ -523,7 +523,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 <div className="flex items-center gap-1">
                   <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
                   {isVerified && (
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#4160F2" aria-label="Vérifié">
                       <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
                       <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
                     </svg>
@@ -552,7 +552,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                   else { setShowHeaderMenu(true); setHeaderMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right }) }
                 }}
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors"
-                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? '#4B6BFF' : ts }}
+                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? '#4160F2' : ts }}
                 aria-label="Options">
                 <DotsV />
               </button>
@@ -589,7 +589,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {pinnedMsg && (
               <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                 className="flex items-center gap-2 w-full rounded-xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
-                style={{ background: pinBg, borderLeftColor: '#4B6BFF', border: `1px solid ${divider}`, borderLeft: '4px solid #4B6BFF' }}>
+                style={{ background: pinBg, borderLeftColor: '#4160F2', border: `1px solid ${divider}`, borderLeft: '4px solid #4160F2' }}>
                 <span style={{ color: 'var(--tx-blue)' }}><PinFill /></span>
                 <div className="min-w-0 flex-1">
                   <p className="text-micro font-bold uppercase tracking-wider" style={{ color: 'var(--tx-blue)' }}>Épinglé</p>
@@ -606,7 +606,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 accepted: { accent: '#15803D', label: 'Créneau confirmé' },
                 declined: { accent: '#DC2626', label: 'Créneau refusé' },
                 countered: { accent: '#FB923C', label: 'Contre-proposition' },
-                pending: { accent: '#4B6BFF', label: 'Créneau en discussion' },
+                pending: { accent: '#4160F2', label: 'Créneau en discussion' },
               }
               const c = cfg[status] || cfg.pending
               return (
@@ -634,12 +634,12 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           {/* Liste messages */}
           {loading ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
-              <div className="w-7 h-7 rounded-full border-[3px] border-t-transparent animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} />
+              <div className="w-7 h-7 rounded-full border-[3px] border-t-transparent animate-spin" style={{ borderColor: '#4160F2', borderTopColor: 'transparent' }} />
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(75,107,255,0.10)' }}>
-                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5}>
+                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
               </div>
@@ -686,7 +686,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                           <div className="text-[11.5px] px-2 py-1 rounded-lg mb-1 border-l-2 line-clamp-2"
                             style={isMe
                               ? { borderLeftColor: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)' }
-                              : { borderLeftColor: '#4B6BFF', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(75,107,255,0.06)', color: ts }
+                              : { borderLeftColor: '#4160F2', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(75,107,255,0.06)', color: ts }
                             }>
                             {msg.reply_to_contenu}
                           </div>
@@ -738,7 +738,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           {/* Contexte réponse / modification */}
           {(replyingTo || editingMsg) && (
             <div className="px-4 pt-3 pb-1 flex items-center gap-2.5">
-              <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4B6BFF' }} />
+              <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4160F2' }} />
               <div className="flex-1 min-w-0">
                 <p className="text-[11.5px] font-semibold" style={{ color: 'var(--tx-blue)' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
                 <p className="text-[12px] truncate mt-0.5" style={{ color: ts }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
@@ -751,7 +751,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             <button onClick={() => setShowSlot(true)} disabled={proposing}
               className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
               style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)', border: '1px solid rgba(75,107,255,0.18)' }}>
-              {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /> : <CalIcon />}
+              {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4160F2', borderTopColor: 'transparent' }} /> : <CalIcon />}
             </button>
             {/* Textarea */}
             <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
@@ -761,7 +761,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {/* Envoyer */}
             <button onClick={send} disabled={!input.trim() || sending}
               className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 cursor-pointer transition-transform hover:scale-105 active:scale-95"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
+              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
               {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <SendIcon />}
             </button>
           </div>
@@ -847,7 +847,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 </div>
                 <p className="font-bold text-[14px] mb-1" style={{ color: tp }}>Plainte envoyée</p>
                 <p className="text-[12px]" style={{ color: tm }}>Notre équipe examinera votre signalement.</p>
-                <button onClick={() => setComplainMsg(null)} className="mt-4 w-full py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: '#4B6BFF' }}>Fermer</button>
+                <button onClick={() => setComplainMsg(null)} className="mt-4 w-full py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: '#4160F2' }}>Fermer</button>
               </div>
             ) : (
               <>
@@ -862,7 +862,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                     try { await chatApi.creerPlainte({ message_id: complainMsg.id, conversation_id: convId, contenu: complainText.trim() }); setComplainSent(true) }
                     catch (err) { showError(err) }
                     setComplainSending(false)
-                  }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center cursor-pointer" style={{ background: '#4B6BFF' }}>
+                  }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center cursor-pointer" style={{ background: '#4160F2' }}>
                     {complainSending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Envoyer'}
                   </button>
                 </div>

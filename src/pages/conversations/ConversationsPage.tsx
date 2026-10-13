@@ -7,7 +7,7 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { apiMessage } from '../../utils/apiMessage'
 
 const AVATAR_PALETTE = [
-  'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
+  'linear-gradient(135deg,#4160F2,#7B4BFF)',
   'linear-gradient(135deg,#FF6B35,#FF3B7A)',
   'linear-gradient(135deg,#00C6A2,#0099CC)',
   'linear-gradient(135deg,#F7B731,#F55252)',
@@ -79,7 +79,7 @@ export default function ConversationsPage() {
   // Text
   const textPrimary   = isDark ? '#E8E9F0' : '#111827'
   const textSecondary = isDark ? 'rgba(232,233,240,0.60)' : '#6B7280'
-  const textMuted     = isDark ? 'rgba(232,233,240,0.38)' : '#9CA3AF'
+  const textMuted     = isDark ? 'rgba(232,233,240,0.60)' : '#5F6672'
   // Borders & dividers
   const border    = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
   const divider   = isDark ? 'rgba(255,255,255,0.05)' : '#F0F1F4'
@@ -112,7 +112,7 @@ export default function ConversationsPage() {
         <p className="text-sm font-semibold" style={{ color: textPrimary }}>{error}</p>
         <button onClick={() => setReloadKey(k => k + 1)}
           className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+          style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
           Réessayer
         </button>
       </div>
@@ -120,7 +120,7 @@ export default function ConversationsPage() {
     if (filtered.length === 0) return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-3">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: emptyIconBg }}>
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
             <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
         </div>
@@ -151,7 +151,7 @@ export default function ConversationsPage() {
               className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors duration-150 cursor-pointer relative"
               style={{
                 background: active ? activeBg : hoveredConvId === conv.id ? hoverBg : 'transparent',
-                borderLeft: `3px solid ${active ? '#4B6BFF' : 'transparent'}`,
+                borderLeft: `3px solid ${active ? '#4160F2' : 'transparent'}`,
               }}
               onMouseEnter={() => { if (!active) setHoveredConvId(conv.id) }}
               onMouseLeave={() => setHoveredConvId(null)}>
@@ -174,7 +174,7 @@ export default function ConversationsPage() {
                   <p className="text-[13.5px] truncate" style={{ color: textPrimary, fontWeight: unread ? 700 : 600 }}>
                     {name}
                   </p>
-                  <span className="text-caption flex-shrink-0 tabular-nums" style={{ color: unread ? '#4B6BFF' : textMuted }}>
+                  <span className="text-caption flex-shrink-0 tabular-nums" style={{ color: unread ? '#4160F2' : textMuted }}>
                     {time}
                   </span>
                 </div>
@@ -188,7 +188,7 @@ export default function ConversationsPage() {
                   </p>
                   {unread > 0 && (
                     <span className="min-w-[20px] h-5 px-1.5 rounded-full text-white text-micro font-bold flex items-center justify-center flex-shrink-0"
-                      style={{ background: '#4B6BFF' }}>
+                      style={{ background: '#4160F2' }}>
                       {unread > 9 ? '9+' : unread}
                     </span>
                   )}
@@ -223,7 +223,7 @@ export default function ConversationsPage() {
           <h2 className="text-[18px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h2>
           {!loading && convs.length > 0 && (
             <span className="px-2.5 py-0.5 rounded-full text-caption font-bold text-white"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
               {convs.length}
             </span>
           )}
@@ -264,7 +264,7 @@ export default function ConversationsPage() {
               <h1 className="text-[20px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h1>
               {!loading && convs.length > 0 && (
                 <span className="px-2.5 py-0.5 rounded-full text-caption font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                  style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
                   {convs.length}
                 </span>
               )}
@@ -301,7 +301,7 @@ export default function ConversationsPage() {
           {activeId !== null ? <Outlet /> : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-5">
               <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: emptyIconBg }}>
-                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>

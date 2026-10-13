@@ -195,7 +195,7 @@ export function TransactionsTab() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         </span>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une transaction…"
-          className="w-full bg-[#112440] border border-[#1A3355] rounded-lg pl-8 pr-3 py-2 text-sm outline-none text-[#F0EDE8] placeholder:text-[#8A9BB5] focus:border-[#4B6BFF]" />
+          className="w-full bg-[#112440] border border-[#1A3355] rounded-lg pl-8 pr-3 py-2 text-sm outline-none text-[#F0EDE8] placeholder:text-[#8A9BB5] focus:border-[#4160F2]" />
       </div>
 
       {/* Tableau */}

@@ -5,7 +5,7 @@ import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { validateBeninPhone, normaliseBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
@@ -66,7 +66,7 @@ export default function PaiementIntegrationPage() {
     payerEnCoursRef.current = true
     setState('waiting')
     try {
-      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: tel }, attempt.key())
+      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: normaliseBeninPhone(tel) }, attempt.key())
       suivre(res.referenceId || res.reference_id)
     } catch (e: any) {
       const conflit = readPaymentConflict(e)

@@ -325,7 +325,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
   const title = bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
   const prix = Number(bien.prix).toLocaleString('fr-FR')
-  const accentColor = isLocation ? '#4B6BFF' : '#FF6B35'
+  const accentColor = isLocation ? '#4160F2' : '#C2410C'
   const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
   const hasPromo = prixPromoNum != null && prixPromoNum > 0 && prixPromoNum < Number(bien.prix)
   const prixPromo = hasPromo ? prixPromoNum!.toLocaleString('fr-FR') : null
@@ -1024,7 +1024,7 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
       ) : null}
       <button onClick={onProposerVisite}
         className="w-full h-[54px] rounded-xl font-bold text-white text-[15px] flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}>
+        style={{ background: 'linear-gradient(135deg, #4160F2 0%, #7B4BFF 100%)' }}>
         <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
         {fraisVisite && Number(fraisVisite) > 0
           ? `Réserver une visite · ${Number(fraisVisite).toLocaleString('fr-FR')} F`

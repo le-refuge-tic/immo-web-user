@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { API_ORIGIN } from '../api/apiBase'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
@@ -67,8 +67,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
 
   /* ── Tokens thème ── */
   const textPrimary  = isDark ? '#E8E8EF'                : '#1D1D1F'
-  const textSecond   = isDark ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.62)'
-  const textMuted    = isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.38)'
+  const textSecond   = isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.70)'
+  const textMuted    = isDark ? 'rgba(255,255,255,0.58)' : 'rgba(0,0,0,0.58)'  // AA ≥ 4,5:1
   const iconMuted    = isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'
   const emptyBg      = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
 
@@ -93,23 +93,18 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   }
 
   return (
-    <div
-      role="article"
-      onClick={() => navigate(`/biens/${bien.id}`)}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/biens/${bien.id}`) } }}
-      tabIndex={0}
-      aria-label={`${label}${bien.localisation?.quartier ? ` à ${bien.localisation.quartier}` : ''} — ${bien.transaction === 'location' ? 'à louer' : 'à vendre'}`}
-      className="glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2"
+    <article
+      className="relative glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-within:outline-2 focus-within:outline-[#4160F2] focus-within:outline-offset-2"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
-        const el = e.currentTarget as HTMLDivElement
+        const el = e.currentTarget as HTMLElement
         el.style.transform = 'translateY(-6px)'
         el.style.boxShadow = isDark
           ? '0 20px 48px rgba(0,0,0,0.40), inset 0 1.5px 0 rgba(255,255,255,0.12)'
           : '0 20px 48px rgba(0,0,0,0.14), inset 0 1.5px 0 rgba(255,255,255,0.95)'
       }}
       onMouseLeave={e => {
-        const el = e.currentTarget as HTMLDivElement
+        const el = e.currentTarget as HTMLElement
         el.style.transform = ''
         el.style.boxShadow = ''
       }}
@@ -143,9 +138,11 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
 
         {/* Bouton favori */}
         <button
+          type="button"
           onClick={handleFav}
-          aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-          className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
+          aria-pressed={isFav}
+          aria-label={`Favori : ${title}`}
+          className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
           style={{
             background: isDark ? 'rgba(30,30,44,0.80)' : 'rgba(255,255,255,0.80)',
             backdropFilter: 'blur(16px)',
@@ -156,8 +153,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           }}
         >
           <svg viewBox="0 0 24 24"
-            fill={isFav ? '#4B6BFF' : 'none'}
-            stroke={isFav ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)')}
+            fill={isFav ? '#4160F2' : 'none'}
+            stroke={isFav ? '#4160F2' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)')}
             strokeWidth={2}
             className="w-4 h-4 transition-colors duration-200"
           >
@@ -190,7 +187,13 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             FCFA{isLocation ? '/mois' : ''}
           </span>
         </p>
-        <p className="text-sm font-semibold mt-1 truncate" style={{ color: textSecond }}>{title}</p>
+        <h3 className="text-sm font-semibold mt-1 truncate" style={{ color: textSecond }}>
+          {/* Vrai lien (clavier, clic milieu, nouvel onglet) étendu à toute la carte */}
+          <Link to={`/biens/${bien.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
+            {title}
+            <span className="sr-only"> — {bien.transaction === 'location' ? 'à louer' : 'à vendre'}</span>
+          </Link>
+        </h3>
         <div className="flex items-center gap-1 mt-2">
           <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -211,6 +214,6 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           </p>
         )}
       </div>
-    </div>
+    </article>
   )
 }

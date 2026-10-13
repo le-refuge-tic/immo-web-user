@@ -8,7 +8,7 @@ import logoUrl from '../../assets/REFUGE-ICON.webp'
 
 const SLIDES = [
   {
-    accent: '#4B6BFF',
+    accent: '#4160F2',
     image: img1,
     icon: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>

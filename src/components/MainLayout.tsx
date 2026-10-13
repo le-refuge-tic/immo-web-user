@@ -70,8 +70,9 @@ export default function MainLayout() {
 
       <main
         id="main-content"
+        tabIndex={-1}
         ref={ownScroll ? undefined : scrollRef}
-        className={`flex-1 min-h-0 relative ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : ownScroll ? 'md:pt-[72px]' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
+        className={`flex-1 min-h-0 relative outline-none ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : ownScroll ? 'md:pt-[72px]' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
         onScroll={ownScroll ? undefined : handleScroll}
       >
         <Outlet />

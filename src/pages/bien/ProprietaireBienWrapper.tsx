@@ -5,7 +5,7 @@ import { useNotifications } from '../../context/NotificationsContext'
 import BienDetailPage from './BienDetailPage'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 
-const BLUE = '#4B6BFF'
+const BLUE = '#4160F2'
 
 type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 

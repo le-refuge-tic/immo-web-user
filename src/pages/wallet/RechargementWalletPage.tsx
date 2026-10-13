@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import type { MethodePaiement } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { validateBeninPhone, normaliseBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
@@ -19,7 +19,7 @@ const OPS: { id: string; label: string; tagline: string; color: string; methode:
 ]
 
 const LABELS: Record<WalletType, string> = { cotisation: 'cotisation', epargne: 'épargne' }
-const COLORS: Record<WalletType, string> = { cotisation: '#4B6BFF', epargne: '#7B4BFF' }
+const COLORS: Record<WalletType, string> = { cotisation: '#4160F2', epargne: '#7B4BFF' }
 
 export default function RechargementWalletPage() {
   const navigate = useNavigate()
@@ -68,7 +68,7 @@ export default function RechargementWalletPage() {
     try {
       const res: any = await paiementApi.initierRechargementWallet({
         wallet_type: type, montant: m, methode_paiement: op.methode,
-        ...(op.needsPhone ? { telephone: tel.replace(/\D/g, '') } : {}),
+        ...(op.needsPhone ? { telephone: normaliseBeninPhone(tel) } : {}),
       }, attempt.key())
       if (res.statut === 'confirme') { attempt.reset(); setState('success'); return }
       const refId = res.reference || res.referenceId || res.reference_id

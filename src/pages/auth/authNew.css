@@ -105,7 +105,7 @@
 .dark .auth-input::placeholder,
 .dark .auth-phone input::placeholder { color: #8A8A94 !important; }
 .auth-input:focus {
-  border-color: #4B6BFF;
+  border-color: #4160F2;
   box-shadow: 0 0 0 3px rgba(75, 107, 255, 0.13);
   background: #fff;
 }
@@ -129,7 +129,7 @@ select.auth-input { cursor: pointer; }
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 .auth-phone:focus-within {
-  border-color: #4B6BFF;
+  border-color: #4160F2;
   box-shadow: 0 0 0 3px rgba(75, 107, 255, 0.13);
   background: #fff;
 }
@@ -201,8 +201,8 @@ select.auth-input { cursor: pointer; }
   transition: border-color 0.15s, background 0.15s;
 }
 .auth-terms input:checked + .auth-terms-box {
-  border-color: #4B6BFF;
-  background: #4B6BFF;
+  border-color: #4160F2;
+  background: #4160F2;
   color: #fff;
 }
 .auth-terms input:focus-visible + .auth-terms-box {
@@ -229,7 +229,7 @@ select.auth-input { cursor: pointer; }
 }
 .auth-footer a,
 .auth-link {
-  color: #4B6BFF;
+  color: #4160F2;
   font-weight: 700;
   text-decoration: none;
   background: none;
@@ -255,7 +255,7 @@ select.auth-input { cursor: pointer; }
   transition: width 0.2s, background 0.2s;
   width: 0.4rem;
 }
-.auth-step-dot.active  { width: 1.125rem; background: #4B6BFF; }
+.auth-step-dot.active  { width: 1.125rem; background: #4160F2; }
 .auth-step-dot.done    { background: rgba(75, 107, 255, 0.32); }
 
 /* ── Role cards ──────────────────────────────── */
@@ -274,11 +274,11 @@ select.auth-input { cursor: pointer; }
   width: 100%;
 }
 .auth-role-card:hover {
-  border-color: #4B6BFF;
+  border-color: #4160F2;
   box-shadow: 0 0 0 3px rgba(75, 107, 255, 0.08);
 }
 .auth-role-card.active {
-  border-color: #4B6BFF;
+  border-color: #4160F2;
   background: rgba(75, 107, 255, 0.05);
 }
 .auth-role-icon {
@@ -289,7 +289,7 @@ select.auth-input { cursor: pointer; }
   align-items: center;
   justify-content: center;
   background: rgba(75, 107, 255, 0.10);
-  color: #4B6BFF;
+  color: #4160F2;
   flex-shrink: 0;
 }
 .auth-role-check {
@@ -304,8 +304,8 @@ select.auth-input { cursor: pointer; }
   transition: border-color 0.15s, background 0.15s;
 }
 .auth-role-card.active .auth-role-check {
-  border-color: #4B6BFF;
-  background: #4B6BFF;
+  border-color: #4160F2;
+  background: #4160F2;
   color: #fff;
 }
 
@@ -359,3 +359,7 @@ select.auth-input { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .auth-input, .auth-role-card, .auth-role-check, .auth-step-dot { transition: none; }
 }
+
+/* L'écran d'inscription garde toujours un fond clair : le texte des cartes de rôle ne doit pas s'inverser en mode sombre (contraste) */
+.auth-role-card .text-text-dark { color: #1D1D1F !important; }
+.auth-role-card .text-text-grey { color: #5E5E63 !important; }

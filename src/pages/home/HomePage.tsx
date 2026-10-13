@@ -15,6 +15,8 @@ import logoUrl from '../../assets/REFUGE-ICON.webp'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
 import { usePageTitle } from '../../utils/usePageTitle'
 import ErrorState from '../../components/ErrorState'
+import CarouselPauseToggle from '../../components/CarouselPauseToggle'
+import { useCarouselAutoplay, usePrefersReducedMotion } from '../../hooks/useCarouselAutoplay'
 import { track, openConsentSettings } from '../../lib/analytics'
 
 const HERO_SLIDES = [HERO_IMG, slide2, slide3, slide4, slide5]
@@ -77,7 +79,7 @@ function useTokens(isDark: boolean) {
   return {
     textPrimary:  isDark ? '#E8E8EF'                : '#1D1D1F',
     textSecond:   isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
-    textMuted:    isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.40)',
+    textMuted:    isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.58)',
     fieldBg:      isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.80)',
     fieldBdr:     isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)',
     divider:      isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
@@ -95,7 +97,7 @@ function useTokens(isDark: boolean) {
     pillActive: {
       background: 'rgba(75,107,255,0.14)',
       border: '1px solid rgba(75,107,255,0.35)',
-      color: '#3A5AEE',
+      color: isDark ? '#9DB0FF' : '#3550D8',
       boxShadow: isDark ? '0 0 0 1px rgba(75,107,255,0.20)' : 'inset 0 1.5px 0 rgba(255,255,255,0.9), 0 2px 12px rgba(75,107,255,0.15)',
       backdropFilter: 'blur(20px)',
     } as React.CSSProperties,
@@ -168,11 +170,12 @@ export default function HomePage() {
     setHeroIdx(i => (i + dir + HERO_SLIDES.length) % HERO_SLIDES.length)
   }, [])
 
+  const reducedMotion = usePrefersReducedMotion()
   useEffect(() => {
-    if (heroPaused) return
-    heroTimer.current = setInterval(() => heroGo(1), 5500)
+    if (heroPaused || reducedMotion) return
+    heroTimer.current = setInterval(() => { if (!document.hidden) heroGo(1) }, 5500)
     return () => { if (heroTimer.current) clearInterval(heroTimer.current) }
-  }, [heroPaused, heroGo])
+  }, [heroPaused, reducedMotion, heroGo])
 
   /* ── Panneau recherche flottant ── */
   const [searchOpen, setSearchOpen] = useState(false)
@@ -190,12 +193,6 @@ export default function HomePage() {
     return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('keydown', keyHandler) }
   }, [searchOpen])
 
-  const locRef   = useRef<HTMLDivElement>(null)
-  const venteRef = useRef<HTMLDivElement>(null)
-  const [locPaused,   setLocPaused]   = useState(false)
-  const [ventePaused, setVentePaused] = useState(false)
-  const [locIdx,   setLocIdx]   = useState(0)
-  const [venteIdx, setVenteIdx] = useState(0)
 
   const loadBiens = async () => {
     setLoading(true); setLoadError(false)
@@ -244,29 +241,10 @@ export default function HomePage() {
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 6)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const scrollCarousel = (ref: { current: HTMLDivElement | null }, items: any[], paused: boolean, setIdx: (i: number) => void) => {
-    const el = ref.current
-    if (!el || paused || items.length === 0) return
-    const cardW = el.scrollWidth / items.length
-    const maxScroll = el.scrollWidth - el.clientWidth
-    const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
-    const next = isAtEnd ? 0 : el.scrollLeft + cardW
-    el.scrollTo({ left: next, behavior: 'smooth' })
-    setIdx(isAtEnd ? 0 : Math.round(next / cardW))
-  }
-
-  useEffect(() => {
-    if (locPaused || recentLocation.length === 0) return
-    const id = setInterval(() => scrollCarousel(locRef, recentLocation, locPaused, setLocIdx), 3500)
-    return () => clearInterval(id)
-  }, [locPaused, recentLocation.length])
-
-  useEffect(() => {
-    if (ventePaused || recentVente.length === 0) return
-    const id = setInterval(() => scrollCarousel(venteRef, recentVente, ventePaused, setVenteIdx), 3500)
-    return () => clearInterval(id)
-  }, [ventePaused, recentVente.length])
+  const { ref: locRef, index: locIdx, setIndex: setLocIdx, paused: locPaused, togglePause: toggleLoc, autoplayAvailable, containerProps: locProps } =
+    useCarouselAutoplay(recentLocation.length)
+  const { ref: venteRef, index: venteIdx, setIndex: setVenteIdx, paused: ventePaused, togglePause: toggleVente, containerProps: venteProps } =
+    useCarouselAutoplay(recentVente.length)
 
   const quartierCounts: Record<string, number> = {}
   for (const b of biens) {
@@ -314,7 +292,7 @@ export default function HomePage() {
   const suggestBdr = isDark ? 'rgba(255,255,255,0.10)': 'rgba(0,0,0,0.10)'
   const suggestRow = isDark ? 'rgba(255,255,255,0.06)': 'rgba(0,0,0,0.05)'
   const suggestHov = isDark ? 'rgba(75,107,255,0.14)' : 'rgba(75,107,255,0.08)'
-  const panelPillActive = { background: '#4B6BFF', color: '#fff', border: '1px solid #4B6BFF' } as React.CSSProperties
+  const panelPillActive = { background: '#4160F2', color: '#fff', border: '1px solid #4160F2' } as React.CSSProperties
   const panelPillIdle   = { background: tk.fieldBg, color: tk.textMuted, border: `1px solid ${tk.fieldBdr}` } as React.CSSProperties
 
   return (
@@ -330,15 +308,15 @@ export default function HomePage() {
               <img loading="lazy" src={logoUrl} alt="REFUGE" className="object-contain drop-shadow-lg flex-shrink-0" style={{ width: 64, height: 'auto' }} />
               <div>
                 <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: '#00AEEF' }}>REFUGE</p>
-                <p className="text-white/60 text-caption mt-0.5">
+                <h1 className="text-white/60 text-caption mt-0.5 font-normal">
                   {isLoggedIn ? `Bonjour, ${firstName}` : 'Trouvez votre bien'}
-                </p>
+                </h1>
               </div>
             </div>
             <button
               onClick={() => navigate(isLoggedIn ? '/profil' : '/login')}
               className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.4)' }}
+              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.4)' }}
             >
               {isLoggedIn && user?.photo_profil ? (
                 <img loading="lazy" src={user.photo_profil} className="w-10 h-10 object-cover" alt="" />
@@ -492,7 +470,7 @@ export default function HomePage() {
               }}
             >
               <span className="flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.45)' }}>
+                style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.45)' }}>
                 <SearchIcon />
               </span>
               <div className="flex-1 min-w-0 text-left">
@@ -511,7 +489,7 @@ export default function HomePage() {
               </div>
               {(search || transaction || type || prixMin || prixMax) && (
                 <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-micro font-bold text-white"
-                  style={{ background: '#4B6BFF' }}>
+                  style={{ background: '#4160F2' }}>
                   {[search, transaction, type, prixMin, prixMax].filter(Boolean).length}
                 </span>
               )}
@@ -535,7 +513,7 @@ export default function HomePage() {
                 style={{ borderBottom: `1px solid ${panelSep}` }}>
                 <div className="flex items-center gap-2">
                   <span className="flex items-center justify-center w-7 h-7 rounded-lg"
-                    style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                    style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
                     <SearchIcon />
                   </span>
                   <span className="font-semibold text-sm" style={{ color: tk.textPrimary }}>Recherche</span>
@@ -682,9 +660,9 @@ export default function HomePage() {
               Découvrez les derniers biens publiés sur REFUGE et réservez votre visite en quelques clics.
             </p>
           </div>
-          <div ref={locRef}
+          <div ref={locRef} role="region" aria-label="Biens récemment ajoutés pour location" tabIndex={0}
             className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-            onMouseEnter={() => setLocPaused(true)} onMouseLeave={() => setLocPaused(false)}>
+            {...locProps}>
             {recentLocation.map(bien => (
               <div key={bien.id} className="flex-shrink-0 snap-start w-[calc(33.333%-11px)] min-w-[260px]">
                 <BienCard bien={bien} favoriteIds={favIds} onFavoriteToggle={handleFavToggle} showPhotoCount showAddedDate />
@@ -692,11 +670,12 @@ export default function HomePage() {
             ))}
           </div>
           {recentLocation.length > 3 && (
-            <div className="flex justify-center gap-2 mt-4">
+            <div className="flex justify-center items-center gap-2 mt-4">
+              {autoplayAvailable && <CarouselPauseToggle paused={locPaused} onToggle={toggleLoc} subject="biens récemment ajoutés pour location" />}
               {recentLocation.map((_, i) => (
-                <button key={i}
+                <button key={i} aria-label={`Afficher le bien ${i + 1} sur ${recentLocation.length}`} aria-current={locIdx === i}
                   onClick={() => { const el = locRef.current; if (!el) return; const w = el.scrollWidth / recentLocation.length; el.scrollTo({ left: w * i, behavior: 'smooth' }); setLocIdx(i) }}
-                  style={{ width: locIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: locIdx === i ? '#4B6BFF' : isDark ? 'rgba(75,107,255,0.30)' : 'rgba(75,107,255,0.20)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }} />
+                  style={{ width: locIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: locIdx === i ? '#4160F2' : isDark ? 'rgba(75,107,255,0.30)' : 'rgba(75,107,255,0.20)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }} />
               ))}
             </div>
           )}
@@ -714,9 +693,9 @@ export default function HomePage() {
               Maisons, appartements, terrains à vendre au Bénin — découvrez les derniers biens publiés.
             </p>
           </div>
-          <div ref={venteRef}
+          <div ref={venteRef} role="region" aria-label="Biens récemment ajoutés à la vente" tabIndex={0}
             className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-            onMouseEnter={() => setVentePaused(true)} onMouseLeave={() => setVentePaused(false)}>
+            {...venteProps}>
             {recentVente.map(bien => (
               <div key={bien.id} className="flex-shrink-0 snap-start w-[calc(33.333%-11px)] min-w-[260px]">
                 <BienCard bien={bien} favoriteIds={favIds} onFavoriteToggle={handleFavToggle} showPhotoCount showAddedDate />
@@ -724,9 +703,10 @@ export default function HomePage() {
             ))}
           </div>
           {recentVente.length > 3 && (
-            <div className="flex justify-center gap-2 mt-4">
+            <div className="flex justify-center items-center gap-2 mt-4">
+              {autoplayAvailable && <CarouselPauseToggle paused={ventePaused} onToggle={toggleVente} subject="biens récemment ajoutés à la vente" color="#FF6B35" />}
               {recentVente.map((_, i) => (
-                <button key={i}
+                <button key={i} aria-label={`Afficher le bien ${i + 1} sur ${recentVente.length}`} aria-current={venteIdx === i}
                   onClick={() => { const el = venteRef.current; if (!el) return; const w = el.scrollWidth / recentVente.length; el.scrollTo({ left: w * i, behavior: 'smooth' }); setVenteIdx(i) }}
                   style={{ width: venteIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: venteIdx === i ? '#FF6B35' : isDark ? 'rgba(255,107,53,0.30)' : 'rgba(255,107,53,0.20)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }} />
               ))}
@@ -929,7 +909,7 @@ export default function HomePage() {
           </span>
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-4" style={{ color: tk.textPrimary }}>
             L'immobilier au Bénin,<br />
-            <span style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               sans mauvaises surprises.
             </span>
           </h2>
@@ -1013,7 +993,7 @@ export default function HomePage() {
                             ? 'inset 0 1px 0 rgba(255,255,255,0.06)'
                             : '0 2px 12px rgba(75,107,255,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
                         }}>
-                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#4B6BFF', opacity: 0.7 }} />
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#4160F2', opacity: 0.7 }} />
                         <span className="text-sm font-semibold whitespace-nowrap" style={{ color: tk.textPrimary }}>
                           {capitalizeQuartier(q)}
                         </span>
@@ -1044,7 +1024,7 @@ export default function HomePage() {
           <div className="flex-shrink-0">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.30)' }}>
+                style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.30)' }}>
                 <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
               </div>
               <div>

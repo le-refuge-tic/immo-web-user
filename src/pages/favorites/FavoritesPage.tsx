@@ -123,7 +123,7 @@ export default function FavoritesPage() {
             <button
               onClick={() => navigate('/')}
               className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #4160F2 0%, #7B4BFF 100%)' }}
             >
               Explorer les annonces
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">

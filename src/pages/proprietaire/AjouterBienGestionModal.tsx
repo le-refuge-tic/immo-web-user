@@ -120,7 +120,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
                   type="button"
                   onClick={() => setTypeBien(t.key)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${typeBien === t.key ? 'text-white border-primary' : 'text-text-dark border-divider hover:border-primary'}`}
-                  style={typeBien === t.key ? { background: '#4B6BFF' } : undefined}
+                  style={typeBien === t.key ? { background: '#4160F2' } : undefined}
                 >
                   {t.label}
                 </button>
@@ -181,7 +181,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
         <div className="p-5 pt-0">
           <button onClick={submit} disabled={saving || success}
             className="w-full py-3.5 rounded-xl font-bold text-white disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+            style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
             {success ? 'Ajouté ✓' : saving ? 'Ajout en cours…' : 'Ajouter le bien'}
           </button>
         </div>

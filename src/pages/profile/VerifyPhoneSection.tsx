@@ -158,7 +158,7 @@ export default function VerifyPhoneSection({ currentPhone, onVerified }: Props) 
             onClick={() => envoyerCode()}
             disabled={loading}
             className="w-full py-3 rounded-xl font-bold text-white text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}
+            style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}
           >
             {loading
               ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Envoi…</>
@@ -189,7 +189,7 @@ export default function VerifyPhoneSection({ currentPhone, onVerified }: Props) 
             onClick={verifierCode}
             disabled={loading || code.length !== OTP_LENGTH}
             className="w-full py-3 rounded-xl font-bold text-white text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}
+            style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}
           >
             {loading
               ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Vérification…</>

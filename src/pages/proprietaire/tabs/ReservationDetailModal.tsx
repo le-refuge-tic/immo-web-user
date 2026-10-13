@@ -165,7 +165,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
             </div>
             <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Paiement</p>
-              <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? '#16A34A' : '#9CA3AF' }}>
+              <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? '#16A34A' : '#5F6672' }}>
                 {v.paiement_effectue ? '✓ Payé' : 'En attente'}
               </p>
             </div>

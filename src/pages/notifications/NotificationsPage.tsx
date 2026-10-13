@@ -246,7 +246,7 @@ export default function NotificationsPage() {
           onClick={() => openNotif(n)}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openNotif(n) } }}
           aria-label={`${n.lu ? '' : 'Non lue : '}${title}`}
-          className={`glass-card rounded-2xl p-3.5 md:p-4 flex items-start gap-3 md:gap-4 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2 ${n.lu ? '' : 'ring-1 ring-primary/30'}`}
+          className={`glass-card rounded-2xl p-3.5 md:p-4 flex items-start gap-3 md:gap-4 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2 ${n.lu ? '' : 'ring-1 ring-primary/30'}`}
         >
           <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
             {cfg.icon}

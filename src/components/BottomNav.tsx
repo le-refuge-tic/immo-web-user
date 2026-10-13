@@ -88,7 +88,7 @@ export default function BottomNav() {
                 border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',
               }}
             >
-              <span className="relative" style={{ color: active ? '#4B6BFF' : inactiveColor }}>
+              <span className="relative" style={{ color: active ? '#4160F2' : inactiveColor }}>
                 <Icon active={active} />
                 {badge > 0 && (
                   <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30' }}>

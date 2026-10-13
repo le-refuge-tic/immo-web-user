@@ -197,9 +197,9 @@ function VisiteCard({ v, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, c
             <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
               min={new Date().toISOString().slice(0, 10)}
               max={new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)}
-              className="w-full bg-[#112440] rounded-xl px-3 py-2.5 text-sm outline-none border border-[#1A3355] text-[#F0EDE8] focus:border-[#4B6BFF]" />
+              className="w-full bg-[#112440] rounded-xl px-3 py-2.5 text-sm outline-none border border-[#1A3355] text-[#F0EDE8] focus:border-[#4160F2]" />
             <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
-              className="w-full bg-[#112440] rounded-xl px-3 py-2.5 text-sm outline-none border border-[#1A3355] text-[#F0EDE8] focus:border-[#4B6BFF]" />
+              className="w-full bg-[#112440] rounded-xl px-3 py-2.5 text-sm outline-none border border-[#1A3355] text-[#F0EDE8] focus:border-[#4160F2]" />
           </div>
           <div className="flex gap-2">
             <button onClick={() => setCpId(null)} className="flex-1 py-2.5 rounded-xl border border-[#1A3355] text-sm font-semibold text-[#8A9BB5] bg-[#0B1C30]">Annuler</button>

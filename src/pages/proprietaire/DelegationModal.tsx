@@ -110,7 +110,7 @@ export default function DelegationModal({ onClose }: Props) {
               Confiez la gestion d'un bien (ou de tous vos biens) à un démarcheur : créneaux de visite, confirmation des visites, signature de contrat — selon ce que vous autorisez.
             </p>
             <button onClick={() => setView('nouvelle')}
-              className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#4B6BFF' }}>
+              className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#4160F2' }}>
               + Proposer une délégation
             </button>
 
@@ -167,7 +167,7 @@ export default function DelegationModal({ onClose }: Props) {
             <div>
               <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Démarcheur</label>
               {demarcheur ? (
-                <div className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ background: '#4B6BFF12', border: '1px solid #4B6BFF40' }}>
+                <div className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ background: '#4160F212', border: '1px solid #4160F240' }}>
                   <span className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{demarcheur.prenom} {demarcheur.nom} · {demarcheur.telephone}</span>
                   <button onClick={() => { setDemarcheur(null); setSearch('') }} className="text-xs" style={{ color: 'var(--p-muted)' }}>Changer</button>
                 </div>
@@ -205,7 +205,7 @@ export default function DelegationModal({ onClose }: Props) {
               <button onClick={() => setView('liste')} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: 'var(--p-border)', color: 'var(--p-muted)' }}>
                 Annuler
               </button>
-              <button onClick={proposer} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4B6BFF' }}>
+              <button onClick={proposer} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4160F2' }}>
                 {saving ? 'Envoi…' : 'Proposer'}
               </button>
             </div>

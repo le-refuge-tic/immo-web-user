@@ -13,7 +13,7 @@ import { useFormDraft, useDraftState } from '../../hooks/useFormDraft'
 const normalizeStr = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-const BLUE = '#4B6BFF'
+const BLUE = '#4160F2'
 
 type TarifCustom = { label: string; prix: string }
 type DetailCustom = { label: string; valeur: string }
@@ -669,14 +669,14 @@ export default function NouveauBienPage() {
             </button>
 
             <div className="flex-1 text-center min-w-0">
-              <p className="text-[13px] font-bold truncate" style={{ color: 'var(--p-text)' }}>Nouveau bien</p>
+              <h1 className="text-[13px] font-bold truncate" style={{ color: 'var(--p-text)' }}>Nouveau bien</h1>
               <p className="text-micro uppercase tracking-[0.12em] truncate" style={{ color: 'var(--p-muted)' }}>
                 {STEP_LABELS[step]}
               </p>
             </div>
 
             <div className="flex-shrink-0 px-2.5 py-1 rounded-full text-caption font-bold border"
-              style={{ borderColor: BLUE + '40', background: BLUE + '15', color: BLUE }}>
+              style={{ borderColor: BLUE + '40', background: BLUE + '15', color: 'var(--p-accent-text)' }}>
               {step + 1}/{STEP_LABELS.length}
             </div>
           </div>

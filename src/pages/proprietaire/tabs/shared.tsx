@@ -25,7 +25,7 @@ export const IcUpload  = () => <svg viewBox="0 0 24 24" fill="none" stroke="curr
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-export const BLUE      = '#4B6BFF'   // bleu principal (propriétaire)
+export const BLUE      = '#4160F2'   // bleu principal (propriétaire)
 export const DARK_BLUE = '#0B1C30'   // navy
 
 export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Agent', locataire: 'Locataire' }

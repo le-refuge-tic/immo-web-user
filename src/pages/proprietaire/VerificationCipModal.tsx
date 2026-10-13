@@ -34,7 +34,7 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
       </label>
       {file && (
         <button onClick={submit} disabled={uploading}
-          className="w-full mt-2 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4B6BFF' }}>
+          className="w-full mt-2 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4160F2' }}>
           {uploading ? 'Envoi…' : 'Envoyer'}
         </button>
       )}

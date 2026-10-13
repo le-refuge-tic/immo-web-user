@@ -162,7 +162,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
             </button>
             <button type="submit" disabled={loading}
               className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
+              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
               {loading ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Mise à jour…</> : step === 'code' ? 'Valider' : 'Recevoir le code'}
             </button>
           </div>

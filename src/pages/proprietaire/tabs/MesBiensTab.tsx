@@ -7,6 +7,9 @@ import { IcRefresh } from './icons'
 import { IcPlus, IcPin, IcTrash, IcEdit, BLUE, bienLabel, bienComposition, fmtPrix, statutBien } from './shared'
 import type { Tab } from './shared'
 import type { Bien } from '../../../types/api'
+import CarouselPauseToggle from '../../../components/CarouselPauseToggle'
+import { useCarouselAutoplay } from '../../../hooks/useCarouselAutoplay'
+import { onActivateKey } from '../../../utils/keyboard'
 
 // ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
 export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
@@ -18,9 +21,8 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
   const [editingBien, setEditingBien] = useState<any>(null)
   const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
   const [hoveredEl, setHoveredEl] = useState<string | null>(null)
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const [carouselPaused, setCarouselPaused] = useState(false)
-  const [carouselIdx, setCarouselIdx] = useState(0)
+  const { ref: carouselRef, index: carouselIdx, setIndex: setCarouselIdx, paused: carouselPaused, togglePause: toggleCarousel, autoplayAvailable, containerProps: carouselProps } =
+    useCarouselAutoplay(Math.min(5, biens.length))
   const navigate = useNavigate()
 
   const load = async () => {
@@ -29,22 +31,6 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
     setLoading(false)
   }
   useEffect(() => { load() }, [])
-
-  useEffect(() => {
-    if (carouselPaused || biens.length === 0) return
-    const id = setInterval(() => {
-      const el = carouselRef.current
-      if (!el || carouselPaused) return
-      const count = Math.min(5, biens.length)
-      const cardW = el.scrollWidth / count
-      const maxScroll = el.scrollWidth - el.clientWidth
-      const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
-      const next = isAtEnd ? 0 : el.scrollLeft + cardW
-      el.scrollTo({ left: next, behavior: 'smooth' })
-      setCarouselIdx(isAtEnd ? 0 : Math.round(next / cardW))
-    }, 3500)
-    return () => clearInterval(id)
-  }, [carouselPaused, biens.length])
 
   const FILTERS = ['Tous', 'Location', 'Vente', 'Publié', 'En attente', 'Rejeté', 'Occupé']
   const byFilter = filter === 'Tous' ? biens
@@ -91,9 +77,9 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'var(--p-muted)' }}>Biens récents</p>
               <div
                 ref={carouselRef}
+                role="region" aria-label="Biens récents" tabIndex={0}
                 className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-                onMouseEnter={() => setCarouselPaused(true)}
-                onMouseLeave={() => setCarouselPaused(false)}
+                {...carouselProps}
               >
                 {recentBiens.map(b => {
                   const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
@@ -141,10 +127,13 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                 })}
               </div>
               {recentBiens.length > 3 && (
-                <div className="flex justify-center gap-2 mt-4">
+                <div className="flex justify-center items-center gap-2 mt-4">
+                  {autoplayAvailable && <CarouselPauseToggle paused={carouselPaused} onToggle={toggleCarousel} subject="biens récents" />}
                   {recentBiens.map((_, i) => (
                     <button
                       key={i}
+                      aria-label={`Afficher le bien ${i + 1} sur ${recentBiens.length}`}
+                      aria-current={carouselIdx === i}
                       onClick={() => {
                         const el = carouselRef.current
                         if (!el) return
@@ -152,7 +141,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         el.scrollTo({ left: cardW * i, behavior: 'smooth' })
                         setCarouselIdx(i)
                       }}
-                      style={{ width: carouselIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: carouselIdx === i ? '#4B6BFF' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                      style={{ width: carouselIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: carouselIdx === i ? '#4160F2' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
                     />
                   ))}
                 </div>
@@ -263,6 +252,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                   return (
                     <div key={b.id}
                       onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
+                      onKeyDown={onActivateKey(() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } }))}
                       role="button" tabIndex={0}
                       className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.12),_0_2px_8px_rgba(15,23,42,0.08)]"
                       style={{

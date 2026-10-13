@@ -11,10 +11,13 @@ const isLoyer  = (t: any) => String(t.type ?? '').toLowerCase() === 'loyer'
 const isInteg  = (t: any) => String(t.type ?? '').toLowerCase() === 'integration'
 const isDepot  = (t: any) => String(t.type ?? '').toLowerCase() === 'depot_wallet'
 
+// FE-B-007 : le sens vient du payeur (fourni par le serveur) ; sans lui, on retombe sur l'ancienne règle par type.
+const isRecu = (t: any) => (t.sens ?? (isLoyer(t) ? 'recu' : 'paye')) === 'recu'
+
 const typeLabel = (t: any) => {
   switch (String(t.type ?? '').toLowerCase()) {
     case 'frais_visite': return 'Frais de visite'
-    case 'loyer':         return 'Loyer mensuel'
+    case 'loyer':         return isRecu(t) ? 'Loyer reçu' : 'Loyer mensuel'
     case 'integration':   return "Paiement d'intégration"
     case 'depot_wallet':  return t.wallet_label ? `Rechargement ${t.wallet_label}` : 'Rechargement wallet'
     case 'virement':      return 'Virement reçu'
@@ -34,7 +37,7 @@ const methodeLabel = (m?: string) => {
 
 const statutLabel = (t: any) => {
   switch (String(t.statut ?? '').toLowerCase()) {
-    case 'confirme':   return 'Payé'
+    case 'confirme':   return isRecu(t) ? 'Reçu' : 'Payé'
     case 'echoue':     return 'Échoué'
     case 'en_attente': return 'En attente'
     case 'rembourse':  return 'Remboursé'
@@ -42,7 +45,7 @@ const statutLabel = (t: any) => {
   }
 }
 
-const statutColor = (s: string) => s === 'Payé' ? '#15803D' : s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#6B7280'
+const statutColor = (s: string) => (s === 'Payé' || s === 'Reçu') ? '#15803D' : s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#6B7280'
 
 const iconFor = (t: any) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -54,7 +57,7 @@ const iconFor = (t: any) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
 )
 
-const colorFor = (t: any) => isVisite(t) ? '#FF6B35' : isLoyer(t) ? '#4B6BFF' : isInteg(t) ? '#7B4BFF' : '#6B7280'
+const colorFor = (t: any) => isVisite(t) ? '#FF6B35' : isLoyer(t) ? '#4160F2' : isInteg(t) ? '#7B4BFF' : '#6B7280'
 
 const fmt = (v: number) => v <= 0 ? '0 FCFA' : `${Math.trunc(v).toLocaleString('fr-FR')} FCFA`
 const fmtDate = (raw?: string, withTime = false) => {
@@ -91,12 +94,12 @@ export default function HistoriquePaiementsPage() {
     : filter === 'Intégration' ? transactions.filter(isInteg)
     : transactions
 
-  // Total = uniquement les paiements confirmés où l'utilisateur est payeur (exclut loyers reçus)
+  // « Payé » = confirmé et payé par l'utilisateur ; « Reçu » = confirmé et payé par un autre (ex. loyer d'un locataire)
   const totalPaye = transactions
-    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && !isLoyer(t))
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && !isRecu(t))
     .reduce((s, t) => s + Number(t.montant ?? 0), 0)
   const totalRecu = transactions
-    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && isLoyer(t))
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && isRecu(t))
     .reduce((s, t) => s + Number(t.montant ?? 0), 0)
   const visiteCount = transactions.filter(isVisite).length
   const loyerCount = transactions.filter(isLoyer).length
@@ -141,7 +144,7 @@ export default function HistoriquePaiementsPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-5 pb-10">
           {loading ? (
-            <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /></div>
+            <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4160F2', borderTopColor: 'transparent' }} /></div>
           ) : error ? (
             <div className="flex flex-col items-center text-center py-16">
               <p className="font-bold text-text-dark mb-2">Erreur de chargement</p>
@@ -152,7 +155,7 @@ export default function HistoriquePaiementsPage() {
             <>
               {/* Résumé */}
               <div className="rounded-2xl p-5 mt-4 mb-4 text-white flex items-center justify-between"
-                style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
+                style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
                 <div>
                   <p className="text-white/70 text-xs">Total payé (confirmé)</p>
                   <p className="text-xl font-bold mt-0.5">{fmt(totalPaye)}</p>
@@ -172,7 +175,7 @@ export default function HistoriquePaiementsPage() {
                   <button key={f} onClick={() => setFilter(f)}
                     className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors"
                     style={filter === f
-                      ? { background: '#4B6BFF', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
+                      ? { background: '#4160F2', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
                       : { background: '#fff', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
                     {f}
                   </button>
@@ -189,7 +192,7 @@ export default function HistoriquePaiementsPage() {
                 const statut = statutLabel(t)
                 const color = colorFor(t)
                 const bien = bienLabel(t)
-                const confirme = statut === 'Payé'
+                const confirme = statut === 'Payé' || statut === 'Reçu'
                 const showRecu = confirme && t.reference && (isVisite(t) || isLoyer(t) || isInteg(t) || isDepot(t))
                 return (
                   <div key={i}
@@ -197,7 +200,7 @@ export default function HistoriquePaiementsPage() {
                     onClick={() => setDetail(t)}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetail(t) } }}
                     aria-label={`${typeLabel(t)} — ${bien || ''} — ${t.montant ?? 0} FCFA`}
-                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
+                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A`, color }}>
                         {iconFor(t)}
@@ -269,7 +272,7 @@ export default function HistoriquePaiementsPage() {
                 {detail.date_visite && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Date de visite</span><span className="text-xs font-semibold text-text-dark">{fmtDate(detail.date_visite)}</span></div>}
               </div>
             )}
-            {statutLabel(detail) === 'Payé' && detail.reference && (isVisite(detail) || isLoyer(detail) || isInteg(detail) || isDepot(detail)) && (
+            {['Payé', 'Reçu'].includes(statutLabel(detail)) && detail.reference && (isVisite(detail) || isLoyer(detail) || isInteg(detail) || isDepot(detail)) && (
               <button onClick={() => { const t = detail; setDetail(null); ouvrirRecu(t) }}
                 className="w-full mt-5 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2"
                 style={{ background: colorFor(detail) }}>

@@ -13,6 +13,8 @@ import CookieBanner from './components/CookieBanner'
 /* Pages légères chargées immédiatement (premier rendu critique) */
 import HomePage from './pages/home/HomePage'
 import OnboardingPage from './pages/auth/OnboardingPage'
+import StandaloneLayout from './components/StandaloneLayout'
+import RouteAnnouncer from './components/RouteAnnouncer'
 import OnboardingProjetPage from './pages/auth/OnboardingProjetPage'
 import OnboardingDestinationPage from './pages/auth/OnboardingDestinationPage'
 
@@ -105,9 +107,11 @@ function App() {
     <BannerProvider>
     <NotificationsProvider>
       <ErrorBoundary>
+      <RouteAnnouncer />
       <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Pages sans layout (standalone) */}
+        <Route element={<StandaloneLayout />}>
         <Route path="/splash" element={<SplashPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/onboarding/projet" element={<OnboardingProjetPage />} />
@@ -153,6 +157,8 @@ function App() {
         <Route path="/mes-paiements" element={
           <PrivateRoute><HistoriquePaiementsPage /></PrivateRoute>
         } />
+
+        </Route>
 
         {/* Pages client avec MainLayout + BottomNav */}
         <Route path="/" element={<MainLayout />}>

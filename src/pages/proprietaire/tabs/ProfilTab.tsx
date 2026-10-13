@@ -86,7 +86,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                     ? <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-lg mb-3"
                         style={{ border: '3px solid rgba(255,255,255,0.9)' }} />
                     : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg"
-                        style={{ background: 'linear-gradient(135deg, #4B6BFF, #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
+                        style={{ background: 'linear-gradient(135deg, #4160F2, #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
                         {initials}
                       </div>
                   }

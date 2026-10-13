@@ -147,7 +147,7 @@ function useTokens(isDark: boolean) {
     fieldBdr:       isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)',
     divider:        isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
     textClr:        isDark ? '#E8E8EF'                : '#1D1D1F',
-    labelClr:       isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.42)',
+    labelClr:       isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.58)',
     pageBg:         isDark ? 'rgba(15,15,20,1)'       : 'rgba(245,245,247,1)',
     headerBg:       isDark ? 'rgba(14,14,24,0.97)'    : 'rgba(245,245,247,0.96)',
     headerBdr:      isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
@@ -497,7 +497,7 @@ export default function SearchPage() {
               <FilterIcon />
               {hasFilters && (
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-micro font-bold text-white flex items-center justify-center"
-                  style={{ background: '#4B6BFF' }}>
+                  style={{ background: '#4160F2' }}>
                   {chips.length}
                 </span>
               )}
@@ -534,6 +534,7 @@ export default function SearchPage() {
         )}
 
         <div className="px-4 md:px-6 py-4">
+          <h1 className="sr-only">Recherche avancée</h1>
           <ResultHeader
             count={results.length} loading={loading} hasFilters={hasFilters} reset={reset}
             sortBy={sortBy} setSortBy={setSortBy} tk={tk}
@@ -901,6 +902,7 @@ function ResultHeader({ count, loading, hasFilters, reset, inline, sortBy, setSo
   )
   return (
     <div className={`flex items-center gap-2 flex-wrap ${inline ? '' : 'mb-4'}`}>
+      <h2 className="sr-only">Résultats de la recherche</h2>
       <p className="text-sm font-medium" style={{ color: tk.labelClr }}>
         <strong style={{ color: tk.textClr }} className="font-bold">{count}</strong>{' '}
         résultat{count !== 1 ? 's' : ''}
@@ -1049,7 +1051,7 @@ function GuidedResults({
       <p className="text-sm mb-5" style={{ color: tk.labelClr }}>Vérifiez votre connexion et réessayez.</p>
       <button onClick={retryFetch}
         className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95"
-        style={{ background: '#4B6BFF' }}>
+        style={{ background: '#4160F2' }}>
         Réessayer
       </button>
     </div>

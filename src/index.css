@@ -5,12 +5,15 @@
 /* Couleurs de texte sémantiques : éclaircies en mode sombre pour garder un
    contraste AA (≥ 4,5:1) sur les fonds #0F0F14 / glass-card sombres. */
 :root {
-  --tx-red: #DC2626;
-  --tx-green: #15803D;
+  --tx-red: #C81E15;
+  --tx-green: #166534;
   --tx-amber: #B45309;
   --tx-blue: #3A5AEE;
+  /* Anneau de focus : ≥ 3:1 sur fond clair (WCAG 2.4.11 / 1.4.11) */
+  --focus-ring: #3A5AEE;
 }
 .dark {
+  --focus-ring: #9DB0FF;
   --tx-red: #F87171;
   --tx-green: #4ADE80;
   --tx-amber: #FBBF24;
@@ -18,6 +21,11 @@
 }
 
 @layer base {
+  /* Focus clavier visible partout, sans écraser les styles propres à un composant (:where = spécificité 0) */
+  :where(a, button, input, select, textarea, summary, [role='button'], [tabindex]):focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; padding: 0; }
   #root {
@@ -229,6 +237,7 @@ div:hover > .hero-arrow { opacity: 1; }
     --p-border:       #1A3355;
     --p-text:         #F0EDE8;
     --p-muted:        #8A9BB5;
+    --p-accent-text:  #9DB0FF; /* texte d'accent lisible (≥ 4,5:1) sur fond marine */
   }
   /* Light mode — calqué sur AppColors mobile */
   .proprio-root.proprio-light {
@@ -238,7 +247,8 @@ div:hover > .hero-arrow { opacity: 1; }
     --p-card:         #FFFFFF;
     --p-border:       #E8EAED;
     --p-text:         #1A1A2E;
-    --p-muted:        #9E9E9E;
+    --p-muted:        #5F6672;
+    --p-accent-text:  #3550D8;
   }
 
   /* Smooth transition on ALL elements inside the dashboard root */
@@ -281,7 +291,7 @@ div:hover > .hero-arrow { opacity: 1; }
   .proprio-root.proprio-light .bg-\[\#112440\]  { background-color: #FFFFFF !important; }
   .proprio-root.proprio-light .border-\[\#1A3355\] { border-color: #E8EAED !important; }
   .proprio-root.proprio-light .text-\[\#F0EDE8\] { color: #1A1A2E !important; }
-  .proprio-root.proprio-light .text-\[\#8A9BB5\] { color: #9E9E9E !important; }
+  .proprio-root.proprio-light .text-\[\#8A9BB5\] { color: #5F6672 !important; }
   .proprio-root.proprio-light .card-navy {
     background: #FFFFFF !important;
     border-color: rgba(0,0,0,0.08) !important;
@@ -350,7 +360,7 @@ div:hover > .hero-arrow { opacity: 1; }
   .nav-link { position: relative; transition: color 0.18s ease; }
   .nav-link::after {
     content: ''; position: absolute; bottom: -3px; left: 50%; width: 0; height: 2px;
-    background: #4B6BFF; border-radius: 1px; transform: translateX(-50%);
+    background: #4160F2; border-radius: 1px; transform: translateX(-50%);
     transition: width 0.25s cubic-bezier(0.22,0.61,0.36,1);
   }
   .nav-link:hover::after { width: 70%; }
@@ -524,7 +534,7 @@ div:hover > .hero-arrow { opacity: 1; }
 }
 .menu-item-hover:focus-visible {
   background: rgba(0,0,0,0.04);
-  outline: 2px solid #4B6BFF;
+  outline: 2px solid #4160F2;
   outline-offset: -2px;
 }
 .dark .menu-item-hover:hover {

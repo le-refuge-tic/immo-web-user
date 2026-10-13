@@ -34,7 +34,7 @@ export default function ErrorState({
         type="button"
         onClick={onRetry}
         className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95"
-        style={{ background: '#4B6BFF' }}
+        style={{ background: '#4160F2' }}
       >
         {retryLabel}
       </button>

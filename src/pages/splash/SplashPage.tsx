@@ -76,7 +76,7 @@ export default function SplashPage() {
             <button
               onClick={start}
               className="w-full h-14 rounded-[18px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity anim-scale-in d-500 btn-press"
-              style={{ background: '#4B6BFF', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
+              style={{ background: '#4160F2', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
             >
               <span>Commencer</span>
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.2)' }}>
@@ -88,7 +88,7 @@ export default function SplashPage() {
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 anim-fade-in d-700">
               <TrustBadge icon="verified" label="Annonces modérées" color="#22C55E" />
-              <TrustBadge icon="lock" label="Paiement sécurisé" color="#4B6BFF" />
+              <TrustBadge icon="lock" label="Paiement sécurisé" color="#4160F2" />
               <TrustBadge icon="star" label="Reçus automatiques" color="#FF6B35" />
             </div>
           </div>

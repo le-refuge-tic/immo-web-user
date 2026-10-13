@@ -27,6 +27,8 @@ import { PortefeuilleTab } from './tabs/PortefeuilleTab'
 import { TransactionsTab } from './tabs/TransactionsTab'
 import { RolesTab } from './tabs/RolesTab'
 import { ProfilTab } from './tabs/ProfilTab'
+import CarouselPauseToggle from '../../components/CarouselPauseToggle'
+import { useCarouselAutoplay } from '../../hooks/useCarouselAutoplay'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -97,12 +99,11 @@ export default function ProprietaireDashboard() {
     })
     return () => cancelAnimationFrame(id)
   }, [])
-  const carousel2Ref = useRef<HTMLDivElement>(null)
-  const [carousel2Paused, setCarousel2Paused] = useState(false)
-  const [carousel2Idx, setCarousel2Idx] = useState(0)
 
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
+  const { ref: carousel2Ref, index: carousel2Idx, setIndex: setCarousel2Idx, paused: carousel2Paused, togglePause: toggleCarousel2, autoplayAvailable, containerProps: carousel2Props } =
+    useCarouselAutoplay(Math.min(5, biens.length))
   const [loading, setLoading] = useState(true)
   const [loyersDash, setLoyersDash] = useState<any>(null)
   const [visites, setVisites] = useState<any[]>([])
@@ -134,27 +135,12 @@ export default function ProprietaireDashboard() {
   useEffect(() => { loadData() }, [])
   useEffect(() => {
     if (tab !== 'tableau') return
-    const id = setInterval(() => loadData(true), 30000)
+    // Onglet masqué : aucun rafraîchissement (la reprise de visibilité recharge déjà)
+    const id = setInterval(() => { if (document.visibilityState === 'visible') loadData(true) }, 30000)
     const onVisible = () => { if (document.visibilityState === 'visible') loadData(true) }
     document.addEventListener('visibilitychange', onVisible)
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
   }, [tab])
-
-  useEffect(() => {
-    if (carousel2Paused || biens.length === 0) return
-    const id = setInterval(() => {
-      const el = carousel2Ref.current
-      if (!el || carousel2Paused) return
-      const count = Math.min(5, biens.length)
-      const cardW = el.scrollWidth / count
-      const maxScroll = el.scrollWidth - el.clientWidth
-      const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
-      const next = isAtEnd ? 0 : el.scrollLeft + cardW
-      el.scrollTo({ left: next, behavior: 'smooth' })
-      setCarousel2Idx(isAtEnd ? 0 : Math.round(next / cardW))
-    }, 3500)
-    return () => clearInterval(id)
-  }, [carousel2Paused, biens.length])
 
   const me = user || authUser
   const initials = `${me?.prenom?.[0] || ''}${me?.nom?.[0] || ''}`.toUpperCase()
@@ -274,7 +260,7 @@ export default function ProprietaireDashboard() {
               </button>
               {/* Profile + roles flyout */}
               <div className="relative" onMouseEnter={() => openRolesMenu('topbar')} onMouseLeave={scheduleCloseRolesMenu}>
-                <button onClick={() => setTab('profil')}
+                <button onClick={() => setTab('profil')} aria-label="Mon profil"
                   className="flex items-center gap-2 rounded-lg px-2 py-1.5 border transition-colors"
                   style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
                   <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style={{ background: BLUE }}>
@@ -307,7 +293,7 @@ export default function ProprietaireDashboard() {
                 <IcLogout />
               </button>
               {/* Hamburger — mobile */}
-              <button onClick={() => setMenuOpen(o => !o)}
+              <button onClick={() => setMenuOpen(o => !o)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
                 className="xl:hidden w-8 h-8 rounded-lg flex items-center justify-center border"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
                 <div style={{ width: 18, height: 14, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -547,9 +533,9 @@ export default function ProprietaireDashboard() {
                     </div>
                     <div
                       ref={carousel2Ref}
+                      role="region" aria-label="Mes biens récents" tabIndex={0}
                       className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-                      onMouseEnter={() => setCarousel2Paused(true)}
-                      onMouseLeave={() => setCarousel2Paused(false)}
+                      {...carousel2Props}
                     >
                       {recentBiens.map(b => {
                         const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
@@ -597,10 +583,13 @@ export default function ProprietaireDashboard() {
                       })}
                     </div>
                     {recentBiens.length > 3 && (
-                      <div className="flex justify-center gap-2 mt-4">
+                      <div className="flex justify-center items-center gap-2 mt-4">
+                        {autoplayAvailable && <CarouselPauseToggle paused={carousel2Paused} onToggle={toggleCarousel2} subject="mes biens récents" />}
                         {recentBiens.map((_, i) => (
                           <button
                             key={i}
+                            aria-label={`Afficher le bien ${i + 1} sur ${recentBiens.length}`}
+                            aria-current={carousel2Idx === i}
                             onClick={() => {
                               const el = carousel2Ref.current
                               if (!el) return
@@ -608,7 +597,7 @@ export default function ProprietaireDashboard() {
                               el.scrollTo({ left: cardW * i, behavior: 'smooth' })
                               setCarousel2Idx(i)
                             }}
-                            style={{ width: carousel2Idx === i ? 20 : 8, height: 8, borderRadius: 4, background: carousel2Idx === i ? '#4B6BFF' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                            style={{ width: carousel2Idx === i ? 20 : 8, height: 8, borderRadius: 4, background: carousel2Idx === i ? '#4160F2' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
                           />
                         ))}
                       </div>
@@ -641,7 +630,7 @@ export default function ProprietaireDashboard() {
         <div className="xl:hidden fixed bottom-20 right-4 md:bottom-24 md:right-8 z-20">
           <button onClick={() => navigate('/nouveau-bien')}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #4B6BFF, #3A5AEE)', color: '#fff', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
+            style={{ background: 'linear-gradient(135deg, #4160F2, #3A5AEE)', color: '#fff', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
             <IcPlus /> Nouveau bien
           </button>
         </div>
@@ -660,7 +649,7 @@ export default function ProprietaireDashboard() {
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
                   style={active ? { background: BLUE + '14' } : {}}>
                   <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.icon}</span>
-                  <span className="text-[10px] font-semibold" style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.label}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? 'var(--p-accent-text)' : 'var(--p-muted)' }}>{t.label}</span>
                 </button>
               )
             })}
@@ -672,7 +661,7 @@ export default function ProprietaireDashboard() {
                   aria-label={'Plus' + (moreBadge > 0 ? `, ${moreBadge} non lu${moreBadge > 1 ? 's' : ''}` : '')}
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
                   style={moreActive ? { background: BLUE + '14' } : {}}>
-                  <span className="relative" style={{ color: moreActive ? BLUE : 'var(--p-muted)' }}>
+                  <span className="relative" style={{ color: moreActive ? 'var(--p-accent-text)' : 'var(--p-muted)' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
                     {moreBadge > 0 && (
                       <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>

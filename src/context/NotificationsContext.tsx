@@ -36,7 +36,7 @@ const ESPACES_FILTRES = new Set(['proprietaire', 'demarcheur', 'commercial', 'lo
 const TITRE_BADGE = /^\(\d+\+?\) /
 
 const AVATAR_PALETTE = [
-  'linear-gradient(135deg,#4B6BFF,#7B4BFF)', 'linear-gradient(135deg,#FF6B35,#FF3B7A)',
+  'linear-gradient(135deg,#4160F2,#7B4BFF)', 'linear-gradient(135deg,#FF6B35,#FF3B7A)',
   'linear-gradient(135deg,#00C6A2,#0099CC)', 'linear-gradient(135deg,#F7B731,#F55252)',
   'linear-gradient(135deg,#A855F7,#6366F1)', 'linear-gradient(135deg,#10B981,#3B82F6)',
 ]
