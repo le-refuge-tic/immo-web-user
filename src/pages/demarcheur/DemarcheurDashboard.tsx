@@ -47,7 +47,7 @@ const PURPLE      = '#9B59B6'
 const DARK_PURPLE = '#4A0E8F'
 const MID_PURPLE  = '#7B2FBE'
 
-type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
+type Tab = 'tableau' | 'biens' | 'reservations' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
   en_attente: { label: 'En attente',  color: '#B45309' },
@@ -61,13 +61,12 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
   { key: 'biens',        label: 'Mes biens',    icon: <IcHome /> },
   { key: 'reservations',  label: 'Réservations', icon: <IcCal /> },
-  { key: 'creneaux',      label: 'Créneaux',     icon: <IcClock /> },
   { key: 'notifications', label: 'Notifications', icon: <IcBell /> },
   { key: 'portefeuille',  label: 'Portefeuille', icon: <IcWallet /> },
   { key: 'profil',        label: 'Profil',       icon: <IcPerson /> },
 ]
 
-const PRIMARY_TABS: Tab[] = ['tableau', 'biens', 'reservations', 'creneaux']
+const PRIMARY_TABS: Tab[] = ['tableau', 'biens', 'reservations']
 
 function fmtPrix(p: any) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
@@ -593,108 +592,6 @@ function ReservationsTab() {
   )
 }
 
-// ─── Tab: Créneaux ────────────────────────────────────────────────────────────
-function CreneauxTab() {
-  const [creneaux, setCreneaux] = useState<any[]>([])
-  const [biens, setBiens] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ bien_id: '', date: '', heure: '' })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  const load = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const [c, b] = await Promise.allSettled([visitesApi.mesCreneaux(), biensApi.mesBiens()])
-      if (c.status === 'fulfilled') setCreneaux(Array.isArray(c.value) ? c.value : c.value.data || [])
-      else setError('Impossible de charger les créneaux : ce service est momentanément indisponible.')
-      if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
-    } catch (_) {}
-    setLoading(false)
-  }
-  useEffect(() => { load() }, [])
-
-  const save = async () => {
-    if (!form.date || !form.heure || !form.bien_id) return
-    setSaving(true)
-    try {
-      await visitesApi.creerCreneau({ bien_id: Number(form.bien_id), debut: `${form.date}T${form.heure}:00`, duree_minutes: 60 })
-      setShowForm(false); setForm({ bien_id: '', date: '', heure: '' }); load()
-    } catch (_) {
-      setError("Le créneau n'a pas pu être créé : ce service est momentanément indisponible.")
-    }
-    setSaving(false)
-  }
-
-  const del = async (id: number) => {
-    try { await visitesApi.supprimerCreneau(id); load() } catch (_) { setError("Le créneau n'a pas pu être supprimé. Réessayez plus tard.") }
-  }
-
-  return (
-    <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white px-4 py-3 border-b border-divider flex items-center justify-between flex-shrink-0">
-        <p className="font-bold text-text-dark">{creneaux.length} créneau{creneaux.length > 1 ? 'x' : ''}</p>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: PURPLE }}>
-          <IcPlus /> Ajouter
-        </button>
-      </div>
-      {error && (
-        <p role="alert" className="flex-shrink-0 px-4 py-3 text-sm font-semibold bg-red-50 text-red-700 border-b border-red-200">{error}</p>
-      )}
-      {showForm && (
-        <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
-          <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
-            aria-label="Choisir un bien"
-            className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
-            <option value="">Choisir un bien</option>
-            {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}
-          </select>
-          <div className="flex gap-2">
-            <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
-              className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider" />
-            <input type="time" value={form.heure} onChange={e => setForm({ ...form, heure: e.target.value })}
-              className="flex-1 bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider" />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
-            <button onClick={save} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: PURPLE }}>
-              {saving ? 'Enregistrement…' : 'Créer'}
-            </button>
-          </div>
-        </div>
-      )}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {loading ? [1,2].map(n => <div key={n} className="h-20 skeleton rounded-xl mb-3" />) : creneaux.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={PURPLE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <p className="font-bold text-text-dark mb-1">Aucun créneau</p>
-            <p className="text-sm text-text-grey">Créez des créneaux pour recevoir des visites</p>
-          </div>
-        ) : creneaux.map((c, i) => (
-          <div key={c.id || i} className="card-soft rounded-xl p-4 mb-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: PURPLE + '15' }}>
-              <span style={{ color: PURPLE }}><IcClock /></span>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-text-dark text-sm">
-                {c.debut ? new Date(c.debut).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) : '—'}
-              </p>
-              <p className="text-xs text-text-grey">
-                {c.debut ? new Date(c.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}{c.duree_minutes ? ` · ${c.duree_minutes} min` : ''}
-              </p>
-            </div>
-            <button onClick={() => del(c.id)} className="text-danger p-1"><IcTrash /></button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function PortefeuilleTab() {
   const navigate = useNavigate()
@@ -1089,7 +986,6 @@ export default function DemarcheurDashboard() {
               <div className="flex gap-3 mb-7 md:max-w-md">
                 <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={PURPLE} label="Nouveau bien" onClick={() => navigate('/nouveau-bien')} />
                 <QuickAction icon={<IcCal />} color="#4160F2" label="Réservations" onClick={() => setTab('reservations')} />
-                <QuickAction icon={<IcClock />} color="#FF6B35" label="Créneaux" onClick={() => setTab('creneaux')} />
               </div>
 
               {/* Score de crédibilité card */}
@@ -1201,7 +1097,6 @@ export default function DemarcheurDashboard() {
         )}
         {tab === 'biens'         && <MesBiensTab />}
         {tab === 'reservations'  && <ReservationsTab />}
-        {tab === 'creneaux'      && <CreneauxTab />}
         {tab === 'notifications' && <NotificationsTab onOpenTab={setTab} />}
         {tab === 'portefeuille' && <PortefeuilleTab />}
         {tab === 'delegations'  && <DelegationsRecuesTab onBack={() => setTab('profil')} />}

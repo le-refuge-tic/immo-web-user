@@ -9,6 +9,9 @@ import Reveal from '../../components/Reveal'
 import { rechercherQuartiers, trouverQuartierExact, type Quartier, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 import { getQuartierCoords, haversineKm, distanceEntreQuartiers } from '../../data/quartierProximite'
 import { usePageTitle } from '../../utils/usePageTitle'
+import LoadMoreBar from '../../components/LoadMoreBar'
+import { useScrollRestoration } from '../../hooks/useScrollRestoration'
+import { readSearchFilters, writeSearchFilters, type SortKey } from '../../utils/searchFilters'
 
 function norm(s: string) {
   return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -177,6 +180,9 @@ function useTokens(isDark: boolean) {
 /* ══════════════════════════════════════════════════════════════
    Composant principal
    ══════════════════════════════════════════════════════════════ */
+/** Taille d'une page de résultats (maximum accepté par l'API). */
+const PAGE_SIZE = 100
+
 export default function SearchPage() {
   usePageTitle('Rechercher un logement', 'Maisons, appartements et terrains à louer ou à vendre au Bénin : filtrez par ville, quartier, type et budget.')
   const navigate = useNavigate()
@@ -186,30 +192,48 @@ export default function SearchPage() {
   const isDark = theme === 'dark'
   const tk = useTokens(isDark)
 
-  const [query,         setQuery]         = useState(searchParams.get('q') || '')
-  const [transaction,   setTransaction]   = useState(searchParams.get('transaction') || '')
-  const [type,          setType]          = useState(searchParams.get('type') || '')
-  const [prixMin,       setPrixMin]       = useState(searchParams.get('prix_min') || '')
-  const [prixMax,       setPrixMax]       = useState(searchParams.get('prix_max') || '')
-  const [sousType,      setSousType]      = useState(searchParams.get('sous_type') || '')
-  const [chambresMin,   setChambresMin]   = useState('')
-  const [salonsMin,     setSalonsMin]     = useState('')
-  const [superficieMin, setSuperficieMin] = useState('')
-  const [superficieMax, setSuperficieMax] = useState('')
-  const [sortBy,        setSortBy]        = useState<'pertinence' | 'prix_asc' | 'prix_desc'>('pertinence')
+  // Tous les filtres vivent dans l'URL (lien partageable, Retour fidèle) : FE-B-009
+  const [initial] = useState(() => readSearchFilters(searchParams))
+  const [query,         setQuery]         = useState(initial.q)
+  const [transaction,   setTransaction]   = useState(initial.transaction)
+  const [type,          setType]          = useState(initial.type)
+  const [prixMin,       setPrixMin]       = useState(initial.prixMin)
+  const [prixMax,       setPrixMax]       = useState(initial.prixMax)
+  const [sousType,      setSousType]      = useState(initial.sousType)
+  const [chambresMin,   setChambresMin]   = useState(initial.chambresMin)
+  const [salonsMin,     setSalonsMin]     = useState(initial.salonsMin)
+  const [superficieMin, setSuperficieMin] = useState(initial.superficieMin)
+  const [superficieMax, setSuperficieMax] = useState(initial.superficieMax)
+  const [sortBy,        setSortBy]        = useState<SortKey>(initial.sortBy)
 
   useEffect(() => {
-    const p: Record<string, string> = {}
-    if (query)       p.q           = query
-    if (transaction) p.transaction = transaction
-    if (type)        p.type        = type
-    if (prixMin)     p.prix_min    = prixMin
-    if (prixMax)     p.prix_max    = prixMax
-    if (sousType)    p.sous_type   = sousType
-    setSearchParams(p, { replace: true })
-  }, [query, transaction, type, prixMin, prixMax, sousType, setSearchParams])
+    setSearchParams(
+      writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy }),
+      { replace: true },
+    )
+  }, [query, transaction, type, prixMin, prixMax, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy, setSearchParams])
+
+  // Sens inverse : Précédent / Suivant ou un lien interne vers une autre recherche mettent l'état à jour
+  const filtersKey = JSON.stringify(writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy }))
+  useEffect(() => {
+    const fromUrl = readSearchFilters(searchParams)
+    if (JSON.stringify(writeSearchFilters(fromUrl)) === filtersKey) return
+    setQuery(fromUrl.q); setTransaction(fromUrl.transaction); setType(fromUrl.type)
+    setPrixMin(fromUrl.prixMin); setPrixMax(fromUrl.prixMax); setSousType(fromUrl.sousType)
+    setChambresMin(fromUrl.chambresMin); setSalonsMin(fromUrl.salonsMin)
+    setSuperficieMin(fromUrl.superficieMin); setSuperficieMax(fromUrl.superficieMax); setSortBy(fromUrl.sortBy)
+    // Déclenché par l'URL seulement : filtersKey reflète l'état courant au moment du changement d'URL
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   const [allBiens,    setAllBiens]    = useState<any[]>([])
+  const [total,       setTotal]       = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [loadMoreError, setLoadMoreError] = useState(false)
+  const lastParamsRef = useRef<Record<string, unknown>>({})
+  const pageRef       = useRef(1)
+  // Incrémenté à chaque nouvelle recherche : une réponse arrivée après coup est ignorée
+  const generationRef = useRef(0)
   const [wideBiens,   setWideBiens]   = useState<any[]>([])
   const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
   const [loading,     setLoading]     = useState(false)
@@ -234,7 +258,7 @@ export default function SearchPage() {
   }, [])
 
   useEffect(() => {
-    biensApi.list({ limit: 200 })
+    biensApi.list({ limit: PAGE_SIZE })
       .then(data => { setWideBiens(Array.isArray(data) ? data : data.data || []) })
       .catch(() => {})
   }, [])
@@ -377,38 +401,73 @@ export default function SearchPage() {
   }
 
   const fetchBiens = useCallback(async (params: any) => {
+    const generation = ++generationRef.current
     setLoading(true)
     setFetchError(false)
+    setLoadMoreError(false)
+    setLoadingMore(false)
+    lastParamsRef.current = params
+    pageRef.current = 1
     try {
-      const data = await biensApi.list(params)
-      setAllBiens(Array.isArray(data) ? data : data.data || [])
-    } catch (_) { setFetchError(true) }
-    setLoading(false)
+      const data = await biensApi.list({ ...params, page: 1 })
+      if (generation !== generationRef.current) return
+      const list = Array.isArray(data) ? data : data.data || []
+      setAllBiens(list)
+      setTotal(Array.isArray(data) ? list.length : Number(data.total ?? list.length))
+    } catch (_) {
+      if (generation !== generationRef.current) return
+      // Échec : on n'affiche plus la liste de l'ancienne recherche, ni son total
+      setAllBiens([])
+      setTotal(0)
+      setFetchError(true)
+    }
+    if (generation === generationRef.current) setLoading(false)
   }, [])
 
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      const params: any = { limit: 150 }
-      if (transaction) params.transaction = transaction
-      if (type)        params.type        = type
-      const nq = norm(query.trim())
-      const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
-      if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
-      fetchBiens(params)
-    }, 420)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [query, transaction, type, fetchBiens])
+  // Page suivante : s'ajoute à la liste affichée (jamais de troncature silencieuse, FE-D-005)
+  const loadMore = useCallback(async () => {
+    if (loadingMore || loading) return
+    const generation = generationRef.current
+    setLoadingMore(true)
+    setLoadMoreError(false)
+    try {
+      const next = pageRef.current + 1
+      const data = await biensApi.list({ ...lastParamsRef.current, page: next })
+      if (generation !== generationRef.current) return
+      const list = Array.isArray(data) ? data : data.data || []
+      pageRef.current = next
+      setAllBiens(prev => {
+        const known = new Set(prev.map(b => b.id))
+        return [...prev, ...list.filter((b: any) => !known.has(b.id))]
+      })
+      if (!Array.isArray(data) && data.total !== undefined) setTotal(Number(data.total))
+    } catch (_) {
+      // Erreur propre à la page suivante : la liste déjà chargée reste affichée
+      if (generation === generationRef.current) setLoadMoreError(true)
+    }
+    if (generation === generationRef.current) setLoadingMore(false)
+  }, [loadingMore, loading])
 
-  const retryFetch = useCallback(() => {
-    const params: any = { limit: 150 }
+  const buildParams = useCallback(() => {
+    const params: any = { limit: PAGE_SIZE }
     if (transaction) params.transaction = transaction
     if (type)        params.type        = type
     const nq = norm(query.trim())
     const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
     if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
-    fetchBiens(params)
-  }, [query, transaction, type, fetchBiens])
+    return params
+  }, [query, transaction, type])
+
+  // Clé des paramètres réellement envoyés : taper dans la recherche sans changer de ville ne recharge rien
+  const paramsKey = JSON.stringify(buildParams())
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => { fetchBiens(JSON.parse(paramsKey)) }, 420)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [paramsKey, fetchBiens])
+
+  const retryFetch = useCallback(() => { fetchBiens(JSON.parse(paramsKey)) }, [paramsKey, fetchBiens])
 
   const reset = () => {
     setQuery(''); setTransaction(''); setType(''); setPrixMin(''); setPrixMax('')
@@ -435,6 +494,10 @@ export default function SearchPage() {
     sousType, setSousType, chambresMin, setChambresMin,
     salonsMin, setSalonsMin, superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
   }
+
+  useScrollRestoration(!loading && allBiens.length > 0)
+  // Prix, pièces, superficie et tri ne portent que sur les annonces déjà chargées (le serveur ne les filtre pas)
+  const localFiltersActive = !!(prixMin || prixMax || sousType || chambresMin || salonsMin || superficieMin || superficieMax) || sortBy !== 'pertinence'
 
   const sharedResults = { search, loading, fetchError, retryFetch, favIds, isDark, tk, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
   const onFavToggle   = (id: number, added: boolean) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })
@@ -540,6 +603,7 @@ export default function SearchPage() {
             sortBy={sortBy} setSortBy={setSortBy} tk={tk}
           />
           <GuidedResults {...sharedResults} onFavToggle={onFavToggle} cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3" />
+          {!loading && !fetchError && <LoadMoreBar loaded={allBiens.length} total={total} loading={loadingMore} error={loadMoreError} localFilters={localFiltersActive} onLoadMore={loadMore} />}
         </div>
       </div>
 
@@ -649,6 +713,7 @@ export default function SearchPage() {
           </div>
 
           <GuidedResults {...sharedResults} onFavToggle={onFavToggle} cols="grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" />
+          {!loading && !fetchError && <LoadMoreBar loaded={allBiens.length} total={total} loading={loadingMore} error={loadMoreError} localFilters={localFiltersActive} onLoadMore={loadMore} />}
         </div>
       </div>
     </div>

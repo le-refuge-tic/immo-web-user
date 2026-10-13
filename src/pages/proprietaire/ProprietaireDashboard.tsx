@@ -22,7 +22,6 @@ import { NotificationsTab } from './tabs/NotificationsTab'
 import { MessagesTab } from './tabs/MessagesTab'
 import { ReservationsTab } from './tabs/ReservationsTab'
 import { LoyersTab } from './tabs/LoyersTab'
-import { CreneauxTab } from './tabs/CreneauxTab'
 import { PortefeuilleTab } from './tabs/PortefeuilleTab'
 import { TransactionsTab } from './tabs/TransactionsTab'
 import { RolesTab } from './tabs/RolesTab'
@@ -431,7 +430,6 @@ export default function ProprietaireDashboard() {
                   { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
                   { icon: <IcCal />, color: '#3A5AEE', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
                   { icon: <IcPayments />, color: '#15803D', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
-                  { icon: <IcClock />, color: '#0EA5E9', label: 'Créneaux', action: () => setTab('creneaux') },
                   { icon: <IcMessagesNav />, color: '#FF6B35', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
                   { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
                 ].map(q => (
@@ -616,7 +614,6 @@ export default function ProprietaireDashboard() {
         {tab === 'messages'      && <MessagesTab initialConvId={messagesInitConvId} initialDraft={messagesInitDraft} />}
         {tab === 'notifications' && <NotificationsTab onOpenTab={openTab} />}
         {tab === 'loyers'        && <LoyersTab onScrolled={setIsScrolled} />}
-        {tab === 'creneaux'      && <CreneauxTab />}
         {tab === 'portefeuille' && <PortefeuilleTab onOpenTransactions={() => setTab('transactions')} />}
         {tab === 'transactions' && <TransactionsTab />}
         {tab === 'roles'        && <RolesTab />}

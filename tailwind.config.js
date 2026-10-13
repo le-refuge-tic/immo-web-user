@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand:         '#4B6BFF',
+        brand:         '#4160F2',
         primary:       '#3A5AEE',
         'primary-d':   '#2E4CD4',
         'primary-l':   'rgba(75,107,255,0.12)',
@@ -18,7 +18,7 @@ export default {
         divider:       'rgba(0,0,0,0.08)',
         success:       '#34C759',
         warning:       '#FF9800',
-        danger:        '#FF3B30',
+        danger:        '#C81E15',
         // Proprio dark navy/gold theme
         'navy-950':    '#060D1A',
         'navy-900':    '#0B1C30',

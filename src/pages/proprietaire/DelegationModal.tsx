@@ -107,7 +107,7 @@ export default function DelegationModal({ onClose }: Props) {
         {view === 'liste' ? (
           <div className="p-5 space-y-4">
             <p className="text-xs leading-relaxed" style={{ color: 'var(--p-muted)' }}>
-              Confiez la gestion d'un bien (ou de tous vos biens) à un démarcheur : créneaux de visite, confirmation des visites, signature de contrat — selon ce que vous autorisez.
+              Confiez la gestion d'un bien (ou de tous vos biens) à un démarcheur : gestion des demandes de visite, confirmation des visites, signature de contrat — selon ce que vous autorisez.
             </p>
             <button onClick={() => setView('nouvelle')}
               className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#4160F2' }}>

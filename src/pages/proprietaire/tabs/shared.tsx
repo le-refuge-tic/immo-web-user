@@ -31,7 +31,7 @@ export const DARK_BLUE = '#0B1C30'   // navy
 export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Agent', locataire: 'Locataire' }
 export const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
 
-export type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'messages' | 'notifications' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
+export type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'notifications' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 
 // Bottom nav (mobile/tablette, < xl) — jeu réduit d'onglets les plus utilisés.
 export const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -54,7 +54,6 @@ export const NAV_ITEMS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'biens',        label: 'Mes biens',    icon: <IcHome /> },
   { key: 'reservations', label: 'Réservations', icon: <IcCal /> },
   { key: 'loyers',       label: 'Loyers',       icon: <IcPayments /> },
-  { key: 'creneaux',     label: 'Créneaux',      icon: <IcClock /> },
   { key: 'messages',     label: 'Messages',      icon: <IcMessagesNav /> },
   { key: 'notifications', label: 'Notifications', icon: <IcBell /> },
   { key: 'portefeuille', label: 'Portefeuille',  icon: <IcWallet /> },

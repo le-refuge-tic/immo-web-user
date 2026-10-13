@@ -4,7 +4,7 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { paiementApi } from '../../api/paiementApi'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { bienTypeLabel } from '../../utils/bienType'
-import { generateRecuPdf, type RecuSection } from '../../utils/recuPdf'
+import type { RecuSection } from '../../utils/recuPdf'
 import { apiMessage } from '../../utils/apiMessage'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
@@ -191,6 +191,8 @@ export default function RecuPage() {
       sections.push({ titre: 'INFORMATIONS DE PAIEMENT', lignes: paiement })
 
       const ref8 = String(recu.reference || refId || '').slice(0, 8)
+      // pdf-lib (~400 Ko) n'est téléchargé qu'au clic sur « Télécharger », jamais avec la page
+      const { generateRecuPdf } = await import('../../utils/recuPdf')
       await generateRecuPdf({
         variante: isDepot ? 'depot' : isLoyer ? 'loyer' : 'visite',
         titre: isDepot ? 'REÇU DE RECHARGEMENT' : isIntegration ? "REÇU D'INTÉGRATION" : undefined,
