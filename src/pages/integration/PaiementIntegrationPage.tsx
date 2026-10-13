@@ -7,6 +7,9 @@ import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
+import { readPaymentConflict } from '../../utils/paymentAttempt'
+import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
+import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 
 const TEAL = '#0EA5E9'
 
@@ -22,7 +25,9 @@ export default function PaiementIntegrationPage() {
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [errMsg, setErrMsg]     = useState('')
   const [refId, setRefId]       = useState('')
-  const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
+  const polling                 = usePaymentPolling()
+  const payerEnCoursRef         = useRef(false)
+  const attempt                 = usePaymentAttempt()
 
   useEffect(() => {
     if (!bienId) return
@@ -38,32 +43,46 @@ export default function PaiementIntegrationPage() {
       .catch(() => {})
   }, [bienId])
 
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
+  const suivre = (ref: string) => {
+    setRefId(ref)
+    setState('waiting')
+    polling.start({
+      intervalMs: 3000,
+      maxAttempts: 20,
+      check: async () => {
+        const { statut } = await paiementApi.statutIntegration(ref)
+        if (statut === 'reussi' || statut === 'confirme' || statut === 'success') return 'success'
+        if (statut === 'echoue' || statut === 'failed') return 'failed'
+        return 'waiting'
+      },
+      onSuccess: () => { attempt.reset(); setState('success') },
+      onFailed: () => { attempt.reset(); setState('error'); setErrMsg('Paiement refusé. Vérifiez votre solde MoMo.') },
+      onTimeout: () => { setState('error'); setErrMsg('Délai de confirmation expiré.') },
+    })
+  }
 
   const payer = async () => {
-    if (!validateBeninPhone(tel) || !visiteId) return
+    if (!validateBeninPhone(tel) || !visiteId || payerEnCoursRef.current) return
+    payerEnCoursRef.current = true
     setState('waiting')
     try {
-      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: tel })
-      const ref = res.referenceId || res.reference_id
-      setRefId(ref)
-      let attempts = 0
-      pollRef.current = setInterval(async () => {
-        attempts++
-        try {
-          const status = await paiementApi.statutIntegration(ref)
-          if (status.statut === 'reussi' || status.statut === 'success') {
-            clearInterval(pollRef.current!)
-            setState('success')
-          } else if (status.statut === 'echoue' || status.statut === 'failed') {
-            clearInterval(pollRef.current!)
-            setState('error'); setErrMsg('Paiement refusé. Vérifiez votre solde MoMo.')
-          }
-        } catch (_) {}
-        if (attempts >= 20) { clearInterval(pollRef.current!); setState('error'); setErrMsg('Délai de confirmation expiré.') }
-      }, 3000)
+      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: tel }, attempt.key())
+      suivre(res.referenceId || res.reference_id)
     } catch (e: any) {
-      setState('error'); setErrMsg(apiMessage(e) || 'Erreur lors du paiement')
+      const conflit = readPaymentConflict(e)
+      if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
+        // Un paiement est déjà ouvert chez l'opérateur : on reprend son suivi sans débiter à nouveau.
+        suivre(conflit.referenceId)
+      } else if (conflit?.code === 'PAIEMENT_DEJA_CONFIRME') {
+        attempt.reset()
+        if (conflit.referenceId) setRefId(conflit.referenceId)
+        setState('success')
+      } else {
+        attempt.fail(e)
+        setState('error'); setErrMsg(apiMessage(e) || 'Erreur lors du paiement')
+      }
+    } finally {
+      payerEnCoursRef.current = false
     }
   }
 
@@ -189,7 +208,7 @@ export default function PaiementIntegrationPage() {
               <div className="flex items-center gap-3 rounded-xl px-4 py-3.5 border border-divider bg-surface-g mb-4">
                 <span className="font-bold text-text-dark text-sm">+229</span>
                 <div className="w-px h-4 bg-divider" />
-                <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
+                <input type="tel" value={tel} onChange={e => { setTel(e.target.value.replace(/\D/g, '')); attempt.reset() }}
                   placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                   className="flex-1 min-w-0 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
               </div>

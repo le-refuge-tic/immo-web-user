@@ -6,6 +6,9 @@ import type { MethodePaiement } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
+import { readPaymentConflict } from '../../utils/paymentAttempt'
+import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
+import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -31,26 +34,26 @@ export default function RechargementWalletPage() {
   const [state, setState] = useState<'idle' | 'loading' | 'waiting' | 'success' | 'error'>('idle')
   const [error, setError] = useState('')
   const [payUrl, setPayUrl] = useState('')
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
+  const polling = usePaymentPolling()
+  const rechargeEnCoursRef = useRef(false)
+  const attempt = usePaymentAttempt()
 
   const op = OPS.find(o => o.id === opId)!
 
   const startPolling = (refId: string) => {
-    let attempts = 0
-    pollRef.current = setInterval(async () => {
-      attempts++
-      try {
-        const s = await paiementApi.statutRechargement(refId)
-        if (s.statut === 'reussi' || s.statut === 'confirme') {
-          clearInterval(pollRef.current!); setState('success')
-        } else if (s.statut === 'echoue') {
-          clearInterval(pollRef.current!); setState('error'); setError('Paiement refusé par l\'opérateur.')
-        }
-      } catch (_) {}
-      if (attempts >= 40) { clearInterval(pollRef.current!); setState('error'); setError('Délai dépassé. Vérifiez votre solde dans quelques instants.') }
-    }, 3000)
+    polling.start({
+      intervalMs: 3000,
+      maxAttempts: 40,
+      check: async () => {
+        const { statut } = await paiementApi.statutRechargement(refId)
+        if (statut === 'reussi' || statut === 'confirme') return 'success'
+        if (statut === 'echoue') return 'failed'
+        return 'waiting'
+      },
+      onSuccess: () => { attempt.reset(); setState('success') },
+      onFailed: () => { attempt.reset(); setState('error'); setError("Paiement refusé par l'opérateur.") },
+      onTimeout: () => { setState('error'); setError('Délai dépassé. Vérifiez votre solde dans quelques instants.') },
+    })
   }
 
   const recharger = async () => {
@@ -59,13 +62,15 @@ export default function RechargementWalletPage() {
     if (op.needsPhone) {
       if (!validateBeninPhone(tel)) { setState('error'); setError(PHONE_FORMAT_HINT); return }
     }
+    if (rechargeEnCoursRef.current) return
+    rechargeEnCoursRef.current = true
     setState('loading'); setError('')
     try {
       const res: any = await paiementApi.initierRechargementWallet({
         wallet_type: type, montant: m, methode_paiement: op.methode,
         ...(op.needsPhone ? { telephone: tel.replace(/\D/g, '') } : {}),
-      })
-      if (res.statut === 'confirme') { setState('success'); return }
+      }, attempt.key())
+      if (res.statut === 'confirme') { attempt.reset(); setState('success'); return }
       const refId = res.reference || res.referenceId || res.reference_id
       if (res.url_paiement) {
         setPayUrl(res.url_paiement)
@@ -78,7 +83,19 @@ export default function RechargementWalletPage() {
       setState('waiting')
       startPolling(refId)
     } catch (e: any) {
+      const conflit = readPaymentConflict(e)
+      if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
+        // Une recharge est déjà ouverte chez l'opérateur : on reprend son suivi sans la doubler.
+        if (conflit.urlPaiement) setPayUrl(conflit.urlPaiement)
+        setState('waiting')
+        startPolling(conflit.referenceId)
+        return
+      }
+      if (conflit?.code === 'PAIEMENT_DEJA_CONFIRME') { attempt.reset(); setState('success'); return }
+      attempt.fail(e)
       setState('error'); setError(apiMessage(e) || 'Erreur lors de la recharge.')
+    } finally {
+      rechargeEnCoursRef.current = false
     }
   }
 
@@ -105,7 +122,7 @@ export default function RechargementWalletPage() {
                 Rouvrir la page de paiement
               </button>
             )}
-            <button onClick={() => { if (pollRef.current) clearInterval(pollRef.current); setState('idle') }} className="text-sm text-text-grey font-semibold">Annuler</button>
+            <button onClick={() => { polling.stop(); setState('idle') }} className="text-sm text-text-grey font-semibold">Annuler</button>
           </div>
         ) : state === 'success' ? (
           <div className="flex flex-col items-center text-center pt-10">
@@ -125,7 +142,7 @@ export default function RechargementWalletPage() {
               {OPS.map(o => {
                 const sel = opId === o.id
                 return (
-                  <button key={o.id} onClick={() => { setOpId(o.id); setState('idle'); setError('') }}
+                  <button key={o.id} onClick={() => { setOpId(o.id); setState('idle'); setError(''); attempt.reset() }}
                     className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-left transition-all"
                     style={{ background: sel ? o.color + '14' : 'white', border: `1.5px solid ${sel ? o.color : 'rgba(0,0,0,0.08)'}` }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: o.color + '20' }}>
@@ -146,7 +163,7 @@ export default function RechargementWalletPage() {
             </div>
 
             <p className="font-bold text-text-dark text-sm mb-2">Montant à recharger</p>
-            <input type="text" inputMode="numeric" value={montant} onChange={e => setMontant(e.target.value.replace(/\D/g, ''))}
+            <input type="text" inputMode="numeric" value={montant} onChange={e => { setMontant(e.target.value.replace(/\D/g, '')); attempt.reset() }}
               placeholder="Ex. 5 000" className="w-full bg-white border border-divider rounded-xl px-4 py-4 text-lg font-bold outline-none text-text-dark mb-2" />
             <div className="flex gap-2 mb-4">
               {[5000, 10000, 25000, 50000].map(v => (
@@ -163,7 +180,7 @@ export default function RechargementWalletPage() {
                 <p className="font-bold text-text-dark text-sm mb-2">Numéro {op.label}</p>
                 <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-3.5 mb-4 border border-divider">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                  <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
+                  <input type="tel" value={tel} onChange={e => { setTel(e.target.value.replace(/\D/g, '')); attempt.reset() }}
                     placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               </>

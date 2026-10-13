@@ -7,6 +7,7 @@ import type { Tab } from './shared'
 import { categorieTransaction, TransactionDetailModal } from './TransactionsTab'
 import { svgMaskUrl } from './RolesTab'
 import { apiMessage } from '../../../utils/apiMessage'
+import { ModalSheet } from '../../../components/ui/ModalSheet'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -68,8 +69,9 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
   }
 
   return (
-    <div aria-hidden="true" className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Détail de la transaction" aria-hidden="false" className="bg-[#0B1C30] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-[#1A3355]" onClick={e => e.stopPropagation()}>
+    <>
+    <ModalSheet open onClose={onClose} label="Demander un retrait" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.45}>
+<div className="bg-[#0B1C30] rounded-2xl w-full max-h-[90vh] overflow-y-auto border border-[#1A3355]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A3355] sticky top-0 bg-[#0B1C30] z-10">
           <div>
             <h2 className="font-bold text-[#F0EDE8]">Demander un retrait</h2>
@@ -120,15 +122,15 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
           </button>
         </div>
       </div>
-
-      {showNumeroModal && (
-        <NumeroRetraitModal
-          current={numeroInfo?.masque ?? null}
-          onClose={() => setShowNumeroModal(false)}
-          onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
-        />
-      )}
-    </div>
+</ModalSheet>
+    {showNumeroModal && (
+      <NumeroRetraitModal
+        current={numeroInfo?.masque ?? null}
+        onClose={() => setShowNumeroModal(false)}
+        onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+      />
+    )}
+    </>
   )
 }
 

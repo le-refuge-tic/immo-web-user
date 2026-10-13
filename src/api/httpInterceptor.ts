@@ -3,6 +3,7 @@ import { tokenStore } from '../utils/tokenStore'
 import { BASE } from './apiBase'
 import { revokeSession } from './authApi'
 import { readStoredUser, writeStoredUser } from '../utils/storedUser'
+import { markSessionExpired } from '../utils/sessionExpiry'
 
 /**
  * Sans timeout, une requête lente (ex: réveil à froid du serveur) laisse
@@ -64,6 +65,9 @@ function forceLogout() {
   localStorage.removeItem('rg_user')
   localStorage.removeItem('rg_active_role')
   tokenStore.clearTokens()
+  // FE-B-002 : retour à la page en cours après reconnexion, avec un message
+  // « session expirée » plutôt qu'un écran de connexion muet.
+  markSessionExpired(location.pathname + location.search)
   if (location.pathname !== '/login') location.href = '/login'
 }
 

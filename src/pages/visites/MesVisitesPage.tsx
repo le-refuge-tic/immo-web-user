@@ -14,6 +14,12 @@ import { useApiQuery } from '../../hooks/useApiQuery'
 import type { Visite } from '../../types/api'
 import { track } from '../../lib/analytics'
 import { apiMessage } from '../../utils/apiMessage'
+import { readPaymentConflict } from '../../utils/paymentAttempt'
+import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
+import { usePaymentPolling } from '../../hooks/usePaymentPolling'
+import { fraisVisiteAPayer, libelleFraisVisite } from '../../utils/fraisVisite'
+import ErrorState from '../../components/ErrorState'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
@@ -76,7 +82,7 @@ export default function MesVisitesPage() {
   const location = useLocation()
   const [tab, setTab] = useState(0)
   // Chargement annulable, sans réponse périmée (FE-A-004) ; refetch recharge la liste.
-  const { data: visitesData, loading, refetch: loadVisites } = useApiQuery(
+  const { data: visitesData, loading, error: loadError, refetch: loadVisites } = useApiQuery(
     signal => visitesApi.mesVisites(signal).then(unwrapList),
     [],
   )
@@ -86,10 +92,14 @@ export default function MesVisitesPage() {
   const [phoneOp, setPhoneOp] = useState('')
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
+  const [notice, setNotice] = useState('')
   const [payState, setPayState] = useState<'idle' | 'waiting' | 'pending' | 'success'>('idle')
   const [payRefId, setPayRefId] = useState('')
   const [payUrl, setPayUrl] = useState('')
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const polling = usePaymentPolling()
+  const attempt = usePaymentAttempt()
+  // Incrémenté à chaque fermeture de la modale : une réponse arrivée après coup est ignorée.
+  const payGenerationRef = useRef(0)
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; body: string; onConfirm: () => void } | null>(null)
   const [showFeedback, setShowFeedback] = useState<any>(null)
   const [feedbackNote, setFeedbackNote] = useState<number | null>(null)
@@ -99,18 +109,13 @@ export default function MesVisitesPage() {
   const [feedbackError, setFeedbackError] = useState('')
   const [feedbackDone, setFeedbackDone] = useState(false)
 
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
-
   useEffect(() => {
     const onVisibility = () => {
-      if (document.hidden && pollRef.current) {
-        clearInterval(pollRef.current)
-        pollRef.current = null
-      }
+      if (document.hidden) polling.stop()
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => document.removeEventListener('visibilitychange', onVisibility)
-  }, [])
+  }, [polling])
 
   // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
   // dans le chat (comme sur mobile) — au lieu de laisser l'utilisateur
@@ -210,65 +215,103 @@ export default function MesVisitesPage() {
     } catch (_) {}
   }
 
+  // Suivi d'une transaction déjà créée chez l'opérateur (nouvelle ou reprise).
+  const suivrePaiement = (ref: string, urlPaiement: string | undefined, maxAttempts: number) => {
+    setPayRefId(ref)
+    setPayState('waiting')
+    setPayUrl(urlPaiement ?? '')
+    polling.start({
+      intervalMs: 5000,
+      maxAttempts,
+      check: async () => {
+        const { statut } = await paiementApi.statutVisite(ref)
+        if (statut === 'confirme' || statut === 'reussi' || statut === 'success') return 'success'
+        if (statut === 'echoue' || statut === 'failed') return 'failed'
+        return 'waiting'
+      },
+      onSuccess: () => {
+        attempt.reset()
+        setPayState('success')
+        track('visite_payee')
+        loadVisites()
+      },
+      onFailed: () => {
+        attempt.reset()
+        setPayError('Paiement refusé. Vérifiez votre solde Mobile Money.')
+        setPayState('idle')
+      },
+      onTimeout: () => setPayState('pending'),
+    })
+  }
+
+  // FedaPay se paie sur une page hébergée ouverte à part — l'utilisateur a
+  // besoin de bien plus de temps que pour valider un push USSD MoMo.
+  const maxTentatives = (urlPaiement?: string) => (urlPaiement ? 100 : 20)
+
   const handlePayer = async () => {
     if (!showPay) return
-    if (payState === 'pending') return
+    if (paying || payState === 'pending' || payState === 'waiting') return
     if (operator !== 'fedapay' && !validateBeninPhone(phoneOp)) return
     setPaying(true)
     setPayError('')
+    const generation = payGenerationRef.current
+    // FE-B-006 : une même clé pour une même tentative — rejouée après une coupure,
+    // elle ne peut pas créer un second prélèvement.
+    const idempotencyKey = attempt.key()
     try {
       const res = await paiementApi.initierVisite({
         visite_id: showPay.id,
         phone: phoneOp,
         methode_paiement: operator as any,
-      })
+      }, idempotencyKey)
+      if (generation !== payGenerationRef.current) return
       const ref = res.referenceId || res.reference_id
-      setPayRefId(ref)
-      setPayState('waiting')
       // FedaPay : la transaction est créée côté serveur mais le paiement ne
       // se fait que sur sa page hébergée — sans cette ouverture, l'utilisateur
       // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
-      if (res.url_paiement) {
-        setPayUrl(res.url_paiement)
-        openPaymentUrl(res.url_paiement)
-      } else {
-        setPayUrl('')
-      }
-      let attempts = 0
-      // FedaPay se paie sur une page hébergée ouverte à part — l'utilisateur a
-      // besoin de bien plus de temps que pour valider un push USSD MoMo.
-      const maxAttempts = res.url_paiement ? 100 : 20
-      pollRef.current = setInterval(async () => {
-        attempts++
-        try {
-          const status = await paiementApi.statutVisite(ref)
-          if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
-            clearInterval(pollRef.current!)
-            setPayState('success')
-            track('visite_payee')
-            loadVisites()
-          } else if (status.statut === 'echoue' || status.statut === 'failed') {
-            clearInterval(pollRef.current!)
-            setPayError('Paiement refusé. Vérifiez votre solde Mobile Money.')
-            setPayState('idle')
-          }
-        } catch (_) {}
-        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('pending') }
-      }, 5000)
+      if (res.url_paiement) openPaymentUrl(res.url_paiement)
+      suivrePaiement(ref, res.url_paiement, maxTentatives(res.url_paiement))
     } catch (err: any) {
-      setPayError(apiMessage(err) || 'Erreur de paiement')
-      setPayState('idle')
+      if (generation !== payGenerationRef.current) return
+      const conflit = readPaymentConflict(err)
+      if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
+        // Une demande est déjà ouverte chez l'opérateur : on reprend son suivi
+        // au lieu de débiter une seconde fois.
+        suivrePaiement(conflit.referenceId, conflit.urlPaiement, maxTentatives(conflit.urlPaiement))
+        setNotice('Un paiement était déjà en cours : nous reprenons son suivi.')
+      } else if (conflit?.code === 'PAIEMENT_DEJA_CONFIRME') {
+        attempt.reset()
+        setPayRefId(conflit.referenceId ?? '')
+        setPayState('success')
+        loadVisites()
+      } else if (conflit?.code === 'VISITE_GRATUITE') {
+        attempt.reset()
+        setPayError(apiMessage(err) || 'Cette visite est gratuite.')
+        setPayState('idle')
+        loadVisites()
+      } else {
+        // Réponse perdue ou serveur en erreur : on garde la clé pour que le
+        // prochain essai retrouve la transaction éventuellement créée.
+        attempt.fail(err)
+        setPayError(apiMessage(err) || 'Erreur de paiement')
+        setPayState('idle')
+      }
+    } finally {
+      if (generation === payGenerationRef.current) setPaying(false)
     }
-    setPaying(false)
   }
 
   const closePayModal = () => {
-    if (pollRef.current) clearInterval(pollRef.current)
+    payGenerationRef.current++
+    polling.stop()
+    setPaying(false)
+    setNotice('')
     setShowPay(null)
     setPayState('idle')
     setPhoneOp('')
     setPayError('')
     setPayUrl('')
+    attempt.reset()
   }
 
   const openFeedback = (v: any) => {
@@ -320,7 +363,7 @@ export default function MesVisitesPage() {
             </button>
             <div>
               <h1 className="text-lg md:text-xl font-bold text-text-dark">Mes visites</h1>
-              {!loading && <p className="text-xs text-text-grey">{visites.length} visite{visites.length > 1 ? 's' : ''} au total</p>}
+              {!loading && !loadError && <p className="text-xs text-text-grey">{visites.length} visite{visites.length > 1 ? 's' : ''} au total</p>}
             </div>
           </div>
           {/* Tabs */}
@@ -342,6 +385,8 @@ export default function MesVisitesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(n => <div key={n} className="skeleton rounded-2xl h-28" />)}
           </div>
+        ) : loadError && visites.length === 0 ? (
+          <ErrorState title="Impossible de charger vos visites" onRetry={loadVisites} />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-[20px] flex items-center justify-center mx-auto mb-4"
@@ -361,9 +406,9 @@ export default function MesVisitesPage() {
       </div>
 
       {/* Payment modal */}
-      {showPay && createPortal(
-        <div aria-hidden="true" className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' || payState === 'pending' ? closePayModal : undefined}>
-          <div role="dialog" aria-modal="true" aria-label="Payer la visite" aria-hidden="false" className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
+      {showPay && (
+        <ModalSheet open onClose={closePayModal} label="Payer la visite" placement="responsive" panelClassName="w-full md:max-w-md" zIndex={60} backdropOpacity={0.5} dismissible={!paying && (payState === 'idle' || payState === 'pending')}>
+<div className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full">
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
 
             {payState === 'pending' ? (
@@ -374,23 +419,7 @@ export default function MesVisitesPage() {
                 <p className="font-bold text-text-dark mb-2">Confirmation en attente</p>
                 <p className="text-sm text-text-grey mb-6">Nous n'avons pas encore reçu la confirmation de l'opérateur. Si vous avez validé sur votre téléphone, le paiement apparaîtra ici dès réception.</p>
                 <button
-                  onClick={async () => {
-                    if (!payRefId) return
-                    setPayState('waiting')
-                    let attempts = 0
-                    pollRef.current = setInterval(async () => {
-                      attempts++
-                      try {
-                        const status = await paiementApi.statutVisite(payRefId)
-                        if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
-                          clearInterval(pollRef.current!); setPayState('success'); track('visite_payee'); loadVisites()
-                        } else if (status.statut === 'echoue' || status.statut === 'failed') {
-                          clearInterval(pollRef.current!); setPayError('Paiement refusé par l\'opérateur.'); setPayState('idle')
-                        }
-                      } catch (_) {}
-                      if (attempts >= 10) { clearInterval(pollRef.current!); setPayState('pending') }
-                    }, 5000)
-                  }}
+                  onClick={() => { if (payRefId) suivrePaiement(payRefId, payUrl || undefined, 10) }}
                   className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#B45309' }}>
                   Vérifier à nouveau
                 </button>
@@ -412,6 +441,7 @@ export default function MesVisitesPage() {
               <div className="flex flex-col items-center text-center py-6">
                 <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="font-bold text-text-dark mb-1">Confirmation en cours…</p>
+                {notice && <p role="status" className="text-xs text-text-grey mb-3">{notice}</p>}
                 {payUrl ? (
                   <>
                     <p className="text-sm text-text-grey mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
@@ -428,14 +458,14 @@ export default function MesVisitesPage() {
               <>
                 <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
                 <p className="text-sm text-text-grey mb-4">
-                  Montant : <span className="font-bold text-text-dark">{Number(showPay?.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA</span>
+                  Montant : <span className="font-bold text-text-dark">{libelleFraisVisite(fraisVisiteAPayer(showPay))}</span>
                 </p>
                 {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
                 <div className="flex gap-2 mb-4">
                   {OPERATORS.map(op => (
                     <button
                       key={op.key}
-                      onClick={() => setOperator(op.key)}
+                      onClick={() => { setOperator(op.key); attempt.reset() }}
                       className="flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
                       style={{
                         borderColor: operator === op.key ? '#4B6BFF' : '#E5E7EB',
@@ -457,7 +487,7 @@ export default function MesVisitesPage() {
                     <input
                       type="tel"
                       value={phoneOp}
-                      onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
+                      onChange={e => { setPhoneOp(e.target.value.replace(/\D/g, '')); attempt.reset() }}
                       placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                       className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
                     />
@@ -474,8 +504,7 @@ export default function MesVisitesPage() {
               </>
             )}
           </div>
-        </div>,
-        document.body,
+</ModalSheet>
       )}
 
       {/* Feedback modal */}
@@ -579,9 +608,9 @@ export default function MesVisitesPage() {
       )}
 
       {/* Confirm dialog */}
-      {confirmDialog && createPortal(
-        <div aria-hidden="true" className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center px-5" onClick={() => setConfirmDialog(null)}>
-          <div role="dialog" aria-modal="true" aria-label={confirmDialog.title} aria-hidden="false" className="glass-strong rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+      {confirmDialog && (
+        <ModalSheet open onClose={() => setConfirmDialog(null)} label={confirmDialog.title} placement="center" panelClassName="w-full max-w-sm" zIndex={60} backdropOpacity={0.5}>
+<div className="glass-strong rounded-2xl p-6 w-full">
             <h3 className="font-bold text-text-dark text-base mb-2">{confirmDialog.title}</h3>
             <p className="text-sm text-text-grey leading-relaxed mb-5">{confirmDialog.body}</p>
             <div className="flex gap-3">
@@ -593,8 +622,7 @@ export default function MesVisitesPage() {
               </button>
             </div>
           </div>
-        </div>,
-        document.body,
+</ModalSheet>
       )}
     </div>
   )
@@ -826,7 +854,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
             style={{ background: '#C2410C' }}
           >
-            Payer les frais de visite ({Number(v.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA)
+            Payer les frais de visite ({libelleFraisVisite(fraisVisiteAPayer(v))})
           </button>
         )}
 

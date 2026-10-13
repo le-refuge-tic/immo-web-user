@@ -17,6 +17,7 @@ import '../../pages/auth/authNew.css'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
 import { track } from '../../lib/analytics'
 import { apiMessage } from '../../utils/apiMessage'
+import { POST_LOGIN_REDIRECT_KEY, isSessionExpired, clearSessionExpired, estDestinationInterne } from '../../utils/sessionExpiry'
 
 /** Délai minimal entre l'affichage du formulaire et l'envoi (anti-robot). */
 const MIN_FORM_MS = 3000
@@ -227,6 +228,9 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const [otpLoading, setOtpLoading] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+  // FE-B-002 : arrivée ici après expiration de la session (voir httpInterceptor)
+  const [sessionExpired] = useState(() => isSessionExpired())
+  useEffect(() => { clearSessionExpired() }, [])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -236,8 +240,11 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   const completeLogin = (data: any) => {
     login(data)
-    const redirect = sessionStorage.getItem('post_login_redirect')
-    if (redirect) { sessionStorage.removeItem('post_login_redirect'); navigate(redirect, { replace: true }); return }
+    const redirect = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
+    if (redirect) {
+      sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+      if (estDestinationInterne(redirect)) { navigate(redirect, { replace: true }); return }
+    }
     const role = data.user?.role
     if (role === 'proprietaire') navigate('/proprietaire', { replace: true })
     else if (role === 'demarcheur') navigate('/demarcheur', { replace: true })
@@ -323,8 +330,17 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     <AnimatePresence mode="wait" custom={stepDir}>
       {formStep === 'credentials' ? (
         <motion.div key="creds" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
-          <h2 className="auth-title">Bienvenue</h2>
-          <p className="auth-sub">Connectez-vous pour accéder à votre espace</p>
+          {sessionExpired ? (
+            <>
+              <h2 className="auth-title">Session expirée</h2>
+              <p className="auth-sub" role="status">Reconnectez-vous pour reprendre là où vous en étiez.</p>
+            </>
+          ) : (
+            <>
+              <h2 className="auth-title">Bienvenue</h2>
+              <p className="auth-sub">Connectez-vous pour accéder à votre espace</p>
+            </>
+          )}
           <ErrorBanner message={error} id="login-error" />
           <form onSubmit={handleLogin} className="flex flex-col gap-2" aria-describedby={error ? 'login-error' : undefined}>
             <div className="auth-field">

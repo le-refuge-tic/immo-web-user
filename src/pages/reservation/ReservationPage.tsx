@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { track } from '../../lib/analytics'
 import { apiMessage } from '../../utils/apiMessage'
+import { fraisVisiteBien, libelleFraisVisite } from '../../utils/fraisVisite'
 
 /** Rôles autorisés par le backend à réserver une visite (POST /visites → CLIENTS). */
 const ROLES_RESERVATION = ['prospect', 'locataire']
@@ -179,7 +180,7 @@ export default function ReservationPage() {
     ? resolveUrl(bien.photos[0].url)
     : bien?.photo_couverture ? resolveUrl(bien.photo_couverture) : null
 
-  const frais: number = bien?.frais_visite ?? 500
+  const frais: number = bien ? fraisVisiteBien(bien) : 0
 
   // ── Blocs réutilisables ──────────────────────────────────────────────
 
@@ -367,7 +368,7 @@ export default function ReservationPage() {
         <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.54)" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p className="text-caption" style={{ color: 'rgba(255,255,255,0.54)' }}>Les frais de visite seront prélevés à la confirmation</p>
+        <p className="text-caption" style={{ color: 'rgba(255,255,255,0.54)' }}>{frais > 0 ? 'Les frais de visite seront prélevés à la confirmation' : 'Cette visite est gratuite'}</p>
       </div>
     </div>
   )
@@ -429,7 +430,7 @@ export default function ReservationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-white text-caption font-bold">{frais.toLocaleString('fr-FR')} FCFA</span>
+            <span className="text-white text-caption font-bold">{libelleFraisVisite(frais)}</span>
           </div>
         </div>
       </div>

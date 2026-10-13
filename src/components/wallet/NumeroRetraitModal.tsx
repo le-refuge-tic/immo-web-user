@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { ModalSheet } from '../ui/ModalSheet'
 import { walletApi } from '../../api/walletApi'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
@@ -8,12 +9,6 @@ import { apiMessage } from '../../utils/apiMessage'
  * partagé entre l'espace propriétaire et l'espace locataire.
  */
 export default function NumeroRetraitModal({ current, onClose, onSaved, accent = '#4B6BFF' }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void; accent?: string }) {
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [onClose])
-
   const [step, setStep] = useState<'form' | 'otp'>('form')
   const [numero, setNumero] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
@@ -49,19 +44,11 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
   }
 
   return (
-    <div
-      role="dialog" aria-modal="true" aria-label="Numéro de retrait"
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.5)' }}
-      onClick={onClose}
-    >
-      <div
-        className="bg-navy-900 rounded-2xl w-full max-w-sm border border-navy-700"
-        onClick={e => e.stopPropagation()}
-      >
+    <ModalSheet open onClose={onClose} label="Numéro de retrait" placement="center" panelClassName="w-full max-w-sm" backdropOpacity={0.5} zIndex={60}>
+      <div className="bg-navy-900 rounded-2xl w-full border border-navy-700">
         <div className="flex items-center justify-between px-5 py-4 border-b border-navy-700">
           <h2 className="font-bold text-proprio-text">Numéro de retrait</h2>
-          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-navy-900 text-proprio-muted flex-shrink-0" aria-hidden="false">✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-navy-900 text-proprio-muted flex-shrink-0">✕</button>
         </div>
         <div className="p-5 space-y-4">
           {current && step === 'form' && (
@@ -103,6 +90,6 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
           )}
         </div>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

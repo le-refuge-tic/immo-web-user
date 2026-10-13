@@ -8,6 +8,7 @@ import { QUARTIERS } from '../../data/quartiers'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { track } from '../../lib/analytics'
 import { apiMessage } from '../../utils/apiMessage'
+import { useFormDraft, useDraftState } from '../../hooks/useFormDraft'
 
 const normalizeStr = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -264,8 +265,11 @@ export default function NouveauBienPage() {
   const { user } = useAuth()
   const isDemarcheur = (user?.roles_actifs ?? (user?.role_principal ? [user.role_principal] : [])).includes('demarcheur')
 
+  // Brouillon par compte : une session expirée ne fait plus perdre la saisie (FE-B-002)
+  const draft = useFormDraft(`rg_draft_nouveau_bien_${user?.id ?? 'anon'}`)
   const [isScrolled, setIsScrolled] = useState(false)
   const [step, setStep] = useState(0)
+  const [draftBannerDismissed, setDraftBannerDismissed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [createdId, setCreatedId] = useState<number | null>(null)
@@ -277,13 +281,13 @@ export default function NouveauBienPage() {
   const [hoveredQuartierIdx, setHoveredQuartierIdx] = useState<number | null>(null)
 
   // ── Étape 0 ───────────────────────────────────────────────────────────────
-  const [typeBien, setTypeBien] = useState('chambre_salon')
-  const [typeTransaction, setTypeTransaction] = useState<'location' | 'vente'>('location')
-  const [prix, setPrix] = useState('')
-  const [estMeuble, setEstMeuble] = useState(false)
-  const [sanitaire, setSanitaire] = useState<string | null>(null)
-  const [sanitaireAutre, setSanitaireAutre] = useState('')
-  const [finition, setFinition] = useState<string | null>(null)
+  const [typeBien, setTypeBien] = useDraftState(draft, 'typeBien', 'chambre_salon')
+  const [typeTransaction, setTypeTransaction] = useDraftState<'location' | 'vente'>(draft, 'typeTransaction', 'location')
+  const [prix, setPrix] = useDraftState(draft, 'prix', '')
+  const [estMeuble, setEstMeuble] = useDraftState(draft, 'estMeuble', false)
+  const [sanitaire, setSanitaire] = useDraftState<string | null>(draft, 'sanitaire', null)
+  const [sanitaireAutre, setSanitaireAutre] = useDraftState(draft, 'sanitaireAutre', '')
+  const [finition, setFinition] = useDraftState<string | null>(draft, 'finition', null)
   // Mutual exclusion (Flutter): sanitaire=interieur ↔ finition≠ordinaire
   const onSelectSanitaire = (v: string) => {
     setSanitaire(v)
@@ -293,76 +297,77 @@ export default function NouveauBienPage() {
     setFinition(v)
     if (v === 'ordinaire' && sanitaire === 'interieur') setSanitaire('cour')
   }
-  const [prixLongSejour, setPrixLongSejour] = useState('')
-  const [prixSejourRestreint, setPrixSejourRestreint] = useState('')
-  const [prixHeure, setPrixHeure] = useState('')
-  const [tarifsAutres, setTarifsAutres] = useState<TarifCustom[]>([])
+  const [prixLongSejour, setPrixLongSejour] = useDraftState(draft, 'prixLongSejour', '')
+  const [prixSejourRestreint, setPrixSejourRestreint] = useDraftState(draft, 'prixSejourRestreint', '')
+  const [prixHeure, setPrixHeure] = useDraftState(draft, 'prixHeure', '')
+  const [tarifsAutres, setTarifsAutres] = useDraftState<TarifCustom[]>(draft, 'tarifsAutres', [])
 
   // ── Étape 1 ───────────────────────────────────────────────────────────────
-  const [ville, setVille] = useState('')
-  const [quartier, setQuartier] = useState('')
-  const [arrondissement, setArrondissement] = useState('')
-  const [indicationAdresse, setIndicationAdresse] = useState('')
-  const [quartierSearch, setQuartierSearch] = useState('')
+  const [ville, setVille] = useDraftState(draft, 'ville', '')
+  const [quartier, setQuartier] = useDraftState(draft, 'quartier', '')
+  const [arrondissement, setArrondissement] = useDraftState(draft, 'arrondissement', '')
+  const [indicationAdresse, setIndicationAdresse] = useDraftState(draft, 'indicationAdresse', '')
+  const [quartierSearch, setQuartierSearch] = useDraftState(draft, 'quartierSearch', '')
   const [quartierInputFocused, setQuartierInputFocused] = useState(false)
 
   // ── Étape 2 ───────────────────────────────────────────────────────────────
-  const [chambres, setChambres] = useState(1)
-  const [salons, setSalons] = useState(1)
-  const [cuisines, setCuisines] = useState(1)
-  const [douches, setDouches] = useState(1)
-  const [typeCuisine, setTypeCuisine] = useState('separee_douche')
-  const [cuisineAutre, setCuisineAutre] = useState('')
-  const [chambreACouloir, setChambreACouloir] = useState(false)
-  const [typeCour, setTypeCour] = useState('commune')
-  const [nbVoisins, setNbVoisins] = useState(0)
-  const [accesVehicule, setAccesVehicule] = useState<boolean | null>(null)
-  const [nbVehicules, setNbVehicules] = useState(1)
-  const [avanceMois, setAvanceMois] = useState(0)
-  const [avanceAutre, setAvanceAutre] = useState(false)
-  const [avanceAutreText, setAvanceAutreText] = useState('')
-  const [echeanceMois, setEcheanceMois] = useState(5)
-  const [echeanceAutre, setEcheanceAutre] = useState(false)
-  const [echeanceAutreText, setEcheanceAutreText] = useState('')
-  const [loyerPrepayeMois, setLoyerPrepayeMois] = useState(0)
-  const [loyerPrepayeAutre, setLoyerPrepayeAutre] = useState(false)
-  const [loyerPrepayeAutreText, setLoyerPrepayeAutreText] = useState('')
-  const [cautionEau, setCautionEau] = useState('')
-  const [cautionElec, setCautionElec] = useState('')
-  const [electricite, setElectricite] = useState('non')
-  const [prixKwh, setPrixKwh] = useState('')
-  const [eau, setEau] = useState('non')
-  const [forageGestion, setForageGestion] = useState<string | null>(null)
-  const [prixM3, setPrixM3] = useState('')
-  const [prixForage, setPrixForage] = useState('')
-  const [equipementsBonus, setEquipementsBonus] = useState<string[]>([])
-  const [alentours, setAlentours] = useState<string[]>([])
-  const [disponibilite, setDisponibilite] = useState<'immediate' | 'en_finition'>('immediate')
-  const [showMoreOptions, setShowMoreOptions] = useState(false)
+  const [chambres, setChambres] = useDraftState(draft, 'chambres', 1)
+  const [salons, setSalons] = useDraftState(draft, 'salons', 1)
+  const [cuisines, setCuisines] = useDraftState(draft, 'cuisines', 1)
+  const [douches, setDouches] = useDraftState(draft, 'douches', 1)
+  const [typeCuisine, setTypeCuisine] = useDraftState(draft, 'typeCuisine', 'separee_douche')
+  const [cuisineAutre, setCuisineAutre] = useDraftState(draft, 'cuisineAutre', '')
+  const [chambreACouloir, setChambreACouloir] = useDraftState(draft, 'chambreACouloir', false)
+  const [typeCour, setTypeCour] = useDraftState(draft, 'typeCour', 'commune')
+  const [nbVoisins, setNbVoisins] = useDraftState(draft, 'nbVoisins', 0)
+  const [accesVehicule, setAccesVehicule] = useDraftState<boolean | null>(draft, 'accesVehicule', null)
+  const [nbVehicules, setNbVehicules] = useDraftState(draft, 'nbVehicules', 1)
+  const [avanceMois, setAvanceMois] = useDraftState(draft, 'avanceMois', 0)
+  const [avanceAutre, setAvanceAutre] = useDraftState(draft, 'avanceAutre', false)
+  const [avanceAutreText, setAvanceAutreText] = useDraftState(draft, 'avanceAutreText', '')
+  const [echeanceMois, setEcheanceMois] = useDraftState(draft, 'echeanceMois', 5)
+  const [echeanceAutre, setEcheanceAutre] = useDraftState(draft, 'echeanceAutre', false)
+  const [echeanceAutreText, setEcheanceAutreText] = useDraftState(draft, 'echeanceAutreText', '')
+  const [loyerPrepayeMois, setLoyerPrepayeMois] = useDraftState(draft, 'loyerPrepayeMois', 0)
+  const [loyerPrepayeAutre, setLoyerPrepayeAutre] = useDraftState(draft, 'loyerPrepayeAutre', false)
+  const [loyerPrepayeAutreText, setLoyerPrepayeAutreText] = useDraftState(draft, 'loyerPrepayeAutreText', '')
+  const [cautionEau, setCautionEau] = useDraftState(draft, 'cautionEau', '')
+  const [cautionElec, setCautionElec] = useDraftState(draft, 'cautionElec', '')
+  const [electricite, setElectricite] = useDraftState(draft, 'electricite', 'non')
+  const [prixKwh, setPrixKwh] = useDraftState(draft, 'prixKwh', '')
+  const [eau, setEau] = useDraftState(draft, 'eau', 'non')
+  const [forageGestion, setForageGestion] = useDraftState<string | null>(draft, 'forageGestion', null)
+  const [prixM3, setPrixM3] = useDraftState(draft, 'prixM3', '')
+  const [prixForage, setPrixForage] = useDraftState(draft, 'prixForage', '')
+  const [equipementsBonus, setEquipementsBonus] = useDraftState<string[]>(draft, 'equipementsBonus', [])
+  const [alentours, setAlentours] = useDraftState<string[]>(draft, 'alentours', [])
+  const [disponibilite, setDisponibilite] = useDraftState<'immediate' | 'en_finition'>(draft, 'disponibilite', 'immediate')
+  const [showMoreOptions, setShowMoreOptions] = useDraftState(draft, 'showMoreOptions', false)
 
   // Terrain
-  const [titreTerrain, setTitreTerrain] = useState('')
-  const [titreFoncier, setTitreFoncier] = useState<boolean | null>(null)
-  const [superficieTerrain, setSuperficieTerrain] = useState('')
-  const [superficieUnite, setSuperficieUnite] = useState<'m2' | 'ha'>('m2')
-  const [documentTerrain, setDocumentTerrain] = useState<string | null>(null)
-  const [positionTerrain, setPositionTerrain] = useState('bord_goudron')
-  const [angleRue, setAngleRue] = useState(false)
-  const [permissionConstruire, setPermissionConstruire] = useState(false)
-  const [descriptionConstruction, setDescriptionConstruction] = useState('')
-  const [estLoti, setEstLoti] = useState<'lotie' | 'non_lotie' | 'autre' | null>(null)
-  const [detailsSupplementaires, setDetailsSupplementaires] = useState<DetailCustom[]>([])
+  const [titreTerrain, setTitreTerrain] = useDraftState(draft, 'titreTerrain', '')
+  const [titreFoncier, setTitreFoncier] = useDraftState<boolean | null>(draft, 'titreFoncier', null)
+  const [superficieTerrain, setSuperficieTerrain] = useDraftState(draft, 'superficieTerrain', '')
+  const [superficieUnite, setSuperficieUnite] = useDraftState<'m2' | 'ha'>(draft, 'superficieUnite', 'm2')
+  const [documentTerrain, setDocumentTerrain] = useDraftState<string | null>(draft, 'documentTerrain', null)
+  const [positionTerrain, setPositionTerrain] = useDraftState(draft, 'positionTerrain', 'bord_goudron')
+  const [angleRue, setAngleRue] = useDraftState(draft, 'angleRue', false)
+  const [permissionConstruire, setPermissionConstruire] = useDraftState(draft, 'permissionConstruire', false)
+  const [descriptionConstruction, setDescriptionConstruction] = useDraftState(draft, 'descriptionConstruction', '')
+  const [estLoti, setEstLoti] = useDraftState<'lotie' | 'non_lotie' | 'autre' | null>(draft, 'estLoti', null)
+  const [detailsSupplementaires, setDetailsSupplementaires] = useDraftState<DetailCustom[]>(draft, 'detailsSupplementaires', [])
 
   // Boutique
-  const [typeVoie, setTypeVoie] = useState('goudron')
-  const [visibiliteBoutique, setVisibiliteBoutique] = useState('directe')
-  const [parkingClients, setParkingClients] = useState('aucun')
+  const [typeVoie, setTypeVoie] = useDraftState(draft, 'typeVoie', 'goudron')
+  const [visibiliteBoutique, setVisibiliteBoutique] = useDraftState(draft, 'visibiliteBoutique', 'directe')
+  const [parkingClients, setParkingClients] = useDraftState(draft, 'parkingClients', 'aucun')
 
   // ── Étape 3 ───────────────────────────────────────────────────────────────
-  const [fraisVisite, setFraisVisite] = useState('')
-  const [description, setDescription] = useState('')
-  const [commissionMontant, setCommissionMontant] = useState('')
-  const [autresFrais, setAutresFrais] = useState<TarifCustom[]>([])
+  const [fraisVisite, setFraisVisite] = useDraftState(draft, 'fraisVisite', '')
+  const [visiteGratuite, setVisiteGratuite] = useDraftState(draft, 'visiteGratuite', false)
+  const [description, setDescription] = useDraftState(draft, 'description', '')
+  const [commissionMontant, setCommissionMontant] = useDraftState(draft, 'commissionMontant', '')
+  const [autresFrais, setAutresFrais] = useDraftState<TarifCustom[]>(draft, 'autresFrais', [])
 
   // ── Getters dérivés ────────────────────────────────────────────────────────
   const isTerrain = typeBien === 'terrain'
@@ -503,6 +508,9 @@ export default function NouveauBienPage() {
       if (isMeuble) a.tarifs_meuble = buildTarifsMeuble()
     }
 
+    // FE-B-012 : « gratuite » est un choix explicite ; un montant vide ou à 0 reçoit le barème du serveur
+    if (isDemarcheur && visiteGratuite) a.visite_gratuite = true
+
     const validAutres = autresFrais.filter(f => parsePrix(f.prix) !== undefined)
     if (validAutres.length) {
       a.autres_frais = validAutres.map(f => ({ label: f.label.trim() || 'Autre frais', montant: parsePrix(f.prix) }))
@@ -548,7 +556,7 @@ export default function NouveauBienPage() {
         type: typeBackend,
         transaction: typeTransaction,
         prix: prixFinal,
-        frais_visite: isDemarcheur ? (parsePrix(fraisVisite) ?? 0) : 0,
+        frais_visite: isDemarcheur && !visiteGratuite ? (parsePrix(fraisVisite) ?? 0) : 0,
         description: descFull || undefined,
         localisation: {
           adresse: indicationAdresse.trim() || [quartier, arrondissement].filter(Boolean).join(', ') || quartier,
@@ -586,6 +594,7 @@ export default function NouveauBienPage() {
         try { await biensApi.uploadVideo(bien.id, video) } catch (_) {}
       }
 
+      draft.clear()
       setCreated(true)
     } catch (err: any) {
       setError(apiMessage(err) || 'Erreur lors de la création')
@@ -693,6 +702,21 @@ export default function NouveauBienPage() {
               </div>
             )}
           </div>
+
+          {draft.restored && !draftBannerDismissed && (
+            <div role="status" className="rounded-xl px-4 py-3 border mb-4 flex items-start justify-between gap-3"
+              style={{ background: 'rgba(75,107,255,0.08)', borderColor: 'rgba(75,107,255,0.25)' }}>
+              <p className="text-sm" style={{ color: 'var(--p-text)' }}>
+                Votre saisie précédente a été retrouvée. Les photos et la vidéo sont à ajouter de nouveau.
+              </p>
+              <div className="flex gap-3 flex-shrink-0">
+                <button type="button" onClick={() => { draft.clear(); window.location.reload() }} className="text-xs font-bold" style={{ color: 'var(--tx-red)' }}>
+                  Tout effacer
+                </button>
+                <button type="button" onClick={() => setDraftBannerDismissed(true)} className="text-xs font-bold" style={{ color: BLUE }}>OK</button>
+              </div>
+            </div>
+          )}
 
           {/* ═══ ÉTAPE 0 : TYPE & PRIX ═══ */}
           {step === 0 && (
@@ -1336,8 +1360,15 @@ export default function NouveauBienPage() {
               {isDemarcheur && (
                 <Card>
                   <Section title="Frais de visite" />
-                  <p className="text-xs mb-3" style={{ color: 'var(--p-muted)' }}>Montant payé par chaque client pour visiter ce bien.</p>
-                  <MoneyInput value={fraisVisite} onChange={setFraisVisite} />
+                  <p className="text-xs mb-3" style={{ color: 'var(--p-muted)' }}>
+                    Montant payé par chaque client pour visiter ce bien. Laissé vide, le tarif standard s'applique ({isTerrain ? '5 000' : '500'} FCFA).
+                  </p>
+                  <label className="mb-3 flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer"
+                    style={{ borderColor: 'var(--p-border)', background: 'var(--p-deep)' }}>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>Visite gratuite</span>
+                    <input type="checkbox" checked={visiteGratuite} onChange={e => setVisiteGratuite(e.target.checked)} className="w-5 h-5 accent-blue-500" />
+                  </label>
+                  {!visiteGratuite && <MoneyInput value={fraisVisite} onChange={setFraisVisite} />}
                 </Card>
               )}
 

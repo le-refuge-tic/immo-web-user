@@ -14,6 +14,7 @@ import slide5 from '../../assets/onboarding-side.webp'
 import logoUrl from '../../assets/REFUGE-ICON.webp'
 import { rechercherQuartiers, type Quartier } from '../../data/quartiers'
 import { usePageTitle } from '../../utils/usePageTitle'
+import ErrorState from '../../components/ErrorState'
 import { track, openConsentSettings } from '../../lib/analytics'
 
 const HERO_SLIDES = [HERO_IMG, slide2, slide3, slide4, slide5]
@@ -670,13 +671,6 @@ export default function HomePage() {
 
       {/* ══════════════ CARROUSELS DESKTOP ══════════════ */}
 
-      {loadError && (
-        <div className="hidden md:flex items-center justify-center gap-3 py-6 px-8">
-          <p className="text-sm text-red-600">Impossible de charger les annonces.</p>
-          <button onClick={loadBiens} className="text-sm font-bold underline" style={{ color: 'var(--tx-blue)' }}>Réessayer</button>
-        </div>
-      )}
-
       {/* Location récente */}
       {recentLocation.length > 0 && (
         <div className="hidden md:block w-full px-8 lg:px-16 pt-14 pb-4">
@@ -898,6 +892,8 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4" aria-busy="true" aria-label="Chargement des annonces…">
             {[1,2,3,4,5,6,7,8].map(n => <div key={n} className="skeleton rounded-2xl h-52 md:h-64" aria-hidden="true" />)}
           </div>
+        ) : loadError && displayedBiens.length === 0 ? (
+          <ErrorState title="Impossible de charger les annonces" onRetry={loadBiens} />
         ) : displayedBiens.length === 0 ? (
           <Reveal animation="anim-fade-in" className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"

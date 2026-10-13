@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { apiMessage } from '../../utils/apiMessage'
 
 const AVATAR_PALETTE = [
   'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
@@ -43,6 +44,7 @@ export default function ConversationsPage() {
   const [convs, setConvs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
   const [search, setSearch] = useState('')
   const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
@@ -50,9 +52,9 @@ export default function ConversationsPage() {
     setLoading(true); setError('')
     chatApi.conversations()
       .then(d => setConvs(Array.isArray(d) ? d : d.data || []))
-      .catch(e => setError(e?.message || 'Erreur'))
+      .catch(e => setError(apiMessage(e) || 'Impossible de charger vos conversations.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [reloadKey])
 
   const getOther = (c: any) => {
     if (!user || !Array.isArray(c.participants)) return null
@@ -108,7 +110,7 @@ export default function ConversationsPage() {
     if (error) return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
         <p className="text-sm font-semibold" style={{ color: textPrimary }}>{error}</p>
-        <button onClick={() => window.location.reload()}
+        <button onClick={() => setReloadKey(k => k + 1)}
           className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90"
           style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
           Réessayer

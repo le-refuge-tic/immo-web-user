@@ -5,6 +5,7 @@ import { readStoredUser, writeStoredUser } from '../utils/storedUser'
 import { revokeSession } from '../api/authApi'
 import { unsubscribeFromPush } from '../lib/push'
 import { userApi } from '../api/userApi'
+import { clearFormDrafts } from '../utils/formDraft'
 
 type AuthUser = {
   id: number
@@ -86,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null)
     localStorage.removeItem('rg_user')
     tokenStore.clearTokens()
+    clearFormDrafts()
   }
 
   const updateUser = (partial: Partial<AuthUser>) => {
