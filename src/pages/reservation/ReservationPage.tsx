@@ -8,8 +8,10 @@ import { rolesApi } from '../../api/rolesApi'
 import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { track } from '../../lib/analytics'
+import { suggestPush } from '../../lib/push'
 import { apiMessage } from '../../utils/apiMessage'
 import { fraisVisiteBien, libelleFraisVisite } from '../../utils/fraisVisite'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 /** Rôles autorisés par le backend à réserver une visite (POST /visites → CLIENTS). */
 const ROLES_RESERVATION = ['prospect', 'locataire']
@@ -94,7 +96,10 @@ export default function ReservationPage() {
   const [travelers, setTravelers] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  // Écran de confirmation stable (FE-B-018) : il reste affiché jusqu'au choix de la personne
+  const [confirmation, setConfirmation] = useState<{ dateLabel: string } | null>(null)
+  const [openingChat, setOpeningChat] = useState(false)
+  const [chatError, setChatError] = useState('')
   const [activatingRole, setActivatingRole] = useState(false)
 
   useEffect(() => {
@@ -134,6 +139,18 @@ export default function ReservationPage() {
     }
   }
 
+  // La conversation n'est créée que si la personne choisit d'écrire (pas de conversation vide sinon)
+  const ouvrirConversation = async () => {
+    setOpeningChat(true); setChatError('')
+    try {
+      const convData = await chatApi.creerConversation(Number(bienId))
+      navigate(`/conversations/${convData.conversationId}`, { replace: true, state: { bienId, bienLabel: bien ? bienTypeLabel(bien) : '' } })
+    } catch (e: any) {
+      setChatError(apiMessage(e) || "Impossible d'ouvrir la conversation pour le moment. Retrouvez-la plus tard depuis vos visites.")
+      setOpeningChat(false)
+    }
+  }
+
   const handleSubmit = async () => {
     if (!selectedTime) { setError('Choisissez une heure pour la visite'); return }
     if (!bienId) { setError("Impossible d'envoyer la demande : bien non identifié"); return }
@@ -150,21 +167,9 @@ export default function ReservationPage() {
       const dt = new Date(selectedDate); dt.setHours(h, m, 0, 0)
       await visitesApi.reserverVisite(Number(bienId), dt.toISOString())
       track('visite_demandee')
+      suggestPush()
 
-      // Miroir du mobile : "Demande envoyée ! Démarrez la conversation ci-dessous."
-      // s'affiche toujours, qu'une conversation ait pu être créée ou non, avant
-      // d'enchaîner sur la navigation.
-      setSuccess(true)
-      await new Promise(r => setTimeout(r, 2500))
-
-      try {
-        const convData = await chatApi.creerConversation(Number(bienId))
-        navigate(`/conversations/${convData.conversationId}`, { replace: true, state: { bienId, bienLabel: bienTypeLabel(bien) } })
-        return
-      } catch (_) {}
-      // Échec de la création de conversation : retour à l'écran d'origine
-      // (fiche bien), comme le pop() du mobile — pas de redirection forcée.
-      navigate(-1)
+      setConfirmation({ dateLabel: dateTimeLabel() })
     } catch (e: any) {
       // Fallback si le 403 passe malgré le garde-fou (token pas encore à jour) :
       // message explicite au lieu du « Forbidden resource » brut du backend.
@@ -485,16 +490,37 @@ export default function ReservationPage() {
         <SubmitBtn />
       </div>
 
-      {/* ── Confirmation d'envoi — équivalent web du snackbar mobile ── */}
-      {success && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg anim-fade-in"
-          style={{ background: '#15803D', maxWidth: 'calc(100% - 32px)' }}>
-          <svg className="w-4 h-4 text-white flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <p className="text-white text-sm font-semibold">Demande envoyée ! Démarrez la conversation ci-dessous.</p>
-        </div>
-      )}
+      {/* ── Confirmation d'envoi : écran stable avec récapitulatif et choix de la suite ── */}
+      <ModalSheet open={!!confirmation} onClose={() => navigate('/mes-visites', { replace: true })} label="Demande de visite envoyée" placement="center" panelClassName="w-full max-w-md" zIndex={70} backdropOpacity={0.55}>
+        {confirmation && (
+          <div className="bg-white dark:bg-[#1E1E2E] rounded-3xl p-6 text-center shadow-xl">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: '#166534' }}>
+              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="font-bold text-lg text-text-dark mb-1">Demande de visite envoyée</h2>
+            <p className="text-sm text-text-grey mb-4">Le responsable du bien doit confirmer ce créneau. Vous serez prévenu dès sa réponse.</p>
+            <dl className="text-left text-sm rounded-2xl p-4 mb-5 space-y-2" style={{ background: 'rgba(65,96,242,0.07)' }}>
+              <div className="flex justify-between gap-3"><dt className="text-text-grey">Bien</dt><dd className="font-semibold text-text-dark text-right">{bien ? bienTypeLabel(bien) : '—'}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-text-grey">Créneau demandé</dt><dd className="font-semibold text-text-dark text-right">{confirmation.dateLabel}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-text-grey">Frais de visite</dt><dd className="font-semibold text-text-dark text-right">{frais > 0 ? `${libelleFraisVisite(frais)}, à régler après confirmation` : 'Gratuite'}</dd></div>
+            </dl>
+            {chatError && <p role="alert" className="text-sm font-semibold mb-2 text-[color:var(--tx-red)]">{chatError}</p>}
+            <button type="button" onClick={ouvrirConversation} disabled={openingChat}
+              className="w-full py-3.5 rounded-xl font-bold text-white mb-2 disabled:opacity-60" style={{ background: '#4160F2' }}>
+              {openingChat ? 'Ouverture…' : 'Écrire au responsable'}
+            </button>
+            <button type="button" onClick={() => navigate('/mes-visites', { replace: true })}
+              className="w-full py-3.5 rounded-xl font-bold mb-1 border border-divider text-text-dark">
+              Voir mes visites
+            </button>
+            <button type="button" onClick={() => navigate(`/biens/${bienId}`, { replace: true })} className="text-sm font-semibold text-text-grey py-2">
+              Retour à l'annonce
+            </button>
+          </div>
+        )}
+      </ModalSheet>
     </div>
   )
 }

@@ -1030,6 +1030,10 @@ function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibi
           ? `Réserver une visite · ${Number(fraisVisite).toLocaleString('fr-FR')} F`
           : 'Réserver une visite'}
       </button>
+      {/* Ce que recouvre « annonce modérée » : sans survendre une vérification du bien lui-même */}
+      <p className="text-caption leading-snug mt-2.5 text-center" style={{ color: 'var(--tx-grey, #5E5E63)' }}>
+        Annonce examinée par l'équipe REFUGE avant publication. Seule la visite permet de vérifier l'état réel du bien.
+      </p>
     </div>
   )
 }

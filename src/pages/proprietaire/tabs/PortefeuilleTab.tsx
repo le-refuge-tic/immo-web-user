@@ -8,6 +8,7 @@ import { categorieTransaction, TransactionDetailModal } from './TransactionsTab'
 import { svgMaskUrl } from './RolesTab'
 import { apiMessage } from '../../../utils/apiMessage'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
+import { messageMontantRetrait } from '../../../utils/retrait'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -35,6 +36,9 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 
   const montantNum = Number(montant)
   const montantValide = montantNum >= 500 && montantNum <= solde
+  const fcfa = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`
+  // Message dès la saisie (et non seulement au clic sur Confirmer) : B-015
+  const montantMessage = messageMontantRetrait(montant, solde)
 
   const confirmer = async () => {
     if (!montant || !montantValide) { setError(montantNum > solde ? 'Montant supérieur à votre solde disponible.' : 'Montant minimum : 500 FCFA.'); return }
@@ -52,8 +56,8 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 
   if (successMsg) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
-        <div role="dialog" aria-modal="true" aria-label="Succès" className="bg-[#0B1C30] rounded-2xl w-full max-w-sm p-7 text-center border border-[#1A3355]">
+      <ModalSheet open onClose={onClose} label="Demande de retrait envoyée" placement="center" panelClassName="w-full max-w-sm" backdropOpacity={0.45}>
+        <div className="bg-[#0B1C30] rounded-2xl w-full p-7 text-center border border-[#1A3355]">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
             style={{ background: 'linear-gradient(135deg, #4CAF50, #2E7D32)', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }}>
             <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -64,7 +68,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
           </p>
           <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-sm" style={{ background: BLUE, color: '#060D1A' }}>Fermer</button>
         </div>
-      </div>
+      </ModalSheet>
     )
   }
 
@@ -94,10 +98,13 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             <div className="relative">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A9BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
               <input type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={500} max={solde}
+                aria-invalid={!!montantMessage} aria-describedby="retrait-montant-aide"
                 className="w-full bg-[#112440] border border-[#1A3355] rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none text-[#F0EDE8] focus:border-[#4160F2]" />
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8A9BB5]">FCFA</span>
             </div>
-            <p className="text-[11px] text-[#8A9BB5] mt-1.5">Minimum 500 FCFA · maximum 3 retraits / 24h vers le même numéro.</p>
+            <p id="retrait-montant-aide" aria-live="polite" className="text-[11px] mt-1.5" style={{ color: montantMessage ? 'var(--tx-red)' : '#8A9BB5', fontWeight: montantMessage ? 600 : 400 }}>
+              {montantMessage || 'Minimum 500 FCFA · maximum 3 retraits / 24h vers le même numéro.'}
+            </p>
           </div>
 
           <div className="p-3.5 rounded-xl flex items-center justify-between gap-3" style={{ background: '#112440', border: '1px solid #1A3355' }}>
@@ -107,6 +114,14 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             </div>
             <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE }}>Changer</button>
           </div>
+
+          {montantValide && (
+            <div className="p-3.5 rounded-xl text-sm space-y-1" style={{ background: '#112440', border: '1px solid #1A3355' }} aria-label="Récapitulatif du retrait">
+              <p className="text-[10px] font-bold text-[#8A9BB5] uppercase tracking-wide">Récapitulatif</p>
+              <p className="text-[#F0EDE8]">Vous retirez <strong>{fcfa(montantNum)}</strong> vers <strong>{numeroInfo?.masque || 'votre numéro de retrait'}</strong>.</p>
+              <p className="text-[#8A9BB5]">Solde après la demande : {fcfa(solde - montantNum)}</p>
+            </div>
+          )}
 
           <button onClick={confirmer} disabled={submitting}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60"

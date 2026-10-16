@@ -8,6 +8,7 @@ import { IcPin, IcChat, BLUE, bienLabel, fmtPrix, statutVisite } from './shared'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ReservationDetailModal } from './ReservationDetailModal'
 import type { Visite } from '../../../types/api'
+import { suggestPush } from '../../../lib/push'
 
 export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; onScrolled?: (v: boolean) => void; onOpenMessages?: (convId: number, draftMessage?: string) => void }) {
   const navigate = useNavigate()
@@ -55,7 +56,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
     : byBien.filter(v => v.statut === 'annulee')
 
   const confirmer = async (id: number) => {
-    try { await visitesApi.confirmerVisite(id); load() } catch (_) {}
+    try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch (_) {}
   }
 
   const marquerEffectuee = async (id: number) => {

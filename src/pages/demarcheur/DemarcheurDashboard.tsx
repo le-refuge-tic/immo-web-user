@@ -20,6 +20,7 @@ import { ModalSheet } from '../../components/ui/ModalSheet'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
 import { bienTypeLabel } from '../../utils/bienType'
+import { suggestPush } from '../../lib/push'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -408,7 +409,7 @@ function ReservationsTab() {
     : visites.filter(v => v.statut === 'annulee')
 
   const confirmer = async (id: number) => {
-    try { await visitesApi.confirmerVisite(id); load() } catch (_) {}
+    try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch (_) {}
   }
 
   const ouvrirChat = async (v: any, draftMessage?: string) => {
@@ -780,7 +781,8 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
             <span className="text-white/70"><IcShield /></span>
           </div>
           <p className="text-white/70 text-xs mb-1">Score de crédibilité</p>
-          <p className="text-white text-2xl font-bold mb-3">{score} / 100</p>
+          <p className="text-white text-2xl font-bold mb-1">{score} / 100</p>
+          <p className="text-white/60 text-caption mb-2">Note de fiabilité sur 100. Elle baisse de 10 points à chaque annulation tardive d'une visite.</p>
           <div className="h-1.5 rounded-full bg-white/20 mb-4"><div className="h-full rounded-full bg-white" style={{ width: `${score}%` }} /></div>
           <div className="flex">
             <div className="flex-1"><p className="text-white/60 text-micro">Biens</p><p className="text-white font-bold text-sm">{user?.nb_biens ?? 0}</p></div>
@@ -964,7 +966,7 @@ export default function DemarcheurDashboard() {
               { icon: <IcHome />, value: `${biens.length}`, label: 'Biens' },
               { icon: <IcEye />,  value: '--',              label: 'Vues' },
               { icon: <IcCal />,  value: '--',              label: 'Visites' },
-              { icon: <IcStar />, value: `${score}`,        label: 'Score' },
+              { icon: <IcStar />, value: `${score}`,        label: 'Crédibilité' },
             ].map(s => (
               <div key={s.label} className="rounded-xl py-2.5 md:py-3.5 px-1 text-center border transition-transform md:hover:-translate-y-0.5"
                 style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.15)' }}>
@@ -995,7 +997,8 @@ export default function DemarcheurDashboard() {
                   <span className="text-white/70"><IcShield /></span>
                 </div>
                 <p className="text-white/70 text-sm">Score de crédibilité</p>
-                <p className="text-white text-[26px] font-bold mt-1 mb-3">{score} / 100</p>
+                <p className="text-white text-[26px] font-bold mt-1 mb-1">{score} / 100</p>
+                <p className="text-white/60 text-caption mb-2">Note de fiabilité sur 100. Elle baisse de 10 points à chaque annulation tardive d'une visite.</p>
                 <div className="h-1.5 rounded-full bg-white/20 mb-4">
                   <div className="h-full rounded-full bg-white transition-all" style={{ width: `${score}%` }} />
                 </div>

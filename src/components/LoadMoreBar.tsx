@@ -4,7 +4,7 @@ interface LoadMoreBarProps {
   loading: boolean
   /** La dernière demande de page suivante a échoué : la liste affichée reste intacte. */
   error?: boolean
-  /** Des filtres appliqués dans le navigateur (prix, pièces…) ne portent que sur les annonces chargées. */
+  /** Le filtre de prix, appliqué dans le navigateur, ne porte que sur les annonces chargées. */
   localFilters?: boolean
   onLoadMore: () => void
 }
@@ -25,7 +25,7 @@ export default function LoadMoreBar({ loaded, total, loading, error = false, loc
       </p>
       {localFilters && !complete && (
         <p className="text-xs text-text-grey max-w-sm text-center">
-          Les filtres de prix, de pièces et de superficie, ainsi que le tri, s'appliquent aux annonces affichées. Chargez-en plus pour élargir le résultat.
+          Le filtre de prix s'applique aux annonces affichées. Chargez-en plus pour élargir le résultat.
         </p>
       )}
       {error && <p role="alert" className="text-sm font-semibold text-[color:var(--tx-red)]">Impossible de charger la suite. Vérifiez votre connexion.</p>}

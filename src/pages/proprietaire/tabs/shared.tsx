@@ -28,7 +28,7 @@ export const IcUpload  = () => <svg viewBox="0 0 24 24" fill="none" stroke="curr
 export const BLUE      = '#4160F2'   // bleu principal (propriétaire)
 export const DARK_BLUE = '#0B1C30'   // navy
 
-export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Agent', locataire: 'Locataire' }
+export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Démarcheur', locataire: 'Locataire' }
 export const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
 
 export type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'notifications' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'

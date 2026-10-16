@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { pushSupported, subscribeToPush } from '../lib/push'
+import { pushSupported, subscribeToPush, PUSH_MOMENT_EVENT } from '../lib/push'
 
 const DISMISS_KEY = 'rg_push_dismissed'
-const ENGAGE_DELAY_MS = 45_000
 
 export default function PushPrompt() {
   const { isLoggedIn } = useAuth()
@@ -20,8 +19,11 @@ export default function PushPrompt() {
     if (Notification.permission !== 'default') return
     if (localStorage.getItem(DISMISS_KEY) === 'true') return
 
-    const t = setTimeout(() => setShow(true), ENGAGE_DELAY_MS)
-    return () => clearTimeout(t)
+    // Plus de fenêtre au bout de 45 s : on propose quand la personne vient d'agir
+    // (demande de visite, premier message), c'est-à-dire quand les alertes ont un sens pour elle.
+    const onMoment = () => setShow(true)
+    window.addEventListener(PUSH_MOMENT_EVENT, onMoment)
+    return () => window.removeEventListener(PUSH_MOMENT_EVENT, onMoment)
   }, [isLoggedIn])
 
   const activate = async () => {

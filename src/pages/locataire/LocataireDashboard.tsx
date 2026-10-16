@@ -481,7 +481,7 @@ function ActiviteTab() {
         await paiementApi.payerLoyersAvecCotisation([prochainLoyer.id])
         setPayState('success'); setShowPay(false); load()
       } catch (e: any) {
-        setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur')
+        setPayState('error'); setPayMsg(apiMessage(e) || "Le paiement n'a pas pu aboutir. Réessayez dans un instant.")
       }
       setPaying(false)
       return
@@ -512,7 +512,7 @@ function ActiviteTab() {
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
     } catch (e: any) {
-      setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur')
+      setPayState('error'); setPayMsg(apiMessage(e) || "Le paiement n'a pas pu aboutir. Réessayez dans un instant.")
     }
     setPaying(false)
   }

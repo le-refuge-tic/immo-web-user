@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import PushPrompt from './PushPrompt'
 
 /**
  * Région principale des écrans sans MainLayout (connexion, tableaux de bord,
@@ -10,6 +11,8 @@ export default function StandaloneLayout() {
   return (
     <main id="main-content" tabIndex={-1} className="contents outline-none">
       <Outlet />
+      {/* Les tableaux de bord n'ont pas MainLayout : l'invite aux notifications y est montée aussi */}
+      <PushPrompt />
     </main>
   )
 }

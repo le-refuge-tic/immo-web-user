@@ -8,6 +8,9 @@ import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
 import { io, Socket } from 'socket.io-client'
 import { apiMessage } from '../../utils/apiMessage'
+import { suggestPush } from '../../lib/push'
+import { ModalSheet } from '../../components/ui/ModalSheet'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 
 const WS_URL = API_ORIGIN
 
@@ -80,6 +83,42 @@ const XIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 const PinFill = () => <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
 const ChevDown = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
 
+/** Couleurs du thème passées au sélecteur de créneau (défini hors du fil pour ne pas se remonter à chaque message reçu). */
+interface SlotColors { menuBg: string; menuBdr: string; tp: string; tm: string; inpFieldBg: string; inpFieldBdr: string }
+
+function SlotModal({ onConfirm, onCancel, c }: { onConfirm: (iso: string) => void; onCancel: () => void; c: SlotColors }) {
+  const tom = new Date(Date.now() + 86400000)
+  const [date, setDate] = useState(tom.toISOString().slice(0, 10))
+  const [time, setTime] = useState('09:00')
+  const { menuBg, menuBdr, tp, tm, inpFieldBg, inpFieldBdr } = c
+  return (
+    <ModalSheet open onClose={onCancel} label="Proposer un créneau" placement="center" panelClassName="w-full max-w-xs" backdropOpacity={0.55}>
+      <div className="rounded-3xl p-5 w-full anim-scale-in"
+        style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
+        <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="slot-date" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
+            <input id="slot-date" type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+              style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
+          </div>
+          <div>
+            <label htmlFor="slot-time" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
+            <input id="slot-time" type="time" value={time} onChange={e => setTime(e.target.value)}
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+              style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
+          </div>
+        </div>
+        <div className="flex gap-2 mt-5">
+          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
+          <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>Confirmer</button>
+        </div>
+      </div>
+    </ModalSheet>
+  )
+}
+
 export default function ChatThread({ convId, onBack, initialDraft }: { convId: number; onBack: () => void; initialDraft?: string }) {
   const { user, token } = useAuth()
   const { theme } = useTheme()
@@ -141,6 +180,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   // Menus & overlays
   const menuBg  = isDark ? '#1E2130' : '#FFFFFF'
   const menuBdr = isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB'
+  const slotColors: SlotColors = { menuBg, menuBdr, tp, tm, inpFieldBg, inpFieldBdr }
+  const isMobileViewport = useMediaQuery('(max-width: 767px)')
   const menuHov = isDark ? 'rgba(255,255,255,0.06)' : '#F9FAFB'
   // Misc
   const divider = isDark ? 'rgba(255,255,255,0.06)' : '#F0F1F4'
@@ -238,6 +279,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       const rid = replyingTo?.id, rc = replyingTo?.contenu; setReplyingTo(null)
       const sent = await chatApi.envoyer(convId, text, rid, rc)
       setMessages(p => p.some(m => m.id === sent.id) ? p : [...p, sent])
+      suggestPush()
     } catch (e) { showError(e) }
     setSending(false)
   }
@@ -361,7 +403,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   }
 
   /* ── Panneau profil (desktop droit / mobile drawer) ── */
-  const ProfilePanel = ({ onClose }: { onClose: () => void }) => (
+  // Fonction de rendu (et non composant) : le panneau n'est pas remonté à chaque message reçu
+  const renderProfilePanel = ({ onClose }: { onClose: () => void }) => (
     <div className="h-full flex flex-col" style={{ background: profileBg, borderLeft: `1px solid ${profileBdr}` }}>
       {/* Header profil */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${divider}` }}>
@@ -461,39 +504,6 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       </div>
     </div>
   )
-
-  /* ── Modal slot picker ── */
-  const SlotModal = ({ onConfirm, onCancel }: { onConfirm: (iso: string) => void; onCancel: () => void }) => {
-    const tom = new Date(Date.now() + 86400000)
-    const [date, setDate] = useState(tom.toISOString().slice(0, 10))
-    const [time, setTime] = useState('09:00')
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
-        <div role="dialog" aria-modal="true" aria-label="Proposer un créneau" className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
-          style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
-          <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
-          <div className="space-y-3">
-            <div>
-              <label htmlFor="slot-date" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
-              <input id="slot-date" type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
-                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
-            </div>
-            <div>
-              <label htmlFor="slot-time" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
-              <input id="slot-time" type="time" value={time} onChange={e => setTime(e.target.value)}
-                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
-            </div>
-          </div>
-          <div className="flex gap-2 mt-5">
-            <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
-            <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>Confirmer</button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col md:flex-row fixed inset-0 z-40 md:static md:z-auto md:h-full" style={{ background: chatBg, minHeight: 0 }}>
@@ -771,18 +781,15 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       {/* ═══ PANNEAU PROFIL — desktop côté droit ═══ */}
       {showProfile && (
         <div className="hidden md:block w-[280px] xl:w-[300px] flex-shrink-0 h-full anim-slide-left">
-          <ProfilePanel onClose={() => setShowProfile(false)} />
+          {renderProfilePanel({ onClose: () => setShowProfile(false) })}
         </div>
       )}
 
-      {/* ═══ PANNEAU PROFIL — mobile drawer ═══ */}
-      {showProfile && (
-        <div className="md:hidden fixed inset-0 z-50 flex" onClick={() => setShowProfile(false)}>
-          <div className="flex-1 bg-black/40" />
-          <div role="dialog" aria-modal="true" aria-label="Profil" className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()}>
-            <ProfilePanel onClose={() => setShowProfile(false)} />
-          </div>
-        </div>
+      {/* ═══ PANNEAU PROFIL — mobile drawer (modale : focus piégé, Échap) ═══ */}
+      {isMobileViewport && (
+        <ModalSheet open={showProfile} onClose={() => setShowProfile(false)} label="Profil" placement="right" panelClassName="w-[85%] max-w-sm h-full anim-slide-left" backdropOpacity={0.4}>
+          {renderProfilePanel({ onClose: () => setShowProfile(false) })}
+        </ModalSheet>
       )}
 
       {/* Menu header (3 points) — fixed au-dessus de tout */}
@@ -826,8 +833,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       })()}
 
       {/* Modals */}
-      {showSlot && <SlotModal onConfirm={proposerSlot} onCancel={() => setShowSlot(false)} />}
-      {counterFor && <SlotModal onConfirm={confirmCounter} onCancel={() => setCounterFor(null)} />}
+      {showSlot && <SlotModal c={slotColors} onConfirm={proposerSlot} onCancel={() => setShowSlot(false)} />}
+      {counterFor && <SlotModal c={slotColors} onConfirm={confirmCounter} onCancel={() => setCounterFor(null)} />}
 
       {/* Modal plainte */}
       {complainMsg && (

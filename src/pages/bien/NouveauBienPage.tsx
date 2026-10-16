@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { biensApi } from '../../api/biensApi'
 import { useAuth } from '../../context/AuthContext'
-import { QUARTIERS } from '../../data/quartiers'
+import { QUARTIERS, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { track } from '../../lib/analytics'
 import { apiMessage } from '../../utils/apiMessage'
 import { useFormDraft, useDraftState } from '../../hooks/useFormDraft'
+import { suggestPush } from '../../lib/push'
 
 const normalizeStr = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -435,7 +436,18 @@ export default function NouveauBienPage() {
       if (!isMeuble && !parsePrix(prix)) { setError('Veuillez entrer le prix'); return }
       if (isMeuble && !hasAtLeastOneTarif) { setError('Renseignez au moins un tarif'); return }
     }
-    if (step === 1 && !quartier.trim()) { setError('Veuillez sélectionner un quartier'); return }
+    if (step === 1 && !quartier.trim()) {
+      // Un nom tapé en toutes lettres (sans cliquer la suggestion) est reconnu s'il figure dans la liste (B-010)
+      const typed = quartierSearch.trim()
+      const exact = typed ? QUARTIERS.find(q => normalizeStr(q.nom) === normalizeStr(typed)) : undefined
+      if (exact) selectQuartier(exact.nom, exact.arrondissement, exact.ville)
+      else {
+        setError(typed
+          ? `« ${typed} » n'est pas dans la liste. Choisissez une suggestion, ou touchez « Utiliser « ${typed} » comme quartier » pour le garder tel quel.`
+          : 'Veuillez sélectionner un quartier')
+        return
+      }
+    }
     if (step === 2 && isTerrain && !titreTerrain.trim()) { setError('Veuillez donner un nom à ce bien'); return }
     if (step === 2 && isTerrain && !superficieM2) { setError('Veuillez indiquer la superficie du terrain'); return }
     setError('')
@@ -595,6 +607,7 @@ export default function NouveauBienPage() {
       }
 
       draft.clear()
+      suggestPush()
       setCreated(true)
     } catch (err: any) {
       setError(apiMessage(err) || 'Erreur lors de la création')
@@ -822,6 +835,9 @@ export default function NouveauBienPage() {
                   <label className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
                     Quartier
                   </label>
+                  <p className="text-xs mb-2" style={{ color: 'var(--p-muted)' }}>
+                    La liste couvre {VILLES_AVEC_QUARTIERS.join(' et ')}. Un quartier absent de la liste peut être saisi librement.
+                  </p>
                   {quartier ? (
                     <div className="flex items-center gap-3 px-4 py-3 rounded-xl border"
                       style={{ background: 'rgba(72,199,116,0.09)', borderColor: 'rgba(72,199,116,0.45)' }}>

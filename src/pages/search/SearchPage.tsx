@@ -452,11 +452,22 @@ export default function SearchPage() {
     const params: any = { limit: PAGE_SIZE }
     if (transaction) params.transaction = transaction
     if (type)        params.type        = type
+    // Filtrés par le serveur : le total et les pages restent justes (FE-D-005).
+    // Le prix reste local : il alimente les suggestions « budget voisin ».
+    if (sousType)      params.sous_type      = sousType
+    // Nombres normalisés (virgule décimale) ; une valeur illisible est ignorée plutôt que de casser la recherche
+    const num = (v: string) => { const n = Number(v.replace(',', '.')); return Number.isFinite(n) && n >= 0 ? n : null }
+    const chambres = num(chambresMin), salons = num(salonsMin), supMin = num(superficieMin), supMax = num(superficieMax)
+    if (chambresMin && chambres !== null)     params.chambres_min   = Math.floor(chambres)
+    if (salonsMin && salons !== null)         params.salons_min     = Math.floor(salons)
+    if (superficieMin && supMin !== null)     params.superficie_min = supMin
+    if (superficieMax && supMax !== null)     params.superficie_max = supMax
+    if (sortBy !== 'pertinence') params.tri = sortBy
     const nq = norm(query.trim())
     const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
     if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
     return params
-  }, [query, transaction, type])
+  }, [query, transaction, type, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy])
 
   // Clé des paramètres réellement envoyés : taper dans la recherche sans changer de ville ne recharge rien
   const paramsKey = JSON.stringify(buildParams())
@@ -496,8 +507,8 @@ export default function SearchPage() {
   }
 
   useScrollRestoration(!loading && allBiens.length > 0)
-  // Prix, pièces, superficie et tri ne portent que sur les annonces déjà chargées (le serveur ne les filtre pas)
-  const localFiltersActive = !!(prixMin || prixMax || sousType || chambresMin || salonsMin || superficieMin || superficieMax) || sortBy !== 'pertinence'
+  // Seul le filtre de prix s'applique encore sur les annonces déjà chargées
+  const localFiltersActive = !!(prixMin || prixMax)
 
   const sharedResults = { search, loading, fetchError, retryFetch, favIds, isDark, tk, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
   const onFavToggle   = (id: number, added: boolean) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })

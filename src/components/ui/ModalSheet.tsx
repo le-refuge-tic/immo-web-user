@@ -1,7 +1,7 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
-type Placement = 'bottom' | 'center' | 'responsive'
+type Placement = 'bottom' | 'center' | 'responsive' | 'right'
 
 interface ModalSheetProps {
   open: boolean
@@ -9,7 +9,7 @@ interface ModalSheetProps {
   children: ReactNode
   label: string
   className?: string
-  /** `bottom` : feuille en bas ; `center` : centré ; `responsive` : feuille sur mobile, centré dès md. */
+  /** `bottom` : feuille en bas ; `center` : centré ; `responsive` : feuille sur mobile, centré dès md ; `right` : panneau latéral pleine hauteur. */
   placement?: Placement
   /** Classes de largeur du panneau (défaut : pleine largeur, max 32rem). */
   panelClassName?: string
@@ -24,6 +24,7 @@ const PLACEMENT_CLASS: Record<Placement, string> = {
   bottom: 'items-end justify-center',
   center: 'items-center justify-center p-4',
   responsive: 'items-end md:items-center justify-center md:p-4',
+  right: 'items-stretch justify-end',
 }
 
 // Modales ouvertes, de la plus ancienne à la plus récente : seule la dernière réagit à Échap,
