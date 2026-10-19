@@ -200,7 +200,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         setMessages(msgs.filter((m: any) => m.sender_id !== null))
         const list = Array.isArray(cd) ? cd : cd.data || []
         setConv(list.find((c: any) => c.id === convId) || null)
-      } catch (_) {}
+      } catch {}
       setLoading(false)
     }
     setConv(null); setMessages([]); setShowProfile(false)
@@ -213,6 +213,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       setInput(draft)
       if ((location.state as any)?.draftMessage) navigate(location.pathname, { replace: true, state: {} })
     }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate et le chemin courant ne servent qu'à effacer l'état de navigation une fois le brouillon consommé
   }, [location.state, initialDraft])
 
   useEffect(() => {

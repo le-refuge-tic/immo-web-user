@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { walletApi } from '../../../api/walletApi'
 import { IcTrendUp, IcTrendDown } from './icons'
 import { BLUE, fmtPrix } from './shared'
-import type { Tab } from './shared'
+
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { onActivateKey } from '../../../utils/keyboard'
 

@@ -5,7 +5,7 @@ import AjouterBienGestionModal from '../AjouterBienGestionModal'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcPayments, IcRefresh } from './icons'
 import { IcHome, IcClock, IcWallet, IcPlus, IcShield, IcShare, BLUE, bienLabel, fmtPrix } from './shared'
-import type { Tab } from './shared'
+
 import { ContratDetailModal } from './ContratDetailModal'
 import { onActivateKey } from '../../../utils/keyboard'
 
@@ -79,7 +79,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
     try {
       const { code_invitation } = await biensApi.regenererCode(bien.id)
       setBiensGestion(prev => prev.map(b => b.id === bien.id ? { ...b, code_invitation } : b))
-    } catch (_) {}
+    } catch {}
   }
 
   const stats = data?.stats || {}

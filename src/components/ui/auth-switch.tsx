@@ -718,37 +718,7 @@ function ModeToggle({ mode, onChange }: { mode: 'login' | 'register'; onChange: 
   )
 }
 
-// ── Bulles décoratives d'arrière-plan (panneau formulaire) ─────────────────
-const BUBBLES = [
-  { size: 320, top: '-10%', left: '-14%', color1: 'rgba(75,107,255,0.28)',  color2: 'rgba(75,107,255,0.06)',  delay: 0   },
-  { size: 220, top: '62%',  left: '-10%', color1: 'rgba(255,107,53,0.22)',  color2: 'rgba(255,107,53,0.04)',  delay: 1.8 },
-  { size: 170, top: '8%',   left: '70%',  color1: 'rgba(168,85,247,0.20)',  color2: 'rgba(168,85,247,0.04)',  delay: 3.2 },
-  { size: 260, top: '72%',  left: '58%',  color1: 'rgba(75,107,255,0.18)',  color2: 'rgba(75,107,255,0.03)',  delay: 0.9 },
-  { size: 120, top: '35%',  left: '85%',  color1: 'rgba(255,107,53,0.16)',  color2: 'rgba(255,107,53,0.03)',  delay: 2.5 },
-  { size: 90,  top: '50%',  left: '16%',  color1: 'rgba(168,85,247,0.14)',  color2: 'rgba(168,85,247,0.02)',  delay: 4.1 },
-  { size: 70,  top: '20%',  left: '42%',  color1: 'rgba(75,107,255,0.12)',  color2: 'rgba(75,107,255,0.02)',  delay: 1.4 },
-]
 
-function PanelBubbles() {
-  return (
-    <div className="auth-bubbles" aria-hidden="true">
-      {BUBBLES.map((b, i) => (
-        <div
-          key={i}
-          className="auth-bubble"
-          style={{
-            width:  b.size,
-            height: b.size,
-            top:    b.top,
-            left:   b.left,
-            background: `radial-gradient(circle at 30% 30%, ${b.color1} 0%, ${b.color2} 55%, transparent 75%)`,
-            animationDelay: `${b.delay}s`,
-          }}
-        />
-      ))}
-    </div>
-  )
-}
 
 // ── Composant principal exporté ─────────────────────────────────────────────
 export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 'register' }) {

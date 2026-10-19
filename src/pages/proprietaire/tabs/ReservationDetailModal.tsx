@@ -3,12 +3,6 @@ import { IcChat, BLUE, bienLabel, fmtPrix, statutVisite } from './shared'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 
-/** Carte compacte (grille) — aperçu d'une réservation, ouvre le détail complet au clic. */
-/** Génère un placeholder SVG coloré pour une réservation sans photo. */
-function reservationPlaceholderSrc(letter: string, colorHex: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="${colorHex}"/><text x="200" y="230" text-anchor="middle" font-size="160" font-weight="800" fill="rgba(255,255,255,0.18)" font-family="sans-serif">${letter.toUpperCase()}</text></svg>`
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
-}
 
 /** Modal de détail — thème clair, sections bien délimitées. */
 export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, cpId, setCpId, cpDate, setCpDate, cpTime, setCpTime, submitting, onContrePropose, now }: {
@@ -49,14 +43,12 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
   const mins = urgente ? minutesAvant(v, now) : null
 
   const [shown, setShown] = useState(false)
-  const [closing, setClosing] = useState(false)
   useEffect(() => {
     const id = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)))
     return () => cancelAnimationFrame(id)
   }, [])
   const handleClose = () => {
     setShown(false)
-    setClosing(true)
     setTimeout(onClose, 220)
   }
 

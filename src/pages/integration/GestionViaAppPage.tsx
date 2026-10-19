@@ -23,7 +23,7 @@ export default function GestionViaAppPage() {
     setLoading(true)
     try {
       if (contratId) await loyersApi.activerGestionApp(Number(contratId))
-    } catch (_) {}
+    } catch {}
     navigate('/locataire', { replace: true })
   }
 

@@ -130,6 +130,7 @@ export default function MesVisitesPage() {
       setShowPay(v)
       navigate(location.pathname, { replace: true, state: {} })
     }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate et le chemin courant ne servent qu'à effacer l'état de navigation une fois consommé
   }, [visites, location.state])
 
   const filtered = visites.filter(v => {
@@ -153,7 +154,7 @@ export default function MesVisitesPage() {
         setConfirmDialog(null)
         // Recharger même en cas d'erreur réseau — le serveur a peut-être traité
         // la demande (cold start Render) et l'état affiché doit refléter la réalité.
-        try { await visitesApi.annuler(v.id) } catch (_) {} finally { loadVisites() }
+        try { await visitesApi.annuler(v.id) } catch {} finally { loadVisites() }
       },
     })
   }
@@ -164,7 +165,7 @@ export default function MesVisitesPage() {
       body: 'Confirmez-vous que la visite a bien eu lieu ?',
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.marquerEffectuee(v.id) } catch (_) {} finally { loadVisites() }
+        try { await visitesApi.marquerEffectuee(v.id) } catch {} finally { loadVisites() }
       },
     })
   }
@@ -173,7 +174,7 @@ export default function MesVisitesPage() {
     try {
       await visitesApi.accepterContreProposition(id)
       loadVisites()
-    } catch (_) {}
+    } catch {}
   }
 
   const handleRefuserCP = (v: any) => {
@@ -182,20 +183,20 @@ export default function MesVisitesPage() {
       body: 'La visite sera annulée. Vous pouvez faire une nouvelle demande si vous le souhaitez.',
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.annuler(v.id) } catch (_) {} finally { loadVisites() }
+        try { await visitesApi.annuler(v.id) } catch {} finally { loadVisites() }
       },
     })
   }
 
   const handleReproposer = async (id: number, isoDate: string) => {
-    try { await visitesApi.reProposer(id, isoDate) } catch (_) {} finally { loadVisites() }
+    try { await visitesApi.reProposer(id, isoDate) } catch {} finally { loadVisites() }
   }
 
   const openChat = async (bienId: number, draftMessage?: string) => {
     try {
       const conv = await chatApi.creerConversation(bienId)
       navigate(`/conversations/${conv.conversationId}`, draftMessage ? { state: { draftMessage } } : undefined)
-    } catch (_) {}
+    } catch {}
   }
 
   const handleContacterEchouee = (v: any) => {
@@ -214,7 +215,7 @@ export default function MesVisitesPage() {
       // Comme sur mobile : le contrat de bail s'affiche une seule fois,
       // juste après avoir accepté d'intégrer — avant d'aller au paiement.
       if (integre && bienId) navigate(`/contrat-bail/${bienId}`)
-    } catch (_) {}
+    } catch {}
   }
 
   // Suivi d'une transaction déjà créée chez l'opérateur (nouvelle ou reprise).
@@ -666,7 +667,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
       setReproposing(false)
       setNewDate('')
       setNewTime('')
-    } catch (_) {}
+    } catch {}
     setSubmittingRepro(false)
   }
 

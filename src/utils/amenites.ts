@@ -73,13 +73,6 @@ function finitionLabel(a: any): string | null {
   }
 }
 
-function disponibiliteLabel(a: any): string | null {
-  switch (a.disponibilite) {
-    case 'immediate': return 'Disponible immédiatement'
-    case 'en_finition': return 'En finition / Bientôt disponible'
-    default: return null
-  }
-}
 
 const DOCUMENT_TERRAIN_LABELS: Record<string, string> = {
   permis_construire: 'Permis de construire',
@@ -176,16 +169,3 @@ export function infosTerrainRows(a: any): InfoRow[] {
   return rows
 }
 
-/** Puces "Équipements & atouts" (espaces + équipements + boutique) */
-function actifLabels(a: any): string[] {
-  const result: string[] = []
-  if (a.cour) result.push('Cour')
-  if (a.arriere_cour) result.push('Arrière-cour')
-  if (a.parking) result.push(a.parking_capacite != null ? `Parking (${a.parking_capacite} véh.)` : 'Parking')
-  if (a.boyerie) result.push(a.boyerie_type ? `Boyerie (${a.boyerie_type})` : 'Boyerie')
-  if (a.boutique) result.push(a.boutique_position ? `Boutique (${a.boutique_position})` : 'Boutique')
-  if (a.armoires_chambre) result.push('Armoires chambre')
-  if (a.sanitaire === true) result.push('Sanitaire intérieur')
-  if (Array.isArray(a.equipements)) result.push(...a.equipements)
-  return result
-}

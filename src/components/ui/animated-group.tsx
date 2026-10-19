@@ -19,10 +19,6 @@ const defaultContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 }
-const defaultItemVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-}
 
 const presetVariants: Record<PresetType, { container: Variants; item: Variants }> = {
   fade: {

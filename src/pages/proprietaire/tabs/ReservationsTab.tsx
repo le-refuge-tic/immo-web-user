@@ -29,7 +29,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
 
   const load = async () => {
     setLoading(true)
-    try { const d = await visitesApi.reservationsRecues(); setVisites(Array.isArray(d) ? d : d.data || []) } catch (_) {}
+    try { const d = await visitesApi.reservationsRecues(); setVisites(Array.isArray(d) ? d : d.data || []) } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -57,11 +57,11 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
     : byBien.filter(v => v.statut === 'annulee')
 
   const confirmer = async (id: number) => {
-    try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch (_) {}
+    try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch {}
   }
 
   const marquerEffectuee = async (id: number) => {
-    try { await visitesApi.marquerEffectuee(id); load() } catch (_) {}
+    try { await visitesApi.marquerEffectuee(id); load() } catch {}
   }
 
   const ouvrirChat = async (v: any) => {
@@ -81,7 +81,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
         else navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
       }
       else setChatError('Ce client n\'a pas encore démarré de conversation pour ce bien.')
-    } catch (_) {}
+    } catch {}
     setChatLoadingId(null)
   }
 
@@ -92,7 +92,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
       await visitesApi.contreProposer(cpId, `${cpDate}T${cpTime}:00`)
       setCpId(null); setCpDate(''); setCpTime('')
       load()
-    } catch (_) {}
+    } catch {}
     setSubmitting(false)
   }
 

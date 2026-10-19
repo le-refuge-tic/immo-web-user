@@ -72,7 +72,7 @@ function ClientWalletView() {
         cotisation: Array.isArray(tc) ? tc : tc?.data || [],
         epargne: Array.isArray(te) ? te : te?.data || [],
       })
-    } catch (_) {}
+    } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -87,7 +87,7 @@ function ClientWalletView() {
     try {
       await walletApi.demandeRetrait(Number(montant), 'epargne')
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
-    } catch (_) {}
+    } catch {}
     setSubmitting(false)
   }
 
@@ -241,7 +241,7 @@ function WalletCommissionsView() {
       const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
       setWallet(w)
       setTrans(Array.isArray(t) ? t : t.data || [])
-    } catch (_) {}
+    } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -252,7 +252,7 @@ function WalletCommissionsView() {
     try {
       await walletApi.demandeRetrait(Number(montant))
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
-    } catch (_) {}
+    } catch {}
     setSubmitting(false)
   }
 

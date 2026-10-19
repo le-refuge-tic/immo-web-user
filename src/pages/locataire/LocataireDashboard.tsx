@@ -93,7 +93,7 @@ function MonLogementTab() {
       ])
       setData(logement)
       setCotisationSolde(Number(wallet?.balance || 0))
-    } catch (_) {}
+    } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -117,7 +117,7 @@ function MonLogementTab() {
     try {
       const conv = await chatApi.creerConversation(bien.id)
       navigate(`/conversations/${conv.id || conv.data?.id}`)
-    } catch (_) {}
+    } catch {}
     setChatLoading(false)
   }
 
@@ -135,7 +135,7 @@ function MonLogementTab() {
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
             clearInterval(pollRef.current!); resolve(false)
           }
-        } catch (_) {}
+        } catch {}
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); resolve(false) }
       }, 3000)
     })
@@ -447,11 +447,11 @@ function ActiviteTab() {
         try {
           const repaired = await paiementApi.repairerLoyer(prochain.id)
           if (repaired?.reparee) { setData(await loyersApi.monLogement()); setCotisationSolde(Number(wallet?.balance || 0)); setLoading(false); return }
-        } catch (_) {}
+        } catch {}
       }
       setData(logement)
       setCotisationSolde(Number(wallet?.balance || 0))
-    } catch (_) {}
+    } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -508,7 +508,7 @@ function ActiviteTab() {
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
             clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Paiement échoué.')
           }
-        } catch (_) {}
+        } catch {}
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
     } catch (e: any) {

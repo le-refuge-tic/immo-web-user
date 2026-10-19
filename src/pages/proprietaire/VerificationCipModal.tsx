@@ -14,7 +14,7 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
   const submit = async () => {
     if (!file) return
     setUploading(true)
-    try { await onUpload(file); setDone(true); setFile(null) } catch (_) {}
+    try { await onUpload(file); setDone(true); setFile(null) } catch {}
     setUploading(false)
   }
 

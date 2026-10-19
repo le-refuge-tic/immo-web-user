@@ -14,14 +14,12 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose
   const progressPct = totalCount > 0 ? Math.round((payesCount / totalCount) * 100) : 0
 
   const [shown, setShown] = useState(false)
-  const [closing, setClosing] = useState(false)
   useEffect(() => {
     const id = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)))
     return () => cancelAnimationFrame(id)
   }, [])
   const handleClose = () => {
     setShown(false)
-    setClosing(true)
     setTimeout(onClose, 220)
   }
 

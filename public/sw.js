@@ -56,7 +56,7 @@ self.addEventListener('push', (event) => {
   let payload = { title: 'REFUGE', body: 'Vous avez une nouvelle notification.', data: {} }
   try {
     if (event.data) payload = { ...payload, ...event.data.json() }
-  } catch (_) {}
+  } catch {}
 
   event.waitUntil(
     self.registration.showNotification(payload.title, {

@@ -104,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fallbackRole = user?.role_principal || user?.role || ''
   const candidate = activeRole || fallbackRole
   const computedActiveRole = (candidate && rolesActifs.includes(candidate)) ? candidate : fallbackRole
+  const rolesKey = rolesActifs.join(',')
 
   // Après rechargement, seul le profil minimal est persisté (FE-E-006) :
   // les coordonnées sont rechargées en mémoire depuis GET /users/me, sans persistance.
@@ -123,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user && activeRole && activeRole !== computedActiveRole) {
       setActiveRole(computedActiveRole)
     }
-  }, [user, rolesActifs.join(',')])
+  }, [user, rolesKey, activeRole, computedActiveRole])
 
   return (
     <AuthContext.Provider value={{ user, token, isLoggedIn: !!token, login, logout, updateUser, hasRole, rolesActifs, activeRole: computedActiveRole, setActiveRole }}>

@@ -599,11 +599,11 @@ export default function NouveauBienPage() {
           try {
             await biensApi.uploadPhoto(bien.id, photos[i])
             setUploadProgress(Math.round(((i + 1) / photos.length) * 100))
-          } catch (_) {}
+          } catch {}
         }
       }
       if (video && bien.id) {
-        try { await biensApi.uploadVideo(bien.id, video) } catch (_) {}
+        try { await biensApi.uploadVideo(bien.id, video) } catch {}
       }
 
       draft.clear()

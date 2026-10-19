@@ -88,7 +88,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       setIsFav(isFavori)
       if (isFavori) track('favori_ajoute', { type: bien.type })
       onFavoriteToggle?.(bien.id, isFavori)
-    } catch (_) {}
+    } catch {}
     setToggling(false)
   }
 

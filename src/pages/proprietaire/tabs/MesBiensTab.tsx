@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
 import { IcPlus, IcPin, IcTrash, IcEdit, BLUE, bienLabel, bienComposition, fmtPrix, statutBien } from './shared'
-import type { Tab } from './shared'
+
 import type { Bien } from '../../../types/api'
 import CarouselPauseToggle from '../../../components/CarouselPauseToggle'
 import { useCarouselAutoplay } from '../../../hooks/useCarouselAutoplay'
@@ -27,7 +27,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
 
   const load = async () => {
     setLoading(true)
-    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch (_) {}
+    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -51,7 +51,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
   })()
 
   const del = async (id: number) => {
-    try { await biensApi.delete(id); load() } catch (_) {}
+    try { await biensApi.delete(id); load() } catch {}
     setConfirmDeleteBienId(null)
   }
 

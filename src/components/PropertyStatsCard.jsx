@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Home } from "lucide-react";
 
-function Ring({ value, total, color, size = 76, stroke = 7, delay = 0, dark = false, hovered = false }) {
+function Ring({ value, total, color, size = 76, stroke = 7, dark = false }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -41,7 +41,7 @@ function Ring({ value, total, color, size = 76, stroke = 7, delay = 0, dark = fa
   );
 }
 
-function StatItem({ s, i, total, dark }) {
+function StatItem({ s, total, dark }) {
   const [hovered, setHovered] = useState(false);
   const [ringKey, setRingKey] = useState(0);
 

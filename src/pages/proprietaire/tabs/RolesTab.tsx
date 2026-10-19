@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { rolesApi } from '../../../api/rolesApi'
 import { BLUE, ROLE_ROUTES, shade } from './shared'
-import type { Tab } from './shared'
+
 import { apiMessage } from '../../../utils/apiMessage'
 
 // ─── Tab: Profil ──────────────────────────────────────────────────────────────

@@ -187,6 +187,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
     ? `${bienTitle}${bien.localisation?.ville ? `, ${bien.localisation.ville}` : ''} : ${Number(bien.prix).toLocaleString('fr-FR')} FCFA${bien.transaction === 'location' ? ' par mois' : ''}. ${String(bien.description ?? '').slice(0, 110)}`.trim()
     : undefined
   usePageTitle(bienTitle, bienDescription)
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- un seul suivi par annonce affichée (identifiant)
   useEffect(() => { if (bien?.id) track('vue_annonce', { type: bien.type, transaction: bien.transaction }) }, [bien?.id])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -199,7 +200,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const [visiteCancellee, setVisiteCancellee] = useState<any>(null)
   const [visiteEchouee, setVisiteEchouee] = useState<any>(null)
   const [annulerBusy, setAnnulerBusy] = useState(false)
-  const [confirmAnnulerVisite, setConfirmAnnulerVisite] = useState(false)
+  const [, setConfirmAnnulerVisite] = useState(false)
 
   const [isOccupeLocal, setIsOccupeLocal] = useState(false)
   const [togglingStatut, setTogglingStatut] = useState(false)
@@ -234,6 +235,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
         setSimilaires([...memeQuartier, ...memeVille].slice(0, 6))
       })
       .catch(() => {})
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- la liste de biens proches ne dépend que de l'identité du bien affiché, pas de chaque champ
   }, [bien?.id])
 
   const partager = async () => {
@@ -283,7 +285,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
     try {
       await biensApi.updateStatut(bien.id, newStatut)
       setIsOccupeLocal(!isOccupeLocal)
-    } catch (_) {}
+    } catch {}
     setTogglingStatut(false)
   }
 
@@ -294,7 +296,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
     try {
       await visitesApi.annuler(visiteActive.id)
       setVisiteCancellee(visiteActive); setVisiteActive(null)
-    } catch (_) {}
+    } catch {}
     setAnnulerBusy(false)
   }
 

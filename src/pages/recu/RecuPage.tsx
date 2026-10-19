@@ -203,7 +203,7 @@ export default function RecuPage() {
         sections,
         filename: `refuge_${isDepot ? 'rechargement' : isLoyer ? 'loyer' : isIntegration ? 'integration' : 'recu'}_${ref8}.pdf`,
       })
-    } catch (e) {
+    } catch {
       setError('Impossible de générer le PDF. Réessayez.')
     } finally {
       setGenerating(false)

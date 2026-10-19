@@ -44,6 +44,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       setError('')
       setSuccess(false)
     }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- le formulaire se réinitialise à l'ouverture seulement ; suivre user écraserait la saisie en cours
   }, [open])
 
   if (!open) return null

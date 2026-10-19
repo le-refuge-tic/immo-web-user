@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { openPaymentUrl } from '../../utils/paymentUrl'
 import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'

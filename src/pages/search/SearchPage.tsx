@@ -414,7 +414,7 @@ export default function SearchPage() {
       const list = Array.isArray(data) ? data : data.data || []
       setAllBiens(list)
       setTotal(Array.isArray(data) ? list.length : Number(data.total ?? list.length))
-    } catch (_) {
+    } catch {
       if (generation !== generationRef.current) return
       // Échec : on n'affiche plus la liste de l'ancienne recherche, ni son total
       setAllBiens([])
@@ -441,7 +441,7 @@ export default function SearchPage() {
         return [...prev, ...list.filter((b: any) => !known.has(b.id))]
       })
       if (!Array.isArray(data) && data.total !== undefined) setTotal(Number(data.total))
-    } catch (_) {
+    } catch {
       // Erreur propre à la page suivante : la liste déjà chargée reste affichée
       if (generation === generationRef.current) setLoadMoreError(true)
     }
@@ -511,7 +511,7 @@ export default function SearchPage() {
   const localFiltersActive = !!(prixMin || prixMax)
 
   const sharedResults = { search, loading, fetchError, retryFetch, favIds, isDark, tk, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
-  const onFavToggle   = (id: number, added: boolean) => setFavIds(prev => { const n = new Set(prev); added ? n.add(id) : n.delete(id); return n })
+  const onFavToggle   = (id: number, added: boolean) => setFavIds(prev => { const n = new Set(prev); if (added) n.add(id); else n.delete(id); return n })
 
   return (
     <div className="min-h-full">
@@ -781,7 +781,7 @@ type FilterPanelProps = {
 }
 
 function FilterPanel({
-  isDark, tk, transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax,
+  isDark: _isDark, tk, transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax,
   sousType, setSousType, chambresMin, setChambresMin, salonsMin, setSalonsMin,
   superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
 }: FilterPanelProps) {

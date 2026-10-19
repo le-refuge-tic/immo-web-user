@@ -72,7 +72,7 @@ test.describe('P1 découverte', () => {
     await page.locator('article a:visible').first().waitFor()
 
     await page.evaluate(() => document.getElementById('main-content')?.scrollTo({ top: 900 }))
-    await page.waitForTimeout(500)
+    await expect.poll(() => page.evaluate(() => document.getElementById('main-content')?.scrollTop ?? 0)).toBeGreaterThan(800)
     await page.locator('article a:visible').nth(6).click({ force: true })
     await page.waitForURL(/\/biens\/\d+/)
     await page.goBack()

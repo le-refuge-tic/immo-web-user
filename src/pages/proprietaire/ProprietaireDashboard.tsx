@@ -15,7 +15,7 @@ import { AnimatedGroup } from '../../components/ui/animated-group'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { IcPayments, IcChevron, IcMessagesNav } from './tabs/icons'
-import { IcHome, IcCal, IcClock, IcWallet, IcPlus, IcStar, IcShield, IcPin, IcLogout, BLUE, ROLE_LABELS, ROLE_ROUTES, TABS, NAV_ITEMS, typeLabel, bienLabel, bienComposition, fmtPrix, statutBien, buildRevenueSeries, buildCountSeries, LiveIndicator } from './tabs/shared'
+import { IcHome, IcCal, IcClock, IcWallet, IcPlus, IcStar, IcShield, IcPin, IcLogout, BLUE, ROLE_LABELS, ROLE_ROUTES, TABS, NAV_ITEMS, bienLabel, bienComposition, fmtPrix, statutBien, buildCountSeries, LiveIndicator } from './tabs/shared'
 import type { Tab } from './tabs/shared'
 import { MesBiensTab } from './tabs/MesBiensTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
@@ -98,7 +98,7 @@ export default function ProprietaireDashboard() {
       requestAnimationFrame(() => setIsScrolled(false))
     })
     return () => cancelAnimationFrame(id)
-  }, [])
+  }, [fromDetail])
 
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
@@ -109,7 +109,6 @@ export default function ProprietaireDashboard() {
   const [visites, setVisites] = useState<any[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [chartPeriod, setChartPeriod] = useState<3 | 6 | 12>(6)
   const [hoveredOverviewEl, setHoveredOverviewEl] = useState<string | null>(null)
 
   const loadData = async (silent = false) => {
@@ -123,7 +122,7 @@ export default function ProprietaireDashboard() {
       if (l.status === 'fulfilled') setLoyersDash(l.value)
       if (v.status === 'fulfilled') setVisites(Array.isArray(v.value) ? v.value : v.value.data || [])
       setLastUpdated(new Date())
-    } catch (_) {}
+    } catch {}
     setLoading(false)
     setRefreshing(false)
   }
@@ -145,29 +144,8 @@ export default function ProprietaireDashboard() {
   const me = user || authUser
   const initials = `${me?.prenom?.[0] || ''}${me?.nom?.[0] || ''}`.toUpperCase()
   const score = me?.score_credibilite ?? 100
-  const approuves = biens.filter(b => b.statut_moderation === 'approuve').length
-  const enAttente = biens.filter(b => b.statut_moderation === 'en_attente').length
-  const rejetes   = biens.filter(b => b.statut_moderation === 'rejete').length
   const reservationsEnAttente = visites.filter(v => v.statut === 'en_attente').length
   const totalVues = biens.reduce((s, b) => s + (b.nb_consultations || 0), 0)
-
-  const biensParType = (() => {
-    const counts: Record<string, number> = {}
-    for (const b of biens) counts[b.type] = (counts[b.type] || 0) + 1
-    return Object.entries(counts)
-      .map(([type, n]) => ({ label: typeLabel(type), value: n }))
-      .sort((a, b) => b.value - a.value)
-  })()
-
-  // Séries "carte KPI" — toujours 6 mois, indépendantes du sélecteur de
-  // période du graphique (qui ne doit affecter que le grand graphique).
-  const revenusSeries6 = buildRevenueSeries(loyersDash?.contrats || [])
-  const revenusMoisActuel = revenusSeries6[revenusSeries6.length - 1]?.value ?? 0
-  const revenusMoisPrecedent = revenusSeries6[revenusSeries6.length - 2]?.value ?? 0
-  const revenusTrendPct = revenusMoisPrecedent > 0
-    ? Math.round(((revenusMoisActuel - revenusMoisPrecedent) / revenusMoisPrecedent) * 100)
-    : (revenusMoisActuel > 0 ? 100 : 0)
-  const hasRevenus = revenusSeries6.some(m => m.value > 0)
 
   const visitesSeries6 = buildCountSeries(visites, v => v.date_souhaitee)
   const visitesMoisActuel = visitesSeries6[visitesSeries6.length - 1]?.value ?? 0
@@ -176,10 +154,6 @@ export default function ProprietaireDashboard() {
     ? Math.round(((visitesMoisActuel - visitesMoisPrecedent) / visitesMoisPrecedent) * 100)
     : (visitesMoisActuel > 0 ? 100 : 0)
 
-  // Séries des grands graphiques — respectent le sélecteur 3M/6M/12M
-  // (comme le 7D/30D/90D du template).
-  const revenusSeries = buildRevenueSeries(loyersDash?.contrats || [], chartPeriod)
-  const visitesSeries = buildCountSeries(visites, v => v.date_souhaitee, chartPeriod)
   const hasVisites = visitesSeries6.some(m => m.value > 0)
 
   // Alerte loyers — réutilise les données déjà chargées (loyersDash), sans

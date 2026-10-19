@@ -46,7 +46,7 @@ export default function DelegationModal({ onClose }: Props) {
       .finally(() => setLoading(false))
   }
   useEffect(() => { chargerListe() }, [])
-  useEffect(() => { if (view === 'nouvelle' && biens.length === 0) biensApi.mesBiens().then(d => setBiens(Array.isArray(d) ? d : d.data || [])).catch(() => {}) }, [view])
+  useEffect(() => { if (view === 'nouvelle' && biens.length === 0) biensApi.mesBiens().then(d => setBiens(Array.isArray(d) ? d : d.data || [])).catch(() => {}) }, [view, biens.length])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -83,7 +83,7 @@ export default function DelegationModal({ onClose }: Props) {
     try {
       await delegationApi.revoquer(id)
       setDelegations(prev => prev.map(d => d.id === id ? { ...d, statut: 'revoquee' } : d))
-    } catch (_) {}
+    } catch {}
   }
 
   return (

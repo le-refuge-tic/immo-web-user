@@ -204,7 +204,7 @@ export default function HomePage() {
       const loc   = Array.isArray(locData)   ? locData   : locData.data   || []
       const vente = Array.isArray(venteData) ? venteData : venteData.data || []
       setBiens([...loc, ...vente])
-    } catch (_) {
+    } catch {
       setLoadError(true)
     }
     setLoading(false)
@@ -216,9 +216,10 @@ export default function HomePage() {
       const data = await favoritesApi.list()
       const list = Array.isArray(data) ? data : data.data || []
       setFavIds(new Set(list.map((f: any) => f.bien_id || f.id)))
-    } catch (_) {}
+    } catch {}
   }
 
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- rechargement voulu uniquement à la connexion ou déconnexion ; les fonctions sont recréées à chaque rendu
   useEffect(() => { loadBiens(); loadFavs() }, [isLoggedIn])
 
   const minVal = prixMin ? Number(prixMin) : null
@@ -274,7 +275,7 @@ export default function HomePage() {
     const params = new URLSearchParams()
     if (search.trim()) params.set('q', search.trim())
     if (transaction) params.set('transaction', transaction)
-    if (type) { isSousType(type) ? params.set('sous_type', type) : params.set('type', type) }
+    if (type) { params.set(isSousType(type) ? 'sous_type' : 'type', type) }
     if (minVal != null) params.set('prix_min', String(minVal))
     if (maxVal != null) params.set('prix_max', String(maxVal))
     const qs = params.toString()

@@ -190,7 +190,7 @@ export default function ProfilePage() {
           const list = Array.isArray(v.value) ? v.value : v.value?.data || []
           setVisites(list as unknown as Visite[]) // type local divergent de types/api (FE-A-003)
         }
-      } catch (_) {}
+      } catch {}
       setIsLoading(false)
     }
     load()
@@ -230,12 +230,12 @@ export default function ProfilePage() {
     // demande (cold start Render) et l'état affiché doit refléter la réalité.
     try {
       await visitesApi.annuler(visiteActive.id)
-    } catch (_) {
+    } catch {
     } finally {
       try {
         const data = await visitesApi.mesVisites()
         setVisites((Array.isArray(data) ? data : data.data || []) as unknown as Visite[])
-      } catch (_) {}
+      } catch {}
     }
   }
 

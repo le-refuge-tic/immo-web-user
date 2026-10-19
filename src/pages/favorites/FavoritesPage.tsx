@@ -36,7 +36,7 @@ export default function FavoritesPage() {
     const ids = Array.from(favIds)
     setData([])
     setConfirmClearAll(false)
-    try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (_) {}
+    try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch {}
   }
 
   return (

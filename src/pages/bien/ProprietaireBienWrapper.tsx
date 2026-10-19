@@ -44,7 +44,7 @@ export default function ProprietaireBienWrapper() {
       requestAnimationFrame(() => setIsScrolled(false))
     })
     return () => cancelAnimationFrame(id)
-  }, [])
+  }, [fromDashboard])
 
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
 

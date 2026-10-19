@@ -3,7 +3,7 @@ import { walletApi } from '../../../api/walletApi'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { IcTrendUp, IcTrendDown } from './icons'
 import { BLUE, DARK_BLUE } from './shared'
-import type { Tab } from './shared'
+
 import { categorieTransaction, TransactionDetailModal } from './TransactionsTab'
 import { svgMaskUrl } from './RolesTab'
 import { apiMessage } from '../../../utils/apiMessage'
@@ -162,7 +162,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
     try {
       const [w, t, r] = await Promise.all([walletApi.me(), walletApi.transactions(), walletApi.mesRetraits()])
       setWallet(w); setTrans(Array.isArray(t) ? t : t.data || []); setRetraits(Array.isArray(r) ? r : r.data || [])
-    } catch (_) {}
+    } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
