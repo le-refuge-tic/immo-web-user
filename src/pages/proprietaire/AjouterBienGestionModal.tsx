@@ -3,6 +3,7 @@ import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
 import { apiMessage } from '../../utils/apiMessage'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Props = { onClose: () => void; onCreated: (bien: any) => void }
 
@@ -76,15 +77,9 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
   }
 
   return (
-    <div
-      role="dialog" aria-modal="true" aria-label="Ajouter un bien en gestion"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.4)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Ajouter un bien en gestion" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
       <div
         className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Ajouter un bien en gestion</h2>
@@ -186,6 +181,6 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

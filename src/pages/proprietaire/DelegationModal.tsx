@@ -3,6 +3,7 @@ import { delegationApi } from '../../api/delegationApi'
 import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { apiMessage } from '../../utils/apiMessage'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Props = { onClose: () => void }
 
@@ -86,16 +87,10 @@ export default function DelegationModal({ onClose }: Props) {
   }
 
   return (
-    <div
-      role="dialog" aria-modal="true" aria-label="Déléguer la gestion"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.4)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Déléguer la gestion" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
       <div
         className="rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
         style={{ background: 'var(--p-card)' }}
-        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0" style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
           <h2 className="font-bold" style={{ color: 'var(--p-text)' }}>
@@ -212,6 +207,6 @@ export default function DelegationModal({ onClose }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </ModalSheet>
   )
 }

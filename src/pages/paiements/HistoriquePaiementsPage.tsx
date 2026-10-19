@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { apiMessage } from '../../utils/apiMessage'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 
@@ -235,12 +236,8 @@ export default function HistoriquePaiementsPage() {
 
       {/* Détail */}
       {detail && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-          aria-hidden="true"
-          onClick={() => setDetail(null)}>
-          <div role="dialog" aria-modal="true" aria-label="Détail du paiement" className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white"
-            onClick={e => e.stopPropagation()}>
+        <ModalSheet open onClose={() => setDetail(null)} label="Détail du paiement" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+          <div className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${colorFor(detail)}1A`, color: colorFor(detail) }}>
                 {iconFor(detail)}
@@ -281,7 +278,7 @@ export default function HistoriquePaiementsPage() {
               </button>
             )}
           </div>
-        </div>
+        </ModalSheet>
       )}
     </div>
   )

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../api/userApi'
 import { apiMessage } from '../../utils/apiMessage'
 import VerifyPhoneSection from './VerifyPhoneSection'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -84,18 +85,10 @@ export default function EditProfileModal({ open, onClose }: Props) {
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Modifier le profil"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Modifier le profil" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.35}>
       <div
         className="w-full max-w-md rounded-2xl p-6"
         style={GLASS}
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -208,6 +201,6 @@ export default function EditProfileModal({ open, onClose }: Props) {
           </div>
         </form>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

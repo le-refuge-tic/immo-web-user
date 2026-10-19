@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { userApi } from '../../api/userApi'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Props = { user: any; onClose: () => void }
 
@@ -50,16 +51,10 @@ export default function VerificationCipModal({ user, onClose }: Props) {
   }, [onClose])
 
   return (
-    <div
-      role="dialog" aria-modal="true" aria-label="Vérification d'identité"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.4)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Vérification d'identité" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
       <div
         className="rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
         style={{ background: 'var(--p-card)' }}
-        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0" style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
           <h2 className="font-bold" style={{ color: 'var(--p-text)' }}>Vérification d'identité</h2>
@@ -75,6 +70,6 @@ export default function VerificationCipModal({ user, onClose }: Props) {
           <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={f => userApi.uploadIfu(f)} />
         </div>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

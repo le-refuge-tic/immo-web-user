@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { IcPayments } from './icons'
 import { BLUE, bienLabel, fmtPrix } from './shared'
 import { loyerStatut, CONTRAT_STATUT, moisLabel, dateLabel } from './LoyersTab'
+import { ModalSheet } from '../../../components/ui/ModalSheet'
 
 export function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () => void }) {
   const c = contrat
@@ -25,15 +26,8 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{
-        background: shown ? 'rgba(10,16,30,0.45)' : 'rgba(10,16,30,0)',
-        backdropFilter: shown ? 'blur(6px)' : 'blur(0px)',
-        transition: 'background 0.25s ease, backdrop-filter 0.25s ease',
-        pointerEvents: closing ? 'none' : 'auto',
-      }}
-      onClick={handleClose}>
-      <div role="dialog" aria-modal="true" aria-label="Détail du bien" className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl"
+    <ModalSheet open onClose={handleClose} label="Détail du bien" placement="center" panelClassName="w-full max-w-lg">
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl"
         style={{
           background: '#F8FAFF',
           boxShadow: '0 32px 96px rgba(10,16,30,0.32), 0 8px 24px rgba(10,16,30,0.12)',
@@ -43,8 +37,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose
             ? 'transform 0.42s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease'
             : 'transform 0.2s cubic-bezier(0.4,0,1,1), opacity 0.18s ease',
           transformOrigin: 'center center',
-        }}
-        onClick={e => e.stopPropagation()}>
+        }}>
 
         {/* ── Photo banner ── */}
         <div className="relative overflow-hidden rounded-t-2xl" style={{ height: 140 }}>
@@ -156,7 +149,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose
           </div>
         </div>
       </div>
-    </div>
+    </ModalSheet>
   )
 }
 

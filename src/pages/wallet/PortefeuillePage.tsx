@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../api/walletApi'
 import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 const isLoyer = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -167,11 +168,8 @@ function ClientWalletView() {
           )}
 
           {showRetrait && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-              onClick={() => setShowRetrait(false)}>
-              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}
-                onClick={e => e.stopPropagation()}>
+            <ModalSheet open onClose={() => setShowRetrait(false)} label="Demander un retrait — Épargne" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}>
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demander un retrait — Épargne</h3>
                 <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{Number(wallets.epargne?.balance || 0).toLocaleString('fr-FR')} FCFA</strong></p>
                 <p className="text-xs text-text-grey mb-3">Minimum 500 FCFA · Max 3 retraits / 24h</p>
@@ -189,7 +187,7 @@ function ClientWalletView() {
                   </button>
                 </div>
               </div>
-            </div>
+            </ModalSheet>
           )}
 
           <p className="font-bold text-text-dark mb-4">Historique</p>
@@ -307,11 +305,8 @@ function WalletCommissionsView() {
 
           {/* Modal retrait */}
           {showRetrait && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-              onClick={() => setShowRetrait(false)}>
-              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}
-                onClick={e => e.stopPropagation()}>
+            <ModalSheet open onClose={() => setShowRetrait(false)} label="Demande de retrait" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}>
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demande de retrait</h3>
                 <p className="text-sm text-text-grey mb-3">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
                 <label htmlFor="portefeuille-page-317" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
@@ -328,16 +323,13 @@ function WalletCommissionsView() {
                   </button>
                 </div>
               </div>
-            </div>
+            </ModalSheet>
           )}
 
           {/* Modal détail transaction */}
           {detailTx && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-              onClick={() => setDetailTx(null)}>
-              <div className="w-full max-w-md rounded-2xl p-6 max-h-[80vh] overflow-y-auto" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(40px)' }}
-                onClick={e => e.stopPropagation()}>
+            <ModalSheet open onClose={() => setDetailTx(null)} label="Détail de la transaction" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+              <div className="w-full max-w-md rounded-2xl p-6 max-h-[80vh] overflow-y-auto" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(40px)' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${typeColor(detailTx)}1A` }}>
                     <TypeIcon t={detailTx} color={typeColor(detailTx)} className="w-6 h-6" />
@@ -364,7 +356,7 @@ function WalletCommissionsView() {
                     ))}
                 </div>
               </div>
-            </div>
+            </ModalSheet>
           )}
 
           {/* Transactions */}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { IcChat, BLUE, bienLabel, fmtPrix, statutVisite } from './shared'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
+import { ModalSheet } from '../../../components/ui/ModalSheet'
 
 /** Carte compacte (grille) — aperçu d'une réservation, ouvre le détail complet au clic. */
 /** Génère un placeholder SVG coloré pour une réservation sans photo. */
@@ -60,18 +61,8 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{
-        background: shown ? 'rgba(10,16,30,0.45)' : 'rgba(10,16,30,0)',
-        backdropFilter: shown ? 'blur(6px)' : 'blur(0px)',
-        transition: 'background 0.25s ease, backdrop-filter 0.25s ease',
-        pointerEvents: closing ? 'none' : 'auto',
-      }}
-      onClick={handleClose}>
+    <ModalSheet open onClose={handleClose} label="Détail" placement="center" panelClassName="w-full max-w-lg">
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Détail"
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl"
         style={{
           background: '#F8FAFF',
@@ -82,8 +73,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
             ? 'transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease'
             : 'transform 0.2s cubic-bezier(0.4, 0, 1, 1), opacity 0.18s ease',
           transformOrigin: 'center center',
-        }}
-        onClick={e => e.stopPropagation()}>
+        }}>
 
         {/* ── Header ── */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b"
@@ -305,7 +295,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           </div>
         </div>
       </div>
-    </div>
+    </ModalSheet>
   )
 }
 
