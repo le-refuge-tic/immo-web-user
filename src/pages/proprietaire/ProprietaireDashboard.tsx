@@ -28,6 +28,7 @@ import { RolesTab } from './tabs/RolesTab'
 import { ProfilTab } from './tabs/ProfilTab'
 import CarouselPauseToggle from '../../components/CarouselPauseToggle'
 import { useCarouselAutoplay } from '../../hooks/useCarouselAutoplay'
+import { onActivateKey } from '../../utils/keyboard'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -546,6 +547,8 @@ export default function ProprietaireDashboard() {
                             key={b.id}
                             className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.14)] w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
                             style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+                            role="button" tabIndex={0}
+                            onKeyDown={onActivateKey(() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } }))}
                             onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
                           >
                             <div className="relative overflow-hidden" style={{ height: 160 }}>

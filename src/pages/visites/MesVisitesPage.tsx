@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { openPaymentUrl } from '../../utils/paymentUrl'
-import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
@@ -511,8 +510,9 @@ export default function MesVisitesPage() {
       )}
 
       {/* Feedback modal */}
-      {showFeedback && createPortal(
-        <div role="dialog" aria-modal="true" aria-label="Donner un avis" className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#F8F9FA' }}>
+      {showFeedback && (
+        <ModalSheet open onClose={() => setShowFeedback(null)} label="Donner un avis" placement="bottom" panelClassName="w-full h-full" zIndex={60} backdropOpacity={0}>
+        <div className="w-full h-full flex flex-col" style={{ background: '#F8F9FA' }}>
           {feedbackDone ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
@@ -606,8 +606,8 @@ export default function MesVisitesPage() {
               </div>
             </>
           )}
-        </div>,
-        document.body,
+        </div>
+        </ModalSheet>
       )}
 
       {/* Confirm dialog */}

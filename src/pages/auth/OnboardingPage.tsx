@@ -148,9 +148,12 @@ export default function OnboardingPage() {
             </div>
             <div className="flex items-center gap-1.5">
               {SLIDES.map((_, i) => (
-                <div
+                <button
                   key={i}
+                  type="button"
                   onClick={() => goTo(i)}
+                  aria-label={`Écran ${i + 1} sur ${SLIDES.length}`}
+                  aria-current={i === current ? 'step' : undefined}
                   className="h-2 rounded-full cursor-pointer transition-all duration-300"
                   style={{ width: i === current ? 28 : 8, background: i === current ? slide.accent : 'rgba(255,255,255,0.3)' }}
                 />

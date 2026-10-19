@@ -7,6 +7,7 @@ import { IcPayments, IcRefresh } from './icons'
 import { IcHome, IcClock, IcWallet, IcPlus, IcShield, IcShare, BLUE, bienLabel, fmtPrix } from './shared'
 import type { Tab } from './shared'
 import { ContratDetailModal } from './ContratDetailModal'
+import { onActivateKey } from '../../../utils/keyboard'
 
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
 // Statut d'un loyer — couvre les 4 valeurs réelles du backend (`en_attente`,
@@ -312,6 +313,8 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                       border: '1px solid var(--p-border)',
                       boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
                     }}
+                    role="button" tabIndex={0}
+                    onKeyDown={onActivateKey(() => setDetailContrat(c))}
                     onClick={() => setDetailContrat(c)}>
 
                     {/* ── Visuel haut ── */}

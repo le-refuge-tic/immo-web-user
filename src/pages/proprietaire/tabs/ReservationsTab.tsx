@@ -9,6 +9,7 @@ import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ReservationDetailModal } from './ReservationDetailModal'
 import type { Visite } from '../../../types/api'
 import { suggestPush } from '../../../lib/push'
+import { onActivateKey } from '../../../utils/keyboard'
 
 export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; onScrolled?: (v: boolean) => void; onOpenMessages?: (convId: number, draftMessage?: string) => void }) {
   const navigate = useNavigate()
@@ -225,6 +226,8 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                       border: '1px solid var(--p-border)',
                       boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
                     }}
+                    role="button" tabIndex={0}
+                    onKeyDown={onActivateKey(() => setModalVisiteId(v.id))}
                     onClick={() => setModalVisiteId(v.id)}>
 
                     {/* ── Photo / Avatar ── */}

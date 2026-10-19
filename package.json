@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint --max-warnings 220",
+    "lint": "oxlint --max-warnings 210",
     "preview": "vite preview",
     "test": "vitest run",
     "check:links": "node scripts/check-links.mjs",
