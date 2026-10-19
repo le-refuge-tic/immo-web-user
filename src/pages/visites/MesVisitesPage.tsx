@@ -22,13 +22,13 @@ import ErrorState from '../../components/ErrorState'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
-  en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
-  contre_proposee: { label: 'Contre-proposée', color: '#B45309', bg: 'rgba(230,126,34,0.12)' },
+  en_attente:      { label: 'En attente',      color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.1)' },
+  contre_proposee: { label: 'Contre-proposée', color: 'var(--tx-amber)', bg: 'rgba(230,126,34,0.12)' },
   confirmee:       { label: 'Confirmée',        color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)' },
-  effectuee:       { label: 'Effectuée',        color: '#3A5AEE', bg: 'rgba(58,90,238,0.1)' },
-  annulee:         { label: 'Annulée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
+  effectuee:       { label: 'Effectuée',        color: 'var(--tx-blue)', bg: 'rgba(58,90,238,0.1)' },
+  annulee:         { label: 'Annulée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
   payee:           { label: 'Payée',            color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)' },
-  echouee:         { label: 'Échouée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
+  echouee:         { label: 'Échouée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
 }
 
 // Même règle que côté mobile : une visite non traitée (confirmée ou en attente
@@ -563,7 +563,7 @@ export default function MesVisitesPage() {
                           <button key={tag} onClick={() => toggleFeedbackTag(tag)}
                             className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
                             style={sel
-                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#DC2626', fontWeight: 600 }
+                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: 'var(--tx-red)', fontWeight: 600 }
                               : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
                             {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                             {tag}

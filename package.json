@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "check:links": "node scripts/check-links.mjs",
-    "check:size": "node scripts/check-bundle-size.mjs"
+    "check:size": "node scripts/check-bundle-size.mjs",
+    "check:colors": "node scripts/check-inline-colors.mjs"
   },
   "dependencies": {
     "@sentry/react": "^11.7.0",

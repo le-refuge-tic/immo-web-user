@@ -40,7 +40,7 @@ export function RenderErrorFallback({ onRetry, compact = false }: FallbackProps)
       >
         Réessayer
       </button>
-      <a href="/" className="mt-4 text-sm font-semibold underline" style={{ color: '#3A5AEE' }}>Retour à l'accueil</a>
+      <a href="/" className="mt-4 text-sm font-semibold underline" style={{ color: 'var(--tx-blue)' }}>Retour à l'accueil</a>
     </div>
   )
 }

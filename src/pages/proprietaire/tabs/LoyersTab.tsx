@@ -16,7 +16,7 @@ export function loyerStatut(s: string): { label: string; color: string } {
   if (s === 'paye')      return { label: 'Payé',       color: '#4CAF50' }
   if (s === 'en_retard') return { label: 'En retard',  color: '#F44336' }
   if (s === 'impaye')    return { label: 'Impayé',     color: '#C62828' }
-  return { label: 'En attente', color: '#B45309' }
+  return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 export const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
   actif:   { label: 'Actif',   color: '#4CAF50' },
@@ -133,8 +133,8 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
         {!loading && data && (() => {
           const kpis = [
             { label: 'TOTAL PERÇU', value: `${Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} F`, color: BLUE,      icon: <IcWallet /> },
-            { label: 'CE MOIS',     value: `${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`,  color: '#16A34A', icon: <IcPayments /> },
-            { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: '#B45309', icon: <IcClock /> },
+            { label: 'CE MOIS',     value: `${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`,  color: 'var(--tx-green)', icon: <IcPayments /> },
+            { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: 'var(--tx-amber)', icon: <IcClock /> },
             { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? '#DC2626' : '#16A34A', icon: <IcShield /> },
           ] as { label: string; value: string; color: string; icon: React.ReactNode }[]
           return (
@@ -244,7 +244,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                     {b.locataire ? (
                       <div className="flex items-center gap-2 px-3 py-2 rounded-xl mt-2" style={{ background: '#16A34A12' }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth={2.5} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        <span className="text-xs font-bold truncate" style={{ color: '#16A34A' }}>Lié à {b.locataire.prenom} {b.locataire.nom}</span>
+                        <span className="text-xs font-bold truncate" style={{ color: 'var(--tx-green)' }}>Lié à {b.locataire.prenom} {b.locataire.nom}</span>
                       </div>
                     ) : (
                       <div className="mt-2 px-3 py-2.5 rounded-xl" style={{ background: '#F59E0B12', border: '1px dashed #F59E0B55' }}>
@@ -359,7 +359,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                           <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth={2.5} className="w-4 h-4 flex-shrink-0">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                           </svg>
-                          <span className="text-xs font-bold" style={{ color: '#16A34A' }}>À jour</span>
+                          <span className="text-xs font-bold" style={{ color: 'var(--tx-green)' }}>À jour</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between px-3 py-2.5 rounded-xl mb-3"

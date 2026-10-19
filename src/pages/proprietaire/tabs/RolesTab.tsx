@@ -35,10 +35,10 @@ function MaskIcon({ role, size = 22 }: { role: string; size?: number }) {
 }
 
 const ROLES_META: { key: string; label: string; desc: string; color: string }[] = [
-  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#3A5AEE' },
+  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)' },
   { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: BLUE },
   { key: 'demarcheur',   label: 'Démarcheur',   desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6' },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: '#15803D' },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: 'var(--tx-green)' },
 ]
 
 export function RolesTab() {

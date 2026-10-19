@@ -166,13 +166,13 @@ function useTokens(isDark: boolean) {
     pillActive: {
       background: 'rgba(75,107,255,0.14)',
       border: '1px solid rgba(75,107,255,0.40)',
-      color: '#3A5AEE',
+      color: 'var(--tx-blue)',
       boxShadow: isDark ? '0 0 0 1px rgba(75,107,255,0.20)' : 'inset 0 1.5px 0 rgba(255,255,255,0.9)',
     } as React.CSSProperties,
     chipStyle: {
       background: 'rgba(75,107,255,0.12)',
       border: '1px solid rgba(75,107,255,0.30)',
-      color: '#3A5AEE',
+      color: 'var(--tx-blue)',
     } as React.CSSProperties,
   }
 }
