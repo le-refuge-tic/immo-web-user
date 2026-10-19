@@ -832,7 +832,7 @@ export default function NouveauBienPage() {
               <div className="space-y-4">
                 {/* Quartier — recherche inline dark-themed */}
                 <div>
-                  <label className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
+                  <label htmlFor="nouveau-bien-quartier" className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
                     Quartier
                   </label>
                   <p className="text-xs mb-2" style={{ color: 'var(--p-muted)' }}>
@@ -854,6 +854,7 @@ export default function NouveauBienPage() {
                   ) : (
                     <div className="relative">
                       <input
+                        id="nouveau-bien-quartier"
                         type="text"
                         value={quartierSearch}
                         onChange={e => setQuartierSearch(e.target.value)}
@@ -904,10 +905,10 @@ export default function NouveauBienPage() {
                 </div>
 
                 <div>
-                  <label className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
+                  <label htmlFor="nouveau-bien-page-907" className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
                     Indication précise <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>(optionnel)</span>
                   </label>
-                  <input value={indicationAdresse} onChange={e => setIndicationAdresse(e.target.value)}
+                  <input id="nouveau-bien-page-907" value={indicationAdresse} onChange={e => setIndicationAdresse(e.target.value)}
                     placeholder="Ex: Derrière le CEG, à 200m du goudron..."
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none border transition-colors"
                     style={baseInputStyle}
@@ -1556,7 +1557,7 @@ export default function NouveauBienPage() {
                       {photos.map((f, i) => (
                         <div key={i} className="relative aspect-square">
                           <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover rounded-xl" />
-                          <button type="button" onClick={() => setPhotos(p => p.filter((_, idx) => idx !== i))}
+                          <button aria-label="Retirer la photo" type="button" onClick={() => setPhotos(p => p.filter((_, idx) => idx !== i))}
                             className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full text-white flex items-center justify-center">
                             <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1598,7 +1599,7 @@ export default function NouveauBienPage() {
                       </svg>
                     </div>
                     <span className="flex-1 text-sm font-semibold truncate" style={{ color: 'var(--p-text)' }}>{video.name}</span>
-                    <button type="button" onClick={() => setVideo(null)}
+                    <button aria-label="Retirer la vidéo" type="button" onClick={() => setVideo(null)}
                       className="w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0"
                       style={{ background: '#DC2626' }}>
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>

@@ -140,7 +140,7 @@ export default function ProprietaireBienWrapper() {
               </button>
 
               {/* Déconnexion — desktop */}
-              <button onClick={() => { logout(); navigate('/login') }}
+              <button aria-label="Se déconnecter" onClick={() => { logout(); navigate('/login') }}
                 className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
@@ -149,7 +149,7 @@ export default function ProprietaireBienWrapper() {
               </button>
 
               {/* Hamburger — mobile (< md) */}
-              <button onClick={() => setMenuOpen(o => !o)}
+              <button aria-label="Ouvrir le menu" onClick={() => setMenuOpen(o => !o)}
                 className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center border"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
                 <div style={{ width: 18, height: 14, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

@@ -61,13 +61,13 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
           {step === 'form' ? (
             <>
               <div>
-                <label className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Nouveau numéro Mobile Money</label>
-                <input type="tel" value={numero} onChange={e => setNumero(e.target.value.replace(/\D/g, ''))} placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national"
+                <label htmlFor="numero-retrait-modal-64" className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Nouveau numéro Mobile Money</label>
+                <input id="numero-retrait-modal-64" type="tel" value={numero} onChange={e => setNumero(e.target.value.replace(/\D/g, ''))} placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national"
                   className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm outline-none text-proprio-text focus:border-brand" />
               </div>
               <div>
-                <label className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Mot de passe (confirmation)</label>
-                <input type="password" value={motDePasse} onChange={e => setMotDePasse(e.target.value)} placeholder="••••••••"
+                <label htmlFor="numero-retrait-modal-69" className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Mot de passe (confirmation)</label>
+                <input id="numero-retrait-modal-69" type="password" value={motDePasse} onChange={e => setMotDePasse(e.target.value)} placeholder="••••••••"
                   className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm outline-none text-proprio-text focus:border-brand" />
               </div>
               <p className="text-caption text-proprio-muted">Un code sera envoyé par SMS sur le numéro principal de votre compte pour confirmer ce changement.</p>

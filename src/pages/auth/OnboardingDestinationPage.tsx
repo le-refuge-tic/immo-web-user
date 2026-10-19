@@ -113,7 +113,7 @@ export default function OnboardingDestinationPage() {
             />
             {dep && (
               <div>
-                <label className="block text-white/60 text-sm font-semibold mb-2">Département</label>
+                <p className="block text-white/60 text-sm font-semibold mb-2">Département</p>
                 <div
                   className="w-full px-4 py-3.5 rounded-xl text-sm text-white/50"
                   style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}

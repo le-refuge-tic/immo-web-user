@@ -165,7 +165,7 @@ export default function DelegationModal({ onClose }: Props) {
             </div>
 
             <div>
-              <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Démarcheur</label>
+              <label htmlFor="delegation-demarcheur" className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Démarcheur</label>
               {demarcheur ? (
                 <div className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ background: '#4160F212', border: '1px solid #4160F240' }}>
                   <span className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{demarcheur.prenom} {demarcheur.nom} · {demarcheur.telephone}</span>
@@ -173,7 +173,7 @@ export default function DelegationModal({ onClose }: Props) {
                 </div>
               ) : (
                 <>
-                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Nom ou téléphone…"
+                  <input id="delegation-demarcheur" value={search} onChange={e => setSearch(e.target.value)} placeholder="Nom ou téléphone…"
                     className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }} />
                   {searching && <p className="text-xs mt-1.5" style={{ color: 'var(--p-muted)' }}>Recherche…</p>}
                   {resultats.length > 0 && (
@@ -195,8 +195,8 @@ export default function DelegationModal({ onClose }: Props) {
             </div>
 
             <div>
-              <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Date de fin (optionnel)</label>
-              <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
+              <label htmlFor="delegation-modal-198" className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Date de fin (optionnel)</label>
+              <input id="delegation-modal-198" type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
                 className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }} />
               <p className="text-caption mt-1" style={{ color: 'var(--p-muted)' }}>Laisser vide pour une délégation sans date de fin.</p>
             </div>

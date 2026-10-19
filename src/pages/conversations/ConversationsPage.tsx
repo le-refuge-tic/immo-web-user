@@ -239,7 +239,7 @@ export default function ConversationsPage() {
             className="flex-1 min-w-0 bg-transparent border-none outline-none text-[13px]"
             style={{ color: textPrimary }} />
           {search && (
-            <button onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
+            <button aria-label="Effacer la recherche" onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
@@ -281,7 +281,7 @@ export default function ConversationsPage() {
                   className="flex-1 bg-transparent outline-none text-[13px]"
                   style={{ color: textPrimary }} />
                 {search && (
-                  <button onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
+                  <button aria-label="Effacer la recherche" onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
                       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>

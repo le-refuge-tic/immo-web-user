@@ -525,7 +525,7 @@ export default function MesVisitesPage() {
             <>
               {/* En-tête */}
               <div className="flex-shrink-0 flex items-center gap-4 px-4 pt-4 pb-3">
-                <button onClick={() => setShowFeedback(null)}
+                <button aria-label="Fermer" onClick={() => setShowFeedback(null)}
                   className="w-9 h-9 flex items-center justify-center rounded-xl bg-white flex-shrink-0"
                   style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
                   <svg className="w-5 h-5 text-text-grey" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>

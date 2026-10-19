@@ -108,7 +108,7 @@ export default function OnboardingPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between px-6 md:px-16 pt-14 pb-4">
           {current > 0 ? (
-            <button
+            <button aria-label="Étape précédente"
               onClick={() => goTo(current - 1)}
               className="w-10 h-10 flex items-center justify-center rounded-[12px]"
               style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}

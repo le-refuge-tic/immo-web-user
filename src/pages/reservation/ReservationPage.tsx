@@ -211,11 +211,11 @@ export default function ReservationPage() {
   const CalendarCard = () => (
     <div className="rounded-2xl p-5 md:max-w-sm" style={GLASS}>
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="w-9 h-9 flex items-center justify-center rounded-[10px]" style={{ background: 'rgba(0,0,0,0.05)' }}>
+        <button aria-label="Mois précédent" onClick={prevMonth} className="w-9 h-9 flex items-center justify-center rounded-[10px]" style={{ background: 'rgba(0,0,0,0.05)' }}>
           <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </button>
         <p className="text-base font-bold text-text-dark">{MONTH_NAMES[displayMonth.getMonth()]} {displayMonth.getFullYear()}</p>
-        <button onClick={nextMonth} className="w-9 h-9 flex items-center justify-center rounded-[10px]" style={{ background: 'rgba(0,0,0,0.05)' }}>
+        <button aria-label="Mois suivant" onClick={nextMonth} className="w-9 h-9 flex items-center justify-center rounded-[10px]" style={{ background: 'rgba(0,0,0,0.05)' }}>
           <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
@@ -346,13 +346,13 @@ export default function ReservationPage() {
         <p className="text-xs text-text-grey mt-0.5">Combien viendront visiter</p>
       </div>
       <div className="flex items-center gap-4">
-        <button onClick={() => setTravelers(t => Math.max(1, t - 1))}
+        <button aria-label="Un visiteur de moins" onClick={() => setTravelers(t => Math.max(1, t - 1))}
           className="w-8 h-8 flex items-center justify-center rounded-[9px] transition-all"
           style={{ background: travelers > 1 ? 'rgba(75,107,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={travelers > 1 ? '#4160F2' : '#5F6672'} strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
         </button>
         <span className="text-lg font-bold text-text-dark w-5 text-center">{travelers}</span>
-        <button onClick={() => setTravelers(t => t + 1)}
+        <button aria-label="Un visiteur de plus" onClick={() => setTravelers(t => t + 1)}
           className="w-8 h-8 flex items-center justify-center rounded-[9px]" style={{ background: '#4160F2' }}>
           <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
         </button>
@@ -423,7 +423,7 @@ export default function ReservationPage() {
       <div className="flex-shrink-0 px-5 md:px-8 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5 md:pb-5"
         style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-5xl mx-auto flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
+          <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
           <div className="flex-1 min-w-0">

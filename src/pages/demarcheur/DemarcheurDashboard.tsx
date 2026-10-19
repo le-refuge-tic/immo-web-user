@@ -802,12 +802,12 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
           ].map(doc => (
             <div key={doc.label} className="card-soft rounded-xl p-4">
               <p className="text-sm font-semibold text-text-dark mb-3">{doc.label}</p>
-              <label className="block border-2 border-dashed border-divider rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors">
+              <label htmlFor={`doc-${doc.label.slice(0, 3).toLowerCase()}`} className="block border-2 border-dashed border-divider rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors">
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-text-grey"><IcUpload /></span>
                   <p className="text-xs text-text-grey">{doc.file ? doc.file.name : 'Cliquer pour choisir un fichier'}</p>
                 </div>
-                <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={e => doc.setFile(e.target.files?.[0] || null)} />
+                <input id={`doc-${doc.label.slice(0, 3).toLowerCase()}`} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={e => doc.setFile(e.target.files?.[0] || null)} />
               </label>
               {doc.file && (
                 <button onClick={doc.onUpload} disabled={uploading}

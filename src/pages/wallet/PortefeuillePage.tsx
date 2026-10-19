@@ -111,7 +111,7 @@ function ClientWalletView() {
         style={{ background: `linear-gradient(135deg, ${color}CC, ${color})`, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-5">
-            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.15)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
@@ -175,8 +175,8 @@ function ClientWalletView() {
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demander un retrait — Épargne</h3>
                 <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{Number(wallets.epargne?.balance || 0).toLocaleString('fr-FR')} FCFA</strong></p>
                 <p className="text-xs text-text-grey mb-3">Minimum 500 FCFA · Max 3 retraits / 24h</p>
-                <label className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={Number(wallets.epargne?.balance || 0)}
+                <label htmlFor="portefeuille-page-178" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
+                <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={Number(wallets.epargne?.balance || 0)}
                   placeholder="Ex: 5000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
                 <div className="flex gap-3">
@@ -271,7 +271,7 @@ function WalletCommissionsView() {
         style={{ background: 'linear-gradient(135deg,#1A1A2E,#4160F2)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
@@ -314,8 +314,8 @@ function WalletCommissionsView() {
                 onClick={e => e.stopPropagation()}>
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demande de retrait</h3>
                 <p className="text-sm text-text-grey mb-3">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
-                <label className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input type="number" value={montant} onChange={e => setMontant(e.target.value)} min={1} max={solde}
+                <label htmlFor="portefeuille-page-317" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
+                <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={1} max={solde}
                   placeholder="Ex: 50000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
                 <div className="flex gap-3">

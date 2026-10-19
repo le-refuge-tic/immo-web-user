@@ -426,7 +426,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
             {allUrls.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
                 {allUrls.map((url, i) => (
-                  <button key={i} onClick={() => setPhotoIdx(i)}
+                  <button aria-label={`Voir la photo ${i + 1}`} key={i} onClick={() => setPhotoIdx(i)}
                     className={`flex-shrink-0 w-20 h-14 rounded-xl overflow-hidden border-2 transition-all ${i === photoIdx ? 'border-primary' : 'border-transparent opacity-60 hover:opacity-100'}`}>
                     <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
                   </button>

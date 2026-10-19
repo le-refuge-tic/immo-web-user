@@ -36,7 +36,7 @@ export default function RejoindreBienPage() {
   return (
     <div className="min-h-full flex flex-col">
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5 flex items-center gap-4" style={{ background: BLUE }}>
-        <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+        <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
           style={{ background: 'rgba(255,255,255,0.15)' }}>
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         </button>
@@ -60,8 +60,8 @@ export default function RejoindreBienPage() {
               <p className="text-sm text-text-grey leading-relaxed">Votre propriétaire vous a partagé un code d'invitation (ex : AB12CD). Entrez-le ci-dessous pour signaler votre présence.</p>
             </div>
 
-            <label className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Code d'invitation</label>
-            <input type="text" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }}
+            <label htmlFor="rejoindre-bien-page-63" className="text-xs font-bold text-text-dark uppercase tracking-wide mb-2 block">Code d'invitation</label>
+            <input id="rejoindre-bien-page-63" type="text" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }}
               placeholder="Votre code" maxLength={12}
               className="w-full border-2 rounded-xl px-4 py-4 text-2xl font-bold tracking-[0.2em] outline-none mb-2 text-text-dark"
               style={{ borderColor: code ? BLUE : 'rgba(0,0,0,0.12)' }} />

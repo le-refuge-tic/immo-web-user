@@ -112,8 +112,8 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Type de bien</label>
-            <div className="flex flex-wrap gap-2">
+            <p id="ajout-bien-type" className="text-xs font-semibold text-text-dark mb-1.5 block">Type de bien</p>
+            <div role="group" aria-labelledby="ajout-bien-type" className="flex flex-wrap gap-2">
               {TYPES_BIEN.map(t => (
                 <button
                   key={t.key}
@@ -141,15 +141,15 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Loyer mensuel (FCFA)</label>
-            <input type="number" value={loyer} onChange={e => setLoyer(e.target.value)} placeholder="Ex : 50000"
+            <label htmlFor="ajouter-bien-gestion-modal-144" className="text-xs font-semibold text-text-dark mb-1.5 block">Loyer mensuel (FCFA)</label>
+            <input id="ajouter-bien-gestion-modal-144" type="number" value={loyer} onChange={e => setLoyer(e.target.value)} placeholder="Ex : 50000"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide pt-1">Localisation</p>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
-            <QuartierPicker
+            <label htmlFor="ajouter-bien-gestion-modal-151" className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
+            <QuartierPicker id="ajouter-bien-gestion-modal-151"
               value={quartier}
               onChange={setQuartier}
               onSelect={q => setVille(q.ville)}
@@ -161,19 +161,19 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Ville</label>
-            <input value={ville} onChange={e => setVille(e.target.value)} placeholder="Ex : Cotonou"
+            <label htmlFor="ajouter-bien-gestion-modal-164" className="text-xs font-semibold text-text-dark mb-1.5 block">Ville</label>
+            <input id="ajouter-bien-gestion-modal-164" value={ville} onChange={e => setVille(e.target.value)} placeholder="Ex : Cotonou"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse précise (optionnel)</label>
-            <input value={adresse} onChange={e => setAdresse(e.target.value)} placeholder="Derrière le CEG, 200m du goudron…"
+            <label htmlFor="ajouter-bien-gestion-modal-169" className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse précise (optionnel)</label>
+            <input id="ajouter-bien-gestion-modal-169" value={adresse} onChange={e => setAdresse(e.target.value)} placeholder="Derrière le CEG, 200m du goudron…"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Description (optionnel)</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Détails supplémentaires…"
+            <label htmlFor="ajouter-bien-gestion-modal-175" className="text-xs font-semibold text-text-dark mb-1.5 block">Description (optionnel)</label>
+            <textarea id="ajouter-bien-gestion-modal-175" value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Détails supplémentaires…"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none" />
           </div>
         </div>
