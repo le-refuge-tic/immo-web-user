@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import TopNav from './TopNav'
 import BottomNav from './BottomNav'
 import PushPrompt from './PushPrompt'
+import { ErrorBoundary } from './ErrorBoundary'
 import ScrollFloatButtons from './ScrollFloatButtons'
 import { useScrolled } from '../context/ScrollContext'
 import { useTheme } from '../context/ThemeContext'
@@ -75,7 +76,9 @@ export default function MainLayout() {
         className={`flex-1 min-h-0 relative outline-none ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : ownScroll ? 'md:pt-[72px]' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
         onScroll={ownScroll ? undefined : handleScroll}
       >
-        <Outlet />
+        <ErrorBoundary compact resetKey={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       {!hideChrome && (

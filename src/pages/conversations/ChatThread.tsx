@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react'
 import { API_ORIGIN } from '../../api/apiBase'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
@@ -10,6 +10,7 @@ import { io, Socket } from 'socket.io-client'
 import { apiMessage } from '../../utils/apiMessage'
 import { suggestPush } from '../../lib/push'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import { MenuPopover, MenuItem } from '../../components/ui/MenuPopover'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 
 const WS_URL = API_ORIGIN
@@ -308,10 +309,6 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const pinnedMsg = messages.filter(m => m.epingle && !m.supprime_pour_tous).slice(-1)[0]
   const lastSlot  = messages.filter(m => m.type === 'slot_proposal' && !m.supprime_pour_tous).slice(-1)[0]
 
-  const findVisite = async () => {
-    if (!conv?.bien?.id) return null
-    try { const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []; return l.find((v: any) => v.bien?.id === conv.bien.id) || null } catch { return null }
-  }
   const proposerSlot = async (iso: string) => {
     setShowSlot(false); setProposing(true)
     try { const m = await chatApi.proposerCreneau(convId, iso); setMessages(p => [...p, m]); scrollBot() } catch (e) { showError(e) }
@@ -346,18 +343,6 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const visible = messages.filter(m => !hidden.has(m.id))
 
   /* ── Menu item ── */
-  const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => {
-    const [hov, setHov] = useState(false)
-    return (
-      <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
-        style={{ color: danger ? '#DC2626' : tp, width: 'calc(100% - 8px)', background: hov ? menuHov : 'transparent' }}
-        onMouseEnter={() => setHov(true)}
-        onMouseLeave={() => setHov(false)}>
-        {label}
-      </button>
-    )
-  }
-
   /* ── Bulle slot ── */
   const SlotBubble = ({ m }: { m: any }) => {
     const isMe = m.sender_id === user?.id
@@ -563,7 +548,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 }}
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors"
                 style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? '#4160F2' : ts }}
-                aria-label="Options">
+                aria-label="Options" aria-haspopup="menu" aria-expanded={showHeaderMenu}>
                 <DotsV />
               </button>
             </div>
@@ -720,9 +705,9 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                           if (menuId === msg.id) { setMenuId(null); setMenuPos(null) }
                           else { setMenuId(msg.id); setMenuPos({ top: rect.top, right: window.innerWidth - rect.right }) }
                         }}
-                        className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center cursor-pointer"
+                        className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center cursor-pointer"
                         style={{ background: isMe ? 'rgba(255,255,255,0.22)' : (isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.10)'), color: isMe ? '#fff' : ts, backdropFilter: 'blur(4px)' }}
-                        aria-label="Options">
+                        aria-label="Options" aria-haspopup="menu" aria-expanded={menuId === msg.id}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
                       </button>
                     )}
@@ -794,15 +779,17 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
       {/* Menu header (3 points) — fixed au-dessus de tout */}
       {showHeaderMenu && headerMenuPos && (
-        <div data-headermenu className="fixed z-[130] rounded-2xl overflow-hidden py-1 min-w-[200px] anim-fade-down"
-          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}>
-          <MI label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
-          {conv?.bien?.id && <MI label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
+        <MenuPopover label="Options de la conversation" onClose={() => { setShowHeaderMenu(false); setHeaderMenuPos(null) }}
+          className="fixed z-[130] rounded-2xl overflow-hidden py-1 min-w-[200px] anim-fade-down"
+          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)', '--menu-hover': menuHov } as CSSProperties}
+          data-headermenu>
+          <MenuItem color={tp} label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
+          {conv?.bien?.id && <MenuItem color={tp} label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
           <div className="h-px mx-2 my-1" style={{ background: divider }} />
-          <MI label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
-          <MI label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
-          <MI label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
-        </div>
+          <MenuItem color={tp} label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
+          <MenuItem color={tp} label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
+          <MenuItem color={tp} label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
+        </MenuPopover>
       )}
 
       {/* Menu contextuel message — fixed pour éviter le clip du scroll container */}
@@ -810,25 +797,25 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         const m = visible.find(x => x.id === menuId)
         if (!m) return null
         return (
-          <div className="fixed z-[120] rounded-2xl overflow-hidden py-1 min-w-[190px] anim-fade-down"
-            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}
-            onClick={e => e.stopPropagation()}>
-            <MI label="Répondre" onClick={() => startReply(m)} />
-            {canEdit(m) && <MI label="Modifier" onClick={() => startEdit(m)} />}
-            <MI label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
+          <MenuPopover key={menuId} label="Actions sur le message" onClose={() => { setMenuId(null); setMenuPos(null); setConfirmDeleteForAllId(null) }}
+            className="fixed z-[120] rounded-2xl overflow-hidden py-1 min-w-[190px] anim-fade-down"
+            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)', '--menu-hover': menuHov } as CSSProperties}>
+            <MenuItem color={tp} label="Répondre" onClick={() => startReply(m)} />
+            {canEdit(m) && <MenuItem color={tp} label="Modifier" onClick={() => startEdit(m)} />}
+            <MenuItem color={tp} label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
             <div className="h-px mx-2 my-1" style={{ background: divider }} />
-            {!m.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
+            {!m.supprime_pour_tous && <MenuItem color={tp} label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
             {m.sender_id === user?.id && !m.supprime_pour_tous && (
               confirmDeleteForAllId === m.id ? (
                 <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
-                  <button onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#DC2626', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
-                  <button onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
+                  <button type="button" role="menuitem" autoFocus onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#DC2626', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
+                  <button type="button" role="menuitem" onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
                 </div>
               ) : (
-                <MI label="Supprimer pour tous" onClick={() => setConfirmDeleteForAllId(m.id)} danger />
+                <MenuItem color={tp} autoFocus label="Supprimer pour tous" onClick={() => setConfirmDeleteForAllId(m.id)} danger />
               )
             )}
-          </div>
+          </MenuPopover>
         )
       })()}
 
@@ -838,14 +825,13 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
       {/* Modal plainte */}
       {complainMsg && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }}
-          onClick={e => { if (e.target === e.currentTarget) setComplainMsg(null) }}>
-          <div role="dialog" aria-modal="true" aria-label="Message supprimé" className="rounded-3xl p-5 w-full max-w-sm anim-scale-in" onClick={e => e.stopPropagation()}
+        <ModalSheet open onClose={() => setComplainMsg(null)} label="Message supprimé" placement="responsive" className="p-4" panelClassName="w-full max-w-sm" backdropOpacity={0.55}>
+          <div className="rounded-3xl p-5 w-full anim-scale-in"
             style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
             <div className="flex items-start justify-between gap-3 mb-3">
               <div><p className="font-bold text-[15px]" style={{ color: tp }}>Message supprimé</p>
                 <p className="text-[12px] mt-0.5" style={{ color: tm }}>Supprimé par un administrateur.</p></div>
-              <button onClick={() => setComplainMsg(null)} className="w-7 h-7 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0" style={{ color: tm, background: iconBtn }}><XIcon /></button>
+              <button type="button" aria-label="Fermer" onClick={() => setComplainMsg(null)} className="w-7 h-7 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0" style={{ color: tm, background: iconBtn }}><XIcon /></button>
             </div>
             {complainSent ? (
               <div className="text-center py-4">
@@ -876,7 +862,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               </>
             )}
           </div>
-        </div>
+        </ModalSheet>
       )}
     </div>
   )

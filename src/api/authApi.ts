@@ -18,9 +18,6 @@ export const authApi = {
   logout: (refresh_token: string) =>
     axios.post(`${BASE}/auth/logout`, { refresh_token }, auth()).then(r => r.data),
 
-  refresh: (refresh_token: string, user_id: number) =>
-    axios.post(`${BASE}/auth/refresh`, { refresh_token, user_id }).then(r => r.data),
-
   // 2FA : OTP demandé sur un nouvel appareil, puis au plus tous les 30 jours
   // (loginPhone/loginEmail renvoient alors { requires_otp, session_token }).
   // La réponse peut contenir un device_token, mémorisé pour les connexions suivantes.
