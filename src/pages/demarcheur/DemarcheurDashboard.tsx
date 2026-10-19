@@ -802,6 +802,7 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
           ].map(doc => (
             <div key={doc.label} className="card-soft rounded-xl p-4">
               <p className="text-sm font-semibold text-text-dark mb-3">{doc.label}</p>
+              {/* oxlint-disable-next-line jsx-a11y/label-has-associated-control -- faux positif : le libellé entoure le champ fichier et lui est lié par htmlFor */}
               <label htmlFor={`doc-${doc.label.slice(0, 3).toLowerCase()}`} className="block border-2 border-dashed border-divider rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors">
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-text-grey"><IcUpload /></span>

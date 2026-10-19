@@ -623,6 +623,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         )}
 
         {/* ── Messages ── */}
+        {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- un clic dans la zone ferme les menus ouverts ; Échap les ferme au clavier (MenuPopover) */}
         <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 scrollbar-auto relative"
           onClick={() => { setMenuId(null); setMenuPos(null); setShowHeaderMenu(false) }}>
 
@@ -808,10 +809,12 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {m.sender_id === user?.id && !m.supprime_pour_tous && (
               confirmDeleteForAllId === m.id ? (
                 <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
+                  {/* oxlint-disable-next-line jsx-a11y/no-autofocus -- confirmation de suppression : le focus reprend sur le bouton qui remplace l'entrée du menu */}
                   <button type="button" role="menuitem" autoFocus onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#DC2626', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
                   <button type="button" role="menuitem" onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
                 </div>
               ) : (
+                // oxlint-disable-next-line jsx-a11y/no-autofocus -- annulation de la confirmation : le focus revient sur l'entrée du menu
                 <MenuItem color={tp} autoFocus label="Supprimer pour tous" onClick={() => setConfirmDeleteForAllId(m.id)} danger />
               )
             )}

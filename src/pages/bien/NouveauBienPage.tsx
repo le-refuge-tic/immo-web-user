@@ -1531,6 +1531,7 @@ export default function NouveauBienPage() {
                 </p>
 
                 {photos.length < 5 && (
+                  // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- zone de dépôt : le glisser-déposer s'ajoute au champ fichier, qui reste utilisable au clavier
                   <label className="block border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors"
                     style={{ borderColor: hoveredDropzone === 'photos' ? BLUE : 'var(--p-border)' }}
                     onMouseEnter={() => setHoveredDropzone('photos')}
@@ -1608,6 +1609,7 @@ export default function NouveauBienPage() {
                     </button>
                   </div>
                 ) : (
+                  // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- zone de dépôt : le glisser-déposer s'ajoute au champ fichier, qui reste utilisable au clavier
                   <label className="block border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-colors"
                     style={{ borderColor: hoveredDropzone === 'video' ? BLUE : 'var(--p-border)' }}
                     onMouseEnter={() => setHoveredDropzone('video')}

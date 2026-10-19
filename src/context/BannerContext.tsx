@@ -104,6 +104,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
       {children}
       {current && (
         <div className="fixed top-0 left-0 right-0 z-[300] flex justify-center px-3 pointer-events-none safe-top">
+          {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- bannière transitoire : l'action est aussi disponible dans la page Notifications */}
           <div
             role="alert"
             onClick={onTap}

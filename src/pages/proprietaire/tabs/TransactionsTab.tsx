@@ -4,6 +4,7 @@ import { IcTrendUp, IcTrendDown } from './icons'
 import { BLUE, fmtPrix } from './shared'
 import type { Tab } from './shared'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
+import { onActivateKey } from '../../../utils/keyboard'
 
 // ─── Tab: Historique des transactions ──────────────────────────────────────────
 export function categorieTransaction(description: string): { label: string; color: string } {
@@ -225,8 +226,9 @@ export function TransactionsTab() {
                   const cat = categorieTransaction(t.description)
                   const statut = txStatutMeta(t.statut)
                   return (
-                    <tr key={t.id || i} onClick={() => setDetailTx(t)} className="cursor-pointer hover:bg-[#0B1C30] transition-colors"
+                    <tr key={t.id || i} tabIndex={0} onKeyDown={onActivateKey(() => setDetailTx(t))} onClick={() => setDetailTx(t)} className="cursor-pointer hover:bg-[#0B1C30] transition-colors"
                       style={{ borderBottom: i < filtered.length - 1 ? `1px solid var(--p-border)` : undefined }}>
+                      {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- faux positif : la cellule contient le libellé de la transaction (texte dynamique) */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>

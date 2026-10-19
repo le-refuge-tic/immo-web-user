@@ -531,6 +531,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl"
                     style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                     <span style={{ color: 'var(--tx-blue)' }}><PinIcon /></span>
+                    {/* oxlint-disable-next-line jsx-a11y/no-autofocus -- le champ de recherche s'affiche à la demande de l'utilisateur */}
                     <input autoFocus value={search}
                       onChange={e => { setSearch(e.target.value); setShowSuggest(true) }}
                       onFocus={() => setShowSuggest(true)}

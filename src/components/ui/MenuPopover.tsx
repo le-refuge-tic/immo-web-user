@@ -88,6 +88,7 @@ export function MenuItem({ label, onClick, danger = false, color, autoFocus }: M
     <button
       type="button"
       role="menuitem"
+      // oxlint-disable-next-line jsx-a11y/no-autofocus -- reprise explicite du focus dans le menu quand une entrée en remplace une autre
       autoFocus={autoFocus}
       onClick={onClick}
       className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1 outline-none hover:bg-[var(--menu-hover)] focus-visible:bg-[var(--menu-hover)] focus-visible:ring-2 focus-visible:ring-[#4160F2]"

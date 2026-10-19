@@ -119,6 +119,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
               <label htmlFor="cp-code" className="text-sm font-semibold text-text-dark mb-1.5 block">Code reçu par SMS</label>
               <input id="cp-code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
                 value={code} onChange={e => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setError('') }}
+                // oxlint-disable-next-line jsx-a11y/no-autofocus -- le champ du code reçu par SMS est le seul de l'étape : le focus y va à l'affichage
                 placeholder="000000" autoFocus
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all text-center tracking-[0.4em] font-bold" />
               <p className="text-xs text-text-grey mt-1.5">

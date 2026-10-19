@@ -106,6 +106,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
             const timeStr = formatConvTime(lastMsg?.created_at)
             const isActive = conv.id === activeConvId
             return (
+              // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- faux positif : le bouton contient le nom de l'interlocuteur (texte dynamique)
               <button key={conv.id} onClick={() => setActiveConvId(conv.id)}
                 className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
                 style={{ background: isActive ? BLUE + '0C' : 'transparent', borderLeft: isActive ? `3px solid ${BLUE}` : '3px solid transparent' }}>
@@ -140,6 +141,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
                 const name = other?.prenom || other?.pseudonyme || other?.nom || 'Contact'
                 const initiale = (name[0] || '?').toUpperCase()
                 return (
+                  // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- faux positif : le bouton contient le texte du résultat (texte dynamique)
                   <button key={hit.id} onClick={() => setActiveConvId(hit.conversationId)}
                     className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
                     style={{ background: hoveredConvId === hit.id ? 'var(--p-border)' : 'transparent' }}

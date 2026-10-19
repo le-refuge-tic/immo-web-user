@@ -116,12 +116,14 @@ export function ModalSheet({
   const style: CSSProperties = { background: `rgba(0,0,0,${backdropOpacity})`, backdropFilter: 'blur(2px)', zIndex }
 
   return createPortal(
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- fermeture au clic sur le fond : le clavier dispose d'Échap (géré plus haut)
     <div
       ref={overlayRef}
       className={`fixed inset-0 flex ${PLACEMENT_CLASS[placement]} ${className}`}
       style={style}
       onClick={e => { if (dismissible && e.target === e.currentTarget) onClose() }}
     >
+      {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- le panneau arrête seulement la propagation du clic vers le fond ; il reçoit le focus par programme */}
       <div
         ref={panelRef}
         tabIndex={-1}

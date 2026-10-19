@@ -339,6 +339,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         )}
 
                         {/* Actions */}
+                        {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- arrête la propagation vers la carte cliquable ; les boutons à l'intérieur sont focalisables */}
                         <div className="flex gap-2 pt-3" style={{ borderTop: '1px solid var(--p-border)' }}
                           onClick={e => e.stopPropagation()}>
                           <button onClick={() => setEditingBien(b)}
