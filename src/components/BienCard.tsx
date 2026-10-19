@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { API_ORIGIN } from '../api/apiBase'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
+import { track } from '../lib/analytics'
 
-const BACKEND = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '') + '/'
+const BACKEND = API_ORIGIN + '/'
 
 function resolveUrl(url: string) {
   if (!url) return '/placeholder.jpg'
@@ -84,6 +86,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     try {
       const { isFavori } = await favoritesApi.toggle(bien.id)
       setIsFav(isFavori)
+      if (isFavori) track('favori_ajoute', { type: bien.type })
       onFavoriteToggle?.(bien.id, isFavori)
     } catch (_) {}
     setToggling(false)
@@ -91,8 +94,12 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
 
   return (
     <div
+      role="article"
       onClick={() => navigate(`/biens/${bien.id}`)}
-      className="glass-card rounded-[22px] overflow-hidden cursor-pointer group"
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/biens/${bien.id}`) } }}
+      tabIndex={0}
+      aria-label={`${label}${bien.localisation?.quartier ? ` à ${bien.localisation.quartier}` : ''} — ${bien.transaction === 'location' ? 'à louer' : 'à vendre'}`}
+      className="glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLDivElement
@@ -124,7 +131,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           <span
             className="px-2.5 py-1 rounded-full text-xs font-bold text-white"
             style={{
-              background: isLocation ? 'rgba(75,107,255,0.88)' : 'rgba(255,107,53,0.88)',
+              background: isLocation ? 'rgba(58,90,238,0.94)' : 'rgba(194,65,12,0.94)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255,255,255,0.3)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
@@ -137,6 +144,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
         {/* Bouton favori */}
         <button
           onClick={handleFav}
+          aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
           className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
           style={{
             background: isDark ? 'rgba(30,30,44,0.80)' : 'rgba(255,255,255,0.80)',
@@ -192,13 +200,13 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             {bien.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien.localisation?.ville || '—'}
           </p>
           {distanceKm != null && (
-            <span className="flex-shrink-0 text-[11px] font-semibold" style={{ color: '#4B6BFF' }}>
+            <span className="flex-shrink-0 text-caption font-semibold" style={{ color: 'var(--tx-blue)' }}>
               à {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
             </span>
           )}
         </div>
         {showAddedDate && bien.created_at && (
-          <p className="text-[11px] mt-2" style={{ color: textMuted }}>
+          <p className="text-caption mt-2" style={{ color: textMuted }}>
             Ajouté le {fmtAddedDate(bien.created_at)}
           </p>
         )}

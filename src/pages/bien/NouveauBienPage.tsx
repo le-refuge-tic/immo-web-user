@@ -1,10 +1,13 @@
 import type { ReactNode, CSSProperties } from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { biensApi } from '../../api/biensApi'
 import { useAuth } from '../../context/AuthContext'
 import { QUARTIERS } from '../../data/quartiers'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-LOGO.webp'
+import { track } from '../../lib/analytics'
+import { apiMessage } from '../../utils/apiMessage'
 
 const normalizeStr = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -26,7 +29,7 @@ const TYPES_BIEN = [
 
 const SANITAIRE_OPTS = [
   { value: 'interieur', label: 'Sanitaire',        sub: 'Douche intérieure au logement' },
-  { value: 'cour',      label: 'Non sanitaire',    sub: 'Douche extérieure / commune' },
+  { value: 'cour',      label: 'Douche et WC extérieurs', sub: 'Douche extérieure / commune' },
   { value: 'autre',     label: 'Autre à préciser', sub: '' },
 ]
 
@@ -120,9 +123,9 @@ function Card({ children, className }: { children: ReactNode; className?: string
 function Section({ title, required }: { title: string; required?: boolean }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--p-muted)' }}>{title}</p>
+      <p className="text-caption font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--p-muted)' }}>{title}</p>
       {required && (
-        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+        <span className="text-micro font-bold px-1.5 py-0.5 rounded"
           style={{ color: BLUE, background: BLUE + '20' }}>Obligatoire</span>
       )}
     </div>
@@ -256,6 +259,7 @@ function RecapSection({ title, items }: { title: string; items: string[] }) {
 
 // ─── Page principale ────────────────────────────────────────────────────────
 export default function NouveauBienPage() {
+  usePageTitle('Publier une annonce')
   const navigate = useNavigate()
   const { user } = useAuth()
   const isDemarcheur = (user?.roles_actifs ?? (user?.role_principal ? [user.role_principal] : [])).includes('demarcheur')
@@ -269,6 +273,8 @@ export default function NouveauBienPage() {
   const [photos, setPhotos] = useState<File[]>([])
   const [video, setVideo] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [hoveredDropzone, setHoveredDropzone] = useState<string | null>(null)
+  const [hoveredQuartierIdx, setHoveredQuartierIdx] = useState<number | null>(null)
 
   // ── Étape 0 ───────────────────────────────────────────────────────────────
   const [typeBien, setTypeBien] = useState('chambre_salon')
@@ -406,7 +412,7 @@ export default function NouveauBienPage() {
 
   // Label helpers (used in récap)
   const labelFinition = (v: string) => ({ ordinaire: 'Ordinaire', semi_staffe: 'Semi-Staffé', staffe_carele: 'Staffé', haut_standing: 'Haut Standing / VIP' } as Record<string,string>)[v] ?? v
-  const labelSanitaire = (v: string) => v === 'interieur' ? 'Sanitaire' : v === 'cour' ? 'Non sanitaire' : (sanitaireAutre.trim() || 'Autre à préciser')
+  const labelSanitaire = (v: string) => v === 'interieur' ? 'Sanitaire' : v === 'cour' ? 'Douche et WC extérieurs' : (sanitaireAutre.trim() || 'Autre à préciser')
   const labelCuisine = (v: string) => v === 'separee_douche' ? 'Cuisine séparée de la douche' : v === 'americaine' ? 'Cuisine américaine' : (cuisineAutre.trim() || 'Autres')
   const labelCour = (v: string) => v === 'entree_personnelle' ? 'Entrée personnelle' : 'Cour commune'
   const labelElec = (v: string) => { const p = parsePrix(prixKwh); return v === 'sbee' ? 'SBEE' : v === 'decompteur' ? `Décompteur${p !== undefined ? ` (${Math.round(p)} FCFA/kWh)` : ''}` : 'Non' }
@@ -566,6 +572,7 @@ export default function NouveauBienPage() {
       const data = await biensApi.create(body)
       const bien = data.data || data.bien || data
       setCreatedId(bien.id)
+      track('annonce_publiee', { type: String(bien.type ?? '') })
 
       if (photos.length > 0 && bien.id) {
         for (let i = 0; i < photos.length; i++) {
@@ -581,7 +588,7 @@ export default function NouveauBienPage() {
 
       setCreated(true)
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erreur lors de la création')
+      setError(apiMessage(err) || 'Erreur lors de la création')
     }
     setSubmitting(false)
   }
@@ -654,12 +661,12 @@ export default function NouveauBienPage() {
 
             <div className="flex-1 text-center min-w-0">
               <p className="text-[13px] font-bold truncate" style={{ color: 'var(--p-text)' }}>Nouveau bien</p>
-              <p className="text-[10px] uppercase tracking-[0.12em] truncate" style={{ color: 'var(--p-muted)' }}>
+              <p className="text-micro uppercase tracking-[0.12em] truncate" style={{ color: 'var(--p-muted)' }}>
                 {STEP_LABELS[step]}
               </p>
             </div>
 
-            <div className="flex-shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border"
+            <div className="flex-shrink-0 px-2.5 py-1 rounded-full text-caption font-bold border"
               style={{ borderColor: BLUE + '40', background: BLUE + '15', color: BLUE }}>
               {step + 1}/{STEP_LABELS.length}
             </div>
@@ -678,12 +685,14 @@ export default function NouveauBienPage() {
         <div className="flex-1 overflow-y-auto px-4 py-5 md:max-w-2xl md:mx-auto md:w-full"
           onScroll={e => setIsScrolled(e.currentTarget.scrollTop > 40)}>
 
-          {error && (
-            <div className="rounded-xl px-4 py-3 border mb-4"
-              style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
-              <p className="text-sm" style={{ color: '#EF4444' }}>{error}</p>
-            </div>
-          )}
+          <div id="nouveau-bien-error" role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="rounded-xl px-4 py-3 border mb-4"
+                style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
+                <p className="text-sm" style={{ color: 'var(--tx-red)' }}>{error}</p>
+              </div>
+            )}
+          </div>
 
           {/* ═══ ÉTAPE 0 : TYPE & PRIX ═══ */}
           {step === 0 && (
@@ -764,7 +773,7 @@ export default function NouveauBienPage() {
                         <div className="w-28">
                           <MoneyInput value={t.prix} onChange={v => setTarifsAutres(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
                         </div>
-                        <button type="button" onClick={() => setTarifsAutres(a => a.filter((_, idx) => idx !== i))} style={{ color: '#EF4444' }}>✕</button>
+                        <button type="button" onClick={() => setTarifsAutres(a => a.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
                       </div>
                     ))}
                     <button type="button" onClick={() => setTarifsAutres(a => [...a, { label: '', prix: '' }])}
@@ -786,7 +795,7 @@ export default function NouveauBienPage() {
               <div className="space-y-4">
                 {/* Quartier — recherche inline dark-themed */}
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
+                  <label className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
                     Quartier
                   </label>
                   {quartier ? (
@@ -833,19 +842,19 @@ export default function NouveauBienPage() {
                             ) : (
                               <p className="px-4 py-3 text-sm" style={{ color: 'var(--p-muted)' }}>Commencez à taper…</p>
                             )
-                          ) : filteredQuartiers.map(q => (
+                          ) : filteredQuartiers.map((q, qi) => (
                             <button key={q.nom + q.arrondissement} type="button"
                               onMouseDown={() => selectQuartier(q.nom, q.arrondissement, q.ville)}
                               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-sm border-b transition-colors"
-                              style={{ borderColor: 'var(--p-border)', color: 'var(--p-text)' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = 'var(--p-surface)')}
-                              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                              style={{ borderColor: 'var(--p-border)', color: 'var(--p-text)', background: hoveredQuartierIdx === qi ? 'var(--p-surface)' : 'transparent' }}
+                              onMouseEnter={() => setHoveredQuartierIdx(qi)}
+                              onMouseLeave={() => setHoveredQuartierIdx(null)}>
                               <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--p-muted)' }}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                               </svg>
                               <span className="flex-1">{q.nom}</span>
-                              <span className="text-[11px]" style={{ color: 'var(--p-muted)' }}>{q.arrondissement}</span>
+                              <span className="text-caption" style={{ color: 'var(--p-muted)' }}>{q.arrondissement}</span>
                             </button>
                           ))}
                         </div>
@@ -855,7 +864,7 @@ export default function NouveauBienPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
+                  <label className="text-caption font-bold uppercase tracking-[0.14em] mb-2 block" style={{ color: 'var(--p-muted)' }}>
                     Indication précise <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>(optionnel)</span>
                   </label>
                   <input value={indicationAdresse} onChange={e => setIndicationAdresse(e.target.value)}
@@ -978,7 +987,7 @@ export default function NouveauBienPage() {
                           placeholder="Ex: Distance de la route"
                           className="flex-1 text-sm font-semibold outline-none bg-transparent"
                           style={{ color: 'var(--p-text)' }} />
-                        <button type="button" onClick={() => setDetailsSupplementaires(arr => arr.filter((_, idx) => idx !== i))} style={{ color: '#EF4444' }}>✕</button>
+                        <button type="button" onClick={() => setDetailsSupplementaires(arr => arr.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
                       </div>
                       <input value={d.valeur}
                         onChange={e => setDetailsSupplementaires(arr => arr.map((x, idx) => idx === i ? { ...x, valeur: e.target.value } : x))}
@@ -1260,7 +1269,7 @@ export default function NouveauBienPage() {
                       <div>
                         <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--p-muted)' }}>Caution eau</p>
                         <MoneyInput value={cautionEau} onChange={setCautionEau} />
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution eau</p>
+                        <p className="text-caption mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution eau</p>
                       </div>
                     )}
                     {electricite !== 'non' && (
@@ -1269,7 +1278,7 @@ export default function NouveauBienPage() {
                           Caution électricité ({electricite === 'sbee' ? 'SBEE' : 'Décompteur'})
                         </p>
                         <MoneyInput value={cautionElec} onChange={setCautionElec} />
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution électricité</p>
+                        <p className="text-caption mt-1" style={{ color: 'var(--p-muted)' }}>Saisir 0 si pas de caution électricité</p>
                       </div>
                     )}
                   </div>
@@ -1366,7 +1375,7 @@ export default function NouveauBienPage() {
                         <div className="w-28">
                           <MoneyInput value={f.prix} onChange={v => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
                         </div>
-                        <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} style={{ color: '#EF4444' }}>✕</button>
+                        <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
                       </div>
                     ))}
                     <button type="button" onClick={() => setAutresFrais(a => [...a, { label: '', prix: '' }])}
@@ -1475,9 +1484,9 @@ export default function NouveauBienPage() {
 
                 {photos.length < 5 && (
                   <label className="block border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors"
-                    style={{ borderColor: 'var(--p-border)' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = BLUE)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--p-border)')}>
+                    style={{ borderColor: hoveredDropzone === 'photos' ? BLUE : 'var(--p-border)' }}
+                    onMouseEnter={() => setHoveredDropzone('photos')}
+                    onMouseLeave={() => setHoveredDropzone(null)}>
                     <div className="flex justify-center mb-3">
                       <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
                         style={{ color: 'var(--p-muted)' }}>
@@ -1509,7 +1518,7 @@ export default function NouveauBienPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] mt-2" style={{ color: 'var(--p-muted)' }}>
+                    <p className="text-caption mt-2" style={{ color: 'var(--p-muted)' }}>
                       {photos.length}/5 photo{photos.length > 1 ? 's' : ''} — encore {5 - photos.length} possible{5 - photos.length > 1 ? 's' : ''}
                     </p>
                   </>
@@ -1518,7 +1527,7 @@ export default function NouveauBienPage() {
                 {submitting && uploadProgress > 0 && (
                   <div className="mt-3">
                     <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--p-muted)' }}>
-                      <span>Upload photos…</span><span>{uploadProgress}%</span>
+                      <span>Téléversement des photos…</span><span>{uploadProgress}%</span>
                     </div>
                     <div className="h-2 rounded-full" style={{ background: 'var(--p-deep)' }}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${uploadProgress}%`, background: BLUE }} />
@@ -1544,7 +1553,7 @@ export default function NouveauBienPage() {
                     <span className="flex-1 text-sm font-semibold truncate" style={{ color: 'var(--p-text)' }}>{video.name}</span>
                     <button type="button" onClick={() => setVideo(null)}
                       className="w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0"
-                      style={{ background: '#EF4444' }}>
+                      style={{ background: '#DC2626' }}>
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -1552,9 +1561,9 @@ export default function NouveauBienPage() {
                   </div>
                 ) : (
                   <label className="block border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-colors"
-                    style={{ borderColor: 'var(--p-border)' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = BLUE)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--p-border)')}>
+                    style={{ borderColor: hoveredDropzone === 'video' ? BLUE : 'var(--p-border)' }}
+                    onMouseEnter={() => setHoveredDropzone('video')}
+                    onMouseLeave={() => setHoveredDropzone(null)}>
                     <div className="flex justify-center mb-3">
                       <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
                         style={{ color: 'var(--p-muted)' }}>

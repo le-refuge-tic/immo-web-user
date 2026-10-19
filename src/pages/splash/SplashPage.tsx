@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import bgImg from '../../assets/hero-interior.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import bgImg from '../../assets/hero-interior.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
 
 export default function SplashPage() {
   const navigate = useNavigate()
@@ -30,7 +30,7 @@ export default function SplashPage() {
 
   return (
     <div className="min-h-dvh relative overflow-hidden flex flex-col">
-      <img src={bgImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={bgImg} alt="" loading="eager" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.2) 100%)' }} />
 
       <div className="relative z-10 flex flex-col flex-1 min-h-dvh">
@@ -40,7 +40,7 @@ export default function SplashPage() {
           <div className="flex items-center gap-3 anim-slide-down">
             <div className="anim-bounce-in w-[58px] h-[58px] flex items-center justify-center rounded-[16px] flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
-              <img src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+              <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} />
             </div>
             <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
           </div>
@@ -69,7 +69,7 @@ export default function SplashPage() {
             Trouvez votre<br />logement idéal
           </h1>
           <p className="text-white/55 leading-relaxed mb-8 anim-fade-up d-400" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
-            Des centaines de logements vérifiés à Cotonou et Abomey-Calavi.
+            Maisons, appartements et terrains à Cotonou et Abomey-Calavi, avec visites et paiement par Mobile Money.
           </p>
 
           <div className="space-y-4 md:max-w-xs">
@@ -86,10 +86,10 @@ export default function SplashPage() {
               </div>
             </button>
 
-            <div className="flex items-center gap-5 anim-fade-in d-700">
-              <TrustBadge icon="verified" label="Vérifié" color="#22C55E" />
-              <TrustBadge icon="lock" label="Sécurisé" color="#4B6BFF" />
-              <TrustBadge icon="star" label="Fiable" color="#FF6B35" />
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 anim-fade-in d-700">
+              <TrustBadge icon="verified" label="Annonces modérées" color="#22C55E" />
+              <TrustBadge icon="lock" label="Paiement sécurisé" color="#4B6BFF" />
+              <TrustBadge icon="star" label="Reçus automatiques" color="#FF6B35" />
             </div>
           </div>
         </div>

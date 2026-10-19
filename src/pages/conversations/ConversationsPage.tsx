@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useMatch } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const AVATAR_PALETTE = [
   'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
@@ -16,7 +17,7 @@ function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVAT
 function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 function initiale(o: any) { return (displayName(o)[0] || '?').toUpperCase() }
 function roleLabel(o: any) {
-  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Agent immobilier'
+  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'
   if (o?.role === 'prospect') return 'Client'
@@ -31,6 +32,7 @@ function fmtTime(iso?: string) {
 }
 
 export default function ConversationsPage() {
+  usePageTitle('Conversations')
   const { user } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -42,6 +44,7 @@ export default function ConversationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true); setError('')
@@ -145,11 +148,11 @@ export default function ConversationsPage() {
               onClick={() => navigate(`/conversations/${conv.id}`)}
               className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors duration-150 cursor-pointer relative"
               style={{
-                background: active ? activeBg : 'transparent',
+                background: active ? activeBg : hoveredConvId === conv.id ? hoverBg : 'transparent',
                 borderLeft: `3px solid ${active ? '#4B6BFF' : 'transparent'}`,
               }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = hoverBg }}
-              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+              onMouseEnter={() => { if (!active) setHoveredConvId(conv.id) }}
+              onMouseLeave={() => setHoveredConvId(null)}>
 
               {/* Avatar + présence */}
               <div className="relative flex-shrink-0">
@@ -169,7 +172,7 @@ export default function ConversationsPage() {
                   <p className="text-[13.5px] truncate" style={{ color: textPrimary, fontWeight: unread ? 700 : 600 }}>
                     {name}
                   </p>
-                  <span className="text-[11px] flex-shrink-0 tabular-nums" style={{ color: unread ? '#4B6BFF' : textMuted }}>
+                  <span className="text-caption flex-shrink-0 tabular-nums" style={{ color: unread ? '#4B6BFF' : textMuted }}>
                     {time}
                   </span>
                 </div>
@@ -182,16 +185,21 @@ export default function ConversationsPage() {
                     {preview}
                   </p>
                   {unread > 0 && (
-                    <span className="min-w-[20px] h-5 px-1.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
+                    <span className="min-w-[20px] h-5 px-1.5 rounded-full text-white text-micro font-bold flex items-center justify-center flex-shrink-0"
                       style={{ background: '#4B6BFF' }}>
                       {unread > 9 ? '9+' : unread}
                     </span>
                   )}
                 </div>
+                {conv.bien && (
+                  <span className="block mt-0.5 text-micro truncate" style={{ color: textMuted }}>
+                    🏠 {conv.bien.titre || conv.bien.localisation?.quartier || `Bien #${conv.bien.id}`}
+                  </span>
+                )}
                 {role && (
-                  <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{
+                  <span className="inline-block mt-1 text-micro font-semibold px-2 py-0.5 rounded-full" style={{
                     background: isDark ? 'rgba(75,107,255,0.15)' : 'rgba(75,107,255,0.08)',
-                    color: '#4B6BFF',
+                    color: 'var(--tx-blue)',
                   }}>
                     {role}
                   </span>
@@ -212,7 +220,7 @@ export default function ConversationsPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[18px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h2>
           {!loading && convs.length > 0 && (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white"
+            <span className="px-2.5 py-0.5 rounded-full text-caption font-bold text-white"
               style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
               {convs.length}
             </span>
@@ -249,11 +257,11 @@ export default function ConversationsPage() {
         {activeId === null ? (
           <div style={{ background: bgSidebar, minHeight: '100dvh' }}>
             {/* Header mobile */}
-            <div className="safe-top px-5 pt-5 pb-3 flex items-center justify-between sticky top-0 z-10"
+            <div className="px-5 pt-[calc(72px+12px)] pb-3 flex items-center justify-between sticky top-[72px] z-10"
               style={{ background: bgSidebar, borderBottom: `1px solid ${divider}` }}>
               <h1 className="text-[20px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h1>
               {!loading && convs.length > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white"
+                <span className="px-2.5 py-0.5 rounded-full text-caption font-bold text-white"
                   style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
                   {convs.length}
                 </span>

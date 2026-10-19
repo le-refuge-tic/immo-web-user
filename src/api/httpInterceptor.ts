@@ -1,6 +1,8 @@
 import axios from 'axios'
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
+import { tokenStore } from '../utils/tokenStore'
+import { BASE } from './apiBase'
+import { revokeSession } from './authApi'
+import { readStoredUser, writeStoredUser } from '../utils/storedUser'
 
 /**
  * Sans timeout, une requête lente (ex: réveil à froid du serveur) laisse
@@ -30,44 +32,43 @@ let refreshing: Promise<string | null> | null = null
  * routes protégées par le nouveau rôle répondent 403 pendant jusqu'à 1h.
  */
 export async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = localStorage.getItem('rg_refresh')
+  const refreshToken = tokenStore.getRefresh()
   if (!refreshToken) return null
   try {
     const { data } = await axios.post(`${BASE}/auth/refresh`, { refresh_token: refreshToken })
-    localStorage.setItem('rg_token', data.access_token)
-    if (data.refresh_token) localStorage.setItem('rg_refresh', data.refresh_token)
-    // Sync rg_user avec les roles_actifs à jour depuis la réponse serveur,
-    // sinon le contexte React conserve les rôles du dernier login.
+    tokenStore.setToken(data.access_token)
+    if (data.refresh_token) tokenStore.setRefresh(data.refresh_token)
     if (data.user) {
-      localStorage.setItem('rg_user', JSON.stringify(data.user))
+      writeStoredUser(data.user)
     } else {
-      // Fallback : décoder le payload JWT pour extraire roles_actifs
       try {
         const payload = JSON.parse(atob(data.access_token.split('.')[1]))
         if (payload.roles_actifs) {
-          const stored = localStorage.getItem('rg_user')
-          if (stored) {
-            const u = JSON.parse(stored)
-            localStorage.setItem('rg_user', JSON.stringify({ ...u, roles_actifs: payload.roles_actifs }))
-          }
+          const u = readStoredUser<object>()
+          if (u) writeStoredUser({ ...u, roles_actifs: payload.roles_actifs })
         }
       } catch {}
     }
     return data.access_token as string
   } catch {
+    // Un autre onglet a pu rafraîchir juste avant avec ce même refresh token
+    // (usage unique) : on reprend alors ses jetons au lieu de déconnecter.
+    const actuel = tokenStore.getRefresh()
+    if (actuel && actuel !== refreshToken) return tokenStore.getToken() || null
     return null
   }
 }
 
 function forceLogout() {
+  revokeSession()
   localStorage.removeItem('rg_user')
-  localStorage.removeItem('rg_token')
-  localStorage.removeItem('rg_refresh')
+  localStorage.removeItem('rg_active_role')
+  tokenStore.clearTokens()
   if (location.pathname !== '/login') location.href = '/login'
 }
 
 /**
- * Le token d'accès expire après 1h. Sans ceci, toute requête faite après
+ * Le token d'accès expire après 15 min. Sans ceci, toute requête faite après
  * expiration échoue avec "Unauthorized" — même en pleine saisie d'un
  * formulaire — sans que l'utilisateur puisse s'en douter ni se rattraper.
  * On rafraîchit une fois via le refresh_token et on rejoue la requête.
@@ -76,8 +77,12 @@ axios.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config
+    // Les routes /auth/ renvoient aussi 401 pour une erreur métier (mot de
+    // passe ou code faux) : on ne rafraîchit que sur l'expiration du jeton,
+    // que le garde JWT signale par le message générique « Unauthorized ».
     const isAuthRoute = typeof original?.url === 'string' && original.url.includes('/auth/')
-    if (error.response?.status === 401 && original && !original._retry && !isAuthRoute) {
+    const jetonExpire = error.response?.data?.message === 'Unauthorized'
+    if (error.response?.status === 401 && original && !original._retry && (!isAuthRoute || jetonExpire)) {
       original._retry = true
       if (!refreshing) refreshing = refreshAccessToken().finally(() => { refreshing = null })
       const newToken = await refreshing

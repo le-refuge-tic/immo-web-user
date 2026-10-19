@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { pushSupported, subscribeToPush } from '../lib/push'
 
 const DISMISS_KEY = 'rg_push_dismissed'
+const ENGAGE_DELAY_MS = 45_000
 
 export default function PushPrompt() {
   const { isLoggedIn } = useAuth()
@@ -13,13 +14,14 @@ export default function PushPrompt() {
     if (!isLoggedIn || !pushSupported()) return
 
     if (Notification.permission === 'granted') {
-      // Déjà autorisé — on (ré)abonne silencieusement sans rien montrer.
       subscribeToPush().catch(() => {})
       return
     }
-    if (Notification.permission === 'default' && localStorage.getItem(DISMISS_KEY) !== 'true') {
-      setShow(true)
-    }
+    if (Notification.permission !== 'default') return
+    if (localStorage.getItem(DISMISS_KEY) === 'true') return
+
+    const t = setTimeout(() => setShow(true), ENGAGE_DELAY_MS)
+    return () => clearTimeout(t)
   }, [isLoggedIn])
 
   const activate = async () => {
@@ -37,7 +39,8 @@ export default function PushPrompt() {
   if (!show) return null
 
   return (
-    <div className="fixed left-4 right-4 md:left-auto md:right-6 md:w-96 bottom-24 md:bottom-6 z-[70] rounded-2xl p-4 flex items-start gap-3 anim-scale-in"
+    <div role="dialog" aria-modal="false" aria-label="Activer les notifications push"
+      className="fixed left-4 right-4 md:left-auto md:right-6 md:w-96 bottom-24 md:bottom-6 z-[70] rounded-2xl p-4 flex items-start gap-3 anim-scale-in"
       style={{
         background: 'rgba(26,26,46,0.92)',
         backdropFilter: 'blur(24px) saturate(180%)',
@@ -64,8 +67,8 @@ export default function PushPrompt() {
           </button>
         </div>
       </div>
-      <button onClick={dismiss} className="text-white/40 flex-shrink-0">
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+      <button onClick={dismiss} aria-label="Fermer" className="text-white/40 flex-shrink-0">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>

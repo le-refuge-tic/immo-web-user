@@ -5,15 +5,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary:       '#4B6BFF',
-        'primary-d':   '#3A5AEE',
+        brand:         '#4B6BFF',
+        primary:       '#3A5AEE',
+        'primary-d':   '#2E4CD4',
         'primary-l':   'rgba(75,107,255,0.12)',
         secondary:     '#FF6B35',
         'secondary-l': 'rgba(255,107,53,0.12)',
         'app-bg':      '#F5F5F7',
         'surface-g':   '#FFFFFF',
         'text-dark':   '#1D1D1F',
-        'text-grey':   '#6E6E73',
+        'text-grey':   '#5E5E63',
         divider:       'rgba(0,0,0,0.08)',
         success:       '#34C759',
         warning:       '#FF9800',
@@ -28,6 +29,11 @@ export default {
         'gold-200':    '#F0D898',
         'proprio-text': '#F0EDE8',
         'proprio-muted': '#8A9BB5',
+      },
+      // Échelle de textes compacts (remplace text-[9px]/[10px]/[11px] écrits en dur)
+      fontSize: {
+        micro:   '10px',
+        caption: '11px',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'sans-serif'],

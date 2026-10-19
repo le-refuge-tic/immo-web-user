@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 function fmtFcfa(n: number) {
   if (!n) return '---'
@@ -11,6 +12,7 @@ function fmtFcfa(n: number) {
 export default function ContratBailPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
+  usePageTitle('Contrat de bail')
   const [accepted, setAccepted] = useState(false)
   const [bien, setBien] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -61,15 +63,15 @@ export default function ContratBailPage() {
   return (
     <div className="min-h-dvh flex flex-col" style={{ background: '#F8F9FA' }}>
       {/* Header */}
-      <div className="print:hidden flex-shrink-0 px-5 pt-14 md:pt-6 pb-5"
+      <div className="print:hidden flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5"
         style={{ background: 'linear-gradient(135deg, #1A1A2E, #0F3460)', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
         <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0"
+          <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0"
             style={{ background: 'rgba(255,255,255,0.12)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div className="flex-1">
-            <p className="text-white font-bold text-lg">Contrat de bail</p>
+            <h1 className="text-white font-bold text-lg">Contrat de bail</h1>
             <p className="text-white/60 text-xs mt-0.5">Lisez attentivement avant d'accepter</p>
           </div>
           <button onClick={() => window.print()} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0"
@@ -94,7 +96,7 @@ export default function ContratBailPage() {
                 <div className="flex-1">
                   <p className="font-bold text-text-dark text-sm">{bienType}</p>
                   <p className="text-text-grey text-xs mt-0.5">{bienAdresse}</p>
-                  <p className="text-xs font-semibold mt-0.5" style={{ color: '#4B6BFF' }}>Loyer : {loyer} / mois</p>
+                  <p className="text-xs font-semibold mt-0.5" style={{ color: 'var(--tx-blue)' }}>Loyer : {loyer} / mois</p>
                   {gestionnaire !== '---' && <p className="text-text-grey text-xs mt-0.5">Bailleur / gestionnaire : {gestionnaire}</p>}
                 </div>
               </div>

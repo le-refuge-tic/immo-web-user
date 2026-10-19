@@ -1,11 +1,18 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { bien: any; onClose: () => void; onSaved: (bien: any) => void }
 
 export default function EditBienModal({ bien, onClose, onSaved }: Props) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
   const loc = bien.localisation || {}
   const [prix, setPrix] = useState(String(bien.prix ?? ''))
   const [prixPromo, setPrixPromo] = useState(bien.prix_promo != null ? String(bien.prix_promo) : '')
@@ -51,18 +58,27 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       setTimeout(() => onSaved(saved), 900)
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erreur lors de la mise à jour')
+      setError(apiMessage(err) || 'Erreur lors de la mise à jour')
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
     setSaving(false)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div ref={scrollRef} className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div
+      role="dialog" aria-modal="true" aria-label="Modifier le bien"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }}
+      onClick={onClose}
+    >
+      <div
+        ref={scrollRef}
+        className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Modifier le bien</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -71,11 +87,13 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
               <p className="text-success text-sm font-semibold">Bien mis à jour avec succès</p>
             </div>
           )}
-          {error && (
-            <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
-              <p className="text-danger text-sm">{error}</p>
-            </div>
-          )}
+          <div role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
+                <p className="text-danger text-sm">{error}</p>
+              </div>
+            )}
+          </div>
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide">Informations tarifaires</p>
           <div>
@@ -87,7 +105,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
             <input type="number" value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
-            <p className="text-[11px] text-text-grey mt-1">Affiché en avant sur la fiche du bien, à la place du prix normal.</p>
+            <p className="text-caption text-text-grey mt-1">Affiché en avant sur la fiche du bien, à la place du prix normal.</p>
           </div>
           <div>
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Frais de visite (FCFA)</label>

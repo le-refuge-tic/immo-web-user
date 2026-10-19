@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { API_ORIGIN } from '../../api/apiBase'
 import { useParams, useNavigate } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { chatApi } from '../../api/chatApi'
 import { rolesApi } from '../../api/rolesApi'
 import { useAuth } from '../../context/AuthContext'
+import { usePageTitle } from '../../utils/usePageTitle'
+import { track } from '../../lib/analytics'
+import { apiMessage } from '../../utils/apiMessage'
 
 /** Rôles autorisés par le backend à réserver une visite (POST /visites → CLIENTS). */
 const ROLES_RESERVATION = ['prospect', 'locataire']
@@ -49,7 +53,7 @@ function gmt1TodayParts() {
   return { y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate() }
 }
 
-const IMG_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
+const IMG_BASE = API_ORIGIN
 function resolveUrl(url: string) {
   if (!url) return ''
   return url.startsWith('http') ? url : `${IMG_BASE}${url}`
@@ -66,6 +70,7 @@ const GLASS = {
 export default function ReservationPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
+  usePageTitle('Proposer une visite')
   const { rolesActifs, updateUser } = useAuth()
   const timeInputRef = useRef<HTMLInputElement>(null)
   const timeSectionRef = useRef<HTMLDivElement>(null)
@@ -122,7 +127,7 @@ export default function ReservationPage() {
       await rolesApi.activer('prospect')
       updateUser({ roles_actifs: [...rolesActifs, 'prospect'] })
     } catch (e: any) {
-      setError(e?.response?.data?.message || "Impossible d'activer le profil prospect. Réessayez.")
+      setError(apiMessage(e) || "Impossible d'activer le profil prospect. Réessayez.")
     } finally {
       setActivatingRole(false)
     }
@@ -143,16 +148,17 @@ export default function ReservationPage() {
       const [h, m] = selectedTime.split(':').map(Number)
       const dt = new Date(selectedDate); dt.setHours(h, m, 0, 0)
       await visitesApi.reserverVisite(Number(bienId), dt.toISOString())
+      track('visite_demandee')
 
       // Miroir du mobile : "Demande envoyée ! Démarrez la conversation ci-dessous."
       // s'affiche toujours, qu'une conversation ait pu être créée ou non, avant
       // d'enchaîner sur la navigation.
       setSuccess(true)
-      await new Promise(r => setTimeout(r, 700))
+      await new Promise(r => setTimeout(r, 2500))
 
       try {
         const convData = await chatApi.creerConversation(Number(bienId))
-        navigate(`/conversations/${convData.conversationId}`, { replace: true })
+        navigate(`/conversations/${convData.conversationId}`, { replace: true, state: { bienId, bienLabel: bienTypeLabel(bien) } })
         return
       } catch (_) {}
       // Échec de la création de conversation : retour à l'écran d'origine
@@ -163,7 +169,7 @@ export default function ReservationPage() {
       // message explicite au lieu du « Forbidden resource » brut du backend.
       const msg = e?.response?.status === 403
         ? 'Activez le profil prospect pour proposer une visite.'
-        : (e?.response?.data?.message || 'Erreur lors de la réservation')
+        : (apiMessage(e) || 'Erreur lors de la réservation')
       setError(msg)
       setSubmitting(false)
     }
@@ -173,14 +179,14 @@ export default function ReservationPage() {
     ? resolveUrl(bien.photos[0].url)
     : bien?.photo_couverture ? resolveUrl(bien.photo_couverture) : null
 
-  const frais = 500
+  const frais: number = bien?.frais_visite ?? 500
 
   // ── Blocs réutilisables ──────────────────────────────────────────────
 
   const PropertyCard = () => !loadingBien && bien ? (
     <div className="rounded-2xl overflow-hidden flex gap-3 p-3" style={GLASS}>
       {cover
-        ? <img src={cover} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+        ? <img loading="lazy" src={cover} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
         : <div className="w-16 h-16 rounded-xl flex-shrink-0" style={{ background: 'rgba(75,107,255,0.1)' }} />
       }
       <div className="flex-1 min-w-0 py-0.5">
@@ -191,7 +197,7 @@ export default function ReservationPage() {
       </div>
       <div className="flex flex-col items-end justify-center flex-shrink-0">
         <p className="text-sm font-bold text-primary">{Number(bien.prix).toLocaleString('fr-FR')} FCFA</p>
-        {bien.transaction === 'location' && <p className="text-[10px] text-text-grey">/mois</p>}
+        {bien.transaction === 'location' && <p className="text-micro text-text-grey">/mois</p>}
       </div>
     </div>
   ) : null
@@ -208,7 +214,7 @@ export default function ReservationPage() {
         </button>
       </div>
       <div className="grid grid-cols-7 mb-2">
-        {DAY_LABELS.map(d => <p key={d} className="text-[11px] font-semibold text-text-grey text-center">{d}</p>)}
+        {DAY_LABELS.map(d => <p key={d} className="text-caption font-semibold text-text-grey text-center">{d}</p>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {Array.from({ length: firstWeekday }).map((_, i) => <div key={`e-${i}`} />)}
@@ -251,7 +257,7 @@ export default function ReservationPage() {
     <div ref={timeSectionRef} className="rounded-2xl p-5" style={GLASS}>
       <div className="flex items-center justify-between mb-3.5">
         <p className="text-sm font-bold text-text-dark">Heure souhaitée</p>
-        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: '#4B6BFF' }}>
+        <span className="text-caption font-semibold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(75,107,255,0.08)', color: 'var(--tx-blue)' }}>
           {(() => { const d = selectedDate; const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam']; return `${days[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}` })()}
         </span>
       </div>
@@ -275,8 +281,8 @@ export default function ReservationPage() {
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
               <div>
-                <p className="text-xs font-semibold" style={{ color: '#92400E' }}>Plus de créneaux disponibles aujourd'hui</p>
-                <button className="text-xs mt-1 font-semibold" style={{ color: '#4B6BFF' }}
+                <p className="text-xs font-semibold" style={{ color: 'var(--tx-amber)' }}>Plus de créneaux disponibles aujourd'hui</p>
+                <button className="text-xs mt-1 font-semibold" style={{ color: 'var(--tx-blue)' }}
                   onClick={() => { setSelectedDate(tomorrow); setSelectedTime('') }}>
                   Choisir demain
                 </button>
@@ -310,13 +316,13 @@ export default function ReservationPage() {
           Autre…
         </button>
       </div>
-      <input ref={timeInputRef} type="time" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="sr-only" />
+      <input ref={timeInputRef} type="time" aria-label="Heure de visite personnalisée" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="sr-only" />
       {selectedTime && (
         <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-[10px]" style={{ background: 'rgba(34,197,94,0.08)' }}>
           <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p className="text-xs font-semibold" style={{ color: '#22C55E' }}>Créneau proposé : {dateTimeLabel()}</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--tx-green)' }}>Créneau proposé : {dateTimeLabel()}</p>
         </div>
       )}
     </div>
@@ -361,7 +367,7 @@ export default function ReservationPage() {
         <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.54)" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.54)' }}>Les frais de visite seront prélevés à la confirmation</p>
+        <p className="text-caption" style={{ color: 'rgba(255,255,255,0.54)' }}>Les frais de visite seront prélevés à la confirmation</p>
       </div>
     </div>
   )
@@ -408,14 +414,14 @@ export default function ReservationPage() {
     <div className="min-h-full flex flex-col">
 
       {/* ── Header ── */}
-      <div className="flex-shrink-0 px-5 md:px-8 pt-14 md:pt-6 pb-5 md:pb-5"
+      <div className="flex-shrink-0 px-5 md:px-8 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5 md:pb-5"
         style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-5xl mx-auto flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-lg">Proposer une visite</p>
+            <h1 className="text-white font-bold text-lg">Proposer une visite</h1>
             <p className="text-white/60 text-xs mt-0.5">Choisissez le créneau qui vous convient</p>
           </div>
           <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] flex-shrink-0" style={{ background: 'rgba(75,107,255,0.25)', border: '1px solid rgba(75,107,255,0.5)' }}>
@@ -423,7 +429,7 @@ export default function ReservationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-white text-[11px] font-bold">{frais.toLocaleString('fr-FR')} FCFA</span>
+            <span className="text-white text-caption font-bold">{frais.toLocaleString('fr-FR')} FCFA</span>
           </div>
         </div>
       </div>
@@ -436,11 +442,13 @@ export default function ReservationPage() {
         <PeopleCard />
         <SummaryCard />
         <ProspectNotice />
-        {error && (
-          <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
-            <p className="text-red-500 text-sm">{error}</p>
-          </div>
-        )}
+        <div role="alert" aria-live="assertive" aria-atomic="true">
+          {error && (
+            <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+              <p className="text-red-500 text-sm">{error}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── DESKTOP : deux colonnes ── */}
@@ -459,11 +467,13 @@ export default function ReservationPage() {
           <div className="sticky top-6 space-y-4">
             <SummaryCard />
             <ProspectNotice />
-            {error && (
-              <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
-                <p className="text-red-500 text-sm">{error}</p>
-              </div>
-            )}
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+              {error && (
+                <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                  <p className="text-red-500 text-sm">{error}</p>
+                </div>
+              )}
+            </div>
             <SubmitBtn />
           </div>
         </div>
@@ -477,7 +487,7 @@ export default function ReservationPage() {
       {/* ── Confirmation d'envoi — équivalent web du snackbar mobile ── */}
       {success && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg anim-fade-in"
-          style={{ background: '#22C55E', maxWidth: 'calc(100% - 32px)' }}>
+          style={{ background: '#15803D', maxWidth: 'calc(100% - 32px)' }}>
           <svg className="w-4 h-4 text-white flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>

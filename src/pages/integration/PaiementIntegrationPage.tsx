@@ -4,12 +4,16 @@ import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
+import { usePageTitle } from '../../utils/usePageTitle'
+import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 const TEAL = '#0EA5E9'
 
 export default function PaiementIntegrationPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
+  usePageTitle("Paiement d'intégration")
 
   const [bien, setBien]         = useState<any>(null)
   const [visite, setVisite]     = useState<any>(null)
@@ -37,7 +41,7 @@ export default function PaiementIntegrationPage() {
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   const payer = async () => {
-    if (!tel || !visiteId) return
+    if (!validateBeninPhone(tel) || !visiteId) return
     setState('waiting')
     try {
       const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: tel })
@@ -59,7 +63,7 @@ export default function PaiementIntegrationPage() {
         if (attempts >= 20) { clearInterval(pollRef.current!); setState('error'); setErrMsg('Délai de confirmation expiré.') }
       }, 3000)
     } catch (e: any) {
-      setState('error'); setErrMsg(e?.response?.data?.message || 'Erreur lors du paiement')
+      setState('error'); setErrMsg(apiMessage(e) || 'Erreur lors du paiement')
     }
   }
 
@@ -75,7 +79,7 @@ export default function PaiementIntegrationPage() {
 
   if (state === 'success') return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F0FDF4' }}>
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: '#22C55E' }}>
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: '#15803D' }}>
         <svg className="w-10 h-10 text-white" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
       </div>
       <h2 className="text-2xl font-bold text-text-dark mb-2">Paiement confirmé !</h2>
@@ -97,15 +101,15 @@ export default function PaiementIntegrationPage() {
   return (
     <div className="min-h-dvh flex flex-col" style={{ background: '#F8FAFC' }}>
       {/* Header */}
-      <div className="flex-shrink-0 px-5 pt-14 md:pt-6 pb-5"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5"
         style={{ background: `linear-gradient(135deg, #0F3460, ${TEAL})`, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
         <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px]"
+          <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-[11px]"
             style={{ background: 'rgba(255,255,255,0.12)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div>
-            <p className="text-white font-bold text-lg">Paiement d'intégration</p>
+            <h1 className="text-white font-bold text-lg">Paiement d'intégration</h1>
             <p className="text-white/60 text-xs mt-0.5">Payez pour finaliser votre intégration</p>
           </div>
         </div>
@@ -138,7 +142,7 @@ export default function PaiementIntegrationPage() {
                     <span className="text-text-grey">Passez {prepayeMois} mois sans loyer</span>
                     <span className="font-semibold text-text-dark">{prepayeTotal.toLocaleString('fr-FR')} FCFA</span>
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: '#22C55E' }}>Inclus dans votre paiement</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--tx-green)' }}>Inclus dans votre paiement</p>
                 </div>
               )}
               {cautionEau > 0 && (
@@ -156,10 +160,10 @@ export default function PaiementIntegrationPage() {
               {remiseVisite > 0 && (
                 <div className="flex justify-between text-sm">
                   <div>
-                    <span className="font-semibold" style={{ color: '#22C55E' }}>Remise frais de visite</span>
-                    <p className="text-xs" style={{ color: '#22C55E' }}>Déduits car visite déjà payée</p>
+                    <span className="font-semibold" style={{ color: 'var(--tx-green)' }}>Remise frais de visite</span>
+                    <p className="text-xs" style={{ color: 'var(--tx-green)' }}>Déduits car visite déjà payée</p>
                   </div>
-                  <span className="font-semibold" style={{ color: '#22C55E' }}>− {remiseVisite.toLocaleString('fr-FR')} FCFA</span>
+                  <span className="font-semibold" style={{ color: 'var(--tx-green)' }}>− {remiseVisite.toLocaleString('fr-FR')} FCFA</span>
                 </div>
               )}
               <div className="border-t border-divider pt-3 flex justify-between">
@@ -173,7 +177,7 @@ export default function PaiementIntegrationPage() {
           {state === 'idle' || state === 'error' ? (
             <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
               <div className="flex items-center gap-3 mb-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/MTN_Logo.svg/200px-MTN_Logo.svg.png" alt="MTN MoMo" className="h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/MTN_Logo.svg/200px-MTN_Logo.svg.png" alt="MTN MoMo" className="h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                 <p className="font-bold text-text-dark">MTN Mobile Money</p>
               </div>
               {state === 'error' && (
@@ -186,14 +190,14 @@ export default function PaiementIntegrationPage() {
                 <span className="font-bold text-text-dark text-sm">+229</span>
                 <div className="w-px h-4 bg-divider" />
                 <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                  placeholder="XX XX XX XX" maxLength={8}
+                  placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                   className="flex-1 min-w-0 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
               </div>
               <div className="flex items-start gap-2 text-xs text-text-grey mb-4">
                 <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>Une demande de paiement sera envoyée à votre téléphone. Validez-la dans les 3 minutes.</span>
               </div>
-              <button onClick={payer} disabled={tel.length < 8 || !visiteId}
+              <button onClick={payer} disabled={!validateBeninPhone(tel) || !visiteId}
                 className="w-full py-4 rounded-xl font-bold text-white disabled:opacity-40"
                 style={{ background: `linear-gradient(135deg, #0F3460, ${TEAL})`, boxShadow: '0 4px 14px rgba(14,165,233,0.35)' }}>
                 Payer {total.toLocaleString('fr-FR')} FCFA

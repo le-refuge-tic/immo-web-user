@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationsContext'
 import BienDetailPage from './BienDetailPage'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-LOGO.webp'
 
 const BLUE = '#4B6BFF'
 
@@ -32,7 +32,7 @@ export default function ProprietaireBienWrapper() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
-  const { unreadMessages, unreadAlertes } = useNotifications()
+  const { unreadMessages, unreadAlertesEspace: unreadAlertes } = useNotifications()
   const fromDashboard = !!(location.state as any)?.fromDashboard
   const [isScrolled, setIsScrolled] = useState(fromDashboard)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -100,7 +100,7 @@ export default function ProprietaireBienWrapper() {
                 return (
                   <button key={item.key}
                     onClick={() => goToTab(item.key)}
-                    className="relative whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
+                    className="relative whitespace-nowrap text-caption font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
                       ...(active ? { color: BLUE, background: BLUE + '14' } : { color: 'var(--p-muted)' }),
                       minHeight: 36,
@@ -116,7 +116,7 @@ export default function ProprietaireBienWrapper() {
             {/* Right actions */}
             <div className="flex items-center gap-2 ml-auto">
               {/* Alertes */}
-              <button onClick={() => navigate('/notifications')}
+              <button onClick={() => navigate('/proprietaire', { state: { tab: 'notifications', fromDetail: true } })}
                 className="relative w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
@@ -129,7 +129,7 @@ export default function ProprietaireBienWrapper() {
               <button onClick={() => goToTab('profil')}
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 border transition-colors"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
-                <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                <div className="w-6 h-6 rounded-md flex items-center justify-center text-micro font-bold text-white flex-shrink-0"
                   style={{ background: BLUE }}>
                   {initials || '?'}
                 </div>
@@ -142,7 +142,7 @@ export default function ProprietaireBienWrapper() {
               {/* Déconnexion — desktop */}
               <button onClick={() => { logout(); navigate('/login') }}
                 className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
-                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: '#EF4444' }}>
+                style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -180,15 +180,15 @@ export default function ProprietaireBienWrapper() {
                   return (
                     <button key={item.key}
                       onClick={() => { goToTab(item.key); setMenuOpen(false) }}
-                      className="flex flex-col items-center gap-1 py-3 rounded-xl text-[11px] font-medium transition-all"
+                      className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium transition-all"
                       style={active ? { color: BLUE, background: BLUE + '14', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                       <span className="truncate w-full text-center px-1">{item.label}</span>
                     </button>
                   )
                 })}
                 <button onClick={() => { logout(); navigate('/login') }}
-                  className="flex flex-col items-center gap-1 py-3 rounded-xl text-[11px] font-medium"
-                  style={{ color: '#EF4444' }}>
+                  className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium"
+                  style={{ color: 'var(--tx-red)' }}>
                   <span>Quitter</span>
                 </button>
               </div>

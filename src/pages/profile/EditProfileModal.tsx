@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../api/userApi'
+import { apiMessage } from '../../utils/apiMessage'
+import VerifyPhoneSection from './VerifyPhoneSection'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -16,10 +18,17 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const { user, updateUser } = useAuth()
   const fileRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    if (!open) return
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [open, onClose])
+
   const [nom, setNom] = useState(user?.nom || '')
   const [prenom, setPrenom] = useState(user?.prenom || '')
   const [email, setEmail] = useState(user?.email || '')
-  const [telephone, setTelephone] = useState((user as any)?.telephone || '')
+  const [editingPhone, setEditingPhone] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -30,7 +39,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       setNom(user?.nom || '')
       setPrenom(user?.prenom || '')
       setEmail(user?.email || '')
-      setTelephone((user as any)?.telephone || '')
+      setEditingPhone(false)
       setError('')
       setSuccess(false)
     }
@@ -39,21 +48,24 @@ export default function EditProfileModal({ open, onClose }: Props) {
   if (!open) return null
 
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const currentPhone: string = (user as any)?.telephone || ''
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
-      const data = await userApi.updateProfil({ nom, prenom, email: email || undefined, telephone: telephone || undefined })
+      // `telephone` est exclu volontairement : il ne change que par le flux
+      // vérifié par SMS (VerifyPhoneSection), jamais par ce PATCH.
+      const data = await userApi.updateProfil({ nom, prenom, email: email || undefined })
       // Le endpoint renvoie l'entité User mise à jour directement (pas de wrapper
       // { user }). On applique donc soit data.user, soit l'entité elle-même, avec
       // repli sur les valeurs saisies si la réponse est vide.
-      updateUser(data.user || data || { nom, prenom, email, telephone })
+      updateUser(data.user || data || { nom, prenom, email })
       setSuccess(true)
       setTimeout(onClose, 1000)
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erreur de mise à jour')
+      setError(apiMessage(err) || 'Erreur de mise à jour')
     }
     setLoading(false)
   }
@@ -65,12 +77,17 @@ export default function EditProfileModal({ open, onClose }: Props) {
     try {
       const data = await userApi.uploadAvatar(file)
       updateUser({ photo_profil: data.url || data.photo_profil })
-    } catch (_) {}
+    } catch (err) {
+      setError(apiMessage(err) || 'La photo n’a pas pu être envoyée. Essayez une autre image.')
+    }
     setUploading(false)
   }
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Modifier le profil"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
       onClick={onClose}
@@ -83,7 +100,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-text-dark">Modifier le profil</h2>
-          <button onClick={onClose}
+          <button onClick={onClose} aria-label="Fermer"
             className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)' }}>
             <svg className="w-4 h-4 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -96,14 +113,14 @@ export default function EditProfileModal({ open, onClose }: Props) {
         <div className="flex flex-col items-center mb-6">
           <div className="relative">
             {user?.photo_profil ? (
-              <img src={user.photo_profil} alt="" className="w-20 h-20 rounded-full object-cover" />
+              <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-full object-cover" />
             ) : (
               <div className="w-20 h-20 rounded-full flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
                 <span className="text-white text-2xl font-bold">{initials}</span>
               </div>
             )}
-            <button onClick={() => fileRef.current?.click()}
+            <button onClick={() => fileRef.current?.click()} aria-label="Modifier la photo de profil"
               className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white"
               style={{ background: '#4B6BFF' }}>
               {uploading ? (
@@ -121,11 +138,13 @@ export default function EditProfileModal({ open, onClose }: Props) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
-          )}
+          <div role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+          </div>
           {success && (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
               <p className="text-green-600 text-sm font-semibold">Profil mis à jour</p>
@@ -133,25 +152,47 @@ export default function EditProfileModal({ open, onClose }: Props) {
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-semibold text-text-dark mb-1.5 block">Nom</label>
-              <input value={nom} onChange={e => setNom(e.target.value)} required
+              <label htmlFor="ep-nom" className="text-sm font-semibold text-text-dark mb-1.5 block">Nom</label>
+              <input id="ep-nom" value={nom} onChange={e => setNom(e.target.value)} required
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
             <div>
-              <label className="text-sm font-semibold text-text-dark mb-1.5 block">Prénom</label>
-              <input value={prenom} onChange={e => setPrenom(e.target.value)} required
+              <label htmlFor="ep-prenom" className="text-sm font-semibold text-text-dark mb-1.5 block">Prénom</label>
+              <input id="ep-prenom" value={prenom} onChange={e => setPrenom(e.target.value)} required
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com"
+            <label htmlFor="ep-email" className="text-sm font-semibold text-text-dark mb-1.5 block">Email</label>
+            <input id="ep-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com"
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</label>
-            <input type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="+229 00 00 00 00"
-              className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
+            <span className="text-sm font-semibold text-text-dark mb-1.5 block">Téléphone</span>
+            {editingPhone ? (
+              <VerifyPhoneSection
+                currentPhone={currentPhone}
+                onVerified={tel => {
+                  updateUser({ telephone: tel } as any)
+                  setEditingPhone(false)
+                  setSuccess(true)
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+                style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}>
+                <span className="text-sm text-text-dark">
+                  {currentPhone || <span className="text-text-grey">Aucun numéro enregistré</span>}
+                </span>
+                <button type="button" onClick={() => setEditingPhone(true)}
+                  className="text-xs font-semibold text-primary whitespace-nowrap">
+                  {currentPhone ? 'Modifier' : 'Ajouter'}
+                </button>
+              </div>
+            )}
+            <p className="text-xs text-text-grey mt-1.5">
+              Le numéro sert à la connexion en deux étapes : il est confirmé par un code SMS.
+            </p>
           </div>
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}

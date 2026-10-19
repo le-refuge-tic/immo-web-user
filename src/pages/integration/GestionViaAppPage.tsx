@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { loyersApi } from '../../api/loyersApi'
+import { usePageTitle } from '../../utils/usePageTitle'
 
-const GREEN = '#22C55E'
+const GREEN = '#15803D'
 
 const AVANTAGES = [
   { icon: '🔔', title: 'Rappels automatiques', desc: 'Alerte 3 jours avant l\'échéance de votre loyer' },
@@ -13,6 +14,7 @@ const AVANTAGES = [
 ]
 
 export default function GestionViaAppPage() {
+  usePageTitle('Gestion via l\'application')
   const { contratId } = useParams<{ contratId: string }>()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)

@@ -1,6 +1,8 @@
+import AppearanceSetting from '../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { tokenStore } from '../../utils/tokenStore'
 import { biensApi } from '../../api/biensApi'
 import { visitesApi } from '../../api/visitesApi'
 import { userApi } from '../../api/userApi'
@@ -9,8 +11,11 @@ import { commercialApi, type CompteursCommercial, type PerfHebdoSemaine } from '
 import { delegationApi } from '../../api/delegationApi'
 import { chatApi } from '../../api/chatApi'
 import { notificationsApi } from '../../api/notificationsApi'
+import { BASE } from '../../api/apiBase'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { useNotifications } from '../../context/NotificationsContext'
 import EditProfileModal from '../profile/EditProfileModal'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 import ChangePasswordModal from '../profile/ChangePasswordModal'
 import EditBienModal from '../bien/EditBienModal'
 import { bienTypeLabel } from '../../utils/bienType'
@@ -44,11 +49,11 @@ const MID_PURPLE  = '#7B2FBE'
 type Tab = 'tableau' | 'biens' | 'reservations' | 'creneaux' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
 
 const DELEG_STATUT: Record<string, { label: string; color: string }> = {
-  en_attente: { label: 'En attente',  color: '#F59E0B' },
-  active:     { label: 'Active',      color: '#22C55E' },
-  revoquee:   { label: 'Révoquée',    color: '#EF4444' },
-  expiree:    { label: 'Expirée',     color: '#9CA3AF' },
-  refusee:    { label: 'Refusée',     color: '#EF4444' },
+  en_attente: { label: 'En attente',  color: '#B45309' },
+  active:     { label: 'Active',      color: '#15803D' },
+  revoquee:   { label: 'Révoquée',    color: '#DC2626' },
+  expiree:    { label: 'Expirée',     color: '#6B7280' },
+  refusee:    { label: 'Refusée',     color: '#DC2626' },
 }
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -60,6 +65,8 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'portefeuille',  label: 'Portefeuille', icon: <IcWallet /> },
   { key: 'profil',        label: 'Profil',       icon: <IcPerson /> },
 ]
+
+const PRIMARY_TABS: Tab[] = ['tableau', 'biens', 'reservations', 'creneaux']
 
 function fmtPrix(p: any) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
@@ -73,15 +80,15 @@ function fmtSemaine(raw: string) {
 function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
   if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#FF9800' }
-  return { label: 'En attente', color: '#FF9800' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
   if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: PURPLE }
-  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#E67E22' }
-  return { label: 'En attente', color: '#FF9800' }
+  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: '#B45309' }
+  return { label: 'En attente', color: '#B45309' }
 }
 
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
@@ -90,7 +97,7 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
       <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
         <span style={{ color }}>{icon}</span>
       </div>
-      <span className="text-[11px] font-semibold text-text-dark text-center leading-tight">{label}</span>
+      <span className="text-caption font-semibold text-text-dark text-center leading-tight">{label}</span>
     </button>
   )
 }
@@ -120,18 +127,18 @@ function notifTimeAgo(iso?: string): string {
 }
 
 function notifIconD(type: string): { node: React.ReactNode; color: string } {
-  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#22C55E' }
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#15803D' }
   if (type === 'nouveau_message') return { node: <IcChat />, color: '#8B5CF6' }
-  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#EF4444' }
-  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#22C55E' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#DC2626' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#15803D' }
   if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE }
-  return { node: <IcBell />, color: '#9E9E9E' }
+  return { node: <IcBell />, color: '#6B7280' }
 }
 
 function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
-  const { user } = useAuth()
+  const { user, activeRole } = useAuth()
   const navigate = useNavigate()
-  const { refresh: refreshCounts } = useNotifications()
+  const { refresh: refreshCounts, markAlertesRead } = useNotifications()
   const [notifs, setNotifs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
@@ -148,19 +155,18 @@ function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
   const unread = mine.filter(n => !n.lu).length
   const displayed = filter === 'non_lues' ? mine.filter(n => !n.lu) : mine
 
+  // Optimiste : liste et badges changent tout de suite, resynchronisés en cas d'échec.
   const markRead = async (id: number) => {
-    try {
-      await notificationsApi.markRead(id)
-      setNotifs(p => p.map(n => n.id === id ? { ...n, lu: true } : n))
-      refreshCounts()
-    } catch (_) {}
+    setNotifs(p => p.map(n => n.id === id ? { ...n, lu: true } : n))
+    markAlertesRead(1)
+    try { await notificationsApi.markRead(id) } catch { refreshCounts() }
   }
+  // « Tout lire » ne concerne que les alertes de cet espace.
   const markAll = async () => {
-    try {
-      await notificationsApi.markAllRead()
-      setNotifs(p => p.map(n => ({ ...n, lu: true })))
-      refreshCounts()
-    } catch (_) {}
+    const ids = new Set(mine.filter(n => !n.lu).map(n => n.id))
+    setNotifs(p => p.map(n => ids.has(n.id) ? { ...n, lu: true } : n))
+    markAlertesRead(ids.size)
+    try { await notificationsApi.markAllRead(activeRole || 'demarcheur') } catch { refreshCounts() }
   }
 
   const ouvrirConversationPourVisite = async (visiteId: number): Promise<boolean> => {
@@ -255,6 +261,7 @@ function MesBiensTab() {
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('Tous')
+  const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
   const navigate = useNavigate()
 
   const load = async () => {
@@ -270,8 +277,8 @@ function MesBiensTab() {
     : biens.filter(b => b.statut_moderation === 'rejete')
 
   const del = async (id: number) => {
-    if (!confirm('Supprimer ce bien ?')) return
     try { await biensApi.delete(id); load() } catch (_) {}
+    setConfirmDeleteBienId(null)
   }
 
   const [editingBien, setEditingBien] = useState<any>(null)
@@ -298,7 +305,7 @@ function MesBiensTab() {
           {['Tous', 'Publié', 'En attente', 'Rejeté'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border"
-              style={filter === f ? { background: PURPLE, color: '#fff', borderColor: PURPLE } : { color: '#9E9E9E', borderColor: '#E8EAED' }}>
+              style={filter === f ? { background: PURPLE, color: '#fff', borderColor: PURPLE } : { color: '#6B7280', borderColor: '#E8EAED' }}>
               {f}
             </button>
           ))}
@@ -332,14 +339,21 @@ function MesBiensTab() {
                   className="card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
                   <div className="relative h-32">
                     {cover?.url
-                      ? <img src={cover.url} className="w-full h-full object-cover" alt="" />
+                      ? <img loading="lazy" src={cover.url} className="w-full h-full object-cover" alt="" />
                       : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}cc, ${PURPLE}aa)` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
                     }
                     <div className="absolute inset-0 bg-black/20" />
-                    <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-[11px] font-bold" style={{ background: color }}>{label}</span>
+                    <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-caption font-bold" style={{ background: color }}>{label}</span>
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
-                      <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                      {confirmDeleteBienId === b.id ? (
+                        <>
+                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: '#DC2626' }}>Suppr.</button>
+                          <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(null) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm" style={{ background: 'rgba(255,255,255,0.2)' }}>✕</button>
+                        </>
+                      ) : (
+                        <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
+                      )}
                     </div>
                     <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
                   </div>
@@ -378,6 +392,7 @@ function ReservationsTab() {
   const [cpTime, setCpTime] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
+  const [chatError, setChatError] = useState('')
 
   const load = async () => {
     setLoading(true)
@@ -406,7 +421,7 @@ function ReservationsTab() {
       const list = Array.isArray(convs) ? convs : convs.data || []
       const match = list.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === clientId))
       if (match) navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
-      else alert('Ce client n\'a pas encore démarré de conversation pour ce bien.')
+      else setChatError('Ce client n\'a pas encore démarré de conversation pour ce bien.')
     } catch (_) {}
     setChatLoadingId(null)
   }
@@ -427,10 +442,9 @@ function ReservationsTab() {
     if (!cpId || !cpDate || !cpTime) return
     setSubmitting(true)
     try {
-      const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
       await fetch(`${BASE}/visites/${cpId}/contre-proposer`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenStore.getToken()}` },
         body: JSON.stringify({ date_proposee: `${cpDate}T${cpTime}:00` }),
       })
       setCpId(null); setCpDate(''); setCpTime(''); load()
@@ -440,11 +454,17 @@ function ReservationsTab() {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      {chatError && (
+        <div className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: 'var(--tx-red)' }}>
+          {chatError}
+          <button onClick={() => setChatError('')} className="text-base leading-none flex-shrink-0">✕</button>
+        </div>
+      )}
       <div className="bg-white border-b border-divider flex flex-shrink-0">
         {['Toutes', 'À traiter', 'Confirmées', 'Échouées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
-            style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: '#9E9E9E' }}>
+            style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: '#6B7280' }}>
             {f}
           </button>
         ))}
@@ -466,7 +486,7 @@ function ReservationsTab() {
         <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:items-start">
         {filtered.map((v, i) => {
           const echouee = isEchouee(v)
-          const { label, color } = echouee ? { label: 'Échouée', color: '#EF4444' } : statutVisite(v.statut)
+          const { label, color } = echouee ? { label: 'Échouée', color: '#DC2626' } : statutVisite(v.statut)
           const nom = 'Client'
           const init = 'C'
           const bType = v.bien ? bienTypeLabel(v.bien) : ''
@@ -485,7 +505,7 @@ function ReservationsTab() {
                   <p className="font-bold text-text-dark text-sm">{nom}</p>
                   <p className="text-xs text-text-grey">Identité masquée avant confirmation</p>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
+                <span className="px-2.5 py-1 rounded-lg text-caption font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
               </div>
               <div className="bg-surface-g rounded-xl p-3 mb-3">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -509,11 +529,11 @@ function ReservationsTab() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
+                    <p className="text-micro font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
                     <p className="text-sm font-bold text-text-dark">{contactNumero}</p>
                   </div>
                   <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#25D366' }}>
+                    className="px-3 py-1.5 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: '#25D366' }}>
                     WhatsApp
                   </a>
                 </div>
@@ -521,13 +541,13 @@ function ReservationsTab() {
               {echouee && (
                 <div className="flex items-center gap-2 p-2.5 rounded-xl mb-3" style={{ background: '#EF444410', border: '1px solid #EF444440' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" /></svg>
-                  <p className="text-xs font-medium" style={{ color: '#EF4444' }}>Cette visite ne s'est pas tenue.</p>
+                  <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
                 </div>
               )}
               <div className="flex gap-2">
                 {echouee ? (
                   <button onClick={() => ouvrirChatEchouee(v)} disabled={chatLoadingId === v.id}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: '#EF4444', background: '#EF444410' }}>
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: 'var(--tx-red)', background: '#EF444410' }}>
                     <IcChat /> {chatLoadingId === v.id ? '…' : 'Contacter le client'}
                   </button>
                 ) : (
@@ -580,12 +600,15 @@ function CreneauxTab() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ bien_id: '', date: '', heure: '' })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const load = async () => {
     setLoading(true)
+    setError('')
     try {
       const [c, b] = await Promise.allSettled([visitesApi.mesCreneaux(), biensApi.mesBiens()])
       if (c.status === 'fulfilled') setCreneaux(Array.isArray(c.value) ? c.value : c.value.data || [])
+      else setError('Impossible de charger les créneaux : ce service est momentanément indisponible.')
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
     } catch (_) {}
     setLoading(false)
@@ -598,12 +621,14 @@ function CreneauxTab() {
     try {
       await visitesApi.creerCreneau({ bien_id: Number(form.bien_id), debut: `${form.date}T${form.heure}:00`, duree_minutes: 60 })
       setShowForm(false); setForm({ bien_id: '', date: '', heure: '' }); load()
-    } catch (_) {}
+    } catch (_) {
+      setError("Le créneau n'a pas pu être créé : ce service est momentanément indisponible.")
+    }
     setSaving(false)
   }
 
   const del = async (id: number) => {
-    try { await visitesApi.supprimerCreneau(id); load() } catch (_) {}
+    try { await visitesApi.supprimerCreneau(id); load() } catch (_) { setError("Le créneau n'a pas pu être supprimé. Réessayez plus tard.") }
   }
 
   return (
@@ -614,9 +639,13 @@ function CreneauxTab() {
           <IcPlus /> Ajouter
         </button>
       </div>
+      {error && (
+        <p role="alert" className="flex-shrink-0 px-4 py-3 text-sm font-semibold bg-red-50 text-red-700 border-b border-red-200">{error}</p>
+      )}
       {showForm && (
         <div className="bg-white border-b border-divider px-4 py-4 space-y-2 flex-shrink-0">
           <select value={form.bien_id} onChange={e => setForm({ ...form, bien_id: e.target.value })}
+            aria-label="Choisir un bien"
             className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider">
             <option value="">Choisir un bien</option>
             {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}
@@ -710,7 +739,7 @@ function PortefeuilleTab() {
                 <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: isCredit ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#22C55E' : '#EF4444'} strokeWidth={2.5} className="w-5 h-5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#15803D' : '#DC2626'} strokeWidth={2.5} className="w-5 h-5">
                       {isCredit
                         ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8-8-8 8"/>
                         : <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m8 8l-8 8-8-8"/>}
@@ -721,10 +750,10 @@ function PortefeuilleTab() {
                     <p className="text-xs text-text-grey mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-sm" style={{ color: isCredit ? '#22C55E' : '#EF4444' }}>
+                    <p className="font-bold text-sm" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
                       {isCredit ? '+' : '-'}{Math.abs(amt).toLocaleString('fr-FR')} F
                     </p>
-                    {t.balance_after != null && <p className="text-[10px] text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
+                    {t.balance_after != null && <p className="text-micro text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
                   </div>
                 </div>
               )
@@ -782,12 +811,12 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
             <p className="text-sm text-text-grey text-center px-6">Les propositions de gestion des propriétaires apparaîtront ici.</p>
           </div>
         ) : delegations.map(d => {
-          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#9CA3AF' }
+          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#6B7280' }
           return (
             <div key={d.id} className="card-soft rounded-xl p-4 mb-3">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-semibold text-text-dark text-sm">{d.proprietaire?.prenom} {d.proprietaire?.nom}</p>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
+                <span className="text-micro font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
               </div>
               <p className="text-xs text-text-grey mb-3">
                 {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'}
@@ -795,11 +824,11 @@ function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
               {d.statut === 'en_attente' && (
                 <div className="flex gap-2">
                   <button onClick={() => repondre(d.id, true)} disabled={actingId === d.id}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}>
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}>
                     Accepter
                   </button>
                   <button onClick={() => repondre(d.id, false)} disabled={actingId === d.id}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>
+                    className="flex-1 py-2 rounded-lg text-xs font-bold disabled:opacity-50" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--tx-red)' }}>
                     Refuser
                   </button>
                 </div>
@@ -856,9 +885,9 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
           <p className="text-white text-2xl font-bold mb-3">{score} / 100</p>
           <div className="h-1.5 rounded-full bg-white/20 mb-4"><div className="h-full rounded-full bg-white" style={{ width: `${score}%` }} /></div>
           <div className="flex">
-            <div className="flex-1"><p className="text-white/60 text-[10px]">Biens</p><p className="text-white font-bold text-sm">{user?.nb_biens ?? 0}</p></div>
+            <div className="flex-1"><p className="text-white/60 text-micro">Biens</p><p className="text-white font-bold text-sm">{user?.nb_biens ?? 0}</p></div>
             <div className="w-px bg-white/20 mx-3" />
-            <div className="flex-1"><p className="text-white/60 text-[10px]">Étoiles</p><p className="text-white font-bold text-sm">{user?.nb_etoiles ?? 0}</p></div>
+            <div className="flex-1"><p className="text-white/60 text-micro">Étoiles</p><p className="text-white font-bold text-sm">{user?.nb_etoiles ?? 0}</p></div>
           </div>
         </div>
       </div>
@@ -912,6 +941,7 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
           <span className="text-sm font-semibold text-text-dark">Historique des transactions</span>
           <IcChevron />
         </button>
+        <div className="w-full card-soft rounded-xl"><AppearanceSetting /></div>
         <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
           Se déconnecter
         </button>
@@ -924,10 +954,12 @@ function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: 
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function DemarcheurDashboard() {
+  usePageTitle('Espace démarcheur')
   const { user: authUser } = useAuth()
-  const { unreadAlertes } = useNotifications()
+  const { unreadAlertesEspace: unreadAlertes } = useNotifications()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
+  const [moreOpen, setMoreOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [biens, setBiens] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -964,7 +996,7 @@ export default function DemarcheurDashboard() {
   const score = me?.score_credibilite ?? 100
 
   return (
-    <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] relative">
+    <div className="flex flex-col xl:flex-row h-full bg-[#F4F6FA] dark:bg-[#0F0F14] relative">
 
       {/* Sidebar (desktop only) */}
       <aside className="hidden xl:flex xl:flex-col xl:w-64 2xl:w-72 flex-shrink-0 bg-white border-r border-divider">
@@ -1003,7 +1035,7 @@ export default function DemarcheurDashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
       {/* Header */}
-      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-12 md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
+      <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-8 xl:pt-8 pb-6 md:pb-8" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE} 0%, ${MID_PURPLE} 60%, ${PURPLE} 100%)` }}>
         <div className="md:max-w-5xl md:mx-auto xl:max-w-none xl:mx-0">
           <div className="flex items-center gap-3 mb-5 md:mb-6">
             <div className="w-11 h-11 md:w-12 md:h-12 rounded-[13px] flex items-center justify-center border flex-shrink-0"
@@ -1026,7 +1058,7 @@ export default function DemarcheurDashboard() {
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0 xl:hidden"
               style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
               <IcVerif />
-              <span className="text-white text-[11px] md:text-xs font-semibold">Agent</span>
+              <span className="text-white text-caption md:text-xs font-semibold">Démarcheur</span>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-2 md:gap-4 md:max-w-xl">
@@ -1040,7 +1072,7 @@ export default function DemarcheurDashboard() {
                 style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.15)' }}>
                 <span className="text-white flex justify-center mb-1">{s.icon}</span>
                 <p className="text-white font-bold text-base md:text-lg leading-none">{s.value}</p>
-                <p className="text-[10px] md:text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
+                <p className="text-micro md:text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.label}</p>
               </div>
             ))}
           </div>
@@ -1078,7 +1110,7 @@ export default function DemarcheurDashboard() {
                     <div key={s.label} className="flex items-center flex-1">
                       {i > 0 && <div className="w-px h-8 mr-3" style={{ background: 'rgba(255,255,255,0.2)' }} />}
                       <div>
-                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{s.label}</p>
+                        <p className="text-micro" style={{ color: 'rgba(255,255,255,0.6)' }}>{s.label}</p>
                         <p className="text-white font-bold text-sm">{s.value}</p>
                       </div>
                     </div>
@@ -1093,9 +1125,9 @@ export default function DemarcheurDashboard() {
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {[
                       { label: 'Biens publiés', value: compteurs.total_publies, color: PURPLE },
-                      { label: 'En vérification', value: compteurs.en_verification, color: '#F59E0B' },
-                      { label: 'Validés', value: compteurs.valides, color: '#22C55E' },
-                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: '#4B6BFF' },
+                      { label: 'En vérification', value: compteurs.en_verification, color: '#B45309' },
+                      { label: 'Validés', value: compteurs.valides, color: '#15803D' },
+                      { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: '#3A5AEE' },
                     ].map(c => (
                       <div key={c.label} className="card-soft rounded-xl p-4">
                         <p className="text-[26px] font-bold" style={{ color: c.color }}>{c.value}</p>
@@ -1112,11 +1144,11 @@ export default function DemarcheurDashboard() {
                           <div key={s.semaine_debut} className="flex items-center justify-between">
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-xs text-text-grey">{fmtSemaine(s.semaine_debut)}</span>
-                              <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: PURPLE + '15', color: PURPLE }}>
+                              <span className="text-caption px-1.5 py-0.5 rounded" style={{ background: PURPLE + '15', color: PURPLE }}>
                                 {s.nb_biens_valides} bien{s.nb_biens_valides !== 1 ? 's' : ''}
                               </span>
                               {s.palier_atteint && (
-                                <span className="text-[11px] px-1.5 py-0.5 rounded font-semibold" style={{ background: '#22C55E20', color: '#16A34A' }}>Palier 20</span>
+                                <span className="text-caption px-1.5 py-0.5 rounded font-semibold" style={{ background: '#22C55E20', color: '#16A34A' }}>Palier 20</span>
                               )}
                             </div>
                             <span className="text-sm font-bold text-text-dark flex-shrink-0">{fmtPrix(s.montant)}</span>
@@ -1157,7 +1189,7 @@ export default function DemarcheurDashboard() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-bold text-text-dark text-xs">{fmtPrix(b.prix)}</p>
-                      <span className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: color + '20', color }}>{label}</span>
+                      <span className="mt-1 inline-block px-2 py-0.5 rounded text-micro font-bold" style={{ background: color + '20', color }}>{label}</span>
                     </div>
                   </div>
                 )
@@ -1186,24 +1218,61 @@ export default function DemarcheurDashboard() {
         </div>
       )}
 
-      {/* Bottom Nav (mobile & tablet only — desktop uses the sidebar) */}
-      <div className="xl:hidden flex-shrink-0 md:px-6 md:pb-4">
-        <div className="bg-white border-t border-divider md:border md:rounded-2xl" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
+      {/* Bottom Nav (mobile & tablet only — desktop uses the sidebar) : 4 onglets + « Plus », libellés visibles */}
+      <div className="xl:hidden flex-shrink-0 md:px-6 md:pb-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="bg-white dark:bg-[#14161E] border-t border-divider dark:border-white/10 md:border md:rounded-2xl" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           <div className="flex items-center justify-around px-2 py-2 md:max-w-lg md:mx-auto">
-            {TABS.map(t => {
+            {TABS.filter(t => PRIMARY_TABS.includes(t.key)).map(t => {
               const active = tab === t.key
               return (
-                <button key={t.key} onClick={() => setTab(t.key)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] transition-all"
-                  style={active ? { background: PURPLE + '18' } : {}}>
-                  <span style={{ color: active ? PURPLE : '#9E9E9E' }}>{t.icon}</span>
-                  {active && <span className="text-xs font-bold" style={{ color: PURPLE }}>{t.label}</span>}
+                <button key={t.key} onClick={() => setTab(t.key)} aria-current={active ? 'page' : undefined}
+                  className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${active ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
+                  style={active ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                  <span>{t.icon}</span>
+                  <span className={`text-[10px] ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>
                 </button>
               )
             })}
+            {(() => {
+              const moreActive = !PRIMARY_TABS.includes(tab)
+              return (
+                <button onClick={() => setMoreOpen(true)} aria-haspopup="dialog" aria-expanded={moreOpen}
+                  aria-current={moreActive ? 'page' : undefined}
+                  aria-label={'Plus' + (unreadAlertes > 0 ? ', alertes non lues' : '')}
+                  className={`relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${moreActive ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
+                  style={moreActive ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                  <span className="relative">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    {unreadAlertes > 0 && <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+                  </span>
+                  <span className={`text-[10px] ${moreActive ? 'font-bold' : 'font-semibold'}`}>{moreActive ? (TABS.find(t => t.key === tab)?.label ?? 'Plus') : 'Plus'}</span>
+                </button>
+              )
+            })()}
           </div>
         </div>
       </div>
+
+      <ModalSheet open={moreOpen} onClose={() => setMoreOpen(false)} label="Plus d'options">
+        <div className="rounded-t-3xl p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] bg-white dark:bg-[#14161E]">
+          <div className="w-10 h-1 rounded-full mx-auto mb-4 bg-black/10 dark:bg-white/15" />
+          <ul className="grid grid-cols-3 gap-2">
+            {TABS.filter(t => !PRIMARY_TABS.includes(t.key)).map(t => {
+              const active = tab === t.key
+              return (
+                <li key={t.key}>
+                  <button onClick={() => { setTab(t.key); setMoreOpen(false) }}
+                    className={`w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold border border-divider dark:border-white/10 ${active ? '' : 'text-text-dark'}`}
+                    style={active ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                    <span style={{ color: active ? PURPLE : undefined }} className={active ? '' : 'text-text-grey'}>{t.icon}</span>
+                    {t.label}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </ModalSheet>
       </div>
     </div>
   )

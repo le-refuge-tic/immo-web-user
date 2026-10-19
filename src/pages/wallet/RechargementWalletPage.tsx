@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
+import { openPaymentUrl } from '../../utils/paymentUrl'
 import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import type { MethodePaiement } from '../../api/paiementApi'
+import { usePageTitle } from '../../utils/usePageTitle'
+import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -19,6 +23,7 @@ export default function RechargementWalletPage() {
   const { walletType } = useParams<{ walletType: WalletType }>()
   const type: WalletType = walletType === 'epargne' ? 'epargne' : 'cotisation'
   const accent = COLORS[type]
+  usePageTitle(`Recharger — ${LABELS[type]}`)
 
   const [opId, setOpId] = useState('mtn')
   const [montant, setMontant] = useState('')
@@ -52,9 +57,7 @@ export default function RechargementWalletPage() {
     const m = Number(montant.replace(/\D/g, ''))
     if (!m || m < 100) { setState('error'); setError('Montant minimum : 100 FCFA'); return }
     if (op.needsPhone) {
-      const raw = tel.replace(/\D/g, '')
-      const ok = raw.length === 8 || (raw.length === 10 && raw.startsWith('01')) || raw.length === 11
-      if (!ok) { setState('error'); setError('Format : 0196XXXXXX (10 ch.) ou 96XXXXXX (8 ch.)'); return }
+      if (!validateBeninPhone(tel)) { setState('error'); setError(PHONE_FORMAT_HINT); return }
     }
     setState('loading'); setError('')
     try {
@@ -66,7 +69,7 @@ export default function RechargementWalletPage() {
       const refId = res.reference || res.referenceId || res.reference_id
       if (res.url_paiement) {
         setPayUrl(res.url_paiement)
-        window.open(res.url_paiement, '_blank', 'noopener')
+        openPaymentUrl(res.url_paiement)
         setState('waiting')
         if (refId) startPolling(refId)
         return
@@ -75,18 +78,18 @@ export default function RechargementWalletPage() {
       setState('waiting')
       startPolling(refId)
     } catch (e: any) {
-      setState('error'); setError(e?.response?.data?.message || 'Erreur lors de la recharge.')
+      setState('error'); setError(apiMessage(e) || 'Erreur lors de la recharge.')
     }
   }
 
   return (
     <div className="min-h-full flex flex-col">
-      <div className="flex-shrink-0 px-5 pt-14 md:pt-6 pb-5 flex items-center gap-4" style={{ background: accent }}>
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5 flex items-center gap-4" style={{ background: accent }}>
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
           style={{ background: 'rgba(255,255,255,0.15)' }}>
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <p className="text-white font-bold text-lg">Recharger — {LABELS[type]}</p>
+        <h1 className="text-white font-bold text-lg">Recharger — {LABELS[type]}</h1>
       </div>
 
       <div className="flex-1 px-6 py-8 max-w-md mx-auto w-full">
@@ -98,7 +101,7 @@ export default function RechargementWalletPage() {
             <p className="font-bold text-text-dark text-lg mb-2">En attente de confirmation…</p>
             <p className="text-text-grey text-sm mb-6">Validez la demande sur votre téléphone {op.label}.</p>
             {payUrl && (
-              <button onClick={() => window.open(payUrl, '_blank', 'noopener')} className="text-xs font-bold mb-4" style={{ color: op.color }}>
+              <button onClick={() => openPaymentUrl(payUrl)} className="text-xs font-bold mb-4" style={{ color: op.color }}>
                 Rouvrir la page de paiement
               </button>
             )}
@@ -111,7 +114,7 @@ export default function RechargementWalletPage() {
             </div>
             <p className="font-bold text-text-dark text-xl mb-2">Wallet {LABELS[type]} rechargé !</p>
             <p className="text-text-grey text-sm mb-8">Votre solde a été mis à jour.</p>
-            <button onClick={() => navigate(-1)} className="w-full py-3.5 rounded-xl text-white font-bold text-sm" style={{ background: '#22C55E' }}>
+            <button onClick={() => navigate(-1)} className="w-full py-3.5 rounded-xl text-white font-bold text-sm" style={{ background: '#15803D' }}>
               Retour au portefeuille
             </button>
           </div>
@@ -144,7 +147,16 @@ export default function RechargementWalletPage() {
 
             <p className="font-bold text-text-dark text-sm mb-2">Montant à recharger</p>
             <input type="text" inputMode="numeric" value={montant} onChange={e => setMontant(e.target.value.replace(/\D/g, ''))}
-              placeholder="5 000" className="w-full bg-white border border-divider rounded-xl px-4 py-4 text-lg font-bold outline-none text-text-dark mb-4" />
+              placeholder="Ex. 5 000" className="w-full bg-white border border-divider rounded-xl px-4 py-4 text-lg font-bold outline-none text-text-dark mb-2" />
+            <div className="flex gap-2 mb-4">
+              {[5000, 10000, 25000, 50000].map(v => (
+                <button key={v} type="button" onClick={() => setMontant(String(v))}
+                  className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+                  style={{ background: montant === String(v) ? accent + '20' : 'rgba(0,0,0,0.05)', color: montant === String(v) ? accent : '#64748B', border: `1px solid ${montant === String(v) ? accent + '40' : 'transparent'}` }}>
+                  {(v / 1000)}k
+                </button>
+              ))}
+            </div>
 
             {op.needsPhone && (
               <>
@@ -152,20 +164,26 @@ export default function RechargementWalletPage() {
                 <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-3.5 mb-4 border border-divider">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                    placeholder="96XXXXXX" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
+                    placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               </>
             )}
 
-            {state === 'error' && error && (
-              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: '#EF4444', border: '1px solid #EF444430' }}>{error}</div>
-            )}
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+              {state === 'error' && error && (
+                <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: 'var(--tx-red)', border: '1px solid #EF444430' }}>{error}</div>
+              )}
+            </div>
 
-            <button onClick={recharger} disabled={state === 'loading'}
-              className="w-full py-4 rounded-xl text-white font-bold text-base disabled:opacity-60"
+            <button onClick={recharger}
+              disabled={state === 'loading' || !montant || Number(montant) < 100}
+              className="w-full py-4 rounded-xl text-white font-bold text-base disabled:opacity-40"
               style={{ background: op.color }}>
               {state === 'loading' ? 'Envoi…' : `Recharger via ${op.label}`}
             </button>
+            {!montant && (
+              <p className="text-center text-xs text-text-grey mt-2">Saisissez un montant (100 FCFA minimum)</p>
+            )}
           </>
         )}
       </div>

@@ -2,7 +2,7 @@ type FaceCfg = { face: string; light: string; rim: string; feature: string; chee
 
 const CONFIG: Record<number, FaceCfg> = {
   1: { face: '#FF5252', light: '#FFA8A8', rim: '#D32F2F', feature: '#7F0000', label: 'Très\nmécontent' },
-  2: { face: '#FF9800', light: '#FFC966', rim: '#E65100', feature: '#5D2800', label: 'Insatisfait' },
+  2: { face: '#B45309', light: '#FFC966', rim: '#E65100', feature: '#5D2800', label: 'Insatisfait' },
   3: { face: '#FFCA28', light: '#FFE699', rim: '#F9A825', feature: '#5C4000', label: 'Neutre' },
   4: { face: '#66BB6A', light: '#A5D6A7', rim: '#2E7D32', feature: '#1B3A1C', cheek: '#FF8A80', label: 'Satisfait' },
   5: { face: '#26C6DA', light: '#80DEEA', rim: '#00838F', feature: '#00363A', cheek: '#FF8A80', label: 'Ravi' },

@@ -28,31 +28,27 @@ const PersonIcon = ({ active }: { active: boolean }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 )
-const CalendarIcon = ({ active }: { active: boolean }) => (
-  <svg viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 0 : 2} className="w-6 h-6">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-)
-
+// 5 entrées, même ordre que l'app mobile. « Mes visites » est accessible
+// depuis le Profil (l'onglet Profil reste actif sur /mes-visites).
 const NAV_ITEMS = [
-  { path: '/',              label: 'Accueil',  icon: HomeIcon,     authRequired: false },
-  { path: '/favoris',       label: 'Favoris',  icon: BookmarkIcon,    authRequired: true  },
-  { path: '/mes-visites',   label: 'Visites',  icon: CalendarIcon, authRequired: true  },
-  { path: '/conversations', label: 'Messages', icon: ChatIcon,     authRequired: true  },
-  { path: '/profil',        label: 'Profil',   icon: PersonIcon,   authRequired: true  },
+  { path: '/',              label: 'Accueil',  icon: HomeIcon,     authRequired: false, also: [] as string[] },
+  { path: '/favoris',       label: 'Favoris',  icon: BookmarkIcon, authRequired: true,  also: [] },
+  { path: '/conversations', label: 'Messages', icon: ChatIcon,     authRequired: true,  also: [] },
+  { path: '/notifications', label: 'Alertes',  icon: BellIcon,     authRequired: true,  also: [] },
+  { path: '/profil',        label: 'Profil',   icon: PersonIcon,   authRequired: true,  also: ['/mes-visites', '/mes-roles', '/portefeuille'] },
 ]
 
 export default function BottomNav() {
   const { isLoggedIn } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
-  const { theme, toggleTheme } = useTheme()
+  const { theme } = useTheme()
   const isDark = theme === 'dark'
   const location = useLocation()
   const navigate = useNavigate()
 
-  const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/'
-    return location.pathname.startsWith(path)
+  const isActive = (item: typeof NAV_ITEMS[0]) => {
+    if (item.path === '/') return location.pathname === '/'
+    return [item.path, ...item.also].some(p => location.pathname.startsWith(p))
   }
 
   const handleNav = (item: typeof NAV_ITEMS[0]) => {
@@ -62,10 +58,11 @@ export default function BottomNav() {
     } else navigate(item.path)
   }
 
-  const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'
+  const inactiveColor = isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'
 
   return (
     <nav
+      aria-label="Navigation principale mobile"
       className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
       style={{
         background: isDark ? 'rgba(20,22,30,0.95)' : 'rgba(255,255,255,0.92)',
@@ -74,16 +71,18 @@ export default function BottomNav() {
         borderTop: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.07)',
       }}
     >
-      <div className="flex items-center justify-around px-1 py-2 md:hidden">
+      <div className="flex items-center justify-around px-2 py-2 md:hidden">
         {NAV_ITEMS.map(item => {
-          const active = isActive(item.path)
+          const active = isActive(item)
           const Icon = item.icon
-          const badge = item.path === '/notifications' ? unreadAlertes : item.path === '/conversations' ? unreadMessages : 0
+          const badge = item.path === '/conversations' ? unreadMessages : item.path === '/notifications' ? unreadAlertes : 0
           return (
             <button
               key={item.path}
               onClick={() => handleNav(item)}
-              className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 btn-press"
+              aria-label={item.label + (badge > 0 ? `, ${badge} non lu${badge > 1 ? 's' : ''}` : '')}
+              aria-current={active ? 'page' : undefined}
+              className="relative flex flex-col items-center gap-0.5 px-2 py-2 min-w-[56px] rounded-2xl transition-all duration-200 btn-press"
               style={{
                 background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
                 border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',
@@ -92,38 +91,15 @@ export default function BottomNav() {
               <span className="relative" style={{ color: active ? '#4B6BFF' : inactiveColor }}>
                 <Icon active={active} />
                 {badge > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30' }}>
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}
               </span>
-              {active && (
-                <span className="text-[10px] font-bold" style={{ color: '#4B6BFF' }}>{item.label}</span>
-              )}
+              <span className="text-micro font-semibold" style={{ color: active ? (isDark ? '#9DB0FF' : '#3A5AEE') : isDark ? 'rgba(255,255,255,0.7)' : '#5E5E63' }}>{item.label}</span>
             </button>
           )
         })}
-
-        {/* Toggle thème */}
-        <button
-          onClick={toggleTheme}
-          aria-label={isDark ? 'Mode clair' : 'Mode sombre'}
-          className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200"
-          style={{ color: inactiveColor }}
-        >
-          {isDark ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
-              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-              <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-            </svg>
-          )}
-        </button>
       </div>
     </nav>
   )

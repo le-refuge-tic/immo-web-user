@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import sideImg from '../../assets/onboarding-side.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import { usePageTitle } from '../../utils/usePageTitle'
+import sideImg from '../../assets/onboarding-side.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
 import { QUARTIERS as QUARTIERS_DB, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 
 // Mêmes villes/quartiers que le reste de l'app (data/quartiers.ts, utilisé
@@ -22,6 +23,7 @@ const VILLE_DEP: Record<string, string> = {
 }
 
 export default function OnboardingDestinationPage() {
+  usePageTitle('Ma destination – Inscription')
   const navigate = useNavigate()
   const location = useLocation()
   const objectif: string = (location.state as any)?.objectif || 'louer'
@@ -59,7 +61,7 @@ export default function OnboardingDestinationPage() {
     <div className="min-h-dvh relative overflow-hidden flex flex-col">
 
       {/* Image de fond */}
-      <img src={sideImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img loading="lazy" src={sideImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.65) 55%, rgba(0,0,0,0.25) 100%)' }} />
 
       <div className="relative z-10 flex flex-col min-h-dvh">
@@ -69,7 +71,7 @@ export default function OnboardingDestinationPage() {
           <div className="flex items-center gap-2.5">
             <div className="w-[52px] h-[52px] flex items-center justify-center rounded-[15px] flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
-              <img src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+              <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
             </div>
             <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
           </div>
@@ -158,11 +160,13 @@ type DarkSelectProps = {
 }
 
 function DarkSelect({ label, placeholder, value, options, onChange, disabled }: DarkSelectProps) {
+  const selectId = `ds-${label.replace(/\s+/g, '-').toLowerCase()}`
   return (
     <div>
-      <label className="block text-white/60 text-sm font-semibold mb-2">{label}</label>
+      <label htmlFor={selectId} className="block text-white/60 text-sm font-semibold mb-2">{label}</label>
       <div className="relative">
         <select
+          id={selectId}
           value={value}
           onChange={e => onChange(e.target.value)}
           disabled={disabled}

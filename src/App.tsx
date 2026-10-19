@@ -1,39 +1,58 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
 import { BannerProvider } from './context/BannerContext'
 import { ScrollProvider } from './context/ScrollContext'
 import MainLayout from './components/MainLayout'
-import HomePage from './pages/home/HomePage'
-import BienDetailPage from './pages/bien/BienDetailPage'
-import FavoritesPage from './pages/favorites/FavoritesPage'
-import ConversationsPage from './pages/conversations/ConversationsPage'
-import ChatPage from './pages/conversations/ChatPage'
-import NotificationsPage from './pages/notifications/NotificationsPage'
-import ProfilePage from './pages/profile/ProfilePage'
-import MesVisitesPage from './pages/visites/MesVisitesPage'
 import SplashPage from './pages/splash/SplashPage'
 import { AuthSwitch } from './components/ui/auth-switch'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import CookieBanner from './components/CookieBanner'
+
+/* Pages légères chargées immédiatement (premier rendu critique) */
+import HomePage from './pages/home/HomePage'
 import OnboardingPage from './pages/auth/OnboardingPage'
 import OnboardingProjetPage from './pages/auth/OnboardingProjetPage'
 import OnboardingDestinationPage from './pages/auth/OnboardingDestinationPage'
-import ProprietaireDashboard from './pages/proprietaire/ProprietaireDashboard'
-import DemarcheurDashboard from './pages/demarcheur/DemarcheurDashboard'
-import LocataireDashboard from './pages/locataire/LocataireDashboard'
-import NouveauBienPage from './pages/bien/NouveauBienPage'
-import ProprietaireBienWrapper from './pages/bien/ProprietaireBienWrapper'
-import ReservationPage from './pages/reservation/ReservationPage'
-import ContratBailPage from './pages/integration/ContratBailPage'
-import PaiementIntegrationPage from './pages/integration/PaiementIntegrationPage'
-import GestionViaAppPage from './pages/integration/GestionViaAppPage'
-import PortefeuillePage from './pages/wallet/PortefeuillePage'
-import RechargementWalletPage from './pages/wallet/RechargementWalletPage'
-import RejoindreBienPage from './pages/locataire/RejoindreBienPage'
-import HistoriquePaiementsPage from './pages/paiements/HistoriquePaiementsPage'
-import ManageRolesPage from './pages/profile/ManageRolesPage'
-import RecuPage from './pages/recu/RecuPage'
-import SearchPage from './pages/search/SearchPage'
+
+/* Pages lourdes — chargées à la demande */
+const BienDetailPage         = lazy(() => import('./pages/bien/BienDetailPage'))
+const SearchPage             = lazy(() => import('./pages/search/SearchPage'))
+const FavoritesPage          = lazy(() => import('./pages/favorites/FavoritesPage'))
+const ConversationsPage      = lazy(() => import('./pages/conversations/ConversationsPage'))
+const ChatPage               = lazy(() => import('./pages/conversations/ChatPage'))
+const NotificationsPage      = lazy(() => import('./pages/notifications/NotificationsPage'))
+const ProfilePage            = lazy(() => import('./pages/profile/ProfilePage'))
+const MesVisitesPage         = lazy(() => import('./pages/visites/MesVisitesPage'))
+const ForgotPasswordPage     = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const AnnulerChangementPage  = lazy(() => import('./pages/auth/AnnulerChangementPage'))
+const ProprietaireDashboard  = lazy(() => import('./pages/proprietaire/ProprietaireDashboard'))
+const DemarcheurDashboard    = lazy(() => import('./pages/demarcheur/DemarcheurDashboard'))
+const LocataireDashboard     = lazy(() => import('./pages/locataire/LocataireDashboard'))
+const NouveauBienPage        = lazy(() => import('./pages/bien/NouveauBienPage'))
+const ProprietaireBienWrapper = lazy(() => import('./pages/bien/ProprietaireBienWrapper'))
+const ReservationPage        = lazy(() => import('./pages/reservation/ReservationPage'))
+const ContratBailPage        = lazy(() => import('./pages/integration/ContratBailPage'))
+const PaiementIntegrationPage = lazy(() => import('./pages/integration/PaiementIntegrationPage'))
+const GestionViaAppPage      = lazy(() => import('./pages/integration/GestionViaAppPage'))
+const PortefeuillePage       = lazy(() => import('./pages/wallet/PortefeuillePage'))
+const RechargementWalletPage = lazy(() => import('./pages/wallet/RechargementWalletPage'))
+const RejoindreBienPage      = lazy(() => import('./pages/locataire/RejoindreBienPage'))
+const HistoriquePaiementsPage = lazy(() => import('./pages/paiements/HistoriquePaiementsPage'))
+const NotFoundPage           = lazy(() => import('./pages/errors/NotFoundPage'))
+const ManageRolesPage        = lazy(() => import('./pages/profile/ManageRolesPage'))
+const MentionsLegalesPage    = lazy(() => import('./pages/legal/MentionsLegalesPage'))
+const ConfidentialitePage    = lazy(() => import('./pages/legal/ConfidentialitePage'))
+const RecuPage               = lazy(() => import('./pages/recu/RecuPage'))
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+    </div>
+  )
+}
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isLoggedIn } = useAuth()
@@ -45,14 +64,15 @@ function PrivateRoute({ children }: { children: React.ReactElement }) {
   return children
 }
 
-function RoleRoute({ role, children }: { role: string; children: React.ReactElement }) {
+function RoleRoute({ role, anyOf, redirectTo = '/', children }: { role?: string; anyOf?: string[]; redirectTo?: string; children: React.ReactElement }) {
   const { isLoggedIn, rolesActifs } = useAuth()
   const location = useLocation()
   if (!isLoggedIn) {
     sessionStorage.setItem('post_login_redirect', location.pathname + location.search)
     return <Navigate to="/login" replace />
   }
-  if (!rolesActifs.includes(role)) return <Navigate to="/" replace />
+  const accepted = anyOf ?? (role ? [role] : [])
+  if (!accepted.some(r => rolesActifs.includes(r))) return <Navigate to={redirectTo} replace />
   return children
 }
 
@@ -84,6 +104,8 @@ function App() {
     <ScrollProvider>
     <BannerProvider>
     <NotificationsProvider>
+      <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Pages sans layout (standalone) */}
         <Route path="/splash" element={<SplashPage />} />
@@ -92,6 +114,8 @@ function App() {
         <Route path="/onboarding/destination" element={<OnboardingDestinationPage />} />
         <Route path="/login" element={<AuthSwitch defaultMode="login" />} />
         <Route path="/register" element={<AuthSwitch defaultMode="register" />} />
+        <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
+        <Route path="/annuler-changement" element={<AnnulerChangementPage />} />
 
         {/* Dashboards rôle : sans MainLayout (ont leur propre nav interne) */}
         <Route path="/proprietaire" element={
@@ -152,7 +176,7 @@ function App() {
             <PrivateRoute><ReservationPage /></PrivateRoute>
           } />
           <Route path="nouveau-bien" element={
-            <PrivateRoute><NouveauBienPage /></PrivateRoute>
+            <RoleRoute anyOf={['proprietaire', 'demarcheur']} redirectTo="/mes-roles"><NouveauBienPage /></RoleRoute>
           } />
           <Route path="portefeuille" element={
             <PrivateRoute><PortefeuillePage /></PrivateRoute>
@@ -160,10 +184,14 @@ function App() {
           <Route path="mes-roles" element={
             <PrivateRoute><ManageRolesPage /></PrivateRoute>
           } />
+          <Route path="mentions-legales" element={<MentionsLegalesPage />} />
+          <Route path="confidentialite" element={<ConfidentialitePage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
+      <CookieBanner />
+      </ErrorBoundary>
     </NotificationsProvider>
     </BannerProvider>
     </ScrollProvider>

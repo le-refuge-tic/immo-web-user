@@ -11,7 +11,7 @@
  */
 import { PDFDocument, StandardFonts, rgb, degrees, type PDFPage, type PDFFont, type RGB } from 'pdf-lib'
 import type { Degrees } from 'pdf-lib'
-import logoUrl from '../assets/REFUGE-ICON.png'
+import logoUrl from '../assets/REFUGE-ICON-pdf.png'
 
 // ── Couleurs (0–1) ─────────────────────────────────────────────────────────
 const hex = (h: number) => rgb(((h >> 16) & 0xff) / 255, ((h >> 8) & 0xff) / 255, (h & 0xff) / 255)
@@ -30,7 +30,7 @@ const GREY_200 = hex(0xeeeeee)
 const BLACK = rgb(0.11, 0.11, 0.12)
 
 // ── Types de données (mêmes clés que le back-end / RecuPage) ─────────────────
-export interface RecuLigne {
+interface RecuLigne {
   label: string
   value: string
 }

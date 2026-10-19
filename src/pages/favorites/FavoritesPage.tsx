@@ -1,40 +1,41 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
+import { usePageTitle } from '../../utils/usePageTitle'
+import { unwrapList } from '../../utils/unwrapList'
+import { useApiQuery } from '../../hooks/useApiQuery'
+import type { Bien } from '../../types/api'
+
+// Les favoris sont parfois renvoyés avec l'identifiant du bien dans `bien_id`.
+type Favori = Bien & { bien_id?: number; bien?: Bien }
+const NO_FAVORIS: Favori[] = []
 
 export default function FavoritesPage() {
+  usePageTitle('Favoris')
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
-  const [biens, setBiens] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [favIds, setFavIds] = useState<Set<number>>(new Set())
-
-  useEffect(() => {
-    if (!isLoggedIn) { setLoading(false); return }
-    favoritesApi.list()
-      .then(data => {
-        const list = Array.isArray(data) ? data : data.data || []
-        setBiens(list)
-        setFavIds(new Set(list.map((f: any) => f.bien_id || f.id)))
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [isLoggedIn])
+  // Chargement annulable, sans réponse périmée (FE-A-004).
+  const { data, setData, loading } = useApiQuery(
+    signal => favoritesApi.list(signal).then(unwrapList),
+    [isLoggedIn],
+    { enabled: isLoggedIn },
+  )
+  const biens: Favori[] = data ?? NO_FAVORIS
+  const favIds = useMemo(() => new Set<number>(biens.map(f => (f as Favori).bien_id || f.id)), [biens])
+  const [confirmClearAll, setConfirmClearAll] = useState(false)
 
   const handleFavToggle = (id: number, added: boolean) => {
     if (!added) {
-      setBiens(prev => prev.filter(b => (b.bien_id || b.id) !== id))
-      setFavIds(prev => { const next = new Set(prev); next.delete(id); return next })
+      setData(prev => (prev ?? NO_FAVORIS).filter(b => ((b as Favori).bien_id || b.id) !== id))
     }
   }
 
   const handleClearAll = async () => {
-    if (!confirm('Supprimer tous vos favoris ? Cette action est irréversible.')) return
     const ids = Array.from(favIds)
-    setBiens([])
-    setFavIds(new Set())
+    setData([])
+    setConfirmClearAll(false)
     try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (_) {}
   }
 
@@ -43,7 +44,7 @@ export default function FavoritesPage() {
       <div className="w-full px-4 md:px-16">
 
         {/* Header */}
-        <div className="pt-12 md:pt-10 pb-6 flex items-end justify-between">
+        <div className="pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-10 pb-6 flex items-end justify-between">
           <div>
             <h1 className="text-2xl font-bold text-text-dark">Mes favoris</h1>
             {biens.length > 0 && (
@@ -52,8 +53,15 @@ export default function FavoritesPage() {
           </div>
           {biens.length > 0 && (
             <div className="flex items-center gap-4">
+              {confirmClearAll ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-danger">Supprimer tous les favoris ?</span>
+                  <button onClick={handleClearAll} className="text-xs font-bold text-white bg-danger rounded-lg px-3 py-1.5">Confirmer</button>
+                  <button onClick={() => setConfirmClearAll(false)} className="text-xs font-semibold text-text-grey">Annuler</button>
+                </div>
+              ) : (
               <button
-                onClick={handleClearAll}
+                onClick={() => setConfirmClearAll(true)}
                 className="flex items-center gap-2 text-sm font-semibold text-danger hover:underline"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -61,6 +69,7 @@ export default function FavoritesPage() {
                 </svg>
                 Tout supprimer
               </button>
+              )}
               <button
                 onClick={() => navigate('/')}
                 className="hidden md:flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
@@ -85,13 +94,12 @@ export default function FavoritesPage() {
             <p className="text-text-grey text-sm mb-8 max-w-xs">
               Connectez-vous pour retrouver facilement tous les biens qui vous ont plu
             </p>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
-            >
-              Se connecter
-            </button>
+            <div className="flex flex-col items-center gap-3">
+              <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#3A5AEE,#6D3FE0)' }}>
+                Créer mon compte en 1 minute
+              </button>
+              <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-[#9DB0FF]">J’ai déjà un compte</button>
+            </div>
           </div>
 
         ) : loading ? (

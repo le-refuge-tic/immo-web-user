@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import img1 from '../../assets/onboarding-1.jpg'
-import img2 from '../../assets/onboarding-2.jpg'
-import img3 from '../../assets/onboarding-3.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import { usePageTitle } from '../../utils/usePageTitle'
+import img1 from '../../assets/onboarding-1.webp'
+import img2 from '../../assets/onboarding-2.webp'
+import img3 from '../../assets/onboarding-3.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
 
 const SLIDES = [
   {
@@ -15,7 +16,7 @@ const SLIDES = [
       </svg>
     ),
     title: 'Trouvez votre\nlogement idéal',
-    subtitle: 'Recherchez parmi des centaines de logements vérifiés à Cotonou et Abomey-Calavi.',
+    subtitle: 'Recherchez des logements à Cotonou et Abomey-Calavi et réservez vos visites en quelques clics.',
     features: ['Recherche avancée', 'Filtres intelligents', 'Résultats en temps réel'],
     btnLabel: 'Commencer',
   },
@@ -33,7 +34,7 @@ const SLIDES = [
     btnLabel: 'Continuer',
   },
   {
-    accent: '#22C55E',
+    accent: '#15803D',
     image: img3,
     icon: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -41,13 +42,14 @@ const SLIDES = [
       </svg>
     ),
     title: 'Sécurisé et\ntransparent',
-    subtitle: 'Paiements via Mobile Money, reçus automatiques et logements vérifiés.',
-    features: ['Mobile Money', 'Reçus automatiques', 'Biens vérifiés'],
+    subtitle: 'Paiements via Mobile Money, reçus automatiques et annonces modérées avant publication.',
+    features: ['Mobile Money', 'Reçus automatiques', 'Annonces modérées'],
     btnLabel: "C'est parti",
   },
 ]
 
 export default function OnboardingPage() {
+  usePageTitle('Bienvenue sur REFUGE')
   const navigate = useNavigate()
   const [current, setCurrent] = useState(0)
   const touchStartX = useRef(0)
@@ -87,6 +89,7 @@ export default function OnboardingPage() {
       {SLIDES.map((s, i) => (
         <img
           key={i}
+          loading="lazy"
           src={s.image}
           alt=""
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
@@ -118,7 +121,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2.5">
               <div className="w-[52px] h-[52px] flex items-center justify-center rounded-[15px] flex-shrink-0"
                 style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
-                <img src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
               </div>
               <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
             </div>

@@ -1,0 +1,25 @@
+{
+  "name": "REFUGE – Immobilier au Bénin",
+  "short_name": "REFUGE",
+  "description": "Trouvez votre logement idéal au Bénin avec REFUGE Immobilier",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F5F7",
+  "theme_color": "#3A5AEE",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/REFUGE-ICON.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/REFUGE-LOGO.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["business", "finance"],
+  "screenshots": []
+}

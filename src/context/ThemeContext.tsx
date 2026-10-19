@@ -1,31 +1,59 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 
 type Theme = 'light' | 'dark'
+export type ThemePreference = Theme | 'system'
 
 interface ThemeContextValue {
+  /** Thème réellement appliqué (après résolution de « system »). */
   theme: Theme
-  toggleTheme: () => void
+  /** Choix de l'utilisateur, réglable uniquement depuis Paramètres → Apparence. */
+  preference: ThemePreference
+  setPreference: (p: ThemePreference) => void
 }
 
-const ThemeContext = createContext<ThemeContextValue>({ theme: 'light', toggleTheme: () => {} })
+const STORAGE_KEY = 'rg_theme'
+const DARK_QUERY = '(prefers-color-scheme: dark)'
+
+const ThemeContext = createContext<ThemeContextValue>({ theme: 'light', preference: 'system', setPreference: () => {} })
+
+function readPreference(): ThemePreference {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved === 'dark' || saved === 'light' || saved === 'system') return saved
+  } catch { /* stockage indisponible (navigation privée) */ }
+  return 'system'
+}
+
+const systemTheme = (): Theme =>
+  typeof window !== 'undefined' && window.matchMedia?.(DARK_QUERY).matches ? 'dark' : 'light'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('rg_theme') as Theme | null
-    if (saved === 'dark' || saved === 'light') return saved
-    return 'light' // light par défaut indépendamment du système
-  })
+  const [preference, setPreferenceState] = useState<ThemePreference>(readPreference)
+  const [system, setSystem] = useState<Theme>(systemTheme)
+
+  // Suit le réglage de l'appareil tant que la préférence est « system »
+  useEffect(() => {
+    const mq = window.matchMedia?.(DARK_QUERY)
+    if (!mq) return
+    const onChange = () => setSystem(mq.matches ? 'dark' : 'light')
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  const theme: Theme = preference === 'system' ? system : preference
 
   useEffect(() => {
     const root = document.documentElement
-    if (theme === 'dark') root.classList.add('dark')
-    else root.classList.remove('dark')
-    localStorage.setItem('rg_theme', theme)
+    root.classList.toggle('dark', theme === 'dark')
+    root.style.colorScheme = theme
   }, [theme])
 
-  const toggleTheme = () => setTheme(t => (t === 'light' ? 'dark' : 'light'))
+  const setPreference = (p: ThemePreference) => {
+    setPreferenceState(p)
+    try { localStorage.setItem(STORAGE_KEY, p) } catch { /* ignore */ }
+  }
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
+  return <ThemeContext.Provider value={{ theme, preference, setPreference }}>{children}</ThemeContext.Provider>
 }
 
 export const useTheme = () => useContext(ThemeContext)

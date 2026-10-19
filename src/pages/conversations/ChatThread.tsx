@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { API_ORIGIN } from '../../api/apiBase'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { usePageTitle } from '../../utils/usePageTitle'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
 import { io, Socket } from 'socket.io-client'
+import { apiMessage } from '../../utils/apiMessage'
 
-const WS_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace('/api/v1', '')
+const WS_URL = API_ORIGIN
 
 const BIEN_TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appt. meublé',
@@ -44,7 +47,7 @@ function fmtSlot(dt: Date) {
 }
 function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 function roleLabel(o: any) {
-  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Agent immobilier'
+  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'
   if (o?.role === 'prospect') return 'Client'
@@ -77,7 +80,7 @@ const XIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 const PinFill = () => <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
 const ChevDown = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
 
-export default function ChatThread({ convId, onBack }: { convId: number; onBack: () => void }) {
+export default function ChatThread({ convId, onBack, initialDraft }: { convId: number; onBack: () => void; initialDraft?: string }) {
   const { user, token } = useAuth()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -100,6 +103,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const [proposing, setProposing] = useState(false)
   const [paying, setPaying] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
+  const [confirmDeleteForAllId, setConfirmDeleteForAllId] = useState<number | null>(null)
   const [complainMsg, setComplainMsg] = useState<any>(null)
   const [complainText, setComplainText] = useState('')
   const [complainSending, setComplainSending] = useState(false)
@@ -109,6 +113,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const [showProfile, setShowProfile] = useState(false)
   const [atBottom, setAtBottom] = useState(true)
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+  const [hoveredSettingsIdx, setHoveredSettingsIdx] = useState<number | null>(null)
   const socketRef = useRef<Socket | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -161,9 +166,12 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   }, [convId])
 
   useEffect(() => {
-    const draft = (location.state as any)?.draftMessage
-    if (draft) { setInput(draft); navigate(location.pathname, { replace: true, state: {} }) }
-  }, [location.state])
+    const draft = (location.state as any)?.draftMessage || initialDraft
+    if (draft) {
+      setInput(draft)
+      if ((location.state as any)?.draftMessage) navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state, initialDraft])
 
   useEffect(() => {
     if (!token) return
@@ -207,6 +215,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
   const other = conv?.participants?.find((p: any) => p.id !== user?.id) || conv?.participants?.[0] || null
   const otherName = displayName(other)
+  usePageTitle(otherName !== 'Contact' ? `Conversation – ${otherName}` : 'Conversation')
   const role = roleLabel(other)
   const isClientRole = other?.role === 'demarcheur' || other?.role === 'proprietaire'
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
@@ -214,7 +223,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
   const isOnline = !!(other?.isOnline ?? conv?.isOnline)
 
-  const showError = (e: any) => { setError(e?.response?.data?.message || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
+  const showError = (e: any) => { setError(apiMessage(e) || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
   const scrollBot = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
 
   const send = async () => {
@@ -240,8 +249,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const deleteForMe = (m: any) => { setHidden(p => new Set(p).add(m.id)); setMenuId(null) }
 
   const deleteForAll = async (m: any) => {
+    setConfirmDeleteForAllId(null)
     setMenuId(null)
-    if (!window.confirm('Supprimer pour tous ?')) return
     try {
       await chatApi.supprimerMessage(m.id)
       setMessages(p => p.map(x => x.id === m.id ? { ...x, contenu: 'Ce message a été supprimé', supprime_pour_tous: true, supprime_par_admin: false, epingle: false } : x))
@@ -283,11 +292,11 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
     try {
       const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
       const v = l.find((x: any) => x.bien?.id === conv.bien.id)
-      if (!v) { alert('Aucune visite.'); return }
-      if (v.paiement_effectue) { alert('Déjà payé ✓'); return }
-      if (!(Number(v.frais_visite) > 0)) { alert('Visite gratuite.'); return }
+      if (!v) { showError({ response: { data: { message: 'Aucune visite trouvée.' } } }); setPaying(false); return }
+      if (v.paiement_effectue) { showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
+      if (!(Number(v.frais_visite) > 0)) { showError({ response: { data: { message: 'Cette visite est gratuite.' } } }); setPaying(false); return }
       navigate('/mes-visites', { state: { openPayForVisiteId: v.id } })
-    } catch { alert('Erreur.') }
+    } catch { showError({ response: { data: { message: 'Une erreur est survenue.' } } }) }
     setPaying(false)
   }
 
@@ -295,14 +304,17 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
   const visible = messages.filter(m => !hidden.has(m.id))
 
   /* ── Menu item ── */
-  const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => (
-    <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
-      style={{ color: danger ? '#EF4444' : tp, width: 'calc(100% - 8px)' }}
-      onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
-      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-      {label}
-    </button>
-  )
+  const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => {
+    const [hov, setHov] = useState(false)
+    return (
+      <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
+        style={{ color: danger ? '#DC2626' : tp, width: 'calc(100% - 8px)', background: hov ? menuHov : 'transparent' }}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}>
+        {label}
+      </button>
+    )
+  }
 
   /* ── Bulle slot ── */
   const SlotBubble = ({ m }: { m: any }) => {
@@ -310,7 +322,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
     const status = m.metadata?.status || 'pending'
     const dt = m.metadata?.proposed_at ? new Date(m.metadata.proposed_at) : null
     const p: Record<string, { bg: string; accent: string; label: string }> = {
-      accepted: { bg: 'rgba(34,197,94,0.10)', accent: '#22C55E', label: 'Confirmé ✓' },
+      accepted: { bg: 'rgba(34,197,94,0.10)', accent: '#15803D', label: 'Confirmé ✓' },
       declined:  { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', accent: '#94A3B8', label: 'Refusé' },
       countered: { bg: 'rgba(251,146,60,0.10)', accent: '#FB923C', label: 'Contre-proposé' },
       pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: '#4B6BFF', label: isMe ? 'En attente…' : 'Créneau proposé' },
@@ -320,28 +332,28 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
       <div className={`flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
         <div className="rounded-2xl overflow-hidden max-w-[270px]" style={{ background: pal.bg, border: `1.5px solid ${pal.accent}44` }}>
           <div className="px-3 pt-2.5 pb-0.5">
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: pal.accent }}>Créneau de visite</p>
+            <p className="text-micro font-bold uppercase tracking-widest mb-1.5" style={{ color: pal.accent }}>Créneau de visite</p>
             <p className="text-[13.5px] font-bold leading-snug" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
-            <p className="text-[11px] mt-1 font-medium" style={{ color: pal.accent }}>{pal.label}</p>
+            <p className="text-caption mt-1 font-medium" style={{ color: pal.accent }}>{pal.label}</p>
           </div>
           {!isMe && status === 'pending' && (
             <div className="px-3 pb-2.5 pt-2 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${pal.accent}22` }}>
               <div className="flex gap-1.5">
-                <button onClick={() => repondre(m, 'accepted')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(34,197,94,0.14)', color: '#22C55E' }}>Confirmer</button>
-                <button onClick={() => repondre(m, 'declined')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(239,68,68,0.10)', color: '#EF4444' }}>Rejeter</button>
+                <button onClick={() => repondre(m, 'accepted')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(34,197,94,0.14)', color: 'var(--tx-green)' }}>Confirmer</button>
+                <button onClick={() => repondre(m, 'declined')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(239,68,68,0.10)', color: 'var(--tx-red)' }}>Rejeter</button>
               </div>
-              <button onClick={() => repondre(m, 'countered')} className="w-full py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer" style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF' }}>Autre date</button>
+              <button onClick={() => repondre(m, 'countered')} className="w-full py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer" style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)' }}>Autre date</button>
             </div>
           )}
           {status === 'accepted' && conv?.bien?.id && isClientRole && (
             <div className="px-3 pb-2.5 pt-2" style={{ borderTop: `1px solid ${pal.accent}22` }}>
-              <button onClick={payer} disabled={paying} className="w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.14)', color: '#22C55E' }}>
+              <button onClick={payer} disabled={paying} className="w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.14)', color: 'var(--tx-green)' }}>
                 {paying ? '…' : 'Payer maintenant'}
               </button>
             </div>
           )}
           <div className="px-3 pb-2">
-            <p className="text-[10px] text-right" style={{ color: tm }}>{timeLabel(m.created_at)}</p>
+            <p className="text-micro text-right" style={{ color: tm }}>{timeLabel(m.created_at)}</p>
           </div>
         </div>
       </div>
@@ -375,7 +387,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
               )}
             </div>
             {role && (
-              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: '#4B6BFF' }}>
+              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-caption font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: 'var(--tx-blue)' }}>
                 {role}
               </span>
             )}
@@ -393,25 +405,25 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
         <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
           {/* Rôle */}
           <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${divider}` }}>
-            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--tx-blue)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Rôle</p>
+              <p className="text-micro font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Rôle</p>
               <p className="text-[13px] font-semibold" style={{ color: role ? tp : ts }}>{role || 'Non renseigné'}</p>
             </div>
           </div>
           {/* Bien concerné */}
           <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: conv?.bien?.id ? `1px solid ${divider}` : undefined }}>
-            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--tx-blue)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Bien concerné</p>
+              <p className="text-micro font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Bien concerné</p>
               {conv?.bien?.id ? (
                 <>
                   <p className="text-[13px] font-semibold" style={{ color: tp }}>{bienTypeLabel || 'Bien'}</p>
-                  {bienLoc && <p className="text-[11px] mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+                  {bienLoc && <p className="text-caption mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
                 </>
               ) : (
                 <p className="text-[13px] font-semibold" style={{ color: ts }}>Non renseigné</p>
@@ -422,7 +434,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           {conv?.bien?.id && (
             <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
               className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer transition-opacity hover:opacity-80"
-              style={{ color: '#4B6BFF' }}>
+              style={{ color: 'var(--tx-blue)' }}>
               <span className="text-[12px] font-bold">Voir le bien</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
@@ -438,9 +450,9 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           ].map(({ label, action, danger }, i, arr) => (
             <button key={label} onClick={action}
               className="w-full text-left px-4 py-3.5 text-[13.5px] font-medium transition-colors cursor-pointer flex items-center justify-between"
-              style={{ color: danger ? '#EF4444' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none' }}
-              onMouseEnter={e => (e.currentTarget.style.background = menuHov)}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              style={{ color: danger ? '#DC2626' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none', background: hoveredSettingsIdx === i ? menuHov : 'transparent' }}
+              onMouseEnter={() => setHoveredSettingsIdx(i)}
+              onMouseLeave={() => setHoveredSettingsIdx(null)}>
               {label}
               {!danger && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>}
             </button>
@@ -456,20 +468,20 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
     const [date, setDate] = useState(tom.toISOString().slice(0, 10))
     const [time, setTime] = useState('09:00')
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
-        <div className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
+      <div aria-hidden="true" className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
+        <div role="dialog" aria-modal="true" aria-label="Proposer un créneau" className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
           style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
           <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
           <div className="space-y-3">
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
-              <input type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
+              <label htmlFor="slot-date" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
+              <input id="slot-date" type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
                 className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
             </div>
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
-              <input type="time" value={time} onChange={e => setTime(e.target.value)}
+              <label htmlFor="slot-time" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
+              <input id="slot-time" type="time" value={time} onChange={e => setTime(e.target.value)}
                 className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
             </div>
@@ -517,8 +529,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                     </svg>
                   )}
                 </div>
-                {role ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#4B6BFF' }}>{role}</p>
-                  : isOnline ? <p className="text-[12px] font-medium mt-0.5" style={{ color: '#22C55E' }}>En ligne</p> : null}
+                {role ? <p className="text-[12px] font-medium mt-0.5" style={{ color: 'var(--tx-blue)' }}>{role}</p>
+                  : isOnline ? <p className="text-[12px] font-medium mt-0.5" style={{ color: 'var(--tx-green)' }}>En ligne</p> : null}
               </div>
             </button>
 
@@ -528,7 +540,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                 className="hidden sm:flex flex-col text-left px-3 py-2 rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, maxWidth: 120 }}>
                 <p className="text-[11.5px] font-semibold truncate" style={{ color: tp }}>{bienTypeLabel}</p>
-                {bienLoc && <p className="text-[10px] truncate mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
+                {bienLoc && <p className="text-micro truncate mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
               </button>
             )}
 
@@ -551,22 +563,24 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
           {conv?.code_visite && (
             <button onClick={copyCode} className="mt-3 flex items-center gap-2 px-3.5 py-2 rounded-xl w-full cursor-pointer hover:opacity-80 transition-opacity"
               style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}` }}>
-              <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#4B6BFF' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--tx-blue)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
               </svg>
               <span className="text-[12px] font-semibold flex-1" style={{ color: tp }}>Code visite : {conv.code_visite}</span>
-              <span className="text-[11px] font-bold flex-shrink-0" style={{ color: '#4B6BFF' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
+              <span className="text-caption font-bold flex-shrink-0" style={{ color: 'var(--tx-blue)' }}>{codeCopied ? 'Copié !' : 'Copier'}</span>
             </button>
           )}
         </div>
 
         {/* Erreur */}
-        {error && (
-          <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#EF4444' }}>
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {error}
-          </div>
-        )}
+        <div role="alert" aria-live="assertive" aria-atomic="true">
+          {error && (
+            <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#DC2626' }}>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              {error}
+            </div>
+          )}
+        </div>
 
         {/* ── Bandeaux fixes (épinglé + créneau) ── */}
         {(pinnedMsg || lastSlot) && (
@@ -576,9 +590,9 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
               <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                 className="flex items-center gap-2 w-full rounded-xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
                 style={{ background: pinBg, borderLeftColor: '#4B6BFF', border: `1px solid ${divider}`, borderLeft: '4px solid #4B6BFF' }}>
-                <span style={{ color: '#4B6BFF' }}><PinFill /></span>
+                <span style={{ color: 'var(--tx-blue)' }}><PinFill /></span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#4B6BFF' }}>Épinglé</p>
+                  <p className="text-micro font-bold uppercase tracking-wider" style={{ color: 'var(--tx-blue)' }}>Épinglé</p>
                   <p className="text-[12px] truncate" style={{ color: tp }}>{pinnedMsg.contenu}</p>
                 </div>
               </button>
@@ -589,8 +603,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
               const status = lastSlot.metadata?.status || 'pending'
               const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
               const cfg: Record<string, { accent: string; label: string }> = {
-                accepted: { accent: '#22C55E', label: 'Créneau confirmé' },
-                declined: { accent: '#EF4444', label: 'Créneau refusé' },
+                accepted: { accent: '#15803D', label: 'Créneau confirmé' },
+                declined: { accent: '#DC2626', label: 'Créneau refusé' },
                 countered: { accent: '#FB923C', label: 'Contre-proposition' },
                 pending: { accent: '#4B6BFF', label: 'Créneau en discussion' },
               }
@@ -603,7 +617,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: c.accent }}>{c.label}</p>
+                    <p className="text-micro font-bold uppercase tracking-wider" style={{ color: c.accent }}>{c.label}</p>
                     <p className="text-[12px] font-semibold truncate" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
                   </div>
                   <ChevDown />
@@ -640,7 +654,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             if (msg.type === 'slot_proposal') {
               return (
                 <div key={msg.id} id={`msg-${msg.id}`}>
-                  {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
+                  {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
                   <SlotBubble m={msg} />
                 </div>
               )
@@ -649,7 +663,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             const isSupprime = msg.supprime_pour_tous
             return (
               <div key={msg.id} id={`msg-${msg.id}`}>
-                {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-[11px] px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
+                {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
 
                 <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-[3px]' : 'mb-1'}`}>
                   <div className="relative max-w-[78%] sm:max-w-[62%] md:max-w-[54%]">
@@ -658,8 +672,8 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
                       <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
                         <p className="text-[12.5px] italic" style={{ color: tm }}>{msg.supprime_par_admin ? 'Ce message a été supprimé par l\'administrateur' : 'Ce message a été supprimé'}</p>
                         <button onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false) }}
-                          className="text-[11px] underline mt-0.5 cursor-pointer" style={{ color: '#4B6BFF' }}>En savoir plus</button>
-                        <p className="text-[10px] mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
+                          className="text-caption underline mt-0.5 cursor-pointer" style={{ color: 'var(--tx-blue)' }}>En savoir plus</button>
+                        <p className="text-micro mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
                       </div>
                     ) : (
                       <div className={`${isMe ? 'rounded-xl rounded-br-[4px]' : 'rounded-xl rounded-bl-[4px]'} ${grouped && isMe ? 'rounded-tr-[6px]' : ''} ${grouped && !isMe ? 'rounded-tl-[6px]' : ''}`}
@@ -726,7 +740,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             <div className="px-4 pt-3 pb-1 flex items-center gap-2.5">
               <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4B6BFF' }} />
               <div className="flex-1 min-w-0">
-                <p className="text-[11.5px] font-semibold" style={{ color: '#4B6BFF' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
+                <p className="text-[11.5px] font-semibold" style={{ color: 'var(--tx-blue)' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
                 <p className="text-[12px] truncate mt-0.5" style={{ color: ts }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
               </div>
               <button onClick={cancelCtx} className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors hover:opacity-75" style={{ color: tm, background: iconBtn }}><XIcon /></button>
@@ -736,7 +750,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             {/* Calendrier */}
             <button onClick={() => setShowSlot(true)} disabled={proposing}
               className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(75,107,255,0.10)', color: '#4B6BFF', border: '1px solid rgba(75,107,255,0.18)' }}>
+              style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)', border: '1px solid rgba(75,107,255,0.18)' }}>
               {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /> : <CalIcon />}
             </button>
             {/* Textarea */}
@@ -763,9 +777,9 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
 
       {/* ═══ PANNEAU PROFIL — mobile drawer ═══ */}
       {showProfile && (
-        <div className="md:hidden fixed inset-0 z-50 flex" onClick={() => setShowProfile(false)}>
+        <div aria-hidden="true" className="md:hidden fixed inset-0 z-50 flex" onClick={() => setShowProfile(false)}>
           <div className="flex-1 bg-black/40" />
-          <div className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()}>
+          <div className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()} aria-hidden="false">
             <ProfilePanel onClose={() => setShowProfile(false)} />
           </div>
         </div>
@@ -797,7 +811,16 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
             <MI label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
             <div className="h-px mx-2 my-1" style={{ background: divider }} />
             {!m.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
-            {m.sender_id === user?.id && !m.supprime_pour_tous && <MI label="Supprimer pour tous" onClick={() => deleteForAll(m)} danger />}
+            {m.sender_id === user?.id && !m.supprime_pour_tous && (
+              confirmDeleteForAllId === m.id ? (
+                <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
+                  <button onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#DC2626', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
+                  <button onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
+                </div>
+              ) : (
+                <MI label="Supprimer pour tous" onClick={() => setConfirmDeleteForAllId(m.id)} danger />
+              )
+            )}
           </div>
         )
       })()}
@@ -810,7 +833,7 @@ export default function ChatThread({ convId, onBack }: { convId: number; onBack:
       {complainMsg && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }}
           onClick={e => { if (e.target === e.currentTarget) setComplainMsg(null) }}>
-          <div className="rounded-3xl p-5 w-full max-w-sm anim-scale-in" onClick={e => e.stopPropagation()}
+          <div role="dialog" aria-modal="true" aria-label="Message supprimé" className="rounded-3xl p-5 w-full max-w-sm anim-scale-in" onClick={e => e.stopPropagation()}
             style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
             <div className="flex items-start justify-between gap-3 mb-3">
               <div><p className="font-bold text-[15px]" style={{ color: tp }}>Message supprimé</p>

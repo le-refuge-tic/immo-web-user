@@ -1,7 +1,5 @@
 import axios from 'axios'
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
-const auth = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('rg_token') || ''}` } })
+import { BASE, auth } from './apiBase'
 
 export const pushApi = {
   vapidPublicKey: () =>
@@ -10,6 +8,7 @@ export const pushApi = {
   subscribe: (subscription: PushSubscriptionJSON) =>
     axios.post(`${BASE}/push/subscribe`, subscription, auth()).then(r => r.data),
 
-  unsubscribe: (endpoint: string) =>
-    axios.delete(`${BASE}/push/unsubscribe`, { ...auth(), data: { endpoint } }).then(r => r.data),
+  /** `headers` : jeton capturé avant la déconnexion (les jetons sont effacés juste après). */
+  unsubscribe: (endpoint: string, headers = auth().headers) =>
+    axios.delete(`${BASE}/push/unsubscribe`, { headers, data: { endpoint } }).then(r => r.data),
 }

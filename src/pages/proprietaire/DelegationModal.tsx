@@ -2,15 +2,16 @@ import { useState, useEffect, useRef } from 'react'
 import { delegationApi } from '../../api/delegationApi'
 import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { onClose: () => void }
 
 const STATUT_LABELS: Record<string, { label: string; color: string }> = {
-  en_attente: { label: 'En attente', color: '#F59E0B' },
+  en_attente: { label: 'En attente', color: '#B45309' },
   active:     { label: 'Active',     color: '#16A34A' },
   revoquee:   { label: 'Révoquée',   color: '#6B7280' },
   expiree:    { label: 'Expirée',    color: '#6B7280' },
-  refusee:    { label: 'Refusée',    color: '#EF4444' },
+  refusee:    { label: 'Refusée',    color: '#DC2626' },
 }
 
 
@@ -29,6 +30,12 @@ export default function DelegationModal({ onClose }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
 
   const chargerListe = () => {
     setLoading(true)
@@ -66,7 +73,7 @@ export default function DelegationModal({ onClose }: Props) {
       setDemarcheur(null); setSearch(''); setBienId(''); setDateFin('')
       chargerListe()
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Erreur lors de l'envoi de la proposition")
+      setError(apiMessage(err) || "Erreur lors de l'envoi de la proposition")
     }
     setSaving(false)
   }
@@ -79,13 +86,22 @@ export default function DelegationModal({ onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" style={{ background: 'var(--p-card)' }} onClick={e => e.stopPropagation()}>
+    <div
+      role="dialog" aria-modal="true" aria-label="Déléguer la gestion"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }}
+      onClick={onClose}
+    >
+      <div
+        className="rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
+        style={{ background: 'var(--p-card)' }}
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0" style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
           <h2 className="font-bold" style={{ color: 'var(--p-text)' }}>
             {view === 'liste' ? 'Déléguer la gestion' : 'Nouvelle délégation'}
           </h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--p-deep)', color: 'var(--p-muted)' }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--p-deep)', color: 'var(--p-muted)' }}>✕</button>
         </div>
 
         {view === 'liste' ? (
@@ -118,7 +134,7 @@ export default function DelegationModal({ onClose }: Props) {
                             {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous mes biens'}
                           </p>
                         </div>
-                        <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: st.color + '18', color: st.color }}>{st.label}</span>
+                        <span className="flex-shrink-0 text-micro font-bold px-2 py-0.5 rounded-full" style={{ background: st.color + '18', color: st.color }}>{st.label}</span>
                       </div>
                       {d.statut === 'active' && (
                         <button onClick={() => revoquer(d.id)} className="mt-2 text-xs font-semibold text-danger">Révoquer</button>
@@ -131,15 +147,17 @@ export default function DelegationModal({ onClose }: Props) {
           </div>
         ) : (
           <div className="p-5 space-y-4">
-            {error && (
-              <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
-                <p className="text-danger text-sm">{error}</p>
-              </div>
-            )}
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+              {error && (
+                <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
+                  <p className="text-danger text-sm">{error}</p>
+                </div>
+              )}
+            </div>
 
             <div>
-              <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Bien concerné</label>
-              <select value={bienId} onChange={e => setBienId(e.target.value)}
+              <label htmlFor="del-bien" className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Bien concerné</label>
+              <select id="del-bien" value={bienId} onChange={e => setBienId(e.target.value)}
                 className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }}>
                 <option value="">Tous mes biens</option>
                 {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}
@@ -180,7 +198,7 @@ export default function DelegationModal({ onClose }: Props) {
               <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Date de fin (optionnel)</label>
               <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
                 className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border" style={{ background: 'var(--p-deep)', color: 'var(--p-text)', borderColor: 'var(--p-border)' }} />
-              <p className="text-[11px] mt-1" style={{ color: 'var(--p-muted)' }}>Laisser vide pour une délégation sans date de fin.</p>
+              <p className="text-caption mt-1" style={{ color: 'var(--p-muted)' }}>Laisser vide pour une délégation sans date de fin.</p>
             </div>
 
             <div className="flex gap-2 pt-1">

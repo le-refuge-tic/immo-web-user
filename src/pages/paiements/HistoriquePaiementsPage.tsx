@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
+import { usePageTitle } from '../../utils/usePageTitle'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 
@@ -40,7 +42,7 @@ const statutLabel = (t: any) => {
   }
 }
 
-const statutColor = (s: string) => s === 'Payé' ? '#22C55E' : s === 'Échoué' ? '#EF4444' : (s === 'Remboursé' || s === 'En attente') ? '#F59E0B' : '#6B7280'
+const statutColor = (s: string) => s === 'Payé' ? '#15803D' : s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#6B7280'
 
 const iconFor = (t: any) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -65,6 +67,7 @@ const fmtDate = (raw?: string, withTime = false) => {
 
 export default function HistoriquePaiementsPage() {
   const navigate = useNavigate()
+  usePageTitle('Mes paiements')
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -77,7 +80,7 @@ export default function HistoriquePaiementsPage() {
       const data = await paiementApi.historique()
       setTransactions(Array.isArray(data) ? data : data?.data || [])
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Impossible de charger vos paiements.')
+      setError(apiMessage(e) || 'Impossible de charger vos paiements.')
     }
     setLoading(false)
   }
@@ -87,7 +90,14 @@ export default function HistoriquePaiementsPage() {
     : filter === 'Loyers' ? transactions.filter(isLoyer)
     : filter === 'Intégration' ? transactions.filter(isInteg)
     : transactions
-  const total = filtered.reduce((s, t) => s + Number(t.montant ?? 0), 0)
+
+  // Total = uniquement les paiements confirmés où l'utilisateur est payeur (exclut loyers reçus)
+  const totalPaye = transactions
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && !isLoyer(t))
+    .reduce((s, t) => s + Number(t.montant ?? 0), 0)
+  const totalRecu = transactions
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && isLoyer(t))
+    .reduce((s, t) => s + Number(t.montant ?? 0), 0)
   const visiteCount = transactions.filter(isVisite).length
   const loyerCount = transactions.filter(isLoyer).length
   const integCount = transactions.filter(isInteg).length
@@ -108,19 +118,19 @@ export default function HistoriquePaiementsPage() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <div className="flex-shrink-0 px-5 pt-14 md:pt-6 pb-6"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
         style={{ background: 'linear-gradient(135deg,#1A1A2E,#0F3460)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
             <div className="flex-1">
-              <p className="text-white font-bold text-lg">Mes paiements</p>
+              <h1 className="text-white font-bold text-lg">Mes paiements</h1>
               <p className="text-white/60 text-xs">Historique complet de vos transactions</p>
             </div>
-            <button onClick={load} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button onClick={load} aria-label="Actualiser" className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             </button>
@@ -136,22 +146,23 @@ export default function HistoriquePaiementsPage() {
             <div className="flex flex-col items-center text-center py-16">
               <p className="font-bold text-text-dark mb-2">Erreur de chargement</p>
               <p className="text-text-grey text-sm mb-4">{error}</p>
-              <button onClick={load} className="text-sm font-bold" style={{ color: '#4B6BFF' }}>Réessayer</button>
+              <button onClick={load} className="text-sm font-bold" style={{ color: 'var(--tx-blue)' }}>Réessayer</button>
             </div>
           ) : (
             <>
               {/* Résumé */}
-              <div className="rounded-2xl p-4.5 mt-4 mb-4 text-white flex items-center justify-between"
+              <div className="rounded-2xl p-5 mt-4 mb-4 text-white flex items-center justify-between"
                 style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
                 <div>
-                  <p className="text-white/70 text-xs">Total payé</p>
-                  <p className="text-xl font-bold mt-0.5">{fmt(total)}</p>
-                  <p className="text-white/55 text-[11px] mt-0.5">{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</p>
+                  <p className="text-white/70 text-xs">Total payé (confirmé)</p>
+                  <p className="text-xl font-bold mt-0.5">{fmt(totalPaye)}</p>
+                  {totalRecu > 0 && <p className="text-white/70 text-caption mt-1">Reçu : {fmt(totalRecu)}</p>}
+                  <p className="text-white/55 text-caption mt-0.5">{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</p>
                 </div>
                 <div className="flex flex-col gap-1.5 items-end flex-shrink-0">
-                  {visiteCount > 0 && <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{visiteCount} Visites</span>}
-                  {loyerCount > 0 && <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{loyerCount} Loyers</span>}
-                  {integCount > 0 && <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{integCount} Intégration</span>}
+                  {visiteCount > 0 && <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{visiteCount} Visites</span>}
+                  {loyerCount > 0 && <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{loyerCount} Loyers</span>}
+                  {integCount > 0 && <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>{integCount} Intégration</span>}
                 </div>
               </div>
 
@@ -181,8 +192,12 @@ export default function HistoriquePaiementsPage() {
                 const confirme = statut === 'Payé'
                 const showRecu = confirme && t.reference && (isVisite(t) || isLoyer(t) || isInteg(t) || isDepot(t))
                 return (
-                  <div key={i} onClick={() => setDetail(t)}
-                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
+                  <div key={i}
+                    role="button" tabIndex={0}
+                    onClick={() => setDetail(t)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetail(t) } }}
+                    aria-label={`${typeLabel(t)} — ${bien || ''} — ${t.montant ?? 0} FCFA`}
+                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A`, color }}>
                         {iconFor(t)}
@@ -190,11 +205,11 @@ export default function HistoriquePaiementsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-text-dark text-sm truncate">{typeLabel(t)}</p>
                         {bien && <p className="text-xs text-text-grey truncate mt-0.5">{bien}</p>}
-                        <p className="text-[11px] text-text-grey mt-0.5">{fmtDate(t.created_at)}</p>
+                        <p className="text-caption text-text-grey mt-0.5">{fmtDate(t.created_at)}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-sm text-text-dark">{fmt(Number(t.montant ?? 0))}</p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${statutColor(statut)}1F`, color: statutColor(statut) }}>{statut}</span>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statut)}1F`, color: statutColor(statut) }}>{statut}</span>
                       </div>
                     </div>
                     {showRecu && (
@@ -219,8 +234,9 @@ export default function HistoriquePaiementsPage() {
       {detail && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
+          aria-hidden="true"
           onClick={() => setDetail(null)}>
-          <div className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white"
+          <div role="dialog" aria-modal="true" aria-label="Détail du paiement" className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${colorFor(detail)}1A`, color: colorFor(detail) }}>
@@ -232,11 +248,11 @@ export default function HistoriquePaiementsPage() {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-bold text-text-dark">{fmt(Number(detail.montant ?? 0))}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${statutColor(statutLabel(detail))}1F`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statutLabel(detail))}1F`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
               </div>
             </div>
             <div className="border-t border-divider pt-3 space-y-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-1">Détails du paiement</p>
+              <p className="text-micro font-bold uppercase tracking-wide text-text-grey mb-1">Détails du paiement</p>
               <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Référence</span><span className="text-xs font-mono font-semibold text-text-dark break-all">{detail.reference || '—'}</span></div>
               <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Méthode</span><span className="text-xs font-semibold text-text-dark">{methodeLabel(detail.methode_paiement)}</span></div>
               {detail.telephone_paiement && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Téléphone utilisé</span><span className="text-xs font-semibold text-text-dark">{detail.telephone_paiement}</span></div>}
@@ -247,7 +263,7 @@ export default function HistoriquePaiementsPage() {
             </div>
             {isVisite(detail) && detail.bien && (
               <div className="border-t border-divider mt-4 pt-3 space-y-2.5">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-text-grey mb-1">Bien concerné</p>
+                <p className="text-micro font-bold uppercase tracking-wide text-text-grey mb-1">Bien concerné</p>
                 {detail.bien.quartier && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Quartier</span><span className="text-xs font-semibold text-text-dark">{detail.bien.quartier}</span></div>}
                 {detail.bien.ville && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Ville</span><span className="text-xs font-semibold text-text-dark">{detail.bien.ville}</span></div>}
                 {detail.date_visite && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Date de visite</span><span className="text-xs font-semibold text-text-dark">{fmtDate(detail.date_visite)}</span></div>}

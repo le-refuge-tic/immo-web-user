@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Couleurs de texte sémantiques : éclaircies en mode sombre pour garder un
+   contraste AA (≥ 4,5:1) sur les fonds #0F0F14 / glass-card sombres. */
+:root {
+  --tx-red: #DC2626;
+  --tx-green: #15803D;
+  --tx-amber: #B45309;
+  --tx-blue: #3A5AEE;
+}
+.dark {
+  --tx-red: #F87171;
+  --tx-green: #4ADE80;
+  --tx-amber: #FBBF24;
+  --tx-blue: #9DB0FF;
+}
+
 @layer base {
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; padding: 0; }
@@ -261,12 +276,12 @@ div:hover > .hero-arrow { opacity: 1; }
   .proprio-root .anim-bounce-in { transition: none !important; }
 
   /* Light mode — Tailwind class overrides */
-  .proprio-root.proprio-light .bg-\[#060D1A\]  { background-color: #F4F6FA !important; }
-  .proprio-root.proprio-light .bg-\[#0B1C30\]  { background-color: #FFFFFF !important; }
-  .proprio-root.proprio-light .bg-\[#112440\]  { background-color: #FFFFFF !important; }
-  .proprio-root.proprio-light .border-\[#1A3355\] { border-color: #E8EAED !important; }
-  .proprio-root.proprio-light .text-\[#F0EDE8\] { color: #1A1A2E !important; }
-  .proprio-root.proprio-light .text-\[#8A9BB5\] { color: #9E9E9E !important; }
+  .proprio-root.proprio-light .bg-\[\#060D1A\]  { background-color: #F4F6FA !important; }
+  .proprio-root.proprio-light .bg-\[\#0B1C30\]  { background-color: #FFFFFF !important; }
+  .proprio-root.proprio-light .bg-\[\#112440\]  { background-color: #FFFFFF !important; }
+  .proprio-root.proprio-light .border-\[\#1A3355\] { border-color: #E8EAED !important; }
+  .proprio-root.proprio-light .text-\[\#F0EDE8\] { color: #1A1A2E !important; }
+  .proprio-root.proprio-light .text-\[\#8A9BB5\] { color: #9E9E9E !important; }
   .proprio-root.proprio-light .card-navy {
     background: #FFFFFF !important;
     border-color: rgba(0,0,0,0.08) !important;
@@ -423,7 +438,7 @@ div:hover > .hero-arrow { opacity: 1; }
 
   /* Textes génériques */
   .dark .text-text-dark { color: #E8E8EF !important; }
-  .dark .text-text-grey { color: rgba(200,200,220,0.55) !important; }
+  .dark .text-text-grey { color: #9898a8 !important; }
 
   /* card-soft (cartes bg-white solides) */
   .dark .card-soft,
@@ -477,4 +492,59 @@ div:hover > .hero-arrow { opacity: 1; }
 
   /* Catégories pills */
   .dark .pill-hover { color: rgba(220,220,240,0.70); }
+
+  /* FE-B-024 : surfaces claires restées blanches (reçu, réservation, mes visites, espace locataire).
+     Les styles en ligne sont sérialisés par le navigateur avec espaces : rgb(255, 255, 255). */
+  .dark .bg-white,
+  .dark .bg-surface-g { background-color: #1E1E2E !important; }
+  .dark .border-divider { border-color: rgba(255,255,255,0.12) !important; }
+  .dark [style*="background: rgb(255, 255, 255)"],
+  .dark [style*="background: rgba(255, 255, 255, 0.6)"],
+  .dark [style*="background: rgba(255, 255, 255, 0.7"],
+  .dark [style*="background: rgba(255, 255, 255, 0.8"],
+  .dark [style*="background: rgba(255, 255, 255, 0.9"] {
+    background: rgba(28,28,42,0.92) !important;
+    border-color: rgba(255,255,255,0.10) !important;
+  }
+  .dark [style*="background: rgba(245, 245, 247"] { background: rgba(15,15,20,0.88) !important; }
+  .dark [style*="background: rgb(244, 246, 250)"],
+  .dark [style*="background: rgb(240, 253, 244)"] { background: #0F0F14 !important; }
+  .dark [style*="color: rgb(26, 26, 46)"],
+  .dark [style*="color: rgb(29, 29, 31)"] { color: #E8E8EF !important; }
+  .dark [style*="color: rgb(107, 114, 128)"],
+  .dark [style*="color: rgb(110, 110, 115)"] { color: #A8A8B8 !important; }
+}
+
+/* ─── Menu dropdown items — hover CSS ────────────────────── */
+.menu-item-hover {
+  transition: background 0.15s ease;
+}
+.menu-item-hover:hover {
+  background: rgba(0,0,0,0.04);
+}
+.menu-item-hover:focus-visible {
+  background: rgba(0,0,0,0.04);
+  outline: 2px solid #4B6BFF;
+  outline-offset: -2px;
+}
+.dark .menu-item-hover:hover {
+  background: rgba(255,255,255,0.06);
+}
+.dark .menu-item-hover:focus-visible {
+  background: rgba(255,255,255,0.06);
+  outline: 2px solid #7B9CFF;
+  outline-offset: -2px;
+}
+
+/* Bouton déconnexion hover */
+.logout-btn-hover {
+  transition: background 0.15s ease;
+}
+.logout-btn-hover:hover {
+  background: rgba(255,59,48,0.10) !important;
+}
+.logout-btn-hover:focus-visible {
+  background: rgba(255,59,48,0.10) !important;
+  outline: 2px solid #FF3B30;
+  outline-offset: -2px;
 }

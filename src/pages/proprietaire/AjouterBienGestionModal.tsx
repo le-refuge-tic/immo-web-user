@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
+import { apiMessage } from '../../utils/apiMessage'
 
 type Props = { onClose: () => void; onCreated: (bien: any) => void }
 
@@ -18,6 +19,12 @@ const TYPES_BIEN = [
 const PEUT_ETRE_MEUBLE = new Set(['appartement', 'villa', 'maison'])
 
 export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
   const [typeBien, setTypeBien] = useState('chambre_salon')
   const [meuble, setMeuble] = useState(false)
   const [loyer, setLoyer] = useState('')
@@ -63,17 +70,25 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
       setSuccess(true)
       setTimeout(() => onCreated(saved), 900)
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Erreur lors de l'ajout du bien")
+      setError(apiMessage(err) || "Erreur lors de l'ajout du bien")
     }
     setSaving(false)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div
+      role="dialog" aria-modal="true" aria-label="Ajouter un bien en gestion"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.4)' }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Ajouter un bien en gestion</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -88,11 +103,13 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
               <p className="text-success text-sm font-semibold">Bien ajouté avec succès</p>
             </div>
           )}
-          {error && (
-            <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
-              <p className="text-danger text-sm">{error}</p>
-            </div>
-          )}
+          <div role="alert" aria-live="assertive" aria-atomic="true">
+            {error && (
+              <div className="bg-danger/10 border border-danger/30 rounded-xl px-4 py-2.5">
+                <p className="text-danger text-sm">{error}</p>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="text-xs font-semibold text-text-dark mb-1.5 block">Type de bien</label>

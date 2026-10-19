@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import sideImg from '../../assets/onboarding-side.jpg'
-import logoUrl from '../../assets/REFUGE-ICON.png'
+import sideImg from '../../assets/onboarding-side.webp'
+import logoUrl from '../../assets/REFUGE-ICON.webp'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 export default function OnboardingProjetPage() {
+  usePageTitle('Mon projet – Inscription')
   const navigate = useNavigate()
   const [selected, setSelected] = useState<'proprietaire' | 'louer'>('louer')
 
@@ -15,7 +17,7 @@ export default function OnboardingProjetPage() {
     <div className="min-h-dvh relative overflow-hidden flex flex-col">
 
       {/* Image de fond */}
-      <img src={sideImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img loading="lazy" src={sideImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.25) 100%)' }} />
 
       <div className="relative z-10 flex flex-col min-h-dvh">
@@ -25,7 +27,7 @@ export default function OnboardingProjetPage() {
           <div className="flex items-center gap-2.5">
             <div className="w-[52px] h-[52px] flex items-center justify-center rounded-[15px] flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
-              <img src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+              <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
             </div>
             <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
           </div>

@@ -1,4 +1,6 @@
+import AppearanceSetting from '../../components/AppearanceSetting'
 import { useState, useEffect, useRef } from 'react'
+import { openPaymentUrl } from '../../utils/paymentUrl'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { loyersApi } from '../../api/loyersApi'
@@ -7,8 +9,12 @@ import { notificationsApi } from '../../api/notificationsApi'
 import { walletApi } from '../../api/walletApi'
 import { chatApi } from '../../api/chatApi'
 import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
-import logoUrl from '../../assets/REFUGE-LOGO.png'
+import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { bienTypeLabel } from '../../utils/bienType'
+import { usePageTitle } from '../../utils/usePageTitle'
+import { formatMois } from '../../utils/dateFormat'
+import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { apiMessage } from '../../utils/apiMessage'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcHome   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -23,9 +29,9 @@ const IcPin    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 const IcPhone  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
 const IcLogout = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
 
-const GREEN  = '#22C55E'
-const TEAL   = '#0EA5E9'
-const ORANGE = '#F59E0B'
+const GREEN  = '#15803D'
+const TEAL   = '#0369A1'
+const ORANGE = '#B45309'
 
 type Tab = 'logement' | 'activite' | 'messages' | 'alertes' | 'profil'
 
@@ -143,13 +149,13 @@ function MonLogementTab() {
         await paiementApi.payerLoyersAvecCotisation(selected)
         setPayState('success'); setSelected([]); load()
       } catch (e: any) {
-        setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur de paiement')
+        setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
       }
       setPaying(false)
       return
     }
 
-    if (!tel && operateur !== 'fedapay') return
+    if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
     setPaying(true)
     setPayState('waiting')
     try {
@@ -163,7 +169,7 @@ function MonLogementTab() {
         const hasUrl = !!(res as any).url_paiement
         if (hasUrl) {
           setPayUrl((res as any).url_paiement)
-          window.open((res as any).url_paiement, '_blank', 'noopener')
+          openPaymentUrl((res as any).url_paiement)
         } else {
           setPayUrl('')
         }
@@ -178,7 +184,7 @@ function MonLogementTab() {
       setPayProgress('')
       setPayState('success'); setSelected([]); load()
     } catch (e: any) {
-      setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur de paiement')
+      setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
     }
     setPaying(false)
   }
@@ -204,7 +210,7 @@ function MonLogementTab() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-text-dark text-sm">{gestionnaire.prenom} {gestionnaire.nom}</p>
-        <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'demarcheur' ? 'Agent' : 'Propriétaire'}</p>
+        <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'demarcheur' ? 'Démarcheur' : 'Propriétaire'}</p>
       </div>
       <button onClick={ouvrirChatGestionnaire} disabled={chatLoading}
         className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-50" style={{ background: TEAL + '20', color: TEAL }}>
@@ -239,7 +245,7 @@ function MonLogementTab() {
               ].map(s => (
                 <div key={s.label} className="rounded-xl px-2 py-2 md:py-3 text-center" style={{ background: 'rgba(255,255,255,0.12)' }}>
                   <p className="font-bold text-sm md:text-base leading-tight" style={{ color: s.warn ? '#FCD34D' : 'white' }}>{s.value}</p>
-                  <p className="text-[10px] md:text-xs mt-0.5 text-white/60">{s.label}</p>
+                  <p className="text-micro md:text-xs mt-0.5 text-white/60">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -277,9 +283,9 @@ function MonLogementTab() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-1.5">
-                        <p className="font-semibold text-text-dark text-sm">{l.mois || new Date(l.date_echeance).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+                        <p className="font-semibold text-text-dark text-sm">{formatMois(l.mois || l.date_echeance)}</p>
                         {l.statut === 'en_retard' && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: '#EF4444' }}>En retard</span>
+                          <span className="text-micro font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: 'var(--tx-red)' }}>En retard</span>
                         )}
                       </div>
                       <p className="text-xs text-text-grey">Échéance : {new Date(l.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
@@ -309,7 +315,7 @@ function MonLogementTab() {
                       {payUrl ? (
                         <>
                           <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                          <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                          <button onClick={() => openPaymentUrl(payUrl)}
                             className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
                             Rouvrir la page de paiement
                           </button>
@@ -332,7 +338,7 @@ function MonLogementTab() {
                       <OperateurChips value={operateur} onChange={setOperateur} cotisationSolde={cotisationSolde} />
                       {operateur === 'cotisation' ? (
                         !cotisationSuffisante && (
-                          <p className="text-xs font-semibold mb-3" style={{ color: '#EF4444' }}>
+                          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--tx-red)' }}>
                             Solde cotisation insuffisant ({cotisationSolde.toLocaleString('fr-FR')} F disponibles).
                           </p>
                         )
@@ -341,12 +347,12 @@ function MonLogementTab() {
                           <span className="text-text-grey text-sm font-semibold">+229</span>
                           <div className="w-px h-4 bg-divider" />
                           <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                            placeholder="XX XX XX XX" maxLength={8}
+                            placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                             className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                         </div>
                       )}
                       <button onClick={payer}
-                        disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !tel))}
+                        disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
                         style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
                         {operateur === 'cotisation' ? 'Payer avec ma cotisation' : `Payer via ${OPERATEURS.find(o => o.id === operateur)?.label}`}
@@ -369,7 +375,7 @@ function MonLogementTab() {
                       <span style={{ color: GREEN }}><IcCheck /></span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-text-dark text-sm">{h.mois || new Date(h.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+                      <p className="font-semibold text-text-dark text-sm">{formatMois(h.mois || h.created_at)}</p>
                       <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
                     </div>
                     <p className="font-bold text-sm flex-shrink-0" style={{ color: GREEN }}>{Number(h.montant).toLocaleString('fr-FR')} F</p>
@@ -402,7 +408,7 @@ function MonLogementTab() {
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between"><span className="text-text-grey">Loyer mensuel</span><span className="font-bold text-text-dark">{Number(contrat.loyer_mensuel || 0).toLocaleString('fr-FR')} F</span></div>
                 <div className="flex justify-between"><span className="text-text-grey">Loyers payés</span><span className="font-bold text-text-dark">{data.mois_payes ?? 0}</span></div>
-                <div className="flex justify-between"><span className="text-text-grey">Loyers dûs</span><span className="font-bold" style={{ color: (data.mois_dus ?? 0) > 0 ? '#EF4444' : GREEN }}>{data.mois_dus ?? 0}</span></div>
+                <div className="flex justify-between"><span className="text-text-grey">Loyers dûs</span><span className="font-bold" style={{ color: (data.mois_dus ?? 0) > 0 ? '#DC2626' : GREEN }}>{data.mois_dus ?? 0}</span></div>
               </div>
             </div>
           </div>
@@ -460,7 +466,7 @@ function ActiviteTab() {
     if (!prochainLoyer) return null
     const diff = new Date(prochainLoyer.date_echeance).getTime() - Date.now()
     const jours = Math.ceil(diff / 86400000)
-    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: '#EF4444', bg: '#EF444420' }
+    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: '#DC2626', bg: '#EF444420' }
     if (jours <= 3) return { label: `Dû dans ${jours}j`, color: ORANGE, bg: ORANGE + '20' }
     if (jours <= 7) return { label: `À payer dans ${jours}j`, color: TEAL, bg: TEAL + '20' }
     return { label: `${jours} jours`, color: GREEN, bg: GREEN + '20' }
@@ -475,19 +481,19 @@ function ActiviteTab() {
         await paiementApi.payerLoyersAvecCotisation([prochainLoyer.id])
         setPayState('success'); setShowPay(false); load()
       } catch (e: any) {
-        setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur')
+        setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur')
       }
       setPaying(false)
       return
     }
-    if (operateur !== 'fedapay' && !tel) return
+    if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
     setPaying(true); setPayState('waiting')
     try {
       const res = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
       const refId = res.referenceId || res.reference_id
       if ((res as any).url_paiement) {
         setPayUrl((res as any).url_paiement)
-        window.open((res as any).url_paiement, '_blank', 'noopener')
+        openPaymentUrl((res as any).url_paiement)
       } else {
         setPayUrl('')
       }
@@ -506,7 +512,7 @@ function ActiviteTab() {
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
     } catch (e: any) {
-      setPayState('error'); setPayMsg(e?.response?.data?.message || 'Erreur')
+      setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur')
     }
     setPaying(false)
   }
@@ -555,7 +561,7 @@ function ActiviteTab() {
               {payUrl ? (
                 <>
                   <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                  <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
+                  <button onClick={() => openPaymentUrl(payUrl)}
                     className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
                     Rouvrir la page de paiement
                   </button>
@@ -587,14 +593,14 @@ function ActiviteTab() {
                   <span className="text-text-grey text-sm font-semibold">+229</span>
                   <div className="w-px h-4 bg-divider" />
                   <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                    placeholder="XX XX XX XX" maxLength={8}
+                    placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                     className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               )}
               <div className="flex gap-2">
                 <button onClick={() => setShowPay(false)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
                 <button onClick={payer}
-                  disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !tel))}
+                  disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
                   className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: GREEN }}>{operateur === 'cotisation' ? 'Payer avec ma cotisation' : 'Payer'}</button>
               </div>
@@ -616,15 +622,15 @@ function ActiviteTab() {
               <span style={{ color: GREEN }}><IcMoney /></span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-text-dark text-sm">{h.mois || new Date(h.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+              <p className="font-semibold text-text-dark text-sm">{formatMois(h.mois || h.created_at)}</p>
               <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
             </div>
             <div className="text-right">
               <p className="font-bold text-sm" style={{ color: GREEN }}>+{Number(h.montant).toLocaleString('fr-FR')} F</p>
-              <span className="text-[10px] font-semibold" style={{ color: GREEN }}>Payé</span>
+              <span className="text-micro font-semibold" style={{ color: GREEN }}>Payé</span>
               {h.transaction_id && (
                 <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)}
-                  className="block mt-1 text-[10px] font-bold underline" style={{ color: TEAL }}>Reçu</button>
+                  className="block mt-1 text-micro font-bold underline" style={{ color: TEAL }}>Reçu</button>
               )}
             </div>
           </div>
@@ -705,9 +711,10 @@ function ProfilTab() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-text-grey"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
           </button>
         ))}
+        <div className="w-full glass-card rounded-xl"><AppearanceSetting /></div>
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-2 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2"
-          style={{ color: '#EF4444', borderColor: '#EF444430', background: '#EF444408' }}>
+          style={{ color: 'var(--tx-red)', borderColor: '#EF444430', background: '#EF444408' }}>
           <IcLogout /> Se déconnecter
         </button>
       </div>
@@ -735,14 +742,15 @@ const TABS: { key: Tab; label: string; icon: (active: boolean) => React.ReactNod
 // ─── Sidebar (desktop) ──────────────────────────────────────────────────────
 function Sidebar({ tab, setTab, user, navigate, logout }: any) {
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
+  const [hoveredBtn, setHoveredBtn] = useState<string | null>(null)
   return (
     <aside className="hidden md:flex md:flex-col md:w-64 md:flex-shrink-0 md:h-dvh md:sticky md:top-0"
       style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(40px) saturate(180%)', borderRight: '1px solid rgba(0,0,0,0.06)' }}>
       <button onClick={() => navigate('/')} className="flex items-center gap-2.5 px-6 pt-6 pb-5 flex-shrink-0">
-        <img src={logoUrl} alt="REFUGE" style={{ width: 34, height: 34, objectFit: 'contain' }} />
+        <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 34, height: 34, objectFit: 'contain' }} />
         <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
       </button>
-      <p className="px-6 mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(0,0,0,0.35)' }}>Espace Locataire</p>
+      <p className="px-6 mb-2 text-micro font-bold uppercase tracking-wider" style={{ color: 'rgba(0,0,0,0.35)' }}>Espace Locataire</p>
       <nav className="flex-1 px-3 space-y-1">
         {TABS.map(t => {
           const active = tab === t.key
@@ -759,19 +767,20 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
       <div className="px-3 pb-5 flex-shrink-0">
         <button onClick={() => navigate('/profil')}
           className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all"
-          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.04)'}
-          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}>
+          style={{ background: hoveredBtn === 'profil' ? 'rgba(0,0,0,0.04)' : 'transparent' }}
+          onMouseEnter={() => setHoveredBtn('profil')}
+          onMouseLeave={() => setHoveredBtn(null)}>
           <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>{initials}</div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-xs font-bold text-text-dark truncate">{user?.prenom} {user?.nom}</p>
-            <p className="text-[10px] text-text-grey">Locataire</p>
+            <p className="text-micro text-text-grey">Locataire</p>
           </div>
         </button>
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-1 flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-          style={{ color: '#EF4444' }}
-          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#EF444408'}
-          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}>
+          style={{ color: 'var(--tx-red)', background: hoveredBtn === 'logout' ? '#EF444408' : 'transparent' }}
+          onMouseEnter={() => setHoveredBtn('logout')}
+          onMouseLeave={() => setHoveredBtn(null)}>
           <IcLogout /> Déconnexion
         </button>
       </div>
@@ -780,6 +789,7 @@ function Sidebar({ tab, setTab, user, navigate, logout }: any) {
 }
 
 export default function LocataireDashboard() {
+  usePageTitle('Mon espace')
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('logement')
@@ -797,7 +807,7 @@ export default function LocataireDashboard() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <div className="md:hidden flex-shrink-0 px-5 pt-12 pb-5" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
+        <div className="md:hidden flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-5" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/60 text-xs uppercase tracking-wider">REFUGE · Locataire</p>
@@ -833,16 +843,18 @@ export default function LocataireDashboard() {
         </div>
 
         {/* Bottom Nav — mobile only */}
-        <div className="md:hidden flex-shrink-0 border-t" style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.06)' }}>
+        <div className="md:hidden flex-shrink-0 border-t bg-[rgba(255,255,255,0.92)] dark:bg-[rgba(20,22,30,0.95)] border-black/[0.06] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(20px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="flex items-center justify-around px-2 py-2">
             {TABS.map(t => {
               const active = tab === t.key
               return (
                 <button key={t.key} onClick={() => t.key === 'messages' ? navigate('/conversations') : setTab(t.key)}
-                  className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all"
-                  style={active ? { background: GREEN + '18' } : {}}>
-                  <span style={{ color: active ? GREEN : 'rgba(0,0,0,0.35)' }}>{t.icon(active)}</span>
-                  {active && <span className="text-[10px] font-bold" style={{ color: GREEN }}>{t.label}</span>}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[56px] rounded-2xl transition-all ${active ? '' : 'text-black/55 dark:text-white/60'}`}
+                  style={active ? { background: GREEN + '18', color: GREEN } : {}}>
+                  <span>{t.icon(active)}</span>
+                  {/* Libellé toujours visible : une icône seule n'est pas assez explicite */}
+                  <span className={`text-micro ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>
                 </button>
               )
             })}

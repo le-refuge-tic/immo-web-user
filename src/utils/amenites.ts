@@ -1,7 +1,7 @@
 // Labels lisibles pour les aménités d'un bien, miroir de la logique mobile
 // (immo_confort/lib/models/bien.dart → classe Amenites).
 
-export function electriciteLabel(a: any): string | null {
+function electriciteLabel(a: any): string | null {
   switch (a.electricite ?? a.compteur_elec) {
     case 'sbee':
     case 'personnel':
@@ -16,7 +16,7 @@ export function electriciteLabel(a: any): string | null {
   }
 }
 
-export function eauLabel(a: any): string | null {
+function eauLabel(a: any): string | null {
   switch (a.eau ?? a.compteur_eau) {
     case 'soneb':
       if (a.soneb_gestion === 'prix_m3' && a.prix_m3 != null) {
@@ -36,7 +36,7 @@ export function eauLabel(a: any): string | null {
   }
 }
 
-export function cuisineLabel(a: any): string | null {
+function cuisineLabel(a: any): string | null {
   switch (a.type_cuisine) {
     case 'americaine': return 'Cuisine ouverte (américaine)'
     case 'couloir_balcon': return 'Cuisine couloir / balcon'
@@ -47,7 +47,7 @@ export function cuisineLabel(a: any): string | null {
   }
 }
 
-export function courLabel(a: any): string | null {
+function courLabel(a: any): string | null {
   switch (a.type_cour) {
     case 'unique_entree': return 'Cour privée'
     case 'entree_personnelle': return 'Entrée personnelle'
@@ -60,7 +60,7 @@ export function courLabel(a: any): string | null {
   }
 }
 
-export function finitionLabel(a: any): string | null {
+function finitionLabel(a: any): string | null {
   switch (a.finition) {
     case 'ordinaire': return 'Finition ordinaire'
     case 'semi_staffe': return 'Semi-staffé'
@@ -73,7 +73,7 @@ export function finitionLabel(a: any): string | null {
   }
 }
 
-export function disponibiliteLabel(a: any): string | null {
+function disponibiliteLabel(a: any): string | null {
   switch (a.disponibilite) {
     case 'immediate': return 'Disponible immédiatement'
     case 'en_finition': return 'En finition / Bientôt disponible'
@@ -177,7 +177,7 @@ export function infosTerrainRows(a: any): InfoRow[] {
 }
 
 /** Puces "Équipements & atouts" (espaces + équipements + boutique) */
-export function actifLabels(a: any): string[] {
+function actifLabels(a: any): string[] {
   const result: string[] = []
   if (a.cour) result.push('Cour')
   if (a.arriere_cour) result.push('Arrière-cour')

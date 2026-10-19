@@ -9,6 +9,8 @@ export interface BannerData {
   message: string
   /** Route vers laquelle naviguer au tap (optionnel). */
   to?: string
+  /** State React Router à passer lors de la navigation. */
+  toState?: Record<string, unknown>
   /** Avatar : initiale + dégradé, ou icône. */
   initial?: string
   gradient?: string
@@ -75,7 +77,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const onTap = () => {
-    if (current?.to) navigate(current.to)
+    if (current?.to) navigate(current.to, current.toState ? { state: current.toState } : undefined)
     dismiss()
   }
 

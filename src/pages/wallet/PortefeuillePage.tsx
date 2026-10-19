@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../api/walletApi'
 import { useAuth } from '../../context/AuthContext'
+import { usePageTitle } from '../../utils/usePageTitle'
 
 const isLoyer = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -14,7 +15,7 @@ const statutLabel = (t: any) => {
   if (s.includes('pending') || s.includes('attente')) return 'En attente'
   return 'Payé'
 }
-const statutColor = (s: string) => s === 'Échoué' ? '#FF3B30' : (s === 'Remboursé' || s === 'En attente') ? '#FF9800' : '#34C759'
+const statutColor = (s: string) => s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#15803D'
 const typeColor = (t: any) => isLoyer(t) ? '#4B6BFF' : isVisite(t) ? '#FF6B35' : '#6E6E73'
 const fieldLabel = (k: string) => k.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ')
 const formatDate = (t: any) => {
@@ -48,6 +49,7 @@ const W_COLOR: Record<WType, string> = { cotisation: '#4B6BFF', epargne: '#7B4BF
 
 function ClientWalletView() {
   const navigate = useNavigate()
+  usePageTitle('Mon portefeuille')
   const [tab, setTab] = useState<WType>('cotisation')
   const [wallets, setWallets] = useState<Record<WType, any>>({ cotisation: null, epargne: null })
   const [txs, setTxs] = useState<Record<WType, any[]>>({ cotisation: [], epargne: [] })
@@ -105,7 +107,7 @@ function ClientWalletView() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <div className="flex-shrink-0 px-5 pt-14 md:pt-6 pb-6"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
         style={{ background: `linear-gradient(135deg, ${color}CC, ${color})`, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-5">
@@ -113,7 +115,7 @@ function ClientWalletView() {
               style={{ background: 'rgba(255,255,255,0.15)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <p className="text-white font-bold text-lg">Mon portefeuille</p>
+            <h1 className="text-white font-bold text-lg">Mon portefeuille</h1>
           </div>
           <div className="flex gap-2 mb-5">
             {(['cotisation', 'epargne'] as WType[]).map(t => (
@@ -127,7 +129,7 @@ function ClientWalletView() {
           <div className="rounded-2xl p-5 text-white" style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.18)' }}>
             <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Solde {W_LABEL[tab].toLowerCase()}</p>
             <p className="text-3xl font-bold mb-1">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
-            <p className="text-white/50 text-[11px] mb-4">Mis à jour : {wallets[tab]?.updated_at ? formatDate(wallets[tab].updated_at) : '—'}</p>
+            <p className="text-white/50 text-caption mb-4">Mis à jour : {wallets[tab]?.updated_at ? formatDate(wallets[tab].updated_at) : '—'}</p>
             {tab === 'cotisation' ? (
               <div className="space-y-2.5">
                 <button onClick={() => navigate('/locataire')} disabled={solde <= 0}
@@ -160,7 +162,7 @@ function ClientWalletView() {
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée — en attente de validation.</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée — en attente de validation.</p>
             </div>
           )}
 
@@ -208,9 +210,9 @@ function ClientWalletView() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-text-dark text-sm truncate">{t.description || typeLabel(t)}</p>
-                <p className="text-[11px] text-text-grey mt-0.5">Solde après : {Number(t.balance_after ?? 0).toLocaleString('fr-FR')} F · {formatDate(t.created_at)}</p>
+                <p className="text-caption text-text-grey mt-0.5">Solde après : {Number(t.balance_after ?? 0).toLocaleString('fr-FR')} F · {formatDate(t.created_at)}</p>
               </div>
-              <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? '#EF4444' : '#22C55E' }}>
+              <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? '#DC2626' : '#15803D' }}>
                 {isDebit(t) ? '-' : '+'}{Number(t.amount ?? 0).toLocaleString('fr-FR')} F
               </p>
             </div>
@@ -224,6 +226,7 @@ function ClientWalletView() {
 // ─── Vue propriétaire / démarcheur : Commissions (revenus_locatifs) ────────────
 function WalletCommissionsView() {
   const navigate = useNavigate()
+  usePageTitle('Mon portefeuille')
   const [wallet, setWallet]         = useState<any>(null)
   const [transactions, setTrans]    = useState<any[]>([])
   const [loading, setLoading]       = useState(true)
@@ -264,7 +267,7 @@ function WalletCommissionsView() {
   return (
     <div className="min-h-full flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 px-5 pt-14 md:pt-6 pb-6"
+      <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
         style={{ background: 'linear-gradient(135deg,#1A1A2E,#4B6BFF)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
@@ -273,7 +276,7 @@ function WalletCommissionsView() {
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
             <div>
-              <p className="text-white font-bold text-lg">Mon Portefeuille</p>
+              <h1 className="text-white font-bold text-lg">Mon Portefeuille</h1>
               <p className="text-white/60 text-xs">Solde & transactions</p>
             </div>
           </div>
@@ -298,7 +301,7 @@ function WalletCommissionsView() {
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>Demande de retrait envoyée avec succès.</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée avec succès.</p>
             </div>
           )}
 
@@ -345,7 +348,7 @@ function WalletCommissionsView() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="font-bold text-text-dark">{montantOf(detailTx).toLocaleString('fr-FR')} FCFA</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${statutColor(statutLabel(detailTx))}1F`, color: statutColor(statutLabel(detailTx)) }}>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statutLabel(detailTx))}1F`, color: statutColor(statutLabel(detailTx)) }}>
                       {statutLabel(detailTx)}
                     </span>
                   </div>
@@ -385,13 +388,13 @@ function WalletCommissionsView() {
                   <div>
                     <p className="text-white/70 text-xs">Total{filter !== 'Tous' ? ` (${filter})` : ''}</p>
                     <p className="text-xl font-bold mt-0.5">{totalFiltre.toLocaleString('fr-FR')} FCFA</p>
-                    <p className="text-white/55 text-[11px] mt-0.5">{filteredTx.length} transaction{filteredTx.length !== 1 ? 's' : ''}</p>
+                    <p className="text-white/55 text-caption mt-0.5">{filteredTx.length} transaction{filteredTx.length !== 1 ? 's' : ''}</p>
                   </div>
                   <div className="flex flex-col gap-1.5 items-end flex-shrink-0">
-                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
                       {loyerCount} Loyers
                     </span>
-                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <span className="px-2.5 py-1 rounded-lg text-caption font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.15)' }}>
                       {visiteCount} Visites
                     </span>
                   </div>
@@ -418,19 +421,23 @@ function WalletCommissionsView() {
                   const tColor = typeColor(t)
                   const subtitle = String(t.bien ?? t.reference ?? t.libelle ?? '')
                   return (
-                    <div key={i} onClick={() => setDetailTx(t)}
-                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow">
+                    <div key={i}
+                      role="button" tabIndex={0}
+                      onClick={() => setDetailTx(t)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailTx(t) } }}
+                      aria-label={`${typeLabel(t)} — ${String(t.bien ?? t.reference ?? t.libelle ?? '')} — ${montantOf(t).toLocaleString('fr-FR')} FCFA`}
+                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2">
                       <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tColor}1A` }}>
                         <TypeIcon t={t} color={tColor} className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-text-dark text-sm truncate">{typeLabel(t)}</p>
                         {subtitle && <p className="text-xs text-text-grey mt-0.5 truncate">{subtitle}</p>}
-                        <p className="text-[11px] text-text-grey mt-0.5">{formatDate(t)}</p>
+                        <p className="text-caption text-text-grey mt-0.5">{formatDate(t)}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-sm text-text-dark">{montantOf(t).toLocaleString('fr-FR')} FCFA</p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: `${sColor}1F`, color: sColor }}>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${sColor}1F`, color: sColor }}>
                           {statut}
                         </span>
                       </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { openPaymentUrl } from '../../utils/paymentUrl'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
@@ -6,15 +7,22 @@ import { paiementApi } from '../../api/paiementApi'
 import { chatApi } from '../../api/chatApi'
 import FaceRating from '../../components/FaceRating'
 import { bienTypeLabel } from '../../utils/bienType'
+import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { usePageTitle } from '../../utils/usePageTitle'
+import { unwrapList } from '../../utils/unwrapList'
+import { useApiQuery } from '../../hooks/useApiQuery'
+import type { Visite } from '../../types/api'
+import { track } from '../../lib/analytics'
+import { apiMessage } from '../../utils/apiMessage'
 
 const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
-  en_attente:      { label: 'En attente',      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-  contre_proposee: { label: 'Contre-proposée', color: '#E67E22', bg: 'rgba(230,126,34,0.12)' },
-  confirmee:       { label: 'Confirmée',        color: '#22C55E', bg: 'rgba(34,197,94,0.1)' },
-  effectuee:       { label: 'Effectuée',        color: '#4B6BFF', bg: 'rgba(75,107,255,0.1)' },
-  annulee:         { label: 'Annulée',          color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
-  payee:           { label: 'Payée',            color: '#22C55E', bg: 'rgba(34,197,94,0.1)' },
-  echouee:         { label: 'Échouée',          color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
+  en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
+  contre_proposee: { label: 'Contre-proposée', color: '#B45309', bg: 'rgba(230,126,34,0.12)' },
+  confirmee:       { label: 'Confirmée',        color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
+  effectuee:       { label: 'Effectuée',        color: '#3A5AEE', bg: 'rgba(58,90,238,0.1)' },
+  annulee:         { label: 'Annulée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
+  payee:           { label: 'Payée',            color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
+  echouee:         { label: 'Échouée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
 }
 
 // Même règle que côté mobile : une visite non traitée (confirmée ou en attente
@@ -60,18 +68,25 @@ const ISSUES_TAGS = [
   'Le prix annoncé ne reflète pas la réalité',
 ]
 
+const NO_VISITES: Visite[] = []
+
 export default function MesVisitesPage() {
+  usePageTitle('Mes visites')
   const navigate = useNavigate()
   const location = useLocation()
   const [tab, setTab] = useState(0)
-  const [visites, setVisites] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  // Chargement annulable, sans réponse périmée (FE-A-004) ; refetch recharge la liste.
+  const { data: visitesData, loading, refetch: loadVisites } = useApiQuery(
+    signal => visitesApi.mesVisites(signal).then(unwrapList),
+    [],
+  )
+  const visites = visitesData ?? NO_VISITES
   const [showPay, setShowPay] = useState<any>(null)
   const [operator, setOperator] = useState('momo')
   const [phoneOp, setPhoneOp] = useState('')
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
-  const [payState, setPayState] = useState<'idle' | 'waiting' | 'success'>('idle')
+  const [payState, setPayState] = useState<'idle' | 'waiting' | 'pending' | 'success'>('idle')
   const [payRefId, setPayRefId] = useState('')
   const [payUrl, setPayUrl] = useState('')
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -86,7 +101,16 @@ export default function MesVisitesPage() {
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
-  useEffect(() => { loadVisites() }, [])
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden && pollRef.current) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
 
   // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
   // dans le chat (comme sur mobile) — au lieu de laisser l'utilisateur
@@ -100,15 +124,6 @@ export default function MesVisitesPage() {
       navigate(location.pathname, { replace: true, state: {} })
     }
   }, [visites, location.state])
-
-  const loadVisites = async () => {
-    setLoading(true)
-    try {
-      const data = await visitesApi.mesVisites()
-      setVisites(Array.isArray(data) ? data : data.data || [])
-    } catch (_) {}
-    setLoading(false)
-  }
 
   const filtered = visites.filter(v => {
     const echouee = isEchoueeVisite(v)
@@ -197,7 +212,8 @@ export default function MesVisitesPage() {
 
   const handlePayer = async () => {
     if (!showPay) return
-    if (operator !== 'fedapay' && !phoneOp) return
+    if (payState === 'pending') return
+    if (operator !== 'fedapay' && !validateBeninPhone(phoneOp)) return
     setPaying(true)
     setPayError('')
     try {
@@ -214,7 +230,7 @@ export default function MesVisitesPage() {
       // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
       if (res.url_paiement) {
         setPayUrl(res.url_paiement)
-        window.open(res.url_paiement, '_blank', 'noopener')
+        openPaymentUrl(res.url_paiement)
       } else {
         setPayUrl('')
       }
@@ -229,6 +245,7 @@ export default function MesVisitesPage() {
           if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
             clearInterval(pollRef.current!)
             setPayState('success')
+            track('visite_payee')
             loadVisites()
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
             clearInterval(pollRef.current!)
@@ -236,10 +253,10 @@ export default function MesVisitesPage() {
             setPayState('idle')
           }
         } catch (_) {}
-        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayError('Délai de confirmation expiré.'); setPayState('idle') }
-      }, 3000)
+        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('pending') }
+      }, 5000)
     } catch (err: any) {
-      setPayError(err?.response?.data?.message || 'Erreur de paiement')
+      setPayError(apiMessage(err) || 'Erreur de paiement')
       setPayState('idle')
     }
     setPaying(false)
@@ -283,7 +300,7 @@ export default function MesVisitesPage() {
       setFeedbackDone(true)
       loadVisites()
     } catch (err: any) {
-      setFeedbackError(err?.response?.data?.message || "Impossible d'envoyer l'avis")
+      setFeedbackError(apiMessage(err) || "Impossible d'envoyer l'avis")
     }
     setFeedbackSaving(false)
   }
@@ -292,9 +309,9 @@ export default function MesVisitesPage() {
     <div className="min-h-full">
 
       {/* ── Header (mobile sticky + desktop glass bar) ── */}
-      <div style={{ background: 'rgba(245,245,247,0.88)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+      <div className="sticky top-0 md:top-[72px] z-10 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(15,15,20,0.88)] border-b border-black/[0.07] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
         <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="flex items-center gap-3 pt-12 md:pt-5 pb-3">
+          <div className="flex items-center gap-3 pt-6 md:pt-5 pb-3">
             <button onClick={() => navigate(-1)}
               className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0">
               <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -307,13 +324,13 @@ export default function MesVisitesPage() {
             </div>
           </div>
           {/* Tabs */}
-          <div className="flex md:gap-2">
+          {/* Onglets : défilent horizontalement sur petit écran au lieu d'être écrasés */}
+          <div role="group" aria-label="Filtrer les visites" className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {TABS.map((t, i) => (
-              <button key={t} onClick={() => setTab(i)}
-                className="flex-1 md:flex-none md:px-6 pb-3 text-[13px] font-semibold transition-all relative"
-                style={{ color: tab === i ? '#4B6BFF' : '#9CA3AF' }}>
+              <button key={t} type="button" aria-pressed={tab === i} onClick={() => setTab(i)}
+                className={`flex-shrink-0 px-3 md:px-6 pb-3 text-[13px] font-semibold transition-all relative whitespace-nowrap ${tab === i ? 'text-[#3A5AEE] dark:text-[#9DB0FF]' : 'text-[#6B7280] dark:text-[#9CA3AF]'}`}>
                 {t}
-                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full" style={{ background: '#4B6BFF' }} />}
+                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#4B6BFF]" />}
               </button>
             ))}
           </div>
@@ -345,11 +362,41 @@ export default function MesVisitesPage() {
 
       {/* Payment modal */}
       {showPay && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' ? closePayModal : undefined}>
-          <div className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
+        <div aria-hidden="true" className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' || payState === 'pending' ? closePayModal : undefined}>
+          <div role="dialog" aria-modal="true" aria-label="Payer la visite" aria-hidden="false" className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
 
-            {payState === 'success' ? (
+            {payState === 'pending' ? (
+              <div className="flex flex-col items-center text-center py-6">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#FEF3C7' }}>
+                  <svg className="w-8 h-8" fill="none" stroke="#F59E0B" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p className="font-bold text-text-dark mb-2">Confirmation en attente</p>
+                <p className="text-sm text-text-grey mb-6">Nous n'avons pas encore reçu la confirmation de l'opérateur. Si vous avez validé sur votre téléphone, le paiement apparaîtra ici dès réception.</p>
+                <button
+                  onClick={async () => {
+                    if (!payRefId) return
+                    setPayState('waiting')
+                    let attempts = 0
+                    pollRef.current = setInterval(async () => {
+                      attempts++
+                      try {
+                        const status = await paiementApi.statutVisite(payRefId)
+                        if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
+                          clearInterval(pollRef.current!); setPayState('success'); track('visite_payee'); loadVisites()
+                        } else if (status.statut === 'echoue' || status.statut === 'failed') {
+                          clearInterval(pollRef.current!); setPayError('Paiement refusé par l\'opérateur.'); setPayState('idle')
+                        }
+                      } catch (_) {}
+                      if (attempts >= 10) { clearInterval(pollRef.current!); setPayState('pending') }
+                    }, 5000)
+                  }}
+                  className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#B45309' }}>
+                  Vérifier à nouveau
+                </button>
+                <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
+              </div>
+            ) : payState === 'success' ? (
               <div className="flex flex-col items-center text-center py-4">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
                   <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -368,8 +415,8 @@ export default function MesVisitesPage() {
                 {payUrl ? (
                   <>
                     <p className="text-sm text-text-grey mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                    <button onClick={() => window.open(payUrl, '_blank', 'noopener')}
-                      className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#FF6B35' }}>
+                    <button onClick={() => openPaymentUrl(payUrl)}
+                      className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#C2410C' }}>
                       Rouvrir la page de paiement
                     </button>
                   </>
@@ -381,7 +428,7 @@ export default function MesVisitesPage() {
               <>
                 <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
                 <p className="text-sm text-text-grey mb-4">
-                  Montant : <span className="font-bold text-text-dark">500 FCFA</span>
+                  Montant : <span className="font-bold text-text-dark">{Number(showPay?.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA</span>
                 </p>
                 {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
                 <div className="flex gap-2 mb-4">
@@ -411,16 +458,16 @@ export default function MesVisitesPage() {
                       type="tel"
                       value={phoneOp}
                       onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="96XXXXXXXX"
+                      placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                       className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
                     />
                   </div>
                 )}
                 <button
                   onClick={handlePayer}
-                  disabled={(operator !== 'fedapay' && !phoneOp) || paying}
+                  disabled={(operator !== 'fedapay' && !validateBeninPhone(phoneOp)) || paying}
                   className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
-                  style={{ background: '#FF6B35' }}
+                  style={{ background: '#C2410C' }}
                 >
                   {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Confirmer le paiement'}
                 </button>
@@ -433,7 +480,7 @@ export default function MesVisitesPage() {
 
       {/* Feedback modal */}
       {showFeedback && createPortal(
-        <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#F8F9FA' }}>
+        <div role="dialog" aria-modal="true" aria-label="Donner un avis" className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#F8F9FA' }}>
           {feedbackDone ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
@@ -473,7 +520,7 @@ export default function MesVisitesPage() {
                 {needsTags && (
                   <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                     <div className="flex items-center gap-2.5 mb-1.5">
-                      <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: '#EF4444' }} />
+                      <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: '#DC2626' }} />
                       <p className="font-bold text-text-dark text-sm">Qu'est-ce qui n'a pas fonctionné ?</p>
                     </div>
                     <p className="text-xs text-text-grey mb-4">Sélectionnez tout ce qui s'applique (au moins un)</p>
@@ -484,7 +531,7 @@ export default function MesVisitesPage() {
                           <button key={tag} onClick={() => toggleFeedbackTag(tag)}
                             className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
                             style={sel
-                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#EF4444', fontWeight: 600 }
+                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#DC2626', fontWeight: 600 }
                               : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
                             {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                             {tag}
@@ -508,7 +555,7 @@ export default function MesVisitesPage() {
                     className="w-full rounded-2xl px-3.5 py-3.5 text-[13.5px] outline-none resize-none"
                     style={{ background: '#F5F5F5' }}
                   />
-                  <p className="text-[11px] text-text-grey text-right mt-1">{feedbackComment.length}/500</p>
+                  <p className="text-caption text-text-grey text-right mt-1">{feedbackComment.length}/500</p>
                 </div>
               </div>
 
@@ -533,15 +580,15 @@ export default function MesVisitesPage() {
 
       {/* Confirm dialog */}
       {confirmDialog && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center px-5" onClick={() => setConfirmDialog(null)}>
-          <div className="glass-strong rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <div aria-hidden="true" className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center px-5" onClick={() => setConfirmDialog(null)}>
+          <div role="dialog" aria-modal="true" aria-label={confirmDialog.title} aria-hidden="false" className="glass-strong rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-text-dark text-base mb-2">{confirmDialog.title}</h3>
             <p className="text-sm text-text-grey leading-relaxed mb-5">{confirmDialog.body}</p>
             <div className="flex gap-3">
               <button onClick={() => setConfirmDialog(null)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-dark">
                 Garder
               </button>
-              <button onClick={confirmDialog.onConfirm} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ background: '#EF4444' }}>
+              <button onClick={confirmDialog.onConfirm} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ background: '#DC2626' }}>
                 Confirmer
               </button>
             </div>
@@ -571,7 +618,7 @@ type VisiteCardProps = {
 function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {
   const isEchouee = isEchoueeVisite(v)
   const isDatePassee = isDatePasseeVisite(v)
-  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#9CA3AF', bg: '#F4F6FA' })
+  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#6B7280', bg: '#F4F6FA' })
   const bien = v.bien
   const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
   const isCP = v.statut === 'contre_proposee' && !isEchouee
@@ -618,38 +665,31 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           </div>
         </div>
         <span
-          className="text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+          className="text-caption font-bold px-2.5 py-1 rounded-full flex-shrink-0"
           style={{ color: meta.color, background: meta.bg }}
         >
           {meta.label}
         </span>
       </div>
 
-      {/* Date */}
-      <div className="flex items-center gap-1.5 text-xs text-text-grey mb-2">
-        <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <span>
-          {v.statut === 'contre_proposee' && v.date_contre_proposee
-            ? <>Proposé : <span className="line-through opacity-50">{fmtDate(v.date_souhaitee)}</span></>
-            : `Souhaitée : ${fmtDate(v.date_souhaitee)}`}
-        </span>
-      </div>
-
-      {/* Contre-proposition banner */}
-      {isCP && v.date_contre_proposee && (
-        <div
-          className="flex items-start gap-2 p-3 rounded-xl mb-3"
-          style={{ background: 'rgba(230,126,34,0.08)', border: '1px solid rgba(230,126,34,0.2)' }}
-        >
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <p className="text-xs font-bold" style={{ color: '#E67E22' }}>Nouveau créneau proposé</p>
-            <p className="text-xs text-text-grey mt-0.5">{fmtDate(v.date_contre_proposee)}</p>
+      {/* Dates : « Votre demande » face à « Le gestionnaire propose » (comme sur le mobile) */}
+      {isCP && v.date_contre_proposee ? (
+        <div className="space-y-1.5 mb-3">
+          <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs border border-dashed border-divider">
+            <span className="text-text-grey">Votre demande</span>
+            <span className="text-text-grey font-medium">{fmtDate(v.date_souhaitee)}</span>
           </div>
+          <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(230,126,34,0.10)', border: '1px solid rgba(230,126,34,0.25)' }}>
+            <span className="font-semibold text-[#B45309] dark:text-[#FBBF24]">Le gestionnaire propose</span>
+            <span className="font-bold text-text-dark">{fmtDate(v.date_contre_proposee)}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 text-xs text-text-grey mb-2">
+          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>{v.statut === 'confirmee' ? 'Prévue' : 'Souhaitée'} : {fmtDate(v.date_souhaitee || v.creneau?.debut)}</span>
         </div>
       )}
 
@@ -663,11 +703,11 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Infos visite</p>
+            <p className="text-micro font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Infos visite</p>
             <p className="text-[13px] font-bold text-text-dark">+22993463716</p>
           </div>
           <a href="https://wa.me/22993463716" target="_blank" rel="noreferrer"
-            className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex-shrink-0"
+            className="px-2.5 py-1.5 rounded-lg text-caption font-bold flex-shrink-0"
             style={{ background: '#fff', border: '1.5px solid #25D366', color: '#25D366' }}>
             WhatsApp
           </a>
@@ -681,14 +721,14 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" />
           </svg>
-          <p className="text-xs font-medium" style={{ color: '#EF4444' }}>Cette visite ne s'est pas tenue.</p>
+          <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
         </div>
       )}
 
       {isEchouee && bien?.id && (
         <button onClick={() => onContacterEchouee(v)}
           className="w-full py-2.5 rounded-xl text-xs font-bold mb-3 flex items-center justify-center gap-1.5"
-          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: '#EF4444' }}>
+          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: 'var(--tx-red)' }}>
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
@@ -703,7 +743,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
-          <p className="text-xs leading-relaxed" style={{ color: '#E67E22' }}>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--tx-amber)' }}>
             Le créneau proposé est dépassé. Attendez que le gestionnaire propose une nouvelle date.
           </p>
         </div>
@@ -717,14 +757,14 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
             <button
               onClick={() => onIntegration(v.id, true, bien?.id)}
               className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
+              style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}
             >
               Oui, j'intègre
             </button>
             <button
               onClick={() => onIntegration(v.id, false)}
               className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}
+              style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--tx-red)' }}
             >
               Non, je passe
             </button>
@@ -735,7 +775,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
       {/* Décision oui, paiement d'intégration effectué */}
       {v.statut === 'effectuee' && v.client_decision_integration === true && v.paiement_integration_effectue && (
         <div className="rounded-xl p-3 mb-3 text-center" style={{ background: 'rgba(34,197,94,0.1)' }}>
-          <p className="text-xs font-bold" style={{ color: '#22C55E' }}>Intégré · Terminé</p>
+          <p className="text-xs font-bold" style={{ color: 'var(--tx-green)' }}>Intégré · Terminé</p>
         </div>
       )}
 
@@ -755,26 +795,26 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
         {/* Contre-proposition: accept / propose another date / refuse */}
         {isCP && !isDatePassee && !reproposing && (
           <>
+            {/* Ordre mobile : action destructive à gauche, action principale à droite */}
             <button
-              onClick={() => onAccepterCP(v.id)}
-              className="flex-1 py-2 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
+              onClick={() => onRefuserCP(v)}
+              className="px-3 py-2.5 rounded-xl text-xs font-bold text-[#DC2626] dark:text-[#F87171]"
+              style={{ border: '1.5px solid rgba(239,68,68,0.4)' }}
             >
-              Accepter le créneau
+              Refuser
             </button>
             <button
               onClick={() => setReproposing(true)}
-              className="flex-1 py-2 rounded-xl text-xs font-bold"
-              style={{ background: 'rgba(75,107,255,0.1)', color: '#4B6BFF' }}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary/10 text-[#3A5AEE] dark:text-[#9DB0FF]"
             >
-              Proposer une autre date
+              Autre date
             </button>
             <button
-              onClick={() => onRefuserCP(v)}
-              className="px-3 py-2 rounded-xl text-xs font-bold"
-              style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#EF4444' }}
+              onClick={() => onAccepterCP(v.id)}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white"
+              style={{ background: '#3A5AEE' }}
             >
-              Refuser
+              Accepter
             </button>
           </>
         )}
@@ -784,9 +824,9 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onPay(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
-            style={{ background: '#FF6B35' }}
+            style={{ background: '#C2410C' }}
           >
-            Payer les frais de visite (500 FCFA)
+            Payer les frais de visite ({Number(v.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA)
           </button>
         )}
 
@@ -794,7 +834,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onMessage(bien.id)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(75,107,255,0.1)', color: '#4B6BFF' }}
+            style={{ background: 'rgba(75,107,255,0.1)', color: 'var(--tx-blue)' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -807,7 +847,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onMarquerEffectuee(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E' }}
+            style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -820,7 +860,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onAnnuler(v)}
             className="px-3 py-2 rounded-xl text-xs font-bold"
-            style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: '#EF4444' }}
+            style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: 'var(--tx-red)' }}
           >
             Annuler
           </button>
@@ -830,7 +870,7 @@ function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onRepropo
           <button
             onClick={() => onFeedback(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(245,158,11,0.1)', color: '#F59E0B' }}
+            style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--tx-amber)' }}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
             Donner mon avis
