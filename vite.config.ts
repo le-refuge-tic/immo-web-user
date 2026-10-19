@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -47,5 +48,9 @@ export default defineConfig(({ mode }) => {
       throw new Error('VITE_API_URL doit être définie en HTTPS pour un build de production (ex: https://api.example.com/api/v1).')
     }
   }
-  return { plugins: [react(), seo(env.VITE_SITE_URL ?? '', env.VITE_ALLOW_INDEXING === 'true')] }
+  return {
+    plugins: [react(), seo(env.VITE_SITE_URL ?? '', env.VITE_ALLOW_INDEXING === 'true')],
+    // Les specs Playwright (e2e/) ont leur propre lanceur : Vitest ne doit pas les charger.
+    test: { exclude: ['node_modules/**', 'dist/**', 'e2e/**'] },
+  }
 })

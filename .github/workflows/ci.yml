@@ -25,3 +25,25 @@ jobs:
       - run: npm run build
       - run: npm run check:size
       - run: npm run check:colors
+
+  e2e:
+    # Parcours critiques joués dans un vrai navigateur contre une API simulée (FE-F-003).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check:e2e-types
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
