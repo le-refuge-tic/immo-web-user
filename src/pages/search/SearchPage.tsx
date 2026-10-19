@@ -676,14 +676,14 @@ export default function SearchPage() {
           <div className="p-5">
             {/* Localisation */}
             <div className="mb-4">
-              <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+              <label htmlFor="filtre-localisation" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
                 Localisation
               </label>
               <div className="relative">
                 <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all"
                   style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                   <span style={{ color: tk.labelClr }}><PinIcon /></span>
-                  <input
+                  <input id="filtre-localisation"
                     value={query}
                     onChange={e => { setQuery(e.target.value); setShowSuggest(true) }}
                     onFocus={() => setShowSuggest(true)}
@@ -792,12 +792,12 @@ function FilterPanel({
 
       {/* Transaction */}
       <div>
-        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <p id="filtre-transaction" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Transaction
-        </label>
-        <div className="flex gap-1.5">
+        </p>
+        <div role="group" aria-labelledby="filtre-transaction" className="flex gap-1.5">
           {TRANSACTIONS.map(t => (
-            <button key={t.key} onClick={() => setTransaction(t.key)}
+            <button key={t.key} onClick={() => setTransaction(t.key)} aria-pressed={transaction === t.key}
               className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all"
               style={transaction === t.key ? tk.pillActive : tk.pillIdle}
             >
@@ -809,12 +809,12 @@ function FilterPanel({
 
       {/* Type de bien */}
       <div>
-        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <p id="filtre-type" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Type de bien
-        </label>
-        <div className="flex flex-wrap gap-1.5">
+        </p>
+        <div role="group" aria-labelledby="filtre-type" className="flex flex-wrap gap-1.5">
           {TYPES.map(t => (
-            <button key={t.key} onClick={() => setType(t.key)}
+            <button key={t.key} onClick={() => setType(t.key)} aria-pressed={type === t.key}
               className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
               style={type === t.key ? tk.pillActive : tk.pillIdle}
             >
@@ -826,12 +826,12 @@ function FilterPanel({
 
       {/* Sous-type */}
       <div>
-        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <p id="filtre-sous-type" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Sous-type
-        </label>
-        <div className="flex flex-wrap gap-1.5">
+        </p>
+        <div role="group" aria-labelledby="filtre-sous-type" className="flex flex-wrap gap-1.5">
           {SOUS_TYPES.map(t => (
-            <button key={t.key} onClick={() => setSousType(sousType === t.key ? '' : t.key)}
+            <button key={t.key} onClick={() => setSousType(sousType === t.key ? '' : t.key)} aria-pressed={sousType === t.key}
               className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
               style={sousType === t.key ? tk.pillActive : tk.pillIdle}
             >
@@ -843,10 +843,10 @@ function FilterPanel({
 
       {/* Pièces */}
       <div>
-        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <p id="filtre-pieces" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Pièces minimum
-        </label>
-        <div className="grid grid-cols-2 gap-2">
+        </p>
+        <div role="group" aria-labelledby="filtre-pieces" className="grid grid-cols-2 gap-2">
           <Stepper label="Chambres" value={chambresMin} onChange={setChambresMin} tk={tk} />
           <Stepper label="Salons"   value={salonsMin}   onChange={setSalonsMin}   tk={tk} />
         </div>
@@ -855,10 +855,10 @@ function FilterPanel({
       {/* Superficie */}
       {showSuperficie && (
         <div>
-          <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+          <p id="filtre-superficie" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
             Superficie (m²)
-          </label>
-          <div className="grid grid-cols-2 gap-2">
+          </p>
+          <div role="group" aria-labelledby="filtre-superficie" className="grid grid-cols-2 gap-2">
             {[
               { label: 'Min', value: superficieMin, set: setSuperficieMin, ph: '0' },
               { label: 'Max', value: superficieMax, set: setSuperficieMax, ph: '∞' },
@@ -880,10 +880,10 @@ function FilterPanel({
 
       {/* Budget */}
       <div>
-        <label className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+        <p id="filtre-budget" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Budget (FCFA)
-        </label>
-        <div className="flex flex-wrap gap-1.5 pb-1 mb-3">
+        </p>
+        <div role="group" aria-labelledby="filtre-budget" className="flex flex-wrap gap-1.5 pb-1 mb-3">
           {BUDGET_PRESETS.map(p => {
             const active = prixMax === String(p.max)
             return (

@@ -97,19 +97,19 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide">Informations tarifaires</p>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Prix (FCFA)</label>
-            <input type="number" value={prix} onChange={e => setPrix(e.target.value)}
+            <label htmlFor="edit-bien-prix" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix (FCFA)</label>
+            <input id="edit-bien-prix" type="number" value={prix} onChange={e => setPrix(e.target.value)}
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
-            <input type="number" value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo"
+            <label htmlFor="edit-bien-prix-promo" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
+            <input id="edit-bien-prix-promo" type="number" value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
             <p className="text-caption text-text-grey mt-1">Affiché en avant sur la fiche du bien, à la place du prix normal.</p>
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Frais de visite (FCFA)</label>
-            <input type="number" value={fraisVisite} onChange={e => setFraisVisite(e.target.value)} placeholder="0 si gratuit"
+            <label htmlFor="edit-bien-frais-visite" className="text-xs font-semibold text-text-dark mb-1.5 block">Frais de visite (FCFA)</label>
+            <input id="edit-bien-frais-visite" type="number" value={fraisVisite} onChange={e => setFraisVisite(e.target.value)} placeholder="0 si gratuit"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
 
@@ -119,8 +119,9 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide pt-2">Localisation</p>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
+            <label htmlFor="edit-bien-quartier" className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
             <QuartierPicker
+              id="edit-bien-quartier"
               value={quartier}
               onChange={setQuartier}
               onSelect={q => { setVille(q.ville); setArrondissement(q.arrondissement) }}
@@ -132,18 +133,18 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Arrondissement</label>
-            <input value={arrondissement} readOnly disabled
+            <label htmlFor="edit-bien-arrondissement" className="text-xs font-semibold text-text-dark mb-1.5 block">Arrondissement</label>
+            <input id="edit-bien-arrondissement" value={arrondissement} readOnly disabled
               className="w-full bg-surface-g border border-divider rounded-xl px-4 py-2.5 text-sm outline-none text-text-grey" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Ville</label>
-            <input value={ville} readOnly disabled
+            <label htmlFor="edit-bien-ville" className="text-xs font-semibold text-text-dark mb-1.5 block">Ville</label>
+            <input id="edit-bien-ville" value={ville} readOnly disabled
               className="w-full bg-surface-g border border-divider rounded-xl px-4 py-2.5 text-sm outline-none text-text-grey" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse précise</label>
-            <input value={adresse} onChange={e => setAdresse(e.target.value)} placeholder="Rue, numéro…"
+            <label htmlFor="edit-bien-adresse" className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse précise</label>
+            <input id="edit-bien-adresse" value={adresse} onChange={e => setAdresse(e.target.value)} placeholder="Rue, numéro…"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
         </div>
