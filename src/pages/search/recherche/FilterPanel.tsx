@@ -1,0 +1,199 @@
+import { TRANSACTIONS, TYPES, SOUS_TYPES, BUDGET_PRESETS } from './options'
+import type { Tokens } from './tokens'
+
+/* ══════════════════════════════════════════════════════════════
+   FilterPanel
+   ══════════════════════════════════════════════════════════════ */
+type FilterPanelProps = {
+  isDark: boolean; tk: Tokens
+  transaction: string; setTransaction: (v: string) => void
+  type: string; setType: (v: string) => void
+  prixMin: string; setPrixMin: (v: string) => void
+  prixMax: string; setPrixMax: (v: string) => void
+  sousType: string; setSousType: (v: string) => void
+  chambresMin: string; setChambresMin: (v: string) => void
+  salonsMin: string; setSalonsMin: (v: string) => void
+  superficieMin: string; setSuperficieMin: (v: string) => void
+  superficieMax: string; setSuperficieMax: (v: string) => void
+}
+
+export default function FilterPanel({
+  isDark: _isDark, tk, transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax,
+  sousType, setSousType, chambresMin, setChambresMin, salonsMin, setSalonsMin,
+  superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
+}: FilterPanelProps) {
+  const showSuperficie = type === 'terrain' || sousType === 'terrain'
+
+  return (
+    <div className="space-y-4">
+
+      {/* Transaction */}
+      <div>
+        <p id="filtre-transaction" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+          Transaction
+        </p>
+        <div role="group" aria-labelledby="filtre-transaction" className="flex gap-1.5">
+          {TRANSACTIONS.map(t => (
+            <button key={t.key} onClick={() => setTransaction(t.key)} aria-pressed={transaction === t.key}
+              className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all"
+              style={transaction === t.key ? tk.pillActive : tk.pillIdle}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Type de bien */}
+      <div>
+        <p id="filtre-type" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+          Type de bien
+        </p>
+        <div role="group" aria-labelledby="filtre-type" className="flex flex-wrap gap-1.5">
+          {TYPES.map(t => (
+            <button key={t.key} onClick={() => setType(t.key)} aria-pressed={type === t.key}
+              className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              style={type === t.key ? tk.pillActive : tk.pillIdle}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Sous-type */}
+      <div>
+        <p id="filtre-sous-type" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+          Sous-type
+        </p>
+        <div role="group" aria-labelledby="filtre-sous-type" className="flex flex-wrap gap-1.5">
+          {SOUS_TYPES.map(t => (
+            <button key={t.key} onClick={() => setSousType(sousType === t.key ? '' : t.key)} aria-pressed={sousType === t.key}
+              className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              style={sousType === t.key ? tk.pillActive : tk.pillIdle}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Pièces */}
+      <div>
+        <p id="filtre-pieces" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+          Pièces minimum
+        </p>
+        <div role="group" aria-labelledby="filtre-pieces" className="grid grid-cols-2 gap-2">
+          <Stepper label="Chambres" value={chambresMin} onChange={setChambresMin} tk={tk} />
+          <Stepper label="Salons"   value={salonsMin}   onChange={setSalonsMin}   tk={tk} />
+        </div>
+      </div>
+
+      {/* Superficie */}
+      {showSuperficie && (
+        <div>
+          <p id="filtre-superficie" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+            Superficie (m²)
+          </p>
+          <div role="group" aria-labelledby="filtre-superficie" className="grid grid-cols-2 gap-2">
+            {[
+              { label: 'Min', value: superficieMin, set: setSuperficieMin, ph: '0' },
+              { label: 'Max', value: superficieMax, set: setSuperficieMax, ph: '∞' },
+            ].map(f => (
+              <div key={f.label}>
+                <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
+                <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl"
+                  style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+                  <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
+                    placeholder={f.ph} min={0}
+                    className="flex-1 bg-transparent outline-none text-sm min-w-0"
+                    style={{ color: tk.textClr }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Budget */}
+      <div>
+        <p id="filtre-budget" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+          Budget (FCFA)
+        </p>
+        <div role="group" aria-labelledby="filtre-budget" className="flex flex-wrap gap-1.5 pb-1 mb-3">
+          {BUDGET_PRESETS.map(p => {
+            const active = prixMax === String(p.max)
+            return (
+              <button key={p.max}
+                onClick={() => { setPrixMin(''); setPrixMax(active ? '' : String(p.max)) }}
+                className="flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={active ? {
+                  background: 'rgba(255,107,53,0.14)',
+                  border: '1px solid rgba(255,107,53,0.40)',
+                  color: '#FF6B35',
+                } : tk.pillIdle}
+              >
+                {p.label}
+              </button>
+            )
+          })}
+        </div>
+        <div className="flex flex-col gap-2">
+          {[
+            { label: 'Min', value: prixMin, set: setPrixMin, ph: '0' },
+            { label: 'Max', value: prixMax, set: setPrixMax, ph: '∞' },
+          ].map(f => (
+            <div key={f.label}>
+              <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
+              <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
+                style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+                <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
+                  placeholder={f.ph} min={0}
+                  className="flex-1 bg-transparent outline-none text-sm min-w-0"
+                  style={{ color: tk.textClr }} />
+                <span className="text-micro flex-shrink-0 font-medium" style={{ color: tk.labelClr }}>FCFA</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        {(prixMin || prixMax) && (
+          <p className="text-xs mt-2" style={{ color: tk.labelClr }}>
+            {prixMin && prixMax
+              ? `De ${Number(prixMin).toLocaleString('fr-FR')} à ${Number(prixMax).toLocaleString('fr-FR')} FCFA`
+              : prixMin
+              ? `À partir de ${Number(prixMin).toLocaleString('fr-FR')} FCFA`
+              : `Jusqu'à ${Number(prixMax).toLocaleString('fr-FR')} FCFA`}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ── Stepper ── */
+function Stepper({ label, value, onChange, tk }: {
+  label: string; value: string; onChange: (v: string) => void; tk: Tokens
+}) {
+  const n = Number(value) || 0
+  return (
+    <div>
+      <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{label}</p>
+      <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 rounded-xl"
+        style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+        <button type="button" onClick={() => onChange(n > 0 ? String(n - 1) : '')}
+          className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold"
+          style={{ background: tk.pillIdle.background as string, color: tk.textClr }}>
+          −
+        </button>
+        <span className="text-sm font-semibold min-w-[1.5rem] text-center" style={{ color: tk.textClr }}>
+          {n || '—'}
+        </span>
+        <button type="button" onClick={() => onChange(String(n + 1))}
+          className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold"
+          style={{ background: 'rgba(75,107,255,0.14)', color: 'var(--tx-blue)' }}>
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
