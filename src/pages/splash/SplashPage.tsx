@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import bgImg from '../../assets/hero-interior.webp'
 import logoUrl from '../../assets/REFUGE-ICON.webp'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 
 export default function SplashPage() {
   const navigate = useNavigate()
@@ -66,7 +67,7 @@ export default function SplashPage() {
             <div className="w-2 h-[3px] rounded-full" style={{ background: 'rgba(255,107,53,0.45)' }} />
           </div>
           <h1 className="text-white font-bold leading-[1.1] tracking-tight mb-3 anim-blur-up d-200" style={{ fontSize: 'clamp(2.2rem, 4.5vw, 4.5rem)' }}>
-            Trouvez votre<br />logement idéal
+            {PROPRIO_SEUL ? <>Publiez et gérez vos biens<br />en toute simplicité</> : <>Trouvez votre<br />logement idéal</>}
           </h1>
           <p className="text-white/55 leading-relaxed mb-8 anim-fade-up d-400" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.1rem)' }}>
             Maisons, appartements et terrains à Cotonou et Abomey-Calavi, avec visites et paiement par Mobile Money.

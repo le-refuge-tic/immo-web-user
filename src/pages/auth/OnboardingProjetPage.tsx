@@ -1,10 +1,17 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import sideImg from '../../assets/onboarding-side.webp'
 import logoUrl from '../../assets/REFUGE-ICON.webp'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 
+/** Inscription propriétaire uniquement : plus de choix, on passe directement à l'étape propriétaire. */
 export default function OnboardingProjetPage() {
+  if (PROPRIO_SEUL) return <Navigate to="/onboarding/destination" state={{ objectif: 'proprietaire' }} replace />
+  return <ChoixProjet />
+}
+
+function ChoixProjet() {
   usePageTitle('Mon projet – Inscription')
   const navigate = useNavigate()
   const [selected, setSelected] = useState<'proprietaire' | 'louer'>('louer')
