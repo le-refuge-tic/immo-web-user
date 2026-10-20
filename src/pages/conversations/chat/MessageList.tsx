@@ -43,7 +43,7 @@ export function MessageList({
         {/* Liste messages */}
         {loading ? (
           <div className="flex flex-col items-center justify-center h-40 gap-3">
-            <div className="w-7 h-7 rounded-full border-[3px] border-t-transparent animate-spin" style={{ borderColor: '#4160F2', borderTopColor: 'transparent' }} />
+            <div className="w-7 h-7 rounded-full border-[3px] border-t-transparent animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} />
           </div>
         ) : visible.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
@@ -96,13 +96,13 @@ export function MessageList({
                         <div className="text-[11.5px] px-2 py-1 rounded-lg mb-1 border-l-2 line-clamp-2"
                           style={isMe
                             ? { borderLeftColor: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)' }
-                            : { borderLeftColor: '#4160F2', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(75,107,255,0.06)', color: ts }
+                            : { borderLeftColor: 'var(--c-brand)', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(75,107,255,0.06)', color: ts }
                           }>
                           {msg.reply_to_contenu}
                         </div>
                       )}
                       {/* Texte */}
-                      <p className="text-[14px] leading-[1.4] break-words" style={{ color: isMe ? '#fff' : tp }}>{msg.contenu}</p>
+                      <p className="text-[14px] leading-[1.4] break-words" style={{ color: isMe ? 'rgb(255,255,255)' : tp }}>{msg.contenu}</p>
                       {/* Footer */}
                       <div className="flex items-center gap-1 -mt-0.5 justify-end">
                         {msg.modifie && <span className="text-[9.5px] italic" style={{ color: isMe ? 'rgba(255,255,255,0.50)' : tm }}>modifié ·</span>}
@@ -121,7 +121,7 @@ export function MessageList({
                         else onToggleMenu(msg.id, { top: rect.top, right: window.innerWidth - rect.right })
                       }}
                       className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center cursor-pointer"
-                      style={{ background: isMe ? 'rgba(255,255,255,0.22)' : (isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.10)'), color: isMe ? '#fff' : ts, backdropFilter: 'blur(4px)' }}
+                      style={{ background: isMe ? 'rgba(255,255,255,0.22)' : (isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.10)'), color: isMe ? 'rgb(255,255,255)' : ts, backdropFilter: 'blur(4px)' }}
                       aria-label="Options" aria-haspopup="menu" aria-expanded={menuId === msg.id}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
                     </button>

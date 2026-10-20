@@ -4,11 +4,12 @@ import { PURPLE, DARK_PURPLE, fmtPrix, fmtSemaine, statutBien, isCommercial, typ
 import { IcHome, IcCal, IcShield, IcPin } from '../icons'
 import type { Bien } from '../../../types/api'
 import type { ProfilDemarcheur } from '../../../types/demarcheur'
+import { withAlpha } from '../../../utils/color'
 
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="flex-1 card-soft rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform">
-      <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: color + '20' }}>
+      <div className="w-11 h-11 rounded-[13px] flex items-center justify-center" style={{ background: withAlpha(color, '20') }}>
         <span style={{ color }}>{icon}</span>
       </div>
       <span className="text-caption font-semibold text-text-dark text-center leading-tight">{label}</span>
@@ -34,11 +35,11 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
         <p className="text-[17px] md:text-lg font-bold text-text-dark mb-3.5">Actions rapides</p>
         <div className="flex gap-3 mb-7 md:max-w-md">
           <QuickAction icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} color={PURPLE} label="Nouveau bien" onClick={onNouveauBien} />
-          <QuickAction icon={<IcCal />} color="#4160F2" label="Réservations" onClick={() => onOpenTab('reservations')} />
+          <QuickAction icon={<IcCal />} color="var(--c-brand)" label="Réservations" onClick={() => onOpenTab('reservations')} />
         </div>
 
         {/* Score de crédibilité card */}
-        <div className="rounded-2xl p-5 mb-6" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}, ${PURPLE})`, boxShadow: `0 8px 20px ${PURPLE}4D` }}>
+        <div className="rounded-2xl p-5 mb-6" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}, ${PURPLE})`, boxShadow: `0 8px 20px ${withAlpha(PURPLE, '4D')}` }}>
           <div className="flex items-center justify-between mb-4">
             <span className="px-2.5 py-1 rounded-xl text-white text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.15)' }}>Mon profil</span>
             <span className="text-white/70"><IcShield /></span>
@@ -91,11 +92,11 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
                     <div key={s.semaine_debut} className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-xs text-text-grey">{fmtSemaine(s.semaine_debut)}</span>
-                        <span className="text-caption px-1.5 py-0.5 rounded" style={{ background: PURPLE + '15', color: PURPLE }}>
+                        <span className="text-caption px-1.5 py-0.5 rounded" style={{ background: withAlpha(PURPLE, '15'), color: PURPLE }}>
                           {s.nb_biens_valides} bien{s.nb_biens_valides !== 1 ? 's' : ''}
                         </span>
                         {s.palier_atteint && (
-                          <span className="text-caption px-1.5 py-0.5 rounded font-semibold" style={{ background: '#22C55E20', color: 'var(--tx-green)' }}>Palier 20</span>
+                          <span className="text-caption px-1.5 py-0.5 rounded font-semibold" style={{ background: 'rgba(34,197,94,0.125)', color: 'var(--tx-green)' }}>Palier 20</span>
                         )}
                       </div>
                       <span className="text-sm font-bold text-text-dark flex-shrink-0">{fmtPrix(s.montant)}</span>
@@ -124,7 +125,7 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
           const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
           return (
             <div key={b.id} className="card-soft rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: PURPLE + '15' }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(PURPLE, '15') }}>
                 <span style={{ color: PURPLE }}><IcHome /></span>
               </div>
               <div className="flex-1 min-w-0">
@@ -136,7 +137,7 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-bold text-text-dark text-xs">{fmtPrix(b.prix)}</p>
-                <span className="mt-1 inline-block px-2 py-0.5 rounded text-micro font-bold" style={{ background: color + '20', color }}>{label}</span>
+                <span className="mt-1 inline-block px-2 py-0.5 rounded text-micro font-bold" style={{ background: withAlpha(color, '20'), color }}>{label}</span>
               </div>
             </div>
           )

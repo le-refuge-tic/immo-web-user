@@ -125,7 +125,7 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
           <button key={k} onClick={() => setFilter(k)}
             className="px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
             style={filter === k
-              ? { background: BLUE, color: '#fff' }
+              ? { background: BLUE, color: 'rgb(255,255,255)' }
               : { background: 'var(--p-card)', color: 'var(--p-muted)', border: '1px solid var(--p-border)' }}>
             {l}
           </button>

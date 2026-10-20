@@ -10,6 +10,7 @@ import type { Bien } from '../../../types/api'
 import CarouselPauseToggle from '../../../components/CarouselPauseToggle'
 import { useCarouselAutoplay } from '../../../hooks/useCarouselAutoplay'
 import { onActivateKey } from '../../../utils/keyboard'
+import { withAlpha } from '../../../utils/color'
 
 // ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
 export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
@@ -99,13 +100,13 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                       <div className="relative overflow-hidden" style={{ height: 160 }}>
                         {cover?.url
                           ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                          : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
+                          : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${withAlpha(BLUE, '30')})` }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             </div>
                         }
                         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
                         <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sColor }}>{sLabel}</span>
-                        <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: '#fff' }}>
+                        <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: 'rgb(255,255,255)' }}>
                           {b.transaction === 'location' ? 'À louer' : 'À vendre'}
                         </span>
                         <div className="absolute bottom-3 left-3 right-3">
@@ -143,7 +144,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         el.scrollTo({ left: cardW * i, behavior: 'smooth' })
                         setCarouselIdx(i)
                       }}
-                      style={{ width: carouselIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: carouselIdx === i ? '#4160F2' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                      style={{ width: carouselIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: carouselIdx === i ? 'var(--c-brand)' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
                     />
                   ))}
                 </div>
@@ -171,7 +172,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               </button>
               <button onClick={() => navigate('/nouveau-bien')}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all"
-                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)`, color: '#fff', boxShadow: `0 4px 14px ${BLUE}40` }}>
+                style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))`, color: 'rgb(255,255,255)', boxShadow: `0 4px 14px ${withAlpha(BLUE, '40')}` }}>
                 <IcPlus /> Nouveau bien
               </button>
             </div>
@@ -191,7 +192,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
             <button onClick={() => setSortByVues(s => !s)}
               className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all"
               style={sortByVues
-                ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                ? { background: BLUE, color: 'rgb(255,255,255)', borderColor: BLUE, boxShadow: `0 4px 12px ${withAlpha(BLUE, '35')}` }
                 : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
               <IcEye /> Vues
             </button>
@@ -203,7 +204,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               <button key={f} onClick={() => setFilter(f)}
                 className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all"
                 style={filter === f
-                  ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                  ? { background: BLUE, color: 'rgb(255,255,255)', borderColor: BLUE, boxShadow: `0 4px 12px ${withAlpha(BLUE, '35')}` }
                   : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
                 {f}
               </button>
@@ -227,7 +228,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24">
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: withAlpha(BLUE, '12'), border: `1.5px solid ${withAlpha(BLUE, '25')}` }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.4} className="w-10 h-10"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
               </div>
               <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun bien trouvé</p>
@@ -236,7 +237,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               </p>
               <button onClick={() => navigate('/nouveau-bien')}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
-                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)`, color: '#fff', boxShadow: `0 4px 16px ${BLUE}40` }}>
+                style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))`, color: 'rgb(255,255,255)', boxShadow: `0 4px 16px ${withAlpha(BLUE, '40')}` }}>
                 <IcPlus /> {search ? 'Ajouter un bien' : 'Publier mon premier bien'}
               </button>
             </div>
@@ -269,7 +270,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                           ? <img loading="lazy" src={cover.url} alt={bienLabel(b)}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           : <div className="w-full h-full flex items-center justify-center"
-                              style={{ background: `linear-gradient(135deg, #EEF1FB, ${BLUE}18)` }}>
+                              style={{ background: `linear-gradient(135deg, #EEF1FB, ${withAlpha(BLUE, '18')})` }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-12 h-12 opacity-30"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             </div>
                         }
@@ -277,12 +278,12 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)' }} />
                         {/* Badge statut */}
                         <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-                          style={{ background: color, boxShadow: `0 2px 8px ${color}55` }}>
+                          style={{ background: color, boxShadow: `0 2px 8px ${withAlpha(color, '55')}` }}>
                           {label}
                         </span>
                         {/* Badge transaction */}
                         <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-                          style={{ background: 'rgba(0,0,0,0.45)', color: '#fff', backdropFilter: 'blur(6px)' }}>
+                          style={{ background: 'rgba(0,0,0,0.45)', color: 'rgb(255,255,255)', backdropFilter: 'blur(6px)' }}>
                           {b.transaction === 'location' ? 'À louer' : 'À vendre'}
                         </span>
                         {/* Prix en bas de la photo */}
@@ -304,7 +305,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
                           {b.statut === 'occupe' && (
-                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#22C55E15', color: 'var(--tx-green)' }}>● Occupé</span>
+                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.082)', color: 'var(--tx-green)' }}>● Occupé</span>
                           )}
                         </div>
 
@@ -317,7 +318,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         {(nbPieces > 0 || superficie || compo) && (
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             {nbPieces > 0 && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: BLUE + '10', color: BLUE }}>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: withAlpha(BLUE, '10'), color: BLUE }}>
                                 {nbPieces} pièce{nbPieces > 1 ? 's' : ''}
                               </span>
                             )}
@@ -344,20 +345,20 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                           onClick={e => e.stopPropagation()}>
                           <button onClick={() => setEditingBien(b)}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
-                            style={{ background: hoveredEl === `modifier-${b.id}` ? BLUE + '20' : BLUE + '10', color: BLUE, border: `1px solid ${BLUE}20` }}
+                            style={{ background: hoveredEl === `modifier-${b.id}` ? withAlpha(BLUE, '20') : withAlpha(BLUE, '10'), color: BLUE, border: `1px solid ${withAlpha(BLUE, '20')}` }}
                             onMouseEnter={() => setHoveredEl(`modifier-${b.id}`)}
                             onMouseLeave={() => setHoveredEl(null)}>
                             <IcEdit /> Modifier
                           </button>
                           {confirmDeleteBienId === b.id ? (
                             <div className="flex items-center gap-1">
-                              <button onClick={() => del(b.id)} className="px-2 py-1 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ background: '#DC2626', border: 'none' }}>Supprimer</button>
+                              <button onClick={() => del(b.id)} className="px-2 py-1 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ background: 'var(--c-danger)', border: 'none' }}>Supprimer</button>
                               <button onClick={() => setConfirmDeleteBienId(null)} className="px-2 py-1 rounded-lg text-xs flex-shrink-0" style={{ background: '#F3F4F6', border: 'none' }}>✕</button>
                             </div>
                           ) : (
                             <button onClick={() => setConfirmDeleteBienId(b.id)}
                               className="flex items-center justify-center w-9 h-9 rounded-xl text-xs transition-all flex-shrink-0"
-                              style={{ background: '#EF444410', color: 'var(--tx-red)', border: '1px solid #EF444420' }}>
+                              style={{ background: 'rgba(239,68,68,0.063)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.125)' }}>
                               <IcTrash />
                             </button>
                           )}

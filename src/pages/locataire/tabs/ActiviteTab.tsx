@@ -11,6 +11,7 @@ import { GREEN, TEAL, ORANGE } from '../shared'
 import { IcCheck, IcCal, IcMoney } from '../icons'
 import OperateurChips from '../OperateurChips'
 import type { InitiationLoyerReponse, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
+import { withAlpha } from '../../../utils/color'
 
 export default function ActiviteTab() {
   const navigate = useNavigate()
@@ -59,10 +60,10 @@ export default function ActiviteTab() {
     if (!prochainLoyer) return null
     const diff = new Date(prochainLoyer.date_echeance).getTime() - Date.now()
     const jours = Math.ceil(diff / 86400000)
-    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: 'var(--tx-red)', bg: '#EF444420' }
-    if (jours <= 3) return { label: `Dû dans ${jours}j`, color: ORANGE, bg: ORANGE + '20' }
-    if (jours <= 7) return { label: `À payer dans ${jours}j`, color: TEAL, bg: TEAL + '20' }
-    return { label: `${jours} jours`, color: GREEN, bg: GREEN + '20' }
+    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.125)' }
+    if (jours <= 3) return { label: `Dû dans ${jours}j`, color: ORANGE, bg: withAlpha(ORANGE, '20') }
+    if (jours <= 7) return { label: `À payer dans ${jours}j`, color: TEAL, bg: withAlpha(TEAL, '20') }
+    return { label: `${jours} jours`, color: GREEN, bg: withAlpha(GREEN, '20') }
   }
 
   const payer = async () => {
@@ -118,8 +119,8 @@ export default function ActiviteTab() {
     <div className="flex-1 overflow-y-auto pb-6 px-4 md:px-8 md:max-w-3xl md:mx-auto md:w-full">
       {/* Prépayé */}
       {Number(contrat?.loyer_prepaye_mois || 0) > 0 && (
-        <div className="mt-5 md:mt-8 rounded-2xl p-4 flex items-center gap-3" style={{ background: TEAL + '15', border: `1px solid ${TEAL}30` }}>
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: TEAL + '20' }}>
+        <div className="mt-5 md:mt-8 rounded-2xl p-4 flex items-center gap-3" style={{ background: withAlpha(TEAL, '15'), border: `1px solid ${withAlpha(TEAL, '30')}` }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(TEAL, '20') }}>
             <span style={{ color: TEAL }}><IcCheck /></span>
           </div>
           <p className="text-sm text-text-dark"><strong>{contrat?.loyer_prepaye_mois}</strong> mois déjà prépayés — vous êtes à jour d'avance.</p>
@@ -128,7 +129,7 @@ export default function ActiviteTab() {
 
       {/* Prochaine échéance */}
       {prochainLoyer && urg && (
-        <div className="mt-5 md:mt-8 rounded-3xl p-5" style={{ background: urg.bg, border: `1.5px solid ${urg.color}30` }}>
+        <div className="mt-5 md:mt-8 rounded-3xl p-5" style={{ background: urg.bg, border: `1.5px solid ${withAlpha(urg.color, '30')}` }}>
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-text-dark">Prochaine échéance</p>
             <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: urg.color, color: 'white' }}>{urg.label}</span>
@@ -211,7 +212,7 @@ export default function ActiviteTab() {
           </div>
         ) : historique.map((h, i) => (
           <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl mb-2" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(0,0,0,0.06)' }}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: GREEN + '15' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(GREEN, '15') }}>
               <span style={{ color: GREEN }}><IcMoney /></span>
             </div>
             <div className="flex-1">

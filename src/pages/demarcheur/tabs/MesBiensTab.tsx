@@ -8,6 +8,7 @@ import { PURPLE, DARK_PURPLE, fmtPrix, statutBien } from '../shared'
 import { IcPlus, IcPin, IcTrash, IcEdit, IcRefresh } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { Bien } from '../../../types/api'
+import { withAlpha } from '../../../utils/color'
 
 export default function MesBiensTab() {
   const [biens, setBiens] = useState<Bien[]>([])
@@ -48,7 +49,7 @@ export default function MesBiensTab() {
             <button onClick={() => navigate('/nouveau-bien')} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: PURPLE }}>
               <IcPlus /> Ajouter
             </button>
-            <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: PURPLE + '15', color: PURPLE }}>
+            <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: withAlpha(PURPLE, '15'), color: PURPLE }}>
               <IcRefresh /> Actualiser
             </button>
           </div>
@@ -57,7 +58,7 @@ export default function MesBiensTab() {
           {['Tous', 'Publié', 'En attente', 'Rejeté'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border"
-              style={filter === f ? { background: PURPLE, color: '#fff', borderColor: PURPLE } : { color: '#6B7280', borderColor: '#E8EAED' }}>
+              style={filter === f ? { background: PURPLE, color: 'rgb(255,255,255)', borderColor: PURPLE } : { color: '#6B7280', borderColor: '#E8EAED' }}>
               {f}
             </button>
           ))}
@@ -70,7 +71,7 @@ export default function MesBiensTab() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(PURPLE, '15') }}>
               <svg viewBox="0 0 24 24" fill="none" stroke={PURPLE} strokeWidth={1.5} className="w-10 h-10"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
             </div>
             <p className="font-bold text-text-dark mb-1">Aucun bien trouvé</p>
@@ -88,11 +89,11 @@ export default function MesBiensTab() {
               const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
               return (
                 <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} onKeyDown={onActivateKey(() => navigate(`/biens/${b.id}`))} role="button" tabIndex={0}
-                  className="focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2 card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
+                  className="focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
                   <div className="relative h-32">
                     {cover?.url
                       ? <img loading="lazy" src={cover.url} className="w-full h-full object-cover" alt="" />
-                      : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${DARK_PURPLE}cc, ${PURPLE}aa)` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+                      : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${withAlpha(DARK_PURPLE, 'cc')}, ${withAlpha(PURPLE, 'aa')})` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
                     }
                     <div className="absolute inset-0 bg-black/20" />
                     <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-caption font-bold" style={{ background: color }}>{label}</span>
@@ -100,7 +101,7 @@ export default function MesBiensTab() {
                       <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
                       {confirmDeleteBienId === b.id ? (
                         <>
-                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: '#DC2626' }}>Suppr.</button>
+                          <button onClick={(e) => { e.stopPropagation(); del(b.id) }} className="px-2 h-8 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: 'var(--c-danger)' }}>Suppr.</button>
                           <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(null) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm" style={{ background: 'rgba(255,255,255,0.2)' }}>✕</button>
                         </>
                       ) : (

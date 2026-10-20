@@ -22,7 +22,7 @@ export const IcShare   = () => <svg viewBox="0 0 24 24" fill="none" stroke="curr
 export const IcUpload  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-export const BLUE      = '#4160F2'   // bleu principal (propriétaire)
+export const BLUE      = 'var(--c-brand)'   // bleu principal (propriétaire)
 export const DARK_BLUE = '#0B1C30'   // navy
 
 export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Démarcheur', locataire: 'Locataire' }
@@ -85,13 +85,13 @@ export function fmtPrix(p: number | string | null | undefined) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
 }
 export function statutBien(s: string) {
-  if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
+  if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--c-green-material)' }
   if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
   if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)' }
   return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 export function statutVisite(s: string) {
-  if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
+  if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--c-green-material)' }
   if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE }
   if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)' }
@@ -156,15 +156,15 @@ export function LiveIndicator({ label, refreshing }: { label: string; refreshing
   return (
     <div className="flex items-center gap-1.5">
       <span className="relative flex w-2 h-2">
-        {!refreshing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#15803D' }} />}
-        <span className="relative inline-flex rounded-full w-2 h-2" style={{ background: refreshing ? '#B45309' : '#15803D' }} />
+        {!refreshing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: 'var(--c-success)' }} />}
+        <span className="relative inline-flex rounded-full w-2 h-2" style={{ background: refreshing ? 'var(--c-amber-dark)' : 'var(--c-success)' }} />
       </span>
       <span className="text-[11px] text-[#8A9BB5]">{refreshing ? 'Synchronisation…' : `À jour · ${label}`}</span>
     </div>
   )
 }
 
-export const MSG_AVATAR_COLORS = ['#2563EB', '#7C3AED', '#DB2777', '#D97706', '#16A34A', '#0891B2']
+export const MSG_AVATAR_COLORS = ['#2563EB', '#7C3AED', '#DB2777', '#D97706', 'var(--c-success-bright)', '#0891B2']
 export function formatConvTime(iso?: string): string {
   if (!iso) return ''
   const d = new Date(iso)

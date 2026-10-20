@@ -11,6 +11,7 @@ import { StepBoutique } from './nouveau-bien/steps/StepBoutique'
 import { StepConfort } from './nouveau-bien/steps/StepConfort'
 import { StepHonoraires } from './nouveau-bien/steps/StepHonoraires'
 import { StepPhotos } from './nouveau-bien/steps/StepPhotos'
+import { withAlpha } from '../../utils/color'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
@@ -40,7 +41,7 @@ export default function NouveauBienPage() {
       <div className="proprio-root proprio-light h-full flex flex-col items-center justify-center px-6 text-center"
         style={{ background: 'var(--p-deep)' }}>
         <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
-          style={{ background: BLUE + '20' }}>
+          style={{ background: withAlpha(BLUE, '20') }}>
           <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
             style={{ color: BLUE }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -52,7 +53,7 @@ export default function NouveauBienPage() {
         </p>
         <button onClick={() => navigate(createdId ? `/proprietaire/biens/${createdId}` : '/proprietaire')}
           className="px-8 py-4 rounded-xl font-bold"
-          style={{ background: BLUE, color: 'white', boxShadow: `0 4px 24px ${BLUE}44` }}>
+          style={{ background: BLUE, color: 'white', boxShadow: `0 4px 24px ${withAlpha(BLUE, '44')}` }}>
           Voir mon annonce
         </button>
         <button onClick={() => navigate('/proprietaire', { state: { tab: 'biens' } })}
@@ -91,7 +92,7 @@ export default function NouveauBienPage() {
             </div>
 
             <div className="flex-shrink-0 px-2.5 py-1 rounded-full text-caption font-bold border"
-              style={{ borderColor: BLUE + '40', background: BLUE + '15', color: 'var(--p-accent-text)' }}>
+              style={{ borderColor: withAlpha(BLUE, '40'), background: withAlpha(BLUE, '15'), color: 'var(--p-accent-text)' }}>
               {step + 1}/{STEP_LABELS.length}
             </div>
           </div>
@@ -161,7 +162,7 @@ export default function NouveauBienPage() {
         <div className="shrink-0 px-4 py-2.5 border-t" style={{ borderColor: 'var(--p-border)', background: 'var(--p-surface)' }}>
           <button onClick={goNext} disabled={submitting}
             className="mx-auto block px-10 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-60"
-            style={{ background: BLUE, color: 'white', boxShadow: `0 2px 16px ${BLUE}38` }}>
+            style={{ background: BLUE, color: 'white', boxShadow: `0 2px 16px ${withAlpha(BLUE, '38')}` }}>
             {submitting ? 'Publication…' : step < 4 ? 'Continuer →' : 'Publier le bien'}
           </button>
         </div>

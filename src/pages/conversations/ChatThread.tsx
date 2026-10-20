@@ -261,7 +261,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                   {isVerified && (
                     <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#4160F2" aria-label="Vérifié">
                       <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
-                      <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
+                      <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="rgb(255,255,255)"/>
                     </svg>
                   )}
                 </div>
@@ -288,7 +288,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                   else { setShowHeaderMenu(true); setHeaderMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right }) }
                 }}
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors"
-                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? '#4160F2' : ts }}
+                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? 'var(--c-brand)' : ts }}
                 aria-label="Options" aria-haspopup="menu" aria-expanded={showHeaderMenu}>
                 <DotsV />
               </button>
@@ -311,7 +311,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         {/* Erreur */}
         <div role="alert" aria-live="assertive" aria-atomic="true">
           {error && (
-            <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#DC2626' }}>
+            <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: 'var(--c-danger)' }}>
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               {error}
             </div>
@@ -325,7 +325,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {pinnedMsg && (
               <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                 className="flex items-center gap-2 w-full rounded-xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
-                style={{ background: pinBg, borderLeftColor: '#4160F2', border: `1px solid ${divider}`, borderLeft: '4px solid #4160F2' }}>
+                style={{ background: pinBg, borderLeftColor: 'var(--c-brand)', border: `1px solid ${divider}`, borderLeft: '4px solid var(--c-brand)' }}>
                 <span style={{ color: 'var(--tx-blue)' }}><PinFill /></span>
                 <div className="min-w-0 flex-1">
                   <p className="text-micro font-bold uppercase tracking-wider" style={{ color: 'var(--tx-blue)' }}>Épinglé</p>
@@ -339,10 +339,10 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               const status = lastSlot.metadata?.status || 'pending'
               const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
               const cfg: Record<string, { accent: string; label: string }> = {
-                accepted: { accent: '#15803D', label: 'Créneau confirmé' },
-                declined: { accent: '#DC2626', label: 'Créneau refusé' },
+                accepted: { accent: 'var(--c-success)', label: 'Créneau confirmé' },
+                declined: { accent: 'var(--c-danger)', label: 'Créneau refusé' },
                 countered: { accent: '#FB923C', label: 'Contre-proposition' },
-                pending: { accent: '#4160F2', label: 'Créneau en discussion' },
+                pending: { accent: 'var(--c-brand)', label: 'Créneau en discussion' },
               }
               const c = cfg[status] || cfg.pending
               return (
@@ -384,7 +384,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           {/* Contexte réponse / modification */}
           {(replyingTo || editingMsg) && (
             <div className="px-4 pt-3 pb-1 flex items-center gap-2.5">
-              <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4160F2' }} />
+              <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: 'var(--c-brand)' }} />
               <div className="flex-1 min-w-0">
                 <p className="text-[11.5px] font-semibold" style={{ color: 'var(--tx-blue)' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
                 <p className="text-[12px] truncate mt-0.5" style={{ color: ts }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
@@ -397,7 +397,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             <button onClick={() => setShowSlot(true)} disabled={proposing}
               className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
               style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)', border: '1px solid rgba(75,107,255,0.18)' }}>
-              {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4160F2', borderTopColor: 'transparent' }} /> : <CalIcon />}
+              {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} /> : <CalIcon />}
             </button>
             {/* Textarea */}
             <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
@@ -407,7 +407,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {/* Envoyer */}
             <button onClick={send} disabled={!input.trim() || sending}
               className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 cursor-pointer transition-transform hover:scale-105 active:scale-95"
-              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
               {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <SendIcon />}
             </button>
           </div>
@@ -460,7 +460,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               confirmDeleteForAllId === m.id ? (
                 <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
                   {/* oxlint-disable-next-line jsx-a11y/no-autofocus -- confirmation de suppression : le focus reprend sur le bouton qui remplace l'entrée du menu */}
-                  <button type="button" role="menuitem" autoFocus onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#DC2626', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
+                  <button type="button" role="menuitem" autoFocus onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--c-danger)', color: 'rgb(255,255,255)', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
                   <button type="button" role="menuitem" onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
                 </div>
               ) : (

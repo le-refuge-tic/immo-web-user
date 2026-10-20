@@ -38,11 +38,11 @@ export function panelColors(isDark: boolean, tk: Tokens) {
     panelSep:   isDark ? 'rgba(255,255,255,0.08)': 'rgba(0,0,0,0.07)',
     closeBg:    isDark ? 'rgba(255,255,255,0.08)': 'rgba(0,0,0,0.06)',
     closeClr:   isDark ? 'rgba(255,255,255,0.55)': 'rgba(0,0,0,0.45)',
-    suggestBg:  isDark ? 'rgba(18,18,30,0.99)'   : '#ffffff',
+    suggestBg:  isDark ? 'rgba(18,18,30,0.99)'   : 'rgb(255,255,255)',
     suggestBdr: isDark ? 'rgba(255,255,255,0.10)': 'rgba(0,0,0,0.10)',
     suggestRow: isDark ? 'rgba(255,255,255,0.06)': 'rgba(0,0,0,0.05)',
     suggestHov: isDark ? 'rgba(75,107,255,0.14)' : 'rgba(75,107,255,0.08)',
-    panelPillActive: { background: '#4160F2', color: '#fff', border: '1px solid #4160F2' } as React.CSSProperties,
+    panelPillActive: { background: '#4160F2', color: 'rgb(255,255,255)', border: '1px solid #4160F2' } as React.CSSProperties,
     panelPillIdle:   { background: tk.fieldBg, color: tk.textMuted, border: `1px solid ${tk.fieldBdr}` } as React.CSSProperties,
   }
 }

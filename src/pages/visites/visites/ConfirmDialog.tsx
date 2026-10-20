@@ -12,7 +12,7 @@ export function ConfirmDialog({ dialog, onClose }: { dialog: ConfirmDialogState;
           <button onClick={() => onClose()} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-dark">
             Garder
           </button>
-          <button onClick={dialog.onConfirm} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ background: '#DC2626' }}>
+          <button onClick={dialog.onConfirm} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ background: 'var(--c-danger)' }}>
             Confirmer
           </button>
         </div>

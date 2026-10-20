@@ -155,7 +155,7 @@ export default function ForgotPasswordPage() {
                   </div>
                   <PrimaryButton loading={loading} loadingLabel="Envoi…" className="mt-1">Recevoir le code</PrimaryButton>
                 </form>
-                <button type="button" onClick={() => navigate('/login')} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button type="button" onClick={() => navigate('/login')} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                   Retour à la connexion
                 </button>
               </motion.div>
@@ -165,10 +165,10 @@ export default function ForgotPasswordPage() {
               <motion.div key="otp" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(75,107,255,0.12)]">
-                    <ShieldCheck size={22} className="text-[#4160F2]" />
+                    <ShieldCheck size={22} className="text-brand" />
                   </div>
                   <h1 className="auth-title">Vérification</h1>
-                  <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-[#1D1D1F]">{maskedPhone}</strong></p>
+                  <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-text-dark">{maskedPhone}</strong></p>
                 </div>
                 <ErrorBanner message={error} />
                 <form onSubmit={e => { e.preventDefault(); validerOtp() }} className="flex flex-col gap-2">
@@ -177,9 +177,9 @@ export default function ForgotPasswordPage() {
                       <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                         onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                         inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={loading}
-                        animate={{ borderColor: d ? '#4160F2' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                        animate={{ borderColor: d ? 'var(--c-brand)' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                         transition={{ duration: 0.15 }}
-                        className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-[#1D1D1F] outline-none disabled:opacity-50 focus:border-[#4160F2] focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
+                        className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                         aria-label={`Chiffre ${i + 1}`}
                       />
                     ))}
@@ -187,14 +187,14 @@ export default function ForgotPasswordPage() {
                   <PrimaryButton loading={loading} loadingLabel="Vérification…" disabled={otpDigits.some(d => !d)} className="mt-1">Continuer</PrimaryButton>
                 </form>
 
-                <div className="mt-3 text-sm text-[#6E6E73] text-center">
-                  {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-[#1D1D1F]">{resendCooldown}s</strong></span> : (
-                    <button type="button" onClick={resendCode} disabled={resending} className="font-semibold text-[#4160F2] hover:underline disabled:opacity-60">
+                <div className="mt-3 text-sm text-ink-muted text-center">
+                  {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
+                    <button type="button" onClick={resendCode} disabled={resending} className="font-semibold text-brand hover:underline disabled:opacity-60">
                       {resending ? 'Envoi…' : 'Renvoyer le code'}
                     </button>
                   )}
                 </div>
-                <button type="button" onClick={() => { setStepDir(-1); setStep('phone'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button type="button" onClick={() => { setStepDir(-1); setStep('phone'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                   Retour
                 </button>
               </motion.div>
@@ -209,9 +209,9 @@ export default function ForgotPasswordPage() {
                   <div className="auth-field">
                     <label htmlFor="forgot-new-password" className="auth-label">Nouveau mot de passe</label>
                     <div className="relative">
-                      <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                      <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                       <input id="forgot-new-password" type={showPwd ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password" className="auth-input pad-icon-left pad-icon-right w-full" />
-                      <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2">
+                      <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
                         {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
@@ -220,7 +220,7 @@ export default function ForgotPasswordPage() {
                   <div className="auth-field">
                     <label htmlFor="forgot-confirm-password" className="auth-label">Confirmer le mot de passe</label>
                     <div className="relative">
-                      <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                      <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                       <input id="forgot-confirm-password" type={showPwd ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password" className="auth-input pad-icon-left w-full" />
                     </div>
                   </div>
@@ -228,7 +228,7 @@ export default function ForgotPasswordPage() {
                   <PrimaryButton loading={loading} loadingLabel="Réinitialisation…" className="mt-1">Réinitialiser le mot de passe</PrimaryButton>
                 </form>
 
-                <button type="button" onClick={() => { setStepDir(-1); setStep('otp'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button type="button" onClick={() => { setStepDir(-1); setStep('otp'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                   Retour
                 </button>
               </motion.div>
@@ -238,7 +238,7 @@ export default function ForgotPasswordPage() {
               <motion.div key="done" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(52,199,89,0.12)]">
-                    <CheckCircle2 size={22} className="text-[#34C759]" />
+                    <CheckCircle2 size={22} className="text-success" />
                   </div>
                   <h1 className="auth-title">Mot de passe réinitialisé</h1>
                   <p className="auth-sub">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>

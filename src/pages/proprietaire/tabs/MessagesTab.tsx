@@ -6,6 +6,7 @@ import { IcMessagesNav } from './icons'
 import { BLUE, MSG_AVATAR_COLORS, formatConvTime } from './shared'
 import type { Conversation, User } from '../../../types/api'
 import type { MessageHit } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
 
 // ─── Tab: Messages ────────────────────────────────────────────────────────────
 // Reprend chatApi + ChatThread directement (au lieu de naviguer vers la page
@@ -86,7 +87,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
             <div className="p-4 space-y-2">{[1, 2, 3].map(n => <div key={n} className="h-[64px] rounded-xl animate-pulse" style={{ background: 'var(--p-border)' }} />)}</div>
           ) : filtered.length === 0 && messageHits.length === 0 && !searchingMsgs ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: BLUE + '14' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: withAlpha(BLUE, '14') }}>
                 <span style={{ color: BLUE }}><IcMessagesNav /></span>
               </div>
               <p className="text-sm font-bold mb-1" style={{ color: 'var(--p-text)' }}>{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
@@ -110,7 +111,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
               // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- faux positif : le bouton contient le nom de l'interlocuteur (texte dynamique)
               <button key={conv.id} onClick={() => setActiveConvId(conv.id)}
                 className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
-                style={{ background: isActive ? BLUE + '0C' : 'transparent', borderLeft: isActive ? `3px solid ${BLUE}` : '3px solid transparent' }}>
+                style={{ background: isActive ? withAlpha(BLUE, '0C') : 'transparent', borderLeft: isActive ? `3px solid ${BLUE}` : '3px solid transparent' }}>
                 <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ background: MSG_AVATAR_COLORS[Math.abs(other?.id ?? conv.id) % MSG_AVATAR_COLORS.length] }}>
                   <span className="text-white font-bold text-xs">{initiale}</span>
@@ -174,7 +175,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
           <ChatThread convId={activeConvId} onBack={() => setActiveConvId(null)} initialDraft={initialDraft ?? undefined} />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-8" style={{ background: 'var(--p-deep)' }}>
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '12' }}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(BLUE, '12') }}>
               <span style={{ color: BLUE }}><IcMessagesNav /></span>
             </div>
             <p className="text-[15px] font-bold mb-1.5" style={{ color: 'var(--p-text)' }}>Sélectionnez une conversation</p>

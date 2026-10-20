@@ -6,6 +6,7 @@ import { walletApi } from '../../../api/walletApi'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { GREEN } from '../shared'
 import { IcLogout } from '../icons'
+import { withAlpha } from '../../../utils/color'
 
 export default function ProfilTab() {
   const { user, logout } = useAuth()
@@ -21,7 +22,7 @@ export default function ProfilTab() {
           style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>{initials}</div>
         <p className="font-bold text-text-dark text-lg">{user?.prenom} {user?.nom}</p>
         <p className="text-sm text-text-grey mt-0.5">{user?.email || user?.telephone}</p>
-        <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold" style={{ background: GREEN + '20', color: GREEN }}>Locataire</span>
+        <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold" style={{ background: withAlpha(GREEN, '20'), color: GREEN }}>Locataire</span>
       </div>
       <div className="px-4 space-y-2">
         {[
@@ -42,7 +43,7 @@ export default function ProfilTab() {
         <div className="w-full glass-card rounded-xl"><AppearanceSetting /></div>
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-2 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2"
-          style={{ color: 'var(--tx-red)', borderColor: '#EF444430', background: '#EF444408' }}>
+          style={{ color: 'var(--tx-red)', borderColor: 'rgba(239,68,68,0.188)', background: 'rgba(239,68,68,0.031)' }}>
           <IcLogout /> Se déconnecter
         </button>
       </div>

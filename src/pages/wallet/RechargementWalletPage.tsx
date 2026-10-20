@@ -9,6 +9,7 @@ import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { usePaymentPolling } from '../../hooks/usePaymentPolling'
+import { withAlpha } from '../../utils/color'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -19,7 +20,7 @@ const OPS: { id: string; label: string; tagline: string; color: string; methode:
 ]
 
 const LABELS: Record<WalletType, string> = { cotisation: 'cotisation', epargne: 'épargne' }
-const COLORS: Record<WalletType, string> = { cotisation: '#4160F2', epargne: '#7B4BFF' }
+const COLORS: Record<WalletType, string> = { cotisation: 'var(--c-brand)', epargne: 'var(--c-violet)' }
 
 export default function RechargementWalletPage() {
   const navigate = useNavigate()
@@ -112,7 +113,7 @@ export default function RechargementWalletPage() {
       <div className="flex-1 px-6 py-8 max-w-md mx-auto w-full">
         {state === 'waiting' ? (
           <div className="flex flex-col items-center text-center pt-10">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 animate-pulse" style={{ background: op.color + '1F' }}>
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 animate-pulse" style={{ background: withAlpha(op.color, '1F') }}>
               <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p className="font-bold text-text-dark text-lg mb-2">En attente de confirmation…</p>
@@ -126,12 +127,12 @@ export default function RechargementWalletPage() {
           </div>
         ) : state === 'success' ? (
           <div className="flex flex-col items-center text-center pt-10">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: '#22C55E1A' }}>
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(34,197,94,0.102)' }}>
               <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p className="font-bold text-text-dark text-xl mb-2">Wallet {LABELS[type]} rechargé !</p>
             <p className="text-text-grey text-sm mb-8">Votre solde a été mis à jour.</p>
-            <button onClick={() => navigate(-1)} className="w-full py-3.5 rounded-xl text-white font-bold text-sm" style={{ background: '#15803D' }}>
+            <button onClick={() => navigate(-1)} className="w-full py-3.5 rounded-xl text-white font-bold text-sm" style={{ background: 'var(--c-success)' }}>
               Retour au portefeuille
             </button>
           </div>
@@ -144,8 +145,8 @@ export default function RechargementWalletPage() {
                 return (
                   <button key={o.id} onClick={() => { setOpId(o.id); setState('idle'); setError(''); attempt.reset() }}
                     className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-left transition-all"
-                    style={{ background: sel ? o.color + '14' : 'white', border: `1.5px solid ${sel ? o.color : 'rgba(0,0,0,0.08)'}` }}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: o.color + '20' }}>
+                    style={{ background: sel ? withAlpha(o.color, '14') : 'white', border: `1.5px solid ${sel ? o.color : 'rgba(0,0,0,0.08)'}` }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(o.color, '20') }}>
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={o.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20M6 15h2m4 0h2M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -169,7 +170,7 @@ export default function RechargementWalletPage() {
               {[5000, 10000, 25000, 50000].map(v => (
                 <button key={v} type="button" onClick={() => setMontant(String(v))}
                   className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
-                  style={{ background: montant === String(v) ? accent + '20' : 'rgba(0,0,0,0.05)', color: montant === String(v) ? accent : '#64748B', border: `1px solid ${montant === String(v) ? accent + '40' : 'transparent'}` }}>
+                  style={{ background: montant === String(v) ? withAlpha(accent, '20') : 'rgba(0,0,0,0.05)', color: montant === String(v) ? accent : '#64748B', border: `1px solid ${montant === String(v) ? withAlpha(accent, '40') : 'transparent'}` }}>
                   {(v / 1000)}k
                 </button>
               ))}
@@ -188,7 +189,7 @@ export default function RechargementWalletPage() {
 
             <div role="alert" aria-live="assertive" aria-atomic="true">
               {state === 'error' && error && (
-                <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: '#EF444414', color: 'var(--tx-red)', border: '1px solid #EF444430' }}>{error}</div>
+                <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold mb-4" style={{ background: 'rgba(239,68,68,0.078)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.188)' }}>{error}</div>
               )}
             </div>
 

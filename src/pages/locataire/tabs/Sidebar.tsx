@@ -5,6 +5,7 @@ import { GREEN } from '../shared'
 import { TABS } from '../tabsConfig'
 import { IcLogout } from '../icons'
 import type { Tab } from '../shared'
+import { withAlpha } from '../../../utils/color'
 
 interface SidebarProps {
   tab: Tab
@@ -32,7 +33,7 @@ export default function Sidebar({ tab, setTab, user, navigate, logout }: Sidebar
           return (
             <button key={t.key} onClick={() => t.key === 'messages' ? navigate('/conversations') : setTab(t.key)}
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left"
-              style={{ color: active ? GREEN : 'rgba(0,0,0,0.55)', background: active ? GREEN + '15' : 'transparent' }}>
+              style={{ color: active ? GREEN : 'rgba(0,0,0,0.55)', background: active ? withAlpha(GREEN, '15') : 'transparent' }}>
               <span style={{ color: active ? GREEN : 'rgba(0,0,0,0.4)' }}>{t.icon(active)}</span>
               {t.label}
             </button>
@@ -53,7 +54,7 @@ export default function Sidebar({ tab, setTab, user, navigate, logout }: Sidebar
         </button>
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-1 flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-          style={{ color: 'var(--tx-red)', background: hoveredBtn === 'logout' ? '#EF444408' : 'transparent' }}
+          style={{ color: 'var(--tx-red)', background: hoveredBtn === 'logout' ? 'rgba(239,68,68,0.031)' : 'transparent' }}
           onMouseEnter={() => setHoveredBtn('logout')}
           onMouseLeave={() => setHoveredBtn(null)}>
           <IcLogout /> Déconnexion

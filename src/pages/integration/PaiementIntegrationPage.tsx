@@ -13,7 +13,7 @@ import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 import { unwrapList } from '../../utils/unwrapList'
 import type { Bien, Visite } from '../../types/api'
 
-const TEAL = '#0EA5E9'
+const TEAL = 'var(--c-sky)'
 
 export default function PaiementIntegrationPage() {
   const { bienId } = useParams<{ bienId: string }>()
@@ -100,14 +100,14 @@ export default function PaiementIntegrationPage() {
 
   if (state === 'success') return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F0FDF4' }}>
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: '#15803D' }}>
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--c-success)' }}>
         <svg className="w-10 h-10 text-white" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
       </div>
       <h2 className="text-2xl font-bold text-text-dark mb-2">Paiement confirmé !</h2>
       <p className="text-text-grey text-sm mb-8">Votre intégration a été validée. Bienvenue dans votre nouveau logement.</p>
       <button onClick={() => navigate('/gestion-via-app')}
         className="w-full max-w-xs py-4 rounded-xl font-bold text-white shadow-btn mb-3"
-        style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
+        style={{ background: 'linear-gradient(135deg,var(--c-green),var(--c-success-bright))' }}>
         Continuer
       </button>
       {refId && (

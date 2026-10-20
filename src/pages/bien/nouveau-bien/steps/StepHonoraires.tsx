@@ -3,6 +3,7 @@
 import { BLUE, formatFcfa, baseInputStyle } from '../options'
 import { Card, Section, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
+import { withAlpha } from '../../../../utils/color'
 
 export function StepHonoraires({ form }: { form: NouveauBienForm }) {
   const {
@@ -83,7 +84,7 @@ export function StepHonoraires({ form }: { form: NouveauBienForm }) {
 
         {!isTerrain && typeTransaction === 'location' && montantBrut > 0 && (
           <div className="rounded-2xl border p-4"
-            style={{ background: BLUE + '0E', borderColor: BLUE + '30' }}>
+            style={{ background: withAlpha(BLUE, '0E'), borderColor: withAlpha(BLUE, '30') }}>
             <p className="text-xs font-semibold mb-1" style={{ color: 'var(--p-muted)' }}>
               Montant minimum à verser avant intégration
             </p>

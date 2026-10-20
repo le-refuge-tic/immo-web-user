@@ -24,7 +24,7 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
         </button>
         <button onClick={onToggleDisponibilite} disabled={togglingStatut}
           className="flex-1 h-[54px] rounded-xl font-bold text-white text-[15px] flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity hover:opacity-90"
-          style={{ background: isOccupeLocal ? '#DC2626' : '#15803D' }}>
+          style={{ background: isOccupeLocal ? 'var(--c-danger)' : 'var(--c-success)' }}>
           {togglingStatut ? (
             <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
           ) : (
@@ -46,7 +46,7 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
     return (
       <div>
         <div className="flex items-center gap-2 mb-2.5">
-          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: visiteActive.statut === 'confirmee' ? '#15803D' : '#FF6B35' }} />
+          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: visiteActive.statut === 'confirmee' ? 'var(--c-success)' : 'var(--c-accent)' }} />
           <p className="text-xs text-text-grey truncate">
             Visite {visiteActive.statut === 'confirmee' ? 'confirmée' : 'en attente'} · {fmtVisiteDate(visiteActive.date_contre_proposee || visiteActive.date_souhaitee)}
           </p>
@@ -54,7 +54,7 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
         {confirmAnnuler ? (
           <div className="flex gap-2.5">
             <button onClick={() => { onAnnuler(); setConfirmAnnuler(false) }} disabled={annulerBusy}
-              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: '#DC2626' }}>
+              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: 'var(--c-danger)' }}>
               {annulerBusy ? '…' : 'Confirmer l\'annulation'}
             </button>
             <button onClick={() => setConfirmAnnuler(false)}
@@ -68,7 +68,7 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
               {fmtVisiteDate(visiteActive.date_contre_proposee || visiteActive.date_souhaitee)}
             </div>
             <button onClick={() => setConfirmAnnuler(true)} disabled={annulerBusy}
-              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: '#DC2626' }}>
+              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: 'var(--c-danger)' }}>
               Annuler la visite
             </button>
           </div>
@@ -92,7 +92,7 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
       ) : null}
       <button onClick={onProposerVisite}
         className="w-full h-[54px] rounded-xl font-bold text-white text-[15px] flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #4160F2 0%, #7B4BFF 100%)' }}>
+        style={{ background: 'linear-gradient(135deg, var(--c-brand) 0%, var(--c-violet) 100%)' }}>
         <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
         {fraisVisite && Number(fraisVisite) > 0
           ? `Réserver une visite · ${Number(fraisVisite).toLocaleString('fr-FR')} F`

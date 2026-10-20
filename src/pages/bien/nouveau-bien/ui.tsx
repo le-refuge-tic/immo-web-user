@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { BLUE } from './options'
+import { withAlpha } from '../../../utils/color'
 // ─── UI components — dark-themed ──────────────────────────────────────────
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
@@ -17,7 +18,7 @@ export function Section({ title, required }: { title: string; required?: boolean
       <p className="text-caption font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--p-muted)' }}>{title}</p>
       {required && (
         <span className="text-micro font-bold px-1.5 py-0.5 rounded"
-          style={{ color: BLUE, background: BLUE + '20' }}>Obligatoire</span>
+          style={{ color: BLUE, background: withAlpha(BLUE, '20') }}>Obligatoire</span>
       )}
     </div>
   )
@@ -41,7 +42,7 @@ export function ChoiceList({ options, value, onChange, disabledValues, onDeselec
             className="w-full flex items-start justify-between gap-2 px-4 py-3 rounded-xl border-2 text-left transition-all"
             style={{
               borderColor: isActive ? BLUE : 'var(--p-border)',
-              background: isActive ? BLUE + '18' : 'var(--p-deep)',
+              background: isActive ? withAlpha(BLUE, '18') : 'var(--p-deep)',
               opacity: isDisabled ? 0.4 : 1,
               cursor: isDisabled ? 'not-allowed' : 'pointer',
             }}>
@@ -64,7 +65,7 @@ export function Chip({ label, active, onClick }: { label: string; active: boolea
       className="px-4 py-2.5 rounded-xl border-2 text-xs font-bold text-center transition-all"
       style={{
         borderColor: active ? BLUE : 'var(--p-border)',
-        background: active ? BLUE + '18' : 'transparent',
+        background: active ? withAlpha(BLUE, '18') : 'transparent',
         color: active ? BLUE : 'var(--p-muted)',
       }}>
       {label}
@@ -85,7 +86,7 @@ export function Counter({ label, value, onChange, min = 0 }: {
         <span className="w-6 text-center font-bold" style={{ color: 'var(--p-text)' }}>{value}</span>
         <button type="button" onClick={() => onChange(value + 1)}
           className="w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-colors"
-          style={{ background: BLUE + '20', color: BLUE }}>+</button>
+          style={{ background: withAlpha(BLUE, '20'), color: BLUE }}>+</button>
       </div>
     </div>
   )

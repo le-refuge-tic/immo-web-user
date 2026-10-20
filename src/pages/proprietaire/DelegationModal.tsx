@@ -6,6 +6,7 @@ import { apiMessage } from '../../utils/apiMessage'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { Bien, User } from '../../types/api'
 import type { DelegationEmise } from '../../types/proprietaire'
+import { withAlpha } from '../../utils/color'
 
 type Props = { onClose: () => void }
 
@@ -107,7 +108,7 @@ export default function DelegationModal({ onClose }: Props) {
               Confiez la gestion d'un bien (ou de tous vos biens) à un démarcheur : gestion des demandes de visite, confirmation des visites, signature de contrat — selon ce que vous autorisez.
             </p>
             <button onClick={() => setView('nouvelle')}
-              className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#4160F2' }}>
+              className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'var(--c-brand)' }}>
               + Proposer une délégation
             </button>
 
@@ -131,7 +132,7 @@ export default function DelegationModal({ onClose }: Props) {
                             {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous mes biens'}
                           </p>
                         </div>
-                        <span className="flex-shrink-0 text-micro font-bold px-2 py-0.5 rounded-full" style={{ background: st.color + '18', color: st.color }}>{st.label}</span>
+                        <span className="flex-shrink-0 text-micro font-bold px-2 py-0.5 rounded-full" style={{ background: withAlpha(st.color, '18'), color: st.color }}>{st.label}</span>
                       </div>
                       {d.statut === 'active' && (
                         <button onClick={() => revoquer(d.id)} className="mt-2 text-xs font-semibold text-danger">Révoquer</button>
@@ -164,7 +165,7 @@ export default function DelegationModal({ onClose }: Props) {
             <div>
               <label htmlFor="delegation-demarcheur" className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--p-text)' }}>Démarcheur</label>
               {demarcheur ? (
-                <div className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ background: '#4160F212', border: '1px solid #4160F240' }}>
+                <div className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ background: 'rgba(65,96,242,0.071)', border: '1px solid rgba(65,96,242,0.251)' }}>
                   <span className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{demarcheur.prenom} {demarcheur.nom} · {demarcheur.telephone}</span>
                   <button onClick={() => { setDemarcheur(null); setSearch('') }} className="text-xs" style={{ color: 'var(--p-muted)' }}>Changer</button>
                 </div>
@@ -202,7 +203,7 @@ export default function DelegationModal({ onClose }: Props) {
               <button onClick={() => setView('liste')} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: 'var(--p-border)', color: 'var(--p-muted)' }}>
                 Annuler
               </button>
-              <button onClick={proposer} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4160F2' }}>
+              <button onClick={proposer} disabled={saving} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: 'var(--c-brand)' }}>
                 {saving ? 'Envoi…' : 'Proposer'}
               </button>
             </div>

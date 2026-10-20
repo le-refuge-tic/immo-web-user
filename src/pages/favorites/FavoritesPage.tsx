@@ -95,10 +95,10 @@ export default function FavoritesPage() {
               Connectez-vous pour retrouver facilement tous les biens qui vous ont plu
             </p>
             <div className="flex flex-col items-center gap-3">
-              <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#3A5AEE,#6D3FE0)' }}>
+              <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,var(--c-primary),#6D3FE0)' }}>
                 Créer mon compte en 1 minute
               </button>
-              <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-[#9DB0FF]">J’ai déjà un compte</button>
+              <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-brand-soft">J’ai déjà un compte</button>
             </div>
           </div>
 
@@ -123,7 +123,7 @@ export default function FavoritesPage() {
             <button
               onClick={() => navigate('/')}
               className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #4160F2 0%, #7B4BFF 100%)' }}
+              style={{ background: 'linear-gradient(135deg, var(--c-brand) 0%, var(--c-violet) 100%)' }}
             >
               Explorer les annonces
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">

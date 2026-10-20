@@ -4,6 +4,7 @@ import { walletApi } from '../../../api/walletApi'
 import { PURPLE } from '../shared'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { WalletTransaction } from '../../../types/wallet'
+import { withAlpha } from '../../../utils/color'
 
 // L'écran lit toujours `created_at` pour la date de la ligne.
 type TransactionAffichee = WalletTransaction & { created_at: string }
@@ -37,7 +38,7 @@ export default function PortefeuilleTab() {
           [1,2,3,4].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
         ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: PURPLE + '15' }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: withAlpha(PURPLE, '15') }}>
               <svg viewBox="0 0 24 24" fill="none" stroke={PURPLE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
@@ -63,7 +64,7 @@ export default function PortefeuilleTab() {
                     <p className="text-xs text-text-grey mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-sm" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
+                    <p className="font-bold text-sm" style={{ color: isCredit ? 'var(--c-success)' : 'var(--c-danger)' }}>
                       {isCredit ? '+' : '-'}{Math.abs(amt).toLocaleString('fr-FR')} F
                     </p>
                     {t.balance_after != null && <p className="text-micro text-text-grey">{Number(t.balance_after).toLocaleString('fr-FR')} F</p>}
@@ -73,7 +74,7 @@ export default function PortefeuilleTab() {
             })}
             <button onClick={() => navigate('/portefeuille')}
               className="w-full py-3 rounded-xl text-sm font-bold mt-1"
-              style={{ background: PURPLE + '12', color: PURPLE }}>
+              style={{ background: withAlpha(PURPLE, '12'), color: PURPLE }}>
               Voir tout l'historique
             </button>
           </>

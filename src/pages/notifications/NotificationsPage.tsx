@@ -246,7 +246,7 @@ export default function NotificationsPage() {
           onClick={() => openNotif(n)}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openNotif(n) } }}
           aria-label={`${n.lu ? '' : 'Non lue : '}${title}`}
-          className={`glass-card rounded-2xl p-3.5 md:p-4 flex items-start gap-3 md:gap-4 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2 ${n.lu ? '' : 'ring-1 ring-primary/30'}`}
+          className={`glass-card rounded-2xl p-3.5 md:p-4 flex items-start gap-3 md:gap-4 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${n.lu ? '' : 'ring-1 ring-primary/30'}`}
         >
           <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
             {cfg.icon}
@@ -258,7 +258,7 @@ export default function NotificationsPage() {
             </div>
             {body && body !== title && <p className="text-xs text-text-grey mt-1 line-clamp-2">{body}</p>}
             {chip && (
-              <span className="inline-block mt-2 px-2.5 py-1 rounded-lg text-caption font-bold bg-primary/10 text-primary dark:text-[#9DB0FF]">
+              <span className="inline-block mt-2 px-2.5 py-1 rounded-lg text-caption font-bold bg-primary/10 text-primary dark:text-brand-soft">
                 {chip}
               </span>
             )}
@@ -283,10 +283,10 @@ export default function NotificationsPage() {
       <h2 className="text-xl font-bold text-text-dark mb-2">Restez informé</h2>
       <p className="text-text-grey text-sm mb-8 max-w-xs">Suivez vos visites, leurs confirmations et vos messages en temps réel.</p>
 <div className="flex flex-col items-center gap-3">
-        <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#3A5AEE,#6D3FE0)' }}>
+        <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,var(--c-primary),#6D3FE0)' }}>
           Créer mon compte en 1 minute
         </button>
-        <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-[#9DB0FF]">J’ai déjà un compte</button>
+        <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-brand-soft">J’ai déjà un compte</button>
       </div>
     </div>
   )
@@ -306,7 +306,7 @@ export default function NotificationsPage() {
             )}
           </div>
           {unread > 0 && (
-            <button onClick={markAll} className="text-sm text-primary dark:text-[#9DB0FF] font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors">
+            <button onClick={markAll} className="text-sm text-primary dark:text-brand-soft font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors">
               Tout lire
             </button>
           )}
@@ -345,7 +345,7 @@ export default function NotificationsPage() {
             )}
             {hasMore && (
               <div className="flex justify-center pt-2">
-                <button onClick={() => setReadLimit(l => l + PAGE_SIZE)} className="px-5 py-2.5 rounded-full text-sm font-semibold bg-primary/10 text-primary dark:text-[#9DB0FF]">
+                <button onClick={() => setReadLimit(l => l + PAGE_SIZE)} className="px-5 py-2.5 rounded-full text-sm font-semibold bg-primary/10 text-primary dark:text-brand-soft">
                   Voir plus
                 </button>
               </div>

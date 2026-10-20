@@ -130,7 +130,7 @@ export default function FilterPanel({
                 style={active ? {
                   background: 'rgba(255,107,53,0.14)',
                   border: '1px solid rgba(255,107,53,0.40)',
-                  color: '#FF6B35',
+                  color: 'var(--c-accent)',
                 } : tk.pillIdle}
               >
                 {p.label}

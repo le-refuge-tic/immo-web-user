@@ -3,6 +3,7 @@
 import { BLUE, DOCUMENT_TERRAIN_OPTS, baseInputStyle } from '../options'
 import { Card, Section, ChoiceList, Chip } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
+import { withAlpha } from '../../../../utils/color'
 
 export function StepTerrain({ form }: { form: NouveauBienForm }) {
   const {
@@ -148,7 +149,7 @@ export function StepTerrain({ form }: { form: NouveauBienForm }) {
             ))}
             <button type="button" onClick={() => setDetailsSupplementaires(arr => [...arr, { label: '', valeur: '' }])}
               className="w-full py-2.5 rounded-xl border text-xs font-bold"
-              style={{ borderColor: BLUE + '40', color: BLUE }}>
+              style={{ borderColor: withAlpha(BLUE, '40'), color: BLUE }}>
               + Ajouter un détail
             </button>
           </div>

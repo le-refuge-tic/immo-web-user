@@ -8,7 +8,7 @@ import { apiMessage } from '../../utils/apiMessage'
  * Changement du numéro de retrait Mobile Money (flow OTP en 2 étapes),
  * partagé entre l'espace propriétaire et l'espace locataire.
  */
-export default function NumeroRetraitModal({ current, onClose, onSaved, accent = '#4160F2' }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void; accent?: string }) {
+export default function NumeroRetraitModal({ current, onClose, onSaved, accent = 'var(--c-brand)' }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void; accent?: string }) {
   const [step, setStep] = useState<'form' | 'otp'>('form')
   const [numero, setNumero] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
@@ -55,7 +55,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
             <p className="text-xs text-proprio-muted">Numéro actuel : <span className="font-semibold text-proprio-text">{current}</span></p>
           )}
           {error && (
-            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: 'var(--tx-red)', border: '1px solid #EF444430' }}>{error}</div>
+            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.078)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.188)' }}>{error}</div>
           )}
 
           {step === 'form' ? (

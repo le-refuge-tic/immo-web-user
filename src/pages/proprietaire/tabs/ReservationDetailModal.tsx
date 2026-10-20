@@ -3,6 +3,7 @@ import { IcChat, BLUE, bienLabel, fmtPrix, statutVisite } from './shared'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import type { Visite } from '../../../types/api'
+import { withAlpha } from '../../../utils/color'
 
 
 /** Modal de détail — thème clair, sections bien délimitées. */
@@ -73,7 +74,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           style={{ background: '#F8FAFF', borderColor: '#E8EDFB' }}>
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-base text-white flex-shrink-0"
-              style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>{initiale}</div>
+              style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))` }}>{initiale}</div>
             <div>
               <p className="font-bold text-[14px] text-gray-900 leading-tight">{clientNom}</p>
               <p className="text-[11px] text-gray-500">{bType} · {bLoc}</p>
@@ -81,7 +82,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           </div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
-              style={{ background: (urgente ? '#DC2626' : sColor) + '18', color: urgente ? '#DC2626' : sColor }}>
+              style={{ background: withAlpha(urgente ? 'var(--c-danger)' : sColor, '18'), color: urgente ? 'var(--c-danger)' : sColor }}>
               {urgente ? '⚡ Urgent' : sLabel}
             </span>
             <button onClick={handleClose}
@@ -122,11 +123,11 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           )}
 
           {/* ── Date ── */}
-          <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+          <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Créneau demandé</p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: BLUE + '12' }}>
+                style={{ background: withAlpha(BLUE, '12') }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={2} className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
@@ -140,15 +141,15 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 
           {/* ── Frais + paiement ── */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Frais de visite</p>
               <p className="font-black text-[18px]" style={{ color: BLUE }}>
                 {Number(v.frais_visite) > 0 ? fmtPrix(v.frais_visite) : 'Gratuit'}
               </p>
             </div>
-            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Paiement</p>
-              <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? '#16A34A' : '#5F6672' }}>
+              <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? 'var(--c-success-bright)' : '#5F6672' }}>
                 {v.paiement_effectue ? '✓ Payé' : 'En attente'}
               </p>
             </div>
@@ -159,7 +160,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
             <div className="flex items-center gap-3 p-4 rounded-xl border"
               style={{ background: '#F0FDF4', borderColor: '#BBF7D0' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: '#25D36620' }}>
+                style={{ background: 'rgba(37,211,102,0.125)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                 </svg>
@@ -172,7 +173,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
               </div>
               <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
                 className="px-3 py-2 rounded-xl text-white text-xs font-bold flex-shrink-0"
-                style={{ background: '#25D366' }}>
+                style={{ background: 'var(--c-whatsapp)' }}>
                 WhatsApp
               </a>
             </div>
@@ -206,7 +207,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {v.feedback_tags?.map(t => (
                     <span key={t} className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                      style={{ background: '#F59E0B18', color: 'var(--tx-amber)' }}>{t}</span>
+                      style={{ background: 'rgba(245,158,11,0.094)', color: 'var(--tx-amber)' }}>{t}</span>
                   ))}
                 </div>
               )}
@@ -218,7 +219,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 
           {/* ── Contre-proposition ── */}
           {cpId === v.id && (
-            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
               <p className="font-bold text-gray-800 mb-3 text-sm">Proposer un autre créneau</p>
               <div className="space-y-2 mb-3">
                 <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
@@ -240,7 +241,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
                   style={{ borderColor: '#E2E8F0', background: '#F8FAFF' }}>Annuler</button>
                 <button onClick={onContrePropose} disabled={!cpDate || !cpTime || submitting}
                   className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
-                  style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>
+                  style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))` }}>
                   {submitting ? 'Envoi…' : 'Envoyer'}
                 </button>
               </div>
@@ -251,7 +252,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           <div className="flex gap-2 pt-1 pb-1 flex-wrap">
             <button onClick={() => onChat(v)} disabled={chatLoadingId === v.id}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-semibold disabled:opacity-50 transition-all"
-              style={{ borderColor: BLUE + '40', color: BLUE, background: BLUE + '08' }}>
+              style={{ borderColor: withAlpha(BLUE, '40'), color: BLUE, background: withAlpha(BLUE, '08') }}>
               {chatLoadingId === v.id
                 ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 : <IcChat />}
@@ -260,7 +261,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
             {peutConfirmer && (
               <button onClick={() => onConfirm(v.id)}
                 className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-all"
-                style={{ background: 'linear-gradient(135deg, #16A34A, #15803D)', boxShadow: '0 4px 14px rgba(22,163,74,0.25)' }}>
+                style={{ background: 'linear-gradient(135deg, var(--c-success-bright), var(--c-success))', boxShadow: '0 4px 14px rgba(22,163,74,0.25)' }}>
                 Confirmer ✓
               </button>
             )}
@@ -274,13 +275,13 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
             {v.statut === 'confirmee' && !echouee && (
               confirmEffectuee ? (
                 <div className="flex items-center gap-2 flex-1">
-                  <button onClick={() => { onMarquerEffectuee(v.id); setConfirmEffectuee(false) }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
+                  <button onClick={() => { onMarquerEffectuee(v.id); setConfirmEffectuee(false) }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
                   <button onClick={() => setConfirmEffectuee(false)} className="py-2.5 px-4 rounded-xl border text-sm font-semibold" style={{ borderColor: '#CBD5E1', color: '#6B7280' }}>Annuler</button>
                 </div>
               ) : (
                 <button onClick={() => setConfirmEffectuee(true)}
                   className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold"
-                  style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)` }}>
+                  style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))` }}>
                   Marquer effectuée
                 </button>
               )

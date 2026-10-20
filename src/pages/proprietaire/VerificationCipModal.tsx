@@ -24,7 +24,7 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{label}</p>
         {(existingUrl || done) && (
-          <span className="text-caption font-bold px-2 py-0.5 rounded-full" style={{ background: '#16A34A18', color: 'var(--tx-green)' }}>Envoyé</span>
+          <span className="text-caption font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(22,163,74,0.094)', color: 'var(--tx-green)' }}>Envoyé</span>
         )}
       </div>
       <label className="block border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors" style={{ borderColor: 'var(--p-border)' }}>
@@ -36,7 +36,7 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
       </label>
       {file && (
         <button onClick={submit} disabled={uploading}
-          className="w-full mt-2 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4160F2' }}>
+          className="w-full mt-2 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: 'var(--c-brand)' }}>
           {uploading ? 'Envoi…' : 'Envoyer'}
         </button>
       )}

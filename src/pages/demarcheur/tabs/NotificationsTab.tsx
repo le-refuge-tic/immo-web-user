@@ -123,7 +123,7 @@ export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) =>
         {([['toutes', 'Toutes'], ['non_lues', `Non lues${unread > 0 ? ` (${unread})` : ''}`]] as const).map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)}
             className="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors"
-            style={filter === k ? { background: PURPLE, color: '#fff' } : { background: 'var(--surface-g, #F4F6FA)', color: '#5F6B7A' }}>
+            style={filter === k ? { background: PURPLE, color: 'rgb(255,255,255)' } : { background: 'var(--surface-g, #F4F6FA)', color: '#5F6B7A' }}>
             {l}
           </button>
         ))}

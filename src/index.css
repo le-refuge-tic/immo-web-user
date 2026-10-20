@@ -29,6 +29,23 @@
   --tx-blue: #3A5AEE;
   /* Anneau de focus : ≥ 3:1 sur fond clair (WCAG 2.4.11 / 1.4.11) */
   --focus-ring: #3A5AEE;
+  /* Couleurs de marque et d'état : un seul endroit pour les changer (FE-B-017). */
+  --c-brand: #4160F2;
+  --c-primary: #3A5AEE;
+  --c-violet: #7B4BFF;
+  --c-danger: #DC2626;
+  --c-success: #15803D;
+  --c-success-bright: #16A34A;
+  --c-green: #22C55E;
+  --c-accent: #FF6B35;
+  --c-amber-dark: #B45309;
+  --c-red-ios: #FF3B30;
+  --c-brand-soft: #9DB0FF;
+  --c-red: #EF4444;
+  --c-whatsapp: #25D366;
+  --c-sky: #0EA5E9;
+  --c-green-material: #4CAF50;
+  --c-amber: #F59E0B;
 }
 .dark {
   --focus-ring: #9DB0FF;

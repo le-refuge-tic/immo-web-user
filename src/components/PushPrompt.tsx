@@ -61,7 +61,7 @@ export default function PushPrompt() {
         <div className="flex gap-2">
           <button onClick={activate} disabled={busy}
             className="px-3.5 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
+            style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
             {busy ? 'Activation…' : 'Activer'}
           </button>
           <button onClick={dismiss} className="px-3.5 py-2 rounded-lg text-xs font-semibold text-white/60">

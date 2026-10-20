@@ -5,6 +5,7 @@ import { PURPLE, DELEG_STATUT } from '../shared'
 import { IcPerson } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { DelegationRecue } from '../../../types/demarcheur'
+import { withAlpha } from '../../../utils/color'
 
 export default function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
   const [delegations, setDelegations] = useState<DelegationRecue[]>([])
@@ -39,7 +40,7 @@ export default function DelegationsRecuesTab({ onBack }: { onBack: () => void })
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {loading ? [1, 2].map(n => <div key={n} className="h-24 skeleton rounded-xl mb-3" />) : delegations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(PURPLE, '15') }}>
               <IcPerson />
             </div>
             <p className="font-bold text-text-dark mb-1">Aucune délégation</p>
@@ -51,7 +52,7 @@ export default function DelegationsRecuesTab({ onBack }: { onBack: () => void })
             <div key={d.id} className="card-soft rounded-xl p-4 mb-3">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-semibold text-text-dark text-sm">{d.proprietaire?.prenom} {d.proprietaire?.nom}</p>
-                <span className="text-micro font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: meta.color + '18' }}>{meta.label}</span>
+                <span className="text-micro font-bold px-2 py-0.5 rounded-full" style={{ color: meta.color, background: withAlpha(meta.color, '18') }}>{meta.label}</span>
               </div>
               <p className="text-xs text-text-grey mb-3">
                 {d.bien ? `${bienTypeLabel(d.bien)} — ${d.bien.localisation?.ville || ''}` : 'Tous les biens'}

@@ -6,6 +6,9 @@ export default {
     extend: {
       colors: {
         brand:         '#4160F2',
+        'brand-soft':  '#9DB0FF',
+        'ink-muted':   '#6E6E73',
+        'ink-faint':   '#A0A0A8',
         primary:       '#3A5AEE',
         'primary-d':   '#2E4CD4',
         'primary-l':   'rgba(75,107,255,0.12)',

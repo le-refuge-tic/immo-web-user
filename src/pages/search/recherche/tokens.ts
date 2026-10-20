@@ -11,7 +11,7 @@ export function useTokens(isDark: boolean) {
     pageBg:         isDark ? 'rgba(15,15,20,1)'       : 'rgba(245,245,247,1)',
     headerBg:       isDark ? 'rgba(14,14,24,0.97)'    : 'rgba(245,245,247,0.96)',
     headerBdr:      isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-    suggestBg:      isDark ? 'rgba(20,20,32,0.98)'    : '#ffffff',
+    suggestBg:      isDark ? 'rgba(20,20,32,0.98)'    : 'rgb(255,255,255)',
     suggestBdr:     isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
     suggestHover:   isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
     pillIdle: {

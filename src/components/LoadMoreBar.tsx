@@ -35,7 +35,7 @@ export default function LoadMoreBar({ loaded, total, loading, error = false, loc
           onClick={onLoadMore}
           disabled={loading}
           className="px-6 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-60 transition-all active:scale-95"
-          style={{ background: '#4160F2' }}
+          style={{ background: 'var(--c-brand)' }}
         >
           {loading ? 'Chargement…' : error ? 'Réessayer' : 'Afficher plus d’annonces'}
         </button>

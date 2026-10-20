@@ -7,11 +7,12 @@ import { bienTypeLabel } from '../../utils/bienType'
 import type { RecuSection } from '../../utils/recuPdf'
 import type { PartieRecu, Recu } from '../../types/recu'
 import { apiMessage } from '../../utils/apiMessage'
+import { withAlpha } from '../../utils/color'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
 const VISITE = { dark: '#1A6B3C', light: '#27AE60' } // vert
 const LOYER = { dark: '#1A3A6B', light: '#2E86C1' } // bleu
-const DEPOT = { dark: '#5B2A8C', light: '#7B4BFF' } // violet
+const DEPOT = { dark: '#5B2A8C', light: 'var(--c-violet)' } // violet
 
 function fmtDate(raw: string | undefined | null) {
   if (!raw) return '--'
@@ -229,7 +230,7 @@ export default function RecuPage() {
         {/* En-tête REFUGE — dégradé + logo + cachet PAYÉ */}
         <div
           className="rounded-[20px] p-5 mb-4"
-          style={{ background: `linear-gradient(135deg, ${theme.dark}, ${theme.light})`, boxShadow: `0 6px 16px ${theme.dark}4D` }}
+          style={{ background: `linear-gradient(135deg, ${theme.dark}, ${theme.light})`, boxShadow: `0 6px 16px ${withAlpha(theme.dark, '4D')}` }}
         >
           <div className="flex items-center justify-between mb-5">
             <img loading="lazy" src={logoUrl} alt="REFUGE" className="h-9 object-contain" />
@@ -334,7 +335,7 @@ export default function RecuPage() {
           onClick={telecharger}
           disabled={generating}
           className="w-full h-[52px] rounded-2xl font-bold text-white flex items-center justify-center gap-2 mt-6 disabled:opacity-60"
-          style={{ background: theme.dark, boxShadow: `0 4px 14px ${theme.dark}4D` }}
+          style={{ background: theme.dark, boxShadow: `0 4px 14px ${withAlpha(theme.dark, '4D')}` }}
         >
           {generating ? (
             <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

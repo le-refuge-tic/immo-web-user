@@ -64,24 +64,24 @@ export function getChatColors(isDark: boolean): ChatColors {
     tm: isDark ? 'rgba(232,233,240,0.60)' : '#5F6672',  // muted
     // Surfaces
     chatBg: isDark ? '#0F1117' : '#EEF0F7',
-    hdrBg: isDark ? '#161820' : '#FFFFFF',
+    hdrBg: isDark ? '#161820' : 'rgb(255,255,255)',
     hdrBdr: isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB',
-    inpBg: isDark ? '#161820' : '#FFFFFF',
+    inpBg: isDark ? '#161820' : 'rgb(255,255,255)',
     inpFieldBg: isDark ? 'rgba(255,255,255,0.07)' : '#F3F4F8',
     inpFieldBdr: isDark ? 'rgba(255,255,255,0.10)' : '#E5E7EB',
-    profileBg: isDark ? '#161820' : '#FFFFFF',
+    profileBg: isDark ? '#161820' : 'rgb(255,255,255)',
     profileBdr: isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB',
     // Bubbles
     bubbleMeBg: isDark ? 'linear-gradient(135deg,#3B55D4,#5B30C4)' : 'linear-gradient(135deg,#4160F2,#7B4BFF)',
-    bubbleOtherBg: isDark ? '#1E2130' : '#FFFFFF',
+    bubbleOtherBg: isDark ? '#1E2130' : 'rgb(255,255,255)',
     bubbleOtherBdr: isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB',
     // Menus & overlays
-    menuBg: isDark ? '#1E2130' : '#FFFFFF',
+    menuBg: isDark ? '#1E2130' : 'rgb(255,255,255)',
     menuBdr: isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB',
     menuHov: isDark ? 'rgba(255,255,255,0.06)' : '#F9FAFB',
     // Misc
     divider: isDark ? 'rgba(255,255,255,0.06)' : '#F0F1F4',
-    pinBg: isDark ? '#1E2130' : '#FFFFFF',
+    pinBg: isDark ? '#1E2130' : 'rgb(255,255,255)',
     sepBg: isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB',
     iconBtn: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F8',
   }

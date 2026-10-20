@@ -23,7 +23,7 @@ function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; i
     <div className="rounded-2xl border-l-4 p-3.5 mb-2"
       style={{
         background: isDark ? 'rgba(245,158,11,0.08)' : '#FFF8E7',
-        borderLeftColor: '#B45309',
+        borderLeftColor: 'var(--c-amber-dark)',
       }}>
       <div className="flex items-start gap-3">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
@@ -33,7 +33,7 @@ function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; i
           <p className="text-sm font-semibold" style={{ color: isDark ? '#FCD34D' : '#92400E' }}>
             Aucun bien disponible à « {quartier} »
           </p>
-          <p className="text-xs mt-0.5" style={{ color: isDark ? '#FDE68A' : '#B45309' }}>
+          <p className="text-xs mt-0.5" style={{ color: isDark ? '#FDE68A' : 'var(--c-amber-dark)' }}>
             {isProximity
               ? `Biens à moins de ${PROXIMITY_MAX_KM} km — triés par distance`
               : 'Voici les biens disponibles dans les environs'}
@@ -67,7 +67,7 @@ export default function GuidedResults({
       <p className="text-sm mb-5" style={{ color: tk.labelClr }}>Vérifiez votre connexion et réessayez.</p>
       <button onClick={retryFetch}
         className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95"
-        style={{ background: '#4160F2' }}>
+        style={{ background: 'var(--c-brand)' }}>
         Réessayer
       </button>
     </div>

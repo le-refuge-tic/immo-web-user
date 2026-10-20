@@ -12,6 +12,7 @@ import { IcPayments, IcChevron, IcHandshake } from './icons'
 import { IcWallet, IcPerson, IcStar, IcShield, IcEdit, IcUpload, BLUE } from './shared'
 import type { Bien, Visite } from '../../../types/api'
 import type { ProprioProfil } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
 
 export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onScrolled }: { user: ProprioProfil | null | undefined; biens: Bien[]; visites: Visite[]; onOpenTransactions: () => void; onOpenRoles: () => void; onScrolled?: (v: boolean) => void }) {
   const navigate = useNavigate()
@@ -49,7 +50,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
   const menuItems = [
     { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE, onClick: () => setEditOpen(true) },
     { icon: <IcShield />, label: 'Changer le mot de passe', color: '#7B2FBE', onClick: () => setPasswordOpen(true) },
-    { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: '#0EA5E9', onClick: () => setCipOpen(true) },
+    { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: 'var(--c-sky)', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
     { icon: <IcPerson />, label: 'Gérer mes rôles', color: 'var(--tx-amber)', onClick: onOpenRoles },
@@ -88,7 +89,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                     ? <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-lg mb-3"
                         style={{ border: '3px solid rgba(255,255,255,0.9)' }} />
                     : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg"
-                        style={{ background: 'linear-gradient(135deg, #4160F2, #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
+                        style={{ background: 'linear-gradient(135deg, var(--c-brand), #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
                         {initials}
                       </div>
                   }
@@ -122,7 +123,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                 onMouseEnter={() => setHoveredEl(`menu-${i}`)}
                 onMouseLeave={() => setHoveredEl(null)}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: item.color + '14', color: item.color }}>
+                  style={{ background: withAlpha(item.color, '14'), color: item.color }}>
                   {item.icon}
                 </div>
                 <p className="flex-1 text-[14px] font-semibold" style={{ color: 'var(--p-text)' }}>{item.label}</p>
@@ -160,7 +161,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                 { label: 'Occupés', value: biensOccupes, color: 'var(--tx-amber)' },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center justify-center py-3 rounded-xl"
-                  style={{ background: s.color + '0E' }}>
+                  style={{ background: withAlpha(s.color, '0E') }}>
                   <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
                   <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: 'var(--p-muted)' }}>{s.label}</p>
                 </div>
@@ -185,7 +186,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
           {/* Déconnexion */}
           <button onClick={() => { logout(); navigate('/login') }}
             className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
-            style={{ background: hoveredEl === 'logout' ? 'rgba(239,68,68,0.16)' : 'rgba(239,68,68,0.08)', color: 'var(--tx-red)', border: '1px solid #EF444433' }}
+            style={{ background: hoveredEl === 'logout' ? 'rgba(239,68,68,0.16)' : 'rgba(239,68,68,0.08)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.2)' }}
             onMouseEnter={() => setHoveredEl('logout')}
             onMouseLeave={() => setHoveredEl(null)}>
             Se déconnecter

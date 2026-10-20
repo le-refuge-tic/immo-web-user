@@ -5,6 +5,7 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { apiMessage } from '../../utils/apiMessage'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { HistoriquePaiement } from '../../types/paiement'
+import { withAlpha } from '../../utils/color'
 
 type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 
@@ -47,7 +48,7 @@ const statutLabel = (t: HistoriquePaiement) => {
   }
 }
 
-const statutColor = (s: string) => (s === 'Payé' || s === 'Reçu') ? '#15803D' : s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#6B7280'
+const statutColor = (s: string) => (s === 'Payé' || s === 'Reçu') ? 'var(--c-success)' : s === 'Échoué' ? 'var(--c-danger)' : (s === 'Remboursé' || s === 'En attente') ? 'var(--c-amber-dark)' : '#6B7280'
 
 const iconFor = (t: HistoriquePaiement) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -59,7 +60,7 @@ const iconFor = (t: HistoriquePaiement) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
 )
 
-const colorFor = (t: HistoriquePaiement) => isVisite(t) ? '#FF6B35' : isLoyer(t) ? '#4160F2' : isInteg(t) ? '#7B4BFF' : '#6B7280'
+const colorFor = (t: HistoriquePaiement) => isVisite(t) ? 'var(--c-accent)' : isLoyer(t) ? 'var(--c-brand)' : isInteg(t) ? 'var(--c-violet)' : '#6B7280'
 
 const fmt = (v: number) => v <= 0 ? '0 FCFA' : `${Math.trunc(v).toLocaleString('fr-FR')} FCFA`
 const fmtDate = (raw?: string, withTime = false) => {
@@ -146,7 +147,7 @@ export default function HistoriquePaiementsPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-5 pb-10">
           {loading ? (
-            <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4160F2', borderTopColor: 'transparent' }} /></div>
+            <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} /></div>
           ) : error ? (
             <div className="flex flex-col items-center text-center py-16">
               <p className="font-bold text-text-dark mb-2">Erreur de chargement</p>
@@ -157,7 +158,7 @@ export default function HistoriquePaiementsPage() {
             <>
               {/* Résumé */}
               <div className="rounded-2xl p-5 mt-4 mb-4 text-white flex items-center justify-between"
-                style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
+                style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
                 <div>
                   <p className="text-white/70 text-xs">Total payé (confirmé)</p>
                   <p className="text-xl font-bold mt-0.5">{fmt(totalPaye)}</p>
@@ -177,8 +178,8 @@ export default function HistoriquePaiementsPage() {
                   <button key={f} onClick={() => setFilter(f)}
                     className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors"
                     style={filter === f
-                      ? { background: '#4160F2', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
-                      : { background: '#fff', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
+                      ? { background: 'var(--c-brand)', color: 'rgb(255,255,255)', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
+                      : { background: 'rgb(255,255,255)', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
                     {f}
                   </button>
                 ))}
@@ -202,9 +203,9 @@ export default function HistoriquePaiementsPage() {
                     onClick={() => setDetail(t)}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetail(t) } }}
                     aria-label={`${typeLabel(t)} — ${bien || ''} — ${t.montant ?? 0} FCFA`}
-                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
+                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A`, color }}>
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${withAlpha(color, '1A')}`, color }}>
                         {iconFor(t)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -214,14 +215,14 @@ export default function HistoriquePaiementsPage() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-sm text-text-dark">{fmt(Number(t.montant ?? 0))}</p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statut)}1F`, color: statutColor(statut) }}>{statut}</span>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${withAlpha(statutColor(statut), '1F')}`, color: statutColor(statut) }}>{statut}</span>
                       </div>
                     </div>
                     {showRecu && (
                       <div className="flex justify-end mt-2.5">
                         <button onClick={e => { e.stopPropagation(); ouvrirRecu(t) }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
-                          style={{ background: `${color}14`, color, border: `1px solid ${color}4D` }}>
+                          style={{ background: `${withAlpha(color, '14')}`, color, border: `1px solid ${withAlpha(color, '4D')}` }}>
                           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
                           Télécharger le reçu
                         </button>
@@ -240,7 +241,7 @@ export default function HistoriquePaiementsPage() {
         <ModalSheet open onClose={() => setDetail(null)} label="Détail du paiement" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
           <div className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${colorFor(detail)}1A`, color: colorFor(detail) }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${withAlpha(colorFor(detail), '1A')}`, color: colorFor(detail) }}>
                 {iconFor(detail)}
               </div>
               <div className="flex-1 min-w-0">
@@ -249,7 +250,7 @@ export default function HistoriquePaiementsPage() {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-bold text-text-dark">{fmt(Number(detail.montant ?? 0))}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statutLabel(detail))}1F`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${withAlpha(statutColor(statutLabel(detail)), '1F')}`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
               </div>
             </div>
             <div className="border-t border-divider pt-3 space-y-2.5">

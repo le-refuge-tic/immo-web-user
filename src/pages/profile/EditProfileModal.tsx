@@ -110,13 +110,13 @@ export default function EditProfileModal({ open, onClose }: Props) {
               <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-full object-cover" />
             ) : (
               <div className="w-20 h-20 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
+                style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
                 <span className="text-white text-2xl font-bold">{initials}</span>
               </div>
             )}
             <button onClick={() => fileRef.current?.click()} aria-label="Modifier la photo de profil"
               className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white"
-              style={{ background: '#4160F2' }}>
+              style={{ background: 'var(--c-brand)' }}>
               {uploading ? (
                 <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
@@ -196,7 +196,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
             </button>
             <button type="submit" disabled={loading}
               className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
               {loading ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Enregistrement…</> : 'Sauvegarder'}
             </button>
           </div>

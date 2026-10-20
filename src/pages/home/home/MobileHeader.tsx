@@ -30,7 +30,7 @@ export default function MobileHeader({ search, goToSearch }: Pick<HomeSearch, 's
           <button
             onClick={() => navigate(isLoggedIn ? '/profil' : '/login')}
             className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
-            style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 12px rgba(75,107,255,0.4)' }}
+            style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 12px rgba(75,107,255,0.4)' }}
           >
             {isLoggedIn && user?.photo_profil ? (
               <img loading="lazy" src={user.photo_profil} className="w-10 h-10 object-cover" alt="" />

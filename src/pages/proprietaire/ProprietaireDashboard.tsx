@@ -31,6 +31,7 @@ import { useCarouselAutoplay } from '../../hooks/useCarouselAutoplay'
 import { onActivateKey } from '../../utils/keyboard'
 import type { Bien, Visite } from '../../types/api'
 import type { LoyersDashboard, ProprioProfil } from '../../types/proprietaire'
+import { withAlpha } from '../../utils/color'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -216,12 +217,12 @@ export default function ProprietaireDashboard() {
                     onClick={() => { setTab(item.key); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
                     className="relative whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
-                      ...(active ? { color: BLUE, background: BLUE + '14' } : { color: 'var(--p-muted)' }),
+                      ...(active ? { color: BLUE, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
                       minHeight: '36px',
                       transition: 'color 0.2s ease, background 0.2s ease',
                     }}>
                     {item.label}
-                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: '#FF3B30' }} />}
+                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
                   </button>
                 )
               })}
@@ -234,7 +235,7 @@ export default function ProprietaireDashboard() {
                 className="relative w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
                 style={{ borderColor: tab === 'notifications' ? BLUE : 'var(--p-border)', background: 'var(--p-card)', color: tab === 'notifications' ? BLUE : 'var(--p-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
               </button>
               {/* Profile + roles flyout */}
               <div className="relative" onMouseEnter={() => openRolesMenu('topbar')} onMouseLeave={scheduleCloseRolesMenu}>
@@ -258,7 +259,7 @@ export default function ProprietaireDashboard() {
                         className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left transition-colors"
                         style={{ color: r === activeRole ? BLUE : 'var(--p-text)', fontWeight: r === activeRole ? 700 : 500 }}>
                         {ROLE_LABELS[r] || r}
-                        {r === activeRole && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE + '22', color: BLUE }}>Actuel</span>}
+                        {r === activeRole && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: withAlpha(BLUE, '22'), color: BLUE }}>Actuel</span>}
                       </button>
                     ))}
                   </div>
@@ -301,7 +302,7 @@ export default function ProprietaireDashboard() {
                         <button key={item.key}
                           onClick={() => { setTab(item.key); setMenuOpen(false); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
                           className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium transition-all"
-                          style={active ? { color: BLUE, background: BLUE + '14', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
+                          style={active ? { color: BLUE, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                           {item.icon}
                           <span className="truncate w-full text-center px-1">{item.label}</span>
                         </button>
@@ -337,14 +338,14 @@ export default function ProprietaireDashboard() {
               <div className="relative px-5 md:px-8 xl:px-10 pt-10 pb-12">
                 {/* Eyebrow */}
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="h-px w-6" style={{ background: '#fff' }} />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ color: '#fff' }}>Espace propriétaire</p>
+                  <div className="h-px w-6" style={{ background: 'rgb(255,255,255)' }} />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ color: 'rgb(255,255,255)' }}>Espace propriétaire</p>
                 </div>
 
                 <h1 className="text-[32px] md:text-[40px] font-black tracking-tight leading-[1.1] text-white">
                   Bonjour{me?.prenom ? `,` : ''}<br />
-                  {me?.prenom && <span style={{ color: '#fff' }}>{me.prenom}</span>}
-                  {!me?.prenom && <span style={{ color: '#fff' }}>Propriétaire</span>}
+                  {me?.prenom && <span style={{ color: 'rgb(255,255,255)' }}>{me.prenom}</span>}
+                  {!me?.prenom && <span style={{ color: 'rgb(255,255,255)' }}>Propriétaire</span>}
                 </h1>
                 <p className="text-[12px] mt-2.5 text-white/50 font-medium">
                   {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -359,7 +360,7 @@ export default function ProprietaireDashboard() {
                     { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>, value: `${totalVues}`, label: 'Vues', color: '#A78BFA' },
                   ].map(s => (
                     <div key={s.label} className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3"
-                      style={{ background: 'rgba(6,13,26,0.55)', border: `1px solid ${BLUE}28`, backdropFilter: 'blur(16px)', minWidth: '68px', minHeight: '44px' }}>
+                      style={{ background: 'rgba(6,13,26,0.55)', border: `1px solid ${withAlpha(BLUE, '28')}`, backdropFilter: 'blur(16px)', minWidth: '68px', minHeight: '44px' }}>
                       <span style={{ color: s.color }}>{s.icon}</span>
                       <p className="font-black text-[18px] leading-none text-white">{s.value}</p>
                       <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>{s.label}</p>
@@ -383,8 +384,8 @@ export default function ProprietaireDashboard() {
               {(loyersImpayesCount > 0 || loyersEnRetardCount > 0) && (
                 <button onClick={() => setTab('loyers')} aria-label="Voir les loyers en retard"
                   className="w-full flex items-center gap-3 rounded-2xl mb-5 p-4 border text-left cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_4px_16px_rgba(244,67,54,0.12)]"
-                  style={{ background: '#F4433608', borderColor: '#F4433628', minHeight: '56px' }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#F4433618' }}>
+                  style={{ background: 'rgba(244,67,54,0.031)', borderColor: 'rgba(244,67,54,0.157)', minHeight: '56px' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(244,67,54,0.094)' }}>
                     <span style={{ color: '#F44336' }}><IcClock /></span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -409,18 +410,18 @@ export default function ProprietaireDashboard() {
                   { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
                   { icon: <IcCal />, color: 'var(--tx-blue)', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
                   { icon: <IcPayments />, color: 'var(--tx-green)', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
-                  { icon: <IcMessagesNav />, color: '#FF6B35', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
+                  { icon: <IcMessagesNav />, color: 'var(--c-accent)', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
                   { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
                 ].map(q => (
                   <button key={q.label} onClick={q.action} aria-label={q.label}
                     className="relative flex-shrink-0 flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all duration-200"
-                    style={{ background: hoveredOverviewEl === `chip-${q.label}` ? q.color + '22' : q.color + '12', border: `1.5px solid ${q.color}30`, minHeight: '44px', boxShadow: hoveredOverviewEl === `chip-${q.label}` ? `0 4px 16px ${q.color}25` : 'none' }}
+                    style={{ background: hoveredOverviewEl === `chip-${q.label}` ? withAlpha(q.color, '22') : withAlpha(q.color, '12'), border: `1.5px solid ${withAlpha(q.color, '30')}`, minHeight: '44px', boxShadow: hoveredOverviewEl === `chip-${q.label}` ? `0 4px 16px ${withAlpha(q.color, '25')}` : 'none' }}
                     onMouseEnter={() => setHoveredOverviewEl(`chip-${q.label}`)}
                     onMouseLeave={() => setHoveredOverviewEl(null)}>
                     <span style={{ color: q.color }}>{q.icon}</span>
                     <span className="text-[12px] font-semibold whitespace-nowrap" style={{ color: 'var(--p-text)' }}>{q.label}</span>
                     {(q.badge ?? 0) > 0 && (
-                      <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-black text-white" style={{ background: '#FF3B30' }}>
+                      <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-black text-white" style={{ background: 'var(--c-red-ios)' }}>
                         {(q.badge ?? 0) > 9 ? '9+' : q.badge}
                       </span>
                     )}
@@ -457,7 +458,7 @@ export default function ProprietaireDashboard() {
                       ? `${visitesTrendPct >= 0 ? '↑' : '↓'} ${Math.abs(visitesTrendPct)}% vs mois dernier`
                       : 'ce mois',
                     subColor: hasVisites && visitesTrendPct !== undefined
-                      ? (visitesTrendPct >= 0 ? '#15803D' : '#DC2626')
+                      ? (visitesTrendPct >= 0 ? 'var(--c-success)' : 'var(--c-danger)')
                       : undefined,
                     color: '#7B2FBE',
                     icon: <IcCal />,
@@ -478,7 +479,7 @@ export default function ProprietaireDashboard() {
                         boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
                       }}>
                       <span className="flex items-center justify-center w-10 h-10 rounded-full mb-2.5 flex-shrink-0"
-                        style={{ background: card.color + '18', color: card.color }}>
+                        style={{ background: withAlpha(card.color, '18'), color: card.color }}>
                         {card.icon}
                       </span>
                       <p className="font-black text-[26px] leading-none mb-1" style={{ color: card.color }}>
@@ -532,13 +533,13 @@ export default function ProprietaireDashboard() {
                             <div className="relative overflow-hidden" style={{ height: 160 }}>
                               {cover?.url
                                 ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
+                                : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${withAlpha(BLUE, '30')})` }}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                                   </div>
                               }
                               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
                               <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sColor }}>{sLabel}</span>
-                              <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: '#fff' }}>
+                              <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: 'rgb(255,255,255)' }}>
                                 {b.transaction === 'location' ? 'À louer' : 'À vendre'}
                               </span>
                               <div className="absolute bottom-3 left-3 right-3">
@@ -576,7 +577,7 @@ export default function ProprietaireDashboard() {
                               el.scrollTo({ left: cardW * i, behavior: 'smooth' })
                               setCarousel2Idx(i)
                             }}
-                            style={{ width: carousel2Idx === i ? 20 : 8, height: 8, borderRadius: 4, background: carousel2Idx === i ? '#4160F2' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                            style={{ width: carousel2Idx === i ? 20 : 8, height: 8, borderRadius: 4, background: carousel2Idx === i ? 'var(--c-brand)' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
                           />
                         ))}
                       </div>
@@ -608,7 +609,7 @@ export default function ProprietaireDashboard() {
         <div className="xl:hidden fixed bottom-20 right-4 md:bottom-24 md:right-8 z-20">
           <button onClick={() => navigate('/nouveau-bien')}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #4160F2, #3A5AEE)', color: '#fff', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
+            style={{ background: 'linear-gradient(135deg, var(--c-brand), var(--c-primary))', color: 'rgb(255,255,255)', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
             <IcPlus /> Nouveau bien
           </button>
         </div>
@@ -625,7 +626,7 @@ export default function ProprietaireDashboard() {
                 <button key={t.key} onClick={() => setTab(t.key)}
                   aria-label={t.label} aria-current={active ? 'page' : undefined}
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
-                  style={active ? { background: BLUE + '14' } : {}}>
+                  style={active ? { background: withAlpha(BLUE, '14') } : {}}>
                   <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.icon}</span>
                   <span className="text-[10px] font-semibold" style={{ color: active ? 'var(--p-accent-text)' : 'var(--p-muted)' }}>{t.label}</span>
                 </button>
@@ -638,11 +639,11 @@ export default function ProprietaireDashboard() {
                 <button onClick={() => setMoreOpen(true)} aria-haspopup="dialog" aria-expanded={moreOpen}
                   aria-label={'Plus' + (moreBadge > 0 ? `, ${moreBadge} non lu${moreBadge > 1 ? 's' : ''}` : '')}
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
-                  style={moreActive ? { background: BLUE + '14' } : {}}>
+                  style={moreActive ? { background: withAlpha(BLUE, '14') } : {}}>
                   <span className="relative" style={{ color: moreActive ? 'var(--p-accent-text)' : 'var(--p-muted)' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
                     {moreBadge > 0 && (
-                      <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                      <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: 'var(--c-red-ios)' }}>
                         {moreBadge > 9 ? '9+' : moreBadge}
                       </span>
                     )}
@@ -669,11 +670,11 @@ export default function ProprietaireDashboard() {
                   <button
                     onClick={() => { setTab(n.key); setMoreOpen(false); if (n.key === 'messages' || n.key === 'notifications') refreshNotifications() }}
                     className="relative w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold"
-                    style={{ background: active ? BLUE + '14' : 'var(--p-bg, transparent)', color: active ? BLUE : 'var(--p-text)', border: '1px solid var(--p-border)' }}>
+                    style={{ background: active ? withAlpha(BLUE, '14') : 'var(--p-bg, transparent)', color: active ? BLUE : 'var(--p-text)', border: '1px solid var(--p-border)' }}>
                     <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{n.icon}</span>
                     {n.label}
                     {badge > 0 && (
-                      <span className="absolute top-2 right-3 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                      <span className="absolute top-2 right-3 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white" style={{ background: 'var(--c-red-ios)' }}>
                         {badge > 9 ? '9+' : badge}
                       </span>
                     )}

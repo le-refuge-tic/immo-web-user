@@ -14,6 +14,7 @@ import { IcHome, IcCheck, IcPin } from '../icons'
 import OperateurChips from '../OperateurChips'
 import GestionnaireCard from './GestionnaireCard'
 import type { InitiationLoyerReponse, Loyer, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
+import { withAlpha } from '../../../utils/color'
 
 // ─── Mon Logement ─────────────────────────────────────────────────────────────
 export default function MonLogementTab() {
@@ -141,7 +142,7 @@ export default function MonLogementTab() {
 
   if (!contrat) return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: TEAL + '20' }}>
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: withAlpha(TEAL, '20') }}>
         <IcHome />
       </div>
       <p className="font-bold text-text-dark text-lg mb-2">Aucun logement actif</p>
@@ -156,7 +157,7 @@ export default function MonLogementTab() {
       <div className="md:max-w-6xl md:mx-auto md:w-full md:px-8 md:pt-8 md:flex md:gap-6 md:items-start">
         <div className="md:flex-1 md:min-w-0">
           {/* Hero card */}
-          <div className="mx-4 mt-5 md:mx-0 md:mt-0 rounded-3xl p-5 md:p-7 text-white" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})`, boxShadow: `0 8px 24px ${GREEN}50` }}>
+          <div className="mx-4 mt-5 md:mx-0 md:mt-0 rounded-3xl p-5 md:p-7 text-white" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})`, boxShadow: `0 8px 24px ${withAlpha(GREEN, '50')}` }}>
             <p className="text-white/70 text-xs uppercase tracking-wider mb-1">Mon logement</p>
             <p className="font-bold text-xl md:text-2xl mb-1">{bienTypeLabel(bien)}</p>
             <div className="flex items-center gap-1.5 mb-4 text-white/80 text-sm">
@@ -180,8 +181,8 @@ export default function MonLogementTab() {
 
           {/* Prépayé */}
           {Number(contrat.loyer_prepaye_mois || 0) > 0 && (
-            <div className="mx-4 md:mx-0 mt-4 rounded-2xl p-4 flex items-center gap-3" style={{ background: TEAL + '12', border: `1px solid ${TEAL}30` }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: TEAL + '20', color: TEAL }}><IcCheck /></div>
+            <div className="mx-4 md:mx-0 mt-4 rounded-2xl p-4 flex items-center gap-3" style={{ background: withAlpha(TEAL, '12'), border: `1px solid ${withAlpha(TEAL, '30')}` }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(TEAL, '20'), color: TEAL }}><IcCheck /></div>
               <p className="text-sm font-semibold" style={{ color: TEAL }}>
                 {contrat.loyer_prepaye_mois} mois déjà prépayés à l'intégration — inclus avant votre première échéance.
               </p>
@@ -203,7 +204,7 @@ export default function MonLogementTab() {
                 {loyers.map(l => (
                   <button key={l.id} onClick={() => toggleLoyer(l.id)}
                     className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left"
-                    style={{ background: selected.includes(l.id) ? GREEN + '10' : 'rgba(255,255,255,0.8)', borderColor: selected.includes(l.id) ? GREEN : 'rgba(0,0,0,0.07)' }}>
+                    style={{ background: selected.includes(l.id) ? withAlpha(GREEN, '10') : 'rgba(255,255,255,0.8)', borderColor: selected.includes(l.id) ? GREEN : 'rgba(0,0,0,0.07)' }}>
                     <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all`}
                       style={{ borderColor: selected.includes(l.id) ? GREEN : '#D1D5DB', background: selected.includes(l.id) ? GREEN : 'transparent' }}>
                       {selected.includes(l.id) && <span className="text-white"><IcCheck /></span>}
@@ -212,7 +213,7 @@ export default function MonLogementTab() {
                       <div className="flex items-center gap-1.5">
                         <p className="font-semibold text-text-dark text-sm">{formatMois(l.mois || l.date_echeance)}</p>
                         {l.statut === 'en_retard' && (
-                          <span className="text-micro font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: 'var(--tx-red)' }}>En retard</span>
+                          <span className="text-micro font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.125)', color: 'var(--tx-red)' }}>En retard</span>
                         )}
                       </div>
                       <p className="text-xs text-text-grey">Échéance : {new Date(l.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
@@ -298,7 +299,7 @@ export default function MonLogementTab() {
               <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
                 {historique.map((h, i) => (
                   <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(0,0,0,0.06)' }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#22C55E20' }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34,197,94,0.125)' }}>
                       <span style={{ color: GREEN }}><IcCheck /></span>
                     </div>
                     <div className="flex-1">
@@ -317,7 +318,7 @@ export default function MonLogementTab() {
 
           {loyers.length === 0 && historique.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center px-6 md:mx-0 md:rounded-3xl md:mt-5" style={{ background: 'transparent' }}>
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: GREEN + '20' }}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: withAlpha(GREEN, '20') }}>
                 <span style={{ color: GREEN }}><IcCheck /></span>
               </div>
               <p className="font-bold text-text-dark mb-1">Tout est à jour !</p>
@@ -335,7 +336,7 @@ export default function MonLogementTab() {
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between"><span className="text-text-grey">Loyer mensuel</span><span className="font-bold text-text-dark">{Number(contrat.loyer_mensuel || 0).toLocaleString('fr-FR')} F</span></div>
                 <div className="flex justify-between"><span className="text-text-grey">Loyers payés</span><span className="font-bold text-text-dark">{data.mois_payes ?? 0}</span></div>
-                <div className="flex justify-between"><span className="text-text-grey">Loyers dûs</span><span className="font-bold" style={{ color: (data.mois_dus ?? 0) > 0 ? '#DC2626' : GREEN }}>{data.mois_dus ?? 0}</span></div>
+                <div className="flex justify-between"><span className="text-text-grey">Loyers dûs</span><span className="font-bold" style={{ color: (data.mois_dus ?? 0) > 0 ? 'var(--c-danger)' : GREEN }}>{data.mois_dus ?? 0}</span></div>
               </div>
             </div>
           </div>

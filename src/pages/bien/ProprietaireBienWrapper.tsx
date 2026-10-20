@@ -4,8 +4,9 @@ import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationsContext'
 import BienDetailPage from './BienDetailPage'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
+import { withAlpha } from '../../utils/color'
 
-const BLUE = '#4160F2'
+const BLUE = 'var(--c-brand)'
 
 type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 
@@ -102,12 +103,12 @@ export default function ProprietaireBienWrapper() {
                     onClick={() => goToTab(item.key)}
                     className="relative whitespace-nowrap text-caption font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
-                      ...(active ? { color: BLUE, background: BLUE + '14' } : { color: 'var(--p-muted)' }),
+                      ...(active ? { color: BLUE, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
                       minHeight: 36,
                       transition: 'color 0.2s ease, background 0.2s ease',
                     }}>
                     {item.label}
-                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: '#FF3B30' }} />}
+                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
                   </button>
                 )
               })}
@@ -122,7 +123,7 @@ export default function ProprietaireBienWrapper() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
               </button>
 
               {/* Avatar → profil */}
@@ -181,7 +182,7 @@ export default function ProprietaireBienWrapper() {
                     <button key={item.key}
                       onClick={() => { goToTab(item.key); setMenuOpen(false) }}
                       className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium transition-all"
-                      style={active ? { color: BLUE, background: BLUE + '14', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
+                      style={active ? { color: BLUE, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                       <span className="truncate w-full text-center px-1">{item.label}</span>
                     </button>
                   )

@@ -36,7 +36,7 @@ export function RenderErrorFallback({ onRetry, compact = false }: FallbackProps)
         type="button"
         onClick={onRetry}
         className="px-6 py-3 rounded-xl text-sm font-semibold text-white"
-        style={{ background: '#3A5AEE' }}
+        style={{ background: 'var(--c-primary)' }}
       >
         Réessayer
       </button>

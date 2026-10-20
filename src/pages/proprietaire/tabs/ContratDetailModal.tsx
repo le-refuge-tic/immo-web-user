@@ -4,6 +4,7 @@ import { BLUE, bienLabel, fmtPrix } from './shared'
 import { loyerStatut, CONTRAT_STATUT, moisLabel, dateLabel } from './LoyersTab'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import type { ContratResume } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
 
 export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResume; onClose: () => void }) {
   const c = contrat
@@ -43,9 +44,9 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
           {cover?.url
             ? <img loading="lazy" src={cover.url} alt="" className="w-full h-full object-cover" />
             : <div className="w-full h-full flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${BLUE}18, ${BLUE}08)` }}>
+                style={{ background: `linear-gradient(135deg, ${withAlpha(BLUE, '18')}, ${withAlpha(BLUE, '08')})` }}>
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-4xl"
-                  style={{ background: BLUE + '20', color: BLUE }}>{initiale}</div>
+                  style={{ background: withAlpha(BLUE, '20'), color: BLUE }}>{initiale}</div>
               </div>
           }
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
@@ -70,23 +71,23 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
 
           {/* ── Loyer + progression ── */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Loyer mensuel</p>
               <p className="font-black text-[20px]" style={{ color: BLUE }}>{fmtPrix(c.loyer_mensuel)}</p>
             </div>
-            <div className="rounded-xl p-4 border" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Progression</p>
-              <p className="font-black text-[20px]" style={{ color: progressPct === 100 ? '#16A34A' : BLUE }}>
+              <p className="font-black text-[20px]" style={{ color: progressPct === 100 ? 'var(--c-success-bright)' : BLUE }}>
                 {payesCount}<span className="text-sm font-medium text-gray-500">/{totalCount}</span>
               </p>
               <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: '#E8EDFB' }}>
-                <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: progressPct === 100 ? '#16A34A' : BLUE }} />
+                <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: progressPct === 100 ? 'var(--c-success-bright)' : BLUE }} />
               </div>
             </div>
           </div>
 
           {/* ── Infos contrat ── */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
             <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Détails du contrat</p>
             </div>
@@ -111,7 +112,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
           </div>
 
           {/* ── Historique des échéances ── */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: '#fff', borderColor: '#E8EDFB' }}>
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
             <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Historique des échéances</p>
             </div>
@@ -124,7 +125,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
                   return (
                     <div key={l.id} className="flex items-center gap-3 px-4 py-3">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: color + '14', color }}>
+                        style={{ background: withAlpha(color, '14'), color }}>
                         <IcPayments />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -138,7 +139,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
                       <div className="text-right flex-shrink-0">
                         <p className="text-sm font-bold text-gray-800">{fmtPrix(l.montant)}</p>
                         <span className="mt-1 inline-block px-2 py-0.5 rounded-full text-[10px] font-bold"
-                          style={{ background: color + '18', color }}>{label}</span>
+                          style={{ background: withAlpha(color, '18'), color }}>{label}</span>
                       </div>
                     </div>
                   )

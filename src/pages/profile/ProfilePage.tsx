@@ -243,21 +243,21 @@ export default function ProfilePage() {
   const AvatarBlock = ({ size = 88 }: { size?: number }) => (
     <div className="relative inline-block">
       {user.photo_profil ? (
-        <img loading="lazy" src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid #4160F2' }} />
+        <img loading="lazy" src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid var(--c-brand)' }} />
       ) : (
-        <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, #4160F2 0%, #7B4BFF 100%)' }}>
+        <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, var(--c-brand) 0%, var(--c-violet) 100%)' }}>
           <span className="text-white font-bold" style={{ fontSize: size * 0.36 }}>{initials}</span>
         </div>
       )}
-      <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white" style={{ backgroundColor: '#4CAF50' }} />
+      <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white" style={{ backgroundColor: 'var(--c-green-material)' }} />
     </div>
   )
 
   const StatsRow = () => (
     <div className="flex gap-3">
-      <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="#4160F2" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
-      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="#15803D" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
-      <StatBadge icon={<StarMenuIcon />} value={String(mesAvis.length)} label="Avis" color="#B45309" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
+      <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="var(--c-brand)" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
+      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="var(--c-success)" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
+      <StatBadge icon={<StarMenuIcon />} value={String(mesAvis.length)} label="Avis" color="var(--c-amber-dark)" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
     </div>
   )
 
@@ -289,11 +289,11 @@ export default function ProfilePage() {
       <div className="glass-card rounded-[16px] p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-text-dark text-sm">Mes avis</h3>
-          <span className="text-xs font-semibold text-primary dark:text-[#9DB0FF] bg-primary/10 px-2.5 py-0.5 rounded-full">{mesAvis.length}</span>
+          <span className="text-xs font-semibold text-primary dark:text-brand-soft bg-primary/10 px-2.5 py-0.5 rounded-full">{mesAvis.length}</span>
         </div>
         <div className="space-y-3">
           {mesAvis.map(v => (
-            <div key={v.id} className="rounded-[12px] p-3" style={{ background: '#F59E0B0D', border: '1px solid #F59E0B26' }}>
+            <div key={v.id} className="rounded-[12px] p-3" style={{ background: 'rgba(245,158,11,0.051)', border: '1px solid rgba(245,158,11,0.149)' }}>
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-semibold text-text-dark truncate">
                   {v.bien ? bienTypeLabel(v.bien) : 'Bien'}
@@ -310,7 +310,7 @@ export default function ProfilePage() {
               {v.feedback_tags && v.feedback_tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-1.5">
                   {v.feedback_tags.map(t => (
-                    <span key={t} className="px-2 py-0.5 rounded text-micro font-semibold" style={{ background: '#F59E0B18', color: 'var(--tx-amber)' }}>{t}</span>
+                    <span key={t} className="px-2 py-0.5 rounded text-micro font-semibold" style={{ background: 'rgba(245,158,11,0.094)', color: 'var(--tx-amber)' }}>{t}</span>
                   ))}
                 </div>
               )}
@@ -361,7 +361,7 @@ export default function ProfilePage() {
         </button>
         {confirmAnnulerVisite ? (
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button onClick={handleAnnuler} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: '#DC2626' }}>Confirmer</button>
+            <button onClick={handleAnnuler} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--c-danger)' }}>Confirmer</button>
             <button onClick={() => setConfirmAnnulerVisite(false)} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#6B7280' }}>✕</button>
           </div>
         ) : (
@@ -390,7 +390,7 @@ export default function ProfilePage() {
               <div>
                 <p className="text-[18px] font-bold text-text-dark">{fullName}</p>
                 {(apiUser?.email || user.email) && <p className="text-[13px] text-text-grey mt-1 break-all">{apiUser?.email || user.email}</p>}
-                <span className="inline-block text-xs font-semibold text-primary dark:text-[#9DB0FF] bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
+                <span className="inline-block text-xs font-semibold text-primary dark:text-brand-soft bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
               </div>
               <StatsRow />
             </div>

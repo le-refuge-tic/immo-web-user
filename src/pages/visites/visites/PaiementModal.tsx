@@ -28,7 +28,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
             <p className="text-sm text-text-grey mb-6">Nous n'avons pas encore reçu la confirmation de l'opérateur. Si vous avez validé sur votre téléphone, le paiement apparaîtra ici dès réception.</p>
             <button
               onClick={() => { if (payRefId) suivrePaiement(payRefId, payUrl || undefined, 10) }}
-              className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#B45309' }}>
+              className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: 'var(--c-amber-dark)' }}>
               Vérifier à nouveau
             </button>
             <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
@@ -40,7 +40,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
             </div>
             <p className="font-bold text-text-dark mb-1">Paiement confirmé !</p>
             <p className="text-sm text-text-grey mb-5">Les frais de visite ont bien été réglés.</p>
-            <button onClick={() => { navigate(`/recu/visite/${payRefId}`) }} className="w-full py-3.5 rounded-xl font-bold text-white mb-2" style={{ background: '#4160F2' }}>
+            <button onClick={() => { navigate(`/recu/visite/${payRefId}`) }} className="w-full py-3.5 rounded-xl font-bold text-white mb-2" style={{ background: 'var(--c-brand)' }}>
               Voir mon reçu
             </button>
             <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
@@ -76,8 +76,8 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
                   onClick={() => { setOperator(op.key); attempt.reset() }}
                   className="flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
                   style={{
-                    borderColor: operator === op.key ? '#4160F2' : '#E5E7EB',
-                    color: operator === op.key ? '#4160F2' : '#5F6672',
+                    borderColor: operator === op.key ? 'var(--c-brand)' : '#E5E7EB',
+                    color: operator === op.key ? 'var(--c-brand)' : '#5F6672',
                     background: operator === op.key ? 'rgba(75,107,255,0.06)' : 'transparent',
                   }}
                 >

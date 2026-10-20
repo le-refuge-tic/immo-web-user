@@ -96,7 +96,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   return (
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- survol purement décoratif ; la carte contient de vrais liens focalisables
     <article
-      className="relative glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-within:outline-2 focus-within:outline-[#4160F2] focus-within:outline-offset-2"
+      className="relative glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-within:outline-2 focus-within:outline-brand focus-within:outline-offset-2"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLElement

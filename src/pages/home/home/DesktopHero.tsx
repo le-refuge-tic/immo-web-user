@@ -101,7 +101,7 @@ export default function DesktopHero({ s, isDark, tk, biens }: DesktopHeroProps) 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-2 anim-fade-up d-300">
           <button onClick={() => setSearchOpen(true)}
             className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-[15px] transition-transform hover:-translate-y-0.5"
-            style={{ background: '#FF6B35', color: '#1A1A2E', boxShadow: '0 6px 24px rgba(255,107,53,0.40)' }}>
+            style={{ background: 'var(--c-accent)', color: '#1A1A2E', boxShadow: '0 6px 24px rgba(255,107,53,0.40)' }}>
             <SearchIcon /> Trouver mon logement
           </button>
           <button onClick={() => navigate(isLoggedIn ? '/nouveau-bien' : '/register')}
@@ -130,7 +130,7 @@ export default function DesktopHero({ s, isDark, tk, biens }: DesktopHeroProps) 
         {HERO_SLIDES.map((_, i) => (
           <button key={i} onClick={() => setHeroIdx(i)} aria-label={`Slide ${i + 1}`}
             style={{ width: heroIdx === i ? 20 : 8, height: 8, borderRadius: 4,
-              background: heroIdx === i ? '#fff' : 'rgba(255,255,255,0.4)',
+              background: heroIdx === i ? 'rgb(255,255,255)' : 'rgba(255,255,255,0.4)',
               transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }} />
         ))}
         <button

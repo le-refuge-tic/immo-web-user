@@ -92,8 +92,8 @@ export function SidePanel() {
       <ImageSlider slides={SLIDES} interval={4000} className="absolute inset-0" />
 
       {/* Overlay gradient pour lisibilité */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#1D1D1F]/80 via-[#1D1D1F]/20 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#4160F2]/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-text-dark/80 via-text-dark/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-brand/30 to-transparent" />
 
 
       {/* Contenu sur l'overlay */}
@@ -108,13 +108,13 @@ export function SidePanel() {
         <div>
           <p className="text-white text-3xl font-black leading-tight tracking-tight drop-shadow-lg mb-5">
             Trouvez votre<br />
-            <span className="text-[#FF6B35]">logement idéal</span><br />
+            <span className="text-secondary">logement idéal</span><br />
             au Bénin
           </p>
           <div className="flex flex-col gap-2">
             {PITCH_ITEMS.map(text => (
               <div key={text} className="flex items-center gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4160F2] shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
                 <span className="text-white/90 text-sm font-medium drop-shadow">{text}</span>
               </div>
             ))}
@@ -162,7 +162,7 @@ export function PrimaryButton({
       onClick={onClick}
       whileTap={{ scale: 0.985 }}
       className={cn(
-        'relative flex w-full items-center justify-center gap-2 rounded-xl h-10 text-[14px] font-bold bg-primary text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4160F2] focus-visible:ring-offset-2',
+        'relative flex w-full items-center justify-center gap-2 rounded-xl h-10 text-[14px] font-bold bg-primary text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
         className,
       )}
     >
@@ -349,13 +349,13 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             <div className="auth-field">
               <label htmlFor="login-password" className="auth-label">Mot de passe</label>
               <div className="relative">
-                <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                 <input id="login-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="auth-input pad-icon-left pad-icon-right w-full" />
-                <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2">
+                <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              <button type="button" onClick={() => navigate('/mot-de-passe-oublie')} className="mt-1.5 text-right text-[13px] font-semibold text-[#4160F2] hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'block', width: '100%' }}>
+              <button type="button" onClick={() => navigate('/mot-de-passe-oublie')} className="mt-1.5 text-right text-[13px] font-semibold text-brand hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'block', width: '100%' }}>
                 Mot de passe oublié ?
               </button>
             </div>
@@ -366,7 +366,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             Nouveau ici ?{' '}
             <button type="button" onClick={onSwitch} className="auth-link">Créer un compte</button>
           </p>
-          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour à l'accueil
           </button>
         </motion.div>
@@ -385,7 +385,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
               <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                 onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                 inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
-                animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                animate={{ borderColor: d ? 'var(--c-brand)' : otpError ? 'var(--c-red-ios)' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                 transition={{ duration: 0.15 }}
                 className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                 aria-label={`Chiffre ${i + 1}`}
@@ -393,14 +393,14 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             ))}
           </div>
           <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
-          <div className="mt-3 text-sm text-[#6E6E73] text-center">
+          <div className="mt-3 text-sm text-ink-muted text-center">
             {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
               <button type="button" onClick={resendOtp} disabled={loading} className="font-semibold text-brand hover:underline disabled:opacity-60">
                 {loading ? 'Envoi…' : 'Renvoyer le code'}
               </button>
             )}
           </div>
-          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour
           </button>
         </motion.div>
@@ -572,7 +572,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                   <div className="auth-role-icon">{r.icon}</div>
                   <div className="flex-1 text-left">
                     <p className="text-[15px] font-bold text-text-dark">{r.label}</p>
-                    <p className="text-xs text-[#6E6E73] mt-0.5">{r.desc}</p>
+                    <p className="text-xs text-ink-muted mt-0.5">{r.desc}</p>
                   </div>
                   <div className="auth-role-check">{role === r.key && <Check size={11} strokeWidth={3} />}</div>
                 </button>
@@ -581,7 +581,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             <PrimaryButton type="button" onClick={() => { if (!role) { setError('Choisissez un profil'); return } setError(''); goTo(2) }} className="mt-5">Continuer</PrimaryButton>
             <div className="auth-divider" />
             <p className="auth-footer">Déjà un compte ?{' '}<button type="button" onClick={onSwitch} className="auth-link">Se connecter</button></p>
-            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
+            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
           </motion.div>
         )}
 
@@ -610,18 +610,18 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <PhoneInput id="reg-phone" countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
               </div>
               <div className="auth-field">
-                <label htmlFor="reg-email" className="auth-label">Email <span className="normal-case font-normal text-[#6E6E73]">(optionnel)</span></label>
+                <label htmlFor="reg-email" className="auth-label">Email <span className="normal-case font-normal text-ink-muted">(optionnel)</span></label>
                 <div className="relative">
-                  <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   <input id="reg-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com" className="auth-input pad-icon-left w-full" />
                 </div>
               </div>
               <div className="auth-field">
                 <label htmlFor="reg-password" className="auth-label">Mot de passe</label>
                 <div className="relative">
-                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   <input id="reg-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
-                  <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2">
+                  <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
                     {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -629,9 +629,9 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               <div className="auth-field">
                 <label htmlFor="reg-confirm" className="auth-label">Confirmer</label>
                 <div className="relative">
-                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   <input id="reg-confirm" type={showConfirm ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Répéter le mot de passe" required className="auth-input pad-icon-left pad-icon-right w-full" />
-                  <button type="button" onClick={() => setShowConfirm(v => !v)} aria-pressed={showConfirm} aria-label={showConfirm ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2">
+                  <button type="button" onClick={() => setShowConfirm(v => !v)} aria-pressed={showConfirm} aria-label={showConfirm ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
                     {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -675,7 +675,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                   onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                   inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
-                  animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                  animate={{ borderColor: d ? 'var(--c-brand)' : otpError ? 'var(--c-red-ios)' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                   transition={{ duration: 0.15 }}
                   className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                   aria-label={`Chiffre ${i + 1}`}
@@ -683,7 +683,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               ))}
             </div>
             <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
-            <div className="mt-3 text-sm text-[#6E6E73] text-center">
+            <div className="mt-3 text-sm text-ink-muted text-center">
               {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
                 <button type="button" onClick={resendOtp} disabled={resending} className="font-semibold text-brand hover:underline disabled:opacity-60">
                   {resending ? 'Envoi…' : 'Renvoyer le code'}
@@ -709,8 +709,8 @@ function ModeToggle({ mode, onChange }: { mode: 'login' | 'register'; onChange: 
           className={cn(
             'flex-1 h-8 rounded-[10px] text-[13px] font-bold transition-all duration-200',
             mode === m
-              ? 'bg-white text-brand dark:text-[#9DB0FF] shadow-sm'
-              : 'text-[#6E6E73] hover:text-text-dark'
+              ? 'bg-white text-brand dark:text-brand-soft shadow-sm'
+              : 'text-ink-muted hover:text-text-dark'
           )}
         >
           {m === 'login' ? 'Connexion' : 'Inscription'}

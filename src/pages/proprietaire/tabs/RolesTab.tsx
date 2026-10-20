@@ -207,7 +207,7 @@ export function RolesTab() {
                     <p className="text-sm font-semibold text-[#F0EDE8]">Justification (optionnelle)</p>
                     <textarea value={justif} onChange={e => setJustif(e.target.value)} rows={2}
                       placeholder="Ex: Je souhaite aussi proposer des biens à la vente"
-                      className="w-full border border-[#1A3355] rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-[#4160F2] bg-[#0B1C30] text-[#F0EDE8] placeholder:text-[#8A9BB5]" />
+                      className="w-full border border-[#1A3355] rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-brand bg-[#0B1C30] text-[#F0EDE8] placeholder:text-[#8A9BB5]" />
                     <div className="flex gap-2">
                       <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-[#1A3355] text-sm font-semibold text-[#8A9BB5] bg-[#0B1C30]">Annuler</button>
                       <button onClick={() => activerRole(r.key)} disabled={busy}

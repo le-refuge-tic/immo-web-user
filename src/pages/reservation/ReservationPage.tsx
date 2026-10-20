@@ -247,12 +247,12 @@ export default function ReservationPage() {
             }} disabled={past}
               className="aspect-square flex flex-col items-center justify-center rounded-[10px] transition-all"
               style={{
-                background: sel ? '#4160F2' : todayDay && !sel ? 'rgba(75,107,255,0.08)' : 'transparent',
+                background: sel ? 'var(--c-brand)' : todayDay && !sel ? 'rgba(75,107,255,0.08)' : 'transparent',
                 border: todayDay && !sel ? '1.5px solid rgba(75,107,255,0.4)' : 'none',
                 opacity: past ? 0.3 : 1,
               }}>
               <span className="text-[13px] font-semibold leading-none"
-                style={{ color: sel ? '#fff' : past ? '#ccc' : '#1A1A2E', fontWeight: sel || todayDay ? 700 : 500 }}>
+                style={{ color: sel ? 'rgb(255,255,255)' : past ? '#ccc' : '#1A1A2E', fontWeight: sel || todayDay ? 700 : 500 }}>
                 {day}
               </span>
               {!past && !sel && <span className="w-1 h-1 rounded-full mt-0.5" style={{ background: 'rgba(34,197,94,0.7)' }} />}
@@ -307,9 +307,9 @@ export default function ReservationPage() {
               <button key={h} onClick={() => setSelectedTime(value)}
                 className="px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                 style={{
-                  background: sel ? '#4160F2' : '#fff',
-                  color: sel ? '#fff' : '#1A1A2E',
-                  border: `${sel ? 1.5 : 1}px solid ${sel ? '#4160F2' : '#E5E7EB'}`,
+                  background: sel ? 'var(--c-brand)' : 'rgb(255,255,255)',
+                  color: sel ? 'rgb(255,255,255)' : '#1A1A2E',
+                  border: `${sel ? 1.5 : 1}px solid ${sel ? 'var(--c-brand)' : '#E5E7EB'}`,
                   boxShadow: sel ? '0 3px 8px rgba(75,107,255,0.25)' : 'none',
                 }}>
                 {String(h).padStart(2, '00')}h00
@@ -357,7 +357,7 @@ export default function ReservationPage() {
         </button>
         <span className="text-lg font-bold text-text-dark w-5 text-center">{travelers}</span>
         <button aria-label="Un visiteur de plus" onClick={() => setTravelers(t => t + 1)}
-          className="w-8 h-8 flex items-center justify-center rounded-[9px]" style={{ background: '#4160F2' }}>
+          className="w-8 h-8 flex items-center justify-center rounded-[9px]" style={{ background: 'var(--c-brand)' }}>
           <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
         </button>
       </div>
@@ -388,7 +388,7 @@ export default function ReservationPage() {
   const ActivateProspectBtn = () => (
     <button onClick={activerRoleProspect} disabled={activatingRole}
       className="w-full py-4 rounded-[16px] font-bold text-white flex items-center justify-center gap-2 transition-all"
-      style={{ background: '#4160F2', boxShadow: '0 4px 12px rgba(75,107,255,0.35)' }}>
+      style={{ background: 'var(--c-brand)', boxShadow: '0 4px 12px rgba(75,107,255,0.35)' }}>
       {activatingRole
         ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
         : <span>Activer le profil prospect pour réserver</span>
@@ -407,7 +407,7 @@ export default function ReservationPage() {
   const SubmitBtn = ({ full = false }) => !peutReserver ? <ActivateProspectBtn /> : (
     <button onClick={handleSubmit} disabled={submitting || !selectedTime}
       className={`${full ? 'w-full' : 'w-full'} py-4 rounded-[16px] font-bold text-white flex items-center justify-center gap-2 transition-all`}
-      style={{ background: !selectedTime ? '#E5E7EB' : '#4160F2', boxShadow: selectedTime ? '0 4px 12px rgba(75,107,255,0.35)' : 'none' }}>
+      style={{ background: !selectedTime ? '#E5E7EB' : 'var(--c-brand)', boxShadow: selectedTime ? '0 4px 12px rgba(75,107,255,0.35)' : 'none' }}>
       {submitting
         ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
         : <>
@@ -512,7 +512,7 @@ export default function ReservationPage() {
             </dl>
             {chatError && <p role="alert" className="text-sm font-semibold mb-2 text-[color:var(--tx-red)]">{chatError}</p>}
             <button type="button" onClick={ouvrirConversation} disabled={openingChat}
-              className="w-full py-3.5 rounded-xl font-bold text-white mb-2 disabled:opacity-60" style={{ background: '#4160F2' }}>
+              className="w-full py-3.5 rounded-xl font-bold text-white mb-2 disabled:opacity-60" style={{ background: 'var(--c-brand)' }}>
               {openingChat ? 'Ouverture…' : 'Écrire au responsable'}
             </button>
             <button type="button" onClick={() => navigate('/mes-visites', { replace: true })}

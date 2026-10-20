@@ -77,8 +77,8 @@ export default function OnboardingDestinationPage() {
           </div>
           {/* Progress */}
           <div className="flex gap-1.5">
-            <div className="w-8 h-1 rounded-full" style={{ background: '#4160F2' }} />
-            <div className="w-8 h-1 rounded-full" style={{ background: '#4160F2' }} />
+            <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />
+            <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />
           </div>
         </div>
 
@@ -129,7 +129,7 @@ export default function OnboardingDestinationPage() {
               onClick={handleNext}
               disabled={!ville}
               className="flex-1 h-14 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40"
-              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
             >
               Terminer
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
@@ -173,16 +173,16 @@ function DarkSelect({ label, placeholder, value, options, onChange, disabled }: 
           className="w-full appearance-none px-4 py-3.5 rounded-xl text-sm outline-none transition-all"
           style={{
             background: value ? 'rgba(75,107,255,0.15)' : 'rgba(255,255,255,0.07)',
-            border: value ? '1.5px solid #4160F2' : '1px solid rgba(255,255,255,0.15)',
+            border: value ? '1.5px solid var(--c-brand)' : '1px solid rgba(255,255,255,0.15)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            color: value ? '#fff' : 'rgba(255,255,255,0.4)',
+            color: value ? 'rgb(255,255,255)' : 'rgba(255,255,255,0.4)',
             opacity: disabled ? 0.5 : 1,
           }}
         >
           <option value="" disabled style={{ background: '#111', color: '#999' }}>{placeholder}</option>
           {options.map(opt => (
-            <option key={opt} value={opt} style={{ background: '#111', color: '#fff' }}>{opt}</option>
+            <option key={opt} value={opt} style={{ background: '#111', color: 'rgb(255,255,255)' }}>{opt}</option>
           ))}
         </select>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">

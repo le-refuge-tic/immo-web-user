@@ -33,7 +33,7 @@ export default function OnboardingProjetPage() {
           </div>
           {/* Progress */}
           <div className="flex gap-1.5">
-            <div className="w-8 h-1 rounded-full" style={{ background: '#4160F2' }} />
+            <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />
             <div className="w-8 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }} />
           </div>
         </div>
@@ -70,18 +70,18 @@ export default function OnboardingProjetPage() {
                 className="flex items-center gap-4 px-6 py-5 rounded-2xl text-left transition-all"
                 style={{
                   background: selected === r.value ? 'rgba(75,107,255,0.25)' : 'rgba(255,255,255,0.08)',
-                  border: selected === r.value ? '1.5px solid #4160F2' : '1px solid rgba(255,255,255,0.15)',
+                  border: selected === r.value ? '1.5px solid var(--c-brand)' : '1px solid rgba(255,255,255,0.15)',
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
                 }}
               >
-                <span style={{ color: selected === r.value ? '#4160F2' : 'rgba(255,255,255,0.55)' }}>{r.icon}</span>
+                <span style={{ color: selected === r.value ? 'var(--c-brand)' : 'rgba(255,255,255,0.55)' }}>{r.icon}</span>
                 <div className="flex-1">
                   <p className="font-bold text-white">{r.label}</p>
                   <p className="text-white/50 text-sm mt-0.5">{r.desc}</p>
                 </div>
                 {selected === r.value && (
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#4160F2' }}>
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--c-brand)' }}>
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -94,7 +94,7 @@ export default function OnboardingProjetPage() {
           <button
             onClick={handleNext}
             className="w-full md:w-auto md:px-12 h-14 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
+            style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
           >
             Suivant
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>

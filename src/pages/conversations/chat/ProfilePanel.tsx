@@ -46,7 +46,7 @@ export function ProfilePanel({
               {isVerified && (
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#4160F2" aria-label="Vérifié">
                   <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
-                  <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
+                  <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="rgb(255,255,255)"/>
                 </svg>
               )}
             </div>
@@ -114,7 +114,7 @@ export function ProfilePanel({
           ].map(({ label, action, danger }, i, arr) => (
             <button key={label} onClick={action}
               className="w-full text-left px-4 py-3.5 text-[13.5px] font-medium transition-colors cursor-pointer flex items-center justify-between"
-              style={{ color: danger ? '#DC2626' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none', background: hoveredSettingsIdx === i ? menuHov : 'transparent' }}
+              style={{ color: danger ? 'var(--c-danger)' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none', background: hoveredSettingsIdx === i ? menuHov : 'transparent' }}
               onMouseEnter={() => onHoverSettings(i)}
               onMouseLeave={() => onHoverSettings(null)}>
               {label}

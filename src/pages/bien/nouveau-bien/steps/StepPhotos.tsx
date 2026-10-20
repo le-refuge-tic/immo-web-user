@@ -3,6 +3,7 @@
 import { BLUE, TYPES_BIEN, EQUIPEMENTS_RESIDENTIEL, EQUIPEMENTS_BOUTIQUE, ALENTOURS_OPTS, parsePrix, formatFcfa } from '../options'
 import { Card, RecapSection } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
+import { withAlpha } from '../../../../utils/color'
 
 export function StepPhotos({ form }: { form: NouveauBienForm }) {
   const {
@@ -85,7 +86,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
                 ...((parsePrix(cautionElec) ?? 0) > 0 ? [`Caution électricité : ${formatFcfa(parsePrix(cautionElec) ?? 0)}`] : []),
               ]} />
               {montantBrut > 0 && (
-                <div className="rounded-xl p-3.5 mb-2" style={{ background: BLUE + '12', border: `1px solid ${BLUE}30` }}>
+                <div className="rounded-xl p-3.5 mb-2" style={{ background: withAlpha(BLUE, '12'), border: `1px solid ${withAlpha(BLUE, '30')}` }}>
                   <p className="text-xs font-semibold mb-1" style={{ color: 'var(--p-muted)' }}>Montant minimum à verser avant intégration</p>
                   <p className="text-xl font-bold" style={{ color: BLUE }}>{formatFcfa(montantBrut)}</p>
                 </div>
@@ -196,7 +197,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
             <div className="flex items-center gap-3 px-4 py-3 rounded-xl border"
               style={{ borderColor: 'var(--p-border)', background: 'var(--p-deep)' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: BLUE + '20' }}>
+                style={{ background: withAlpha(BLUE, '20') }}>
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ color: BLUE }}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
@@ -204,7 +205,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
               <span className="flex-1 text-sm font-semibold truncate" style={{ color: 'var(--p-text)' }}>{video.name}</span>
               <button aria-label="Retirer la vidéo" type="button" onClick={() => setVideo(null)}
                 className="w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0"
-                style={{ background: '#DC2626' }}>
+                style={{ background: 'var(--c-danger)' }}>
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>

@@ -95,7 +95,7 @@ export default function ConfidentialitePage() {
         <p>
           La plateforme utilise uniquement le stockage nécessaire à son fonctionnement (session, préférences comme le
           thème). La mesure d’audience Umami ne dépose aucun cookie et n’est activée qu’avec votre accord.{' '}
-          <button type="button" onClick={openConsentSettings} className="font-semibold text-primary dark:text-[#9DB0FF] hover:underline">
+          <button type="button" onClick={openConsentSettings} className="font-semibold text-primary dark:text-brand-soft hover:underline">
             Modifier mon choix
           </button>
           .

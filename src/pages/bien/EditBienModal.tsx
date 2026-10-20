@@ -149,7 +149,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
         <div className="p-5 pt-0">
           <button onClick={submit} disabled={saving || success}
             className="w-full py-3.5 rounded-xl font-bold text-white disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>
+            style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
             {success ? 'Enregistré ✓' : saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
           </button>
         </div>

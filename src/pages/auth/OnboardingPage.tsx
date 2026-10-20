@@ -5,10 +5,11 @@ import img1 from '../../assets/onboarding-1.webp'
 import img2 from '../../assets/onboarding-2.webp'
 import img3 from '../../assets/onboarding-3.webp'
 import logoUrl from '../../assets/REFUGE-ICON.webp'
+import { withAlpha } from '../../utils/color'
 
 const SLIDES = [
   {
-    accent: '#4160F2',
+    accent: 'var(--c-brand)',
     image: img1,
     icon: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -21,7 +22,7 @@ const SLIDES = [
     btnLabel: 'Commencer',
   },
   {
-    accent: '#FF6B35',
+    accent: 'var(--c-accent)',
     image: img2,
     icon: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -34,7 +35,7 @@ const SLIDES = [
     btnLabel: 'Continuer',
   },
   {
-    accent: '#15803D',
+    accent: 'var(--c-success)',
     image: img3,
     icon: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -143,7 +144,7 @@ export default function OnboardingPage() {
 
           {/* Icone + dots */}
           <div className="flex items-center gap-3 mb-5 anim-fade-up">
-            <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0 anim-bounce-in" style={{ background: slide.accent, boxShadow: `0 4px 12px ${slide.accent}66` }}>
+            <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0 anim-bounce-in" style={{ background: slide.accent, boxShadow: `0 4px 12px ${withAlpha(slide.accent, '66')}` }}>
               {slide.icon}
             </div>
             <div className="flex items-center gap-1.5">
@@ -177,8 +178,8 @@ export default function OnboardingPage() {
                 key={i}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium text-white/90 anim-scale-in"
                 style={{
-                  background: `${slide.accent}33`,
-                  border: `1px solid ${slide.accent}55`,
+                  background: `${withAlpha(slide.accent, '33')}`,
+                  border: `1px solid ${withAlpha(slide.accent, '55')}`,
                   animationDelay: `${300 + i * 60}ms`,
                 }}
               >
@@ -193,7 +194,7 @@ export default function OnboardingPage() {
           <button
             onClick={next}
             className="w-full md:w-auto md:px-12 h-[54px] rounded-[16px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity anim-scale-in d-500 btn-press"
-            style={{ background: slide.accent, boxShadow: `0 4px 16px ${slide.accent}55` }}
+            style={{ background: slide.accent, boxShadow: `0 4px 16px ${withAlpha(slide.accent, '55')}` }}
           >
             <span>{slide.btnLabel}</span>
             <div className="w-7 h-7 rounded-[8px] flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.2)' }}>

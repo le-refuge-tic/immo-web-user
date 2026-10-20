@@ -10,6 +10,7 @@ import { PURPLE, DARK_PURPLE, statutVisite } from '../shared'
 import { IcHome, IcCal, IcChat } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { Visite } from '../../../types/api'
+import { withAlpha } from '../../../utils/color'
 
 function isEchouee(v: Pick<Visite, 'statut' | 'date_contre_proposee' | 'date_souhaitee'>): boolean {
   if (v.statut === 'effectuee' || v.statut === 'annulee') return false
@@ -112,7 +113,7 @@ export default function ReservationsTab() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: PURPLE + '15' }}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(PURPLE, '15') }}>
               <svg viewBox="0 0 24 24" fill="none" stroke={PURPLE} strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
             <p className="font-bold text-text-dark mb-1">Aucune réservation</p>
@@ -141,7 +142,7 @@ export default function ReservationsTab() {
                   <p className="font-bold text-text-dark text-sm">{nom}</p>
                   <p className="text-xs text-text-grey">Identité masquée avant confirmation</p>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg text-caption font-bold flex-shrink-0" style={{ background: color + '20', color }}>{label}</span>
+                <span className="px-2.5 py-1 rounded-lg text-caption font-bold flex-shrink-0" style={{ background: withAlpha(color, '20'), color }}>{label}</span>
               </div>
               <div className="bg-surface-g rounded-xl p-3 mb-3">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -154,28 +155,28 @@ export default function ReservationsTab() {
                 </div>
               </div>
               {v.paiement_effectue && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: '#4CAF5010', borderColor: '#4CAF5030', color: '#4CAF50' }}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: 'rgba(76,175,80,0.063)', borderColor: 'rgba(76,175,80,0.188)', color: 'var(--c-green-material)' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   Frais de visite payés
                 </div>
               )}
               {!echouee && v.statut === 'confirmee' && v.numeros_partages && contactNumero && (
-                <div className="flex items-center gap-3 p-3 rounded-xl mb-3" style={{ background: '#25D36614', border: '1px solid #25D36650' }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#25D36626' }}>
+                <div className="flex items-center gap-3 p-3 rounded-xl mb-3" style={{ background: 'rgba(37,211,102,0.078)', border: '1px solid rgba(37,211,102,0.314)' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(37,211,102,0.149)' }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-micro font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Contact client</p>
+                    <p className="text-micro font-semibold" style={{ color: 'var(--c-whatsapp)' }}>Visite dans 30 min — Contact client</p>
                     <p className="text-sm font-bold text-text-dark">{contactNumero}</p>
                   </div>
                   <a href={`https://wa.me/${contactNumero.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: '#25D366' }}>
+                    className="px-3 py-1.5 rounded-lg text-white text-caption font-bold flex-shrink-0" style={{ background: 'var(--c-whatsapp)' }}>
                     WhatsApp
                   </a>
                 </div>
               )}
               {echouee && (
-                <div className="flex items-center gap-2 p-2.5 rounded-xl mb-3" style={{ background: '#EF444410', border: '1px solid #EF444440' }}>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl mb-3" style={{ background: 'rgba(239,68,68,0.063)', border: '1px solid rgba(239,68,68,0.251)' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" /></svg>
                   <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
                 </div>
@@ -183,18 +184,18 @@ export default function ReservationsTab() {
               <div className="flex gap-2">
                 {echouee ? (
                   <button onClick={() => ouvrirChatEchouee(v)} disabled={chatLoadingId === v.id}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: '#EF444450', color: 'var(--tx-red)', background: '#EF444410' }}>
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: 'rgba(239,68,68,0.314)', color: 'var(--tx-red)', background: 'rgba(239,68,68,0.063)' }}>
                     <IcChat /> {chatLoadingId === v.id ? '…' : 'Contacter le client'}
                   </button>
                 ) : (
                   <button onClick={() => ouvrirChat(v)} disabled={chatLoadingId === v.id}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: PURPLE + '50', color: PURPLE, background: PURPLE + '10' }}>
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: withAlpha(PURPLE, '50'), color: PURPLE, background: withAlpha(PURPLE, '10') }}>
                     <IcChat /> {chatLoadingId === v.id ? '…' : 'Chat'}
                   </button>
                 )}
                 {!echouee && v.statut === 'en_attente' && <>
-                  <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: PURPLE + '80', color: PURPLE }}>Autre créneau</button>
-                  <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: '#4CAF50' }}>Confirmer</button>
+                  <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: withAlpha(PURPLE, '80'), color: PURPLE }}>Autre créneau</button>
+                  <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
                 </>}
                 {!echouee && v.statut === 'confirmee' && (
                   <button onClick={() => visitesApi.marquerEffectuee(v.id).then(load)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: PURPLE }}>Marquer effectuée</button>

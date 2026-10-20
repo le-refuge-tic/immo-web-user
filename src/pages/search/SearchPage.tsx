@@ -79,7 +79,7 @@ export default function SearchPage() {
               <FilterIcon />
               {hasFilters && (
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-micro font-bold text-white flex items-center justify-center"
-                  style={{ background: '#4160F2' }}>
+                  style={{ background: 'var(--c-brand)' }}>
                   {chips.length}
                 </span>
               )}

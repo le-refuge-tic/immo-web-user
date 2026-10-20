@@ -88,15 +88,15 @@ export default function BottomNav() {
                 border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',
               }}
             >
-              <span className="relative" style={{ color: active ? '#4160F2' : inactiveColor }}>
+              <span className="relative" style={{ color: active ? 'var(--c-brand)' : inactiveColor }}>
                 <Icon active={active} />
                 {badge > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30' }}>
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[15px] h-[15px] px-[3px] rounded-full text-micro font-bold text-white" style={{ background: 'var(--c-red-ios)' }}>
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}
               </span>
-              <span className="text-micro font-semibold" style={{ color: active ? (isDark ? '#9DB0FF' : '#3A5AEE') : isDark ? 'rgba(255,255,255,0.7)' : '#5E5E63' }}>{item.label}</span>
+              <span className="text-micro font-semibold" style={{ color: active ? (isDark ? 'var(--c-brand-soft)' : 'var(--c-primary)') : isDark ? 'rgba(255,255,255,0.7)' : '#5E5E63' }}>{item.label}</span>
             </button>
           )
         })}

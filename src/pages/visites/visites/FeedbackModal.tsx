@@ -53,7 +53,7 @@ export function FeedbackModal({ avis }: { avis: ReturnType<typeof useAvisVisite>
             {needsTags && (
               <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                 <div className="flex items-center gap-2.5 mb-1.5">
-                  <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: '#DC2626' }} />
+                  <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: 'var(--c-danger)' }} />
                   <p className="font-bold text-text-dark text-sm">Qu'est-ce qui n'a pas fonctionné ?</p>
                 </div>
                 <p className="text-xs text-text-grey mb-4">Sélectionnez tout ce qui s'applique (au moins un)</p>
@@ -99,7 +99,7 @@ export function FeedbackModal({ avis }: { avis: ReturnType<typeof useAvisVisite>
                 onClick={handleSubmitFeedback}
                 disabled={feedbackSaving || !canSubmitFeedback}
                 className="w-full h-[52px] rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-opacity"
-                style={{ background: '#4160F2', opacity: canSubmitFeedback ? 1 : 0.45 }}
+                style={{ background: 'var(--c-brand)', opacity: canSubmitFeedback ? 1 : 0.45 }}
               >
                 {feedbackSaving ? <div className="w-[22px] h-[22px] border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Envoyer mon avis'}
               </button>

@@ -30,7 +30,7 @@ export function SlotModal({ onConfirm, onCancel, c }: { onConfirm: (iso: string)
         </div>
         <div className="flex gap-2 mt-5">
           <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
-          <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)' }}>Confirmer</button>
+          <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>Confirmer</button>
         </div>
       </div>
     </ModalSheet>

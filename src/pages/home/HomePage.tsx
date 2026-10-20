@@ -72,7 +72,7 @@ export default function HomePage() {
         description="Découvrez les derniers biens publiés sur REFUGE et réservez votre visite en quelques clics."
         titleColor="var(--tx-blue)" regionLabel="Biens récemment ajoutés pour location"
         pauseSubject="biens récemment ajoutés pour location"
-        dotActive="#4160F2" dotIdleDark="rgba(75,107,255,0.30)" dotIdleLight="rgba(75,107,255,0.20)"
+        dotActive="var(--c-brand)" dotIdleDark="rgba(75,107,255,0.30)" dotIdleLight="rgba(75,107,255,0.20)"
       />
 
       {/* Vente récente */}
@@ -81,9 +81,9 @@ export default function HomePage() {
         isDark={isDark} tk={tk} topPaddingClass="pt-10"
         title="Nos exclusivités en vente"
         description="Maisons, appartements, terrains à vendre au Bénin — découvrez les derniers biens publiés."
-        titleColor="#FF6B35" regionLabel="Biens récemment ajoutés à la vente"
-        pauseSubject="biens récemment ajoutés à la vente" pauseColor="#FF6B35"
-        dotActive="#FF6B35" dotIdleDark="rgba(255,107,53,0.30)" dotIdleLight="rgba(255,107,53,0.20)"
+        titleColor="var(--c-accent)" regionLabel="Biens récemment ajoutés à la vente"
+        pauseSubject="biens récemment ajoutés à la vente" pauseColor="var(--c-accent)"
+        dotActive="var(--c-accent)" dotIdleDark="rgba(255,107,53,0.30)" dotIdleLight="rgba(255,107,53,0.20)"
       />
 
       {/* ══════════════ GRILLE ANNONCES ══════════════ */}

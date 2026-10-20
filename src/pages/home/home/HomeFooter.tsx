@@ -20,7 +20,7 @@ export default function HomeFooter({ isDark, tk }: { isDark: boolean; tk: Tokens
         <div className="flex-shrink-0">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.30)' }}>
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 16px rgba(75,107,255,0.30)' }}>
               <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
             </div>
             <div>

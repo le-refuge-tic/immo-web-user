@@ -49,7 +49,7 @@ export default function LocationsMarquee({ quartiersActifs, quartierCounts, isDa
                         ? 'inset 0 1px 0 rgba(255,255,255,0.06)'
                         : '0 2px 12px rgba(75,107,255,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
                     }}>
-                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#4160F2', opacity: 0.7 }} />
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--c-brand)', opacity: 0.7 }} />
                     <span className="text-sm font-semibold whitespace-nowrap" style={{ color: tk.textPrimary }}>
                       {capitalizeQuartier(q)}
                     </span>

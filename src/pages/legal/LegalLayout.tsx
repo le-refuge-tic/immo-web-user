@@ -28,7 +28,7 @@ export default function LegalLayout({ title, description, children }: { title: s
   return (
     <div className="min-h-full">
       <article className="w-full max-w-3xl mx-auto px-4 md:px-8 pt-6 md:pt-10 pb-28 md:pb-16">
-        <button onClick={() => navigate(-1)} className="text-sm font-semibold text-primary dark:text-[#9DB0FF] mb-4">
+        <button onClick={() => navigate(-1)} className="text-sm font-semibold text-primary dark:text-brand-soft mb-4">
           ← Retour
         </button>
         <h1 className="text-2xl md:text-3xl font-bold text-text-dark">{title}</h1>
@@ -38,7 +38,7 @@ export default function LegalLayout({ title, description, children }: { title: s
             Projet en cours de validation par l’éditeur : ce texte peut encore évoluer.
           </p>
         )}
-        <div className="mt-8 space-y-8 text-[15px] leading-relaxed text-text-grey [&_strong]:text-text-dark [&_a]:text-primary dark:[&_a]:text-[#9DB0FF] [&_a]:font-semibold [&_a:hover]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5">
+        <div className="mt-8 space-y-8 text-[15px] leading-relaxed text-text-grey [&_strong]:text-text-dark [&_a]:text-primary dark:[&_a]:text-brand-soft [&_a]:font-semibold [&_a:hover]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5">
           {children}
         </div>
       </article>

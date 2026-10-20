@@ -10,6 +10,7 @@ import { apiMessage } from '../../../utils/apiMessage'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { messageMontantRetrait } from '../../../utils/retrait'
 import type { MouvementWallet, RetraitProprio, WalletProprio } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -60,7 +61,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
       <ModalSheet open onClose={onClose} label="Demande de retrait envoyée" placement="center" panelClassName="w-full max-w-sm" backdropOpacity={0.45}>
         <div className="bg-[#0B1C30] rounded-2xl w-full p-7 text-center border border-[#1A3355]">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-            style={{ background: 'linear-gradient(135deg, #4CAF50, #2E7D32)', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }}>
+            style={{ background: 'linear-gradient(135deg, var(--c-green-material), #2E7D32)', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }}>
             <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           </div>
           <p className="font-bold text-[#F0EDE8] text-lg mb-2">Demande envoyée !</p>
@@ -88,7 +89,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
         <div className="p-5 space-y-5">
           <div role="alert" aria-live="assertive" aria-atomic="true">
             {error && (
-              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: '#EF444414', color: 'var(--tx-red)', border: '1px solid #EF444430' }}>
+              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.078)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.188)' }}>
                 {error}
               </div>
             )}
@@ -100,7 +101,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A9BB5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
               <input id="portefeuille-tab-97" type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={500} max={solde}
                 aria-invalid={!!montantMessage} aria-describedby="retrait-montant-aide"
-                className="w-full bg-[#112440] border border-[#1A3355] rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none text-[#F0EDE8] focus:border-[#4160F2]" />
+                className="w-full bg-[#112440] border border-[#1A3355] rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none text-[#F0EDE8] focus:border-brand" />
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8A9BB5]">FCFA</span>
             </div>
             <p id="retrait-montant-aide" aria-live="polite" className="text-[11px] mt-1.5" style={{ color: montantMessage ? 'var(--tx-red)' : '#8A9BB5', fontWeight: montantMessage ? 600 : 400 }}>
@@ -192,7 +193,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
       <div>
         {/* Carte solde — style carte bancaire, motif décoratif discret */}
         <div className="relative overflow-hidden rounded-2xl p-6 mb-5 text-white"
-          style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 12px 30px ${BLUE}40` }}>
+          style={{ background: `linear-gradient(135deg, ${DARK_BLUE}, ${BLUE})`, boxShadow: `0 12px 30px ${withAlpha(BLUE, '40')}` }}>
           <div className="absolute rounded-full pointer-events-none" style={{ width: 220, height: 220, top: -110, right: -60, background: 'rgba(255,255,255,0.06)' }} />
           <div className="absolute rounded-full pointer-events-none" style={{ width: 140, height: 140, bottom: -70, right: 40, background: 'rgba(255,255,255,0.05)' }} />
           <div className="relative flex items-center justify-between mb-6">
@@ -241,9 +242,9 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
             <p className="font-bold text-[#F0EDE8] mb-3">Retraits en cours</p>
             {retraitsEnCours.map(r => {
               const approuve = r.statut === 'approuve'
-              const color = approuve ? '#B45309' : '#8A9BB5'
+              const color = approuve ? 'var(--c-amber-dark)' : '#8A9BB5'
               return (
-                <div key={r.id} className="flex items-center gap-3 p-3.5 rounded-xl mb-2" style={{ background: '#112440', border: `1px solid ${color}40` }}>
+                <div key={r.id} className="flex items-center gap-3 p-3.5 rounded-xl mb-2" style={{ background: '#112440', border: `1px solid ${withAlpha(color, '40')}` }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className="w-5 h-5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-[#F0EDE8]">{Number(r.montant).toLocaleString('fr-FR')} FCFA</p>
@@ -274,17 +275,17 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
           const cat = categorieTransaction(t.description)
           return (
             <button key={t.id || i} onClick={() => setDetailTx(t)} className="w-full flex items-center gap-3 p-3.5 card-navy rounded-xl mb-2 text-left hover:shadow-sm transition-shadow">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(cat.color, '18') }}>
                 <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-[#F0EDE8] text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold" style={{ background: withAlpha(cat.color, '15'), color: cat.color }}>{cat.label}</span>
                   <span className="text-[10px] text-[#8A9BB5]">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                 </div>
               </div>
-              <p className="font-bold text-sm flex-shrink-0" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
+              <p className="font-bold text-sm flex-shrink-0" style={{ color: isCredit ? 'var(--c-success)' : 'var(--c-danger)' }}>
                 {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
               </p>
             </button>

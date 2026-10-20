@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { rolesApi } from '../../api/rolesApi'
 import { apiMessage } from '../../utils/apiMessage'
+import { withAlpha } from '../../utils/color'
 
 type RoleInfo = {
   key: string
@@ -100,7 +101,7 @@ export default function ManageRolesPage() {
     <div className="min-h-full flex flex-col bg-[#F4F6FA] dark:bg-[#0F0F14]">
       {/* Header */}
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-8 pb-6 md:pb-8"
-        style={{ background: 'linear-gradient(135deg,#1A1A2E,#4160F2)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: 'linear-gradient(135deg,#1A1A2E,var(--c-brand))', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
             style={{ background: 'rgba(255,255,255,0.12)' }}>
@@ -143,19 +144,19 @@ export default function ManageRolesPage() {
               return (
                 <div key={r.key} className="rounded-2xl overflow-hidden transition-shadow hover:shadow-md"
                   style={{
-                    background: '#fff',
+                    background: 'rgb(255,255,255)',
                     border: isActiveNow ? `1.5px solid ${r.color}` : '1px solid rgba(0,0,0,0.07)',
-                    boxShadow: isActiveNow ? `0 4px 16px ${r.color}25` : '0 1px 3px rgba(0,0,0,0.03)',
+                    boxShadow: isActiveNow ? `0 4px 16px ${withAlpha(r.color, '25')}` : '0 1px 3px rgba(0,0,0,0.03)',
                   }}>
                   <div className="p-4 flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: isDisponible ? 'rgba(0,0,0,0.05)' : r.color, color: isDisponible ? '#8A93A3' : '#fff' }}>
+                    <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: isDisponible ? 'rgba(0,0,0,0.05)' : r.color, color: isDisponible ? '#8A93A3' : 'rgb(255,255,255)' }}>
                       {r.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-bold text-text-dark text-sm">{r.label}</p>
                         {statusLabel && (
-                          <span className="text-micro font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.color : r.bg, color: isActiveNow ? '#fff' : r.color }}>
+                          <span className="text-micro font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.color : r.bg, color: isActiveNow ? 'rgb(255,255,255)' : r.color }}>
                             {statusLabel}
                           </span>
                         )}
@@ -192,7 +193,7 @@ export default function ManageRolesPage() {
                         {!isPrincipal && (
                           confirmDesactiver === r.key ? (
                             <div className="flex items-center gap-1.5">
-                              <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white disabled:opacity-50" style={{ background: '#DC2626' }}>
+                              <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white disabled:opacity-50" style={{ background: 'var(--c-danger)' }}>
                                 {busy ? '…' : 'Confirmer'}
                               </button>
                               <button onClick={() => setConfirmDesactiver(null)} className="py-2 px-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: '#E5E7EB', color: '#6B7280', background: 'transparent' }}>✕</button>

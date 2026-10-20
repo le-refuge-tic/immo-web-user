@@ -9,19 +9,20 @@ import { IcHome, IcClock, IcWallet, IcPlus, IcShield, IcShare, BLUE, bienLabel, 
 import { ContratDetailModal } from './ContratDetailModal'
 import { onActivateKey } from '../../../utils/keyboard'
 import type { BienGestion, Contrat, ContratResume, Loyer, LoyersDashboard, LoyersStats } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
 
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
 // Statut d'un loyer — couvre les 4 valeurs réelles du backend (`en_attente`,
 // `en_retard`, `paye`, `impaye`). `impaye` correspond à un loyer escaladé à
 // l'administration (`escalade_admin`) : distingué du simple retard.
 export function loyerStatut(s: string): { label: string; color: string } {
-  if (s === 'paye')      return { label: 'Payé',       color: '#4CAF50' }
+  if (s === 'paye')      return { label: 'Payé',       color: 'var(--c-green-material)' }
   if (s === 'en_retard') return { label: 'En retard',  color: '#F44336' }
   if (s === 'impaye')    return { label: 'Impayé',     color: '#C62828' }
   return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 export const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
-  actif:   { label: 'Actif',   color: '#4CAF50' },
+  actif:   { label: 'Actif',   color: 'var(--c-green-material)' },
   resilie: { label: 'Résilié', color: 'var(--p-muted)' },
   expire:  { label: 'Expiré',  color: '#F44336' },
 }
@@ -137,7 +138,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
             { label: 'TOTAL PERÇU', value: `${Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} F`, color: BLUE,      icon: <IcWallet /> },
             { label: 'CE MOIS',     value: `${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`,  color: 'var(--tx-green)', icon: <IcPayments /> },
             { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: 'var(--tx-amber)', icon: <IcClock /> },
-            { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? '#DC2626' : '#16A34A', icon: <IcShield /> },
+            { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? 'var(--c-danger)' : 'var(--c-success-bright)', icon: <IcShield /> },
           ] as { label: string; value: string; color: string; icon: React.ReactNode }[]
           return (
             <div className="rounded-2xl overflow-hidden mb-3"
@@ -151,7 +152,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                       borderTop: i >= 2 ? '1px solid var(--p-border)' : undefined,
                     }}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: k.color + '14', color: k.color }}>{k.icon}</div>
+                      style={{ background: withAlpha(k.color, '14'), color: k.color }}>{k.icon}</div>
                     <div className="min-w-0">
                       <p className="text-[9px] font-bold uppercase tracking-widest leading-none mb-1" style={{ color: 'var(--p-muted)' }}>{k.label}</p>
                       <p className="text-[16px] font-black leading-none truncate" style={{ color: k.color }}>{k.value}</p>
@@ -165,7 +166,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                   <div key={k.label} className="flex-1 flex items-center gap-2.5 px-2 py-6"
                     style={{ borderLeft: i > 0 ? '1px solid var(--p-border)' : 'none' }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: k.color + '14', color: k.color }}>{k.icon}</div>
+                      style={{ background: withAlpha(k.color, '14'), color: k.color }}>{k.icon}</div>
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5" style={{ color: 'var(--p-muted)' }}>{k.label}</p>
                       <p className="text-[23px] font-black leading-none truncate" style={{ color: k.color }}>{k.value}</p>
@@ -183,7 +184,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
             <button key={f.key} onClick={() => setFilter(f.key)}
               className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all"
               style={filter === f.key
-                ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                ? { background: BLUE, color: 'rgb(255,255,255)', borderColor: BLUE, boxShadow: `0 4px 12px ${withAlpha(BLUE, '35')}` }
                 : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
               {f.label}
             </button>
@@ -218,7 +219,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
             ) : biensGestion.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
-                  style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+                  style={{ background: withAlpha(BLUE, '12'), border: `1.5px solid ${withAlpha(BLUE, '25')}` }}>
                   <IcHome />
                 </div>
                 <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun bien en gestion</p>
@@ -244,12 +245,12 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                     </div>
 
                     {b.locataire ? (
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl mt-2" style={{ background: '#16A34A12' }}>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl mt-2" style={{ background: 'rgba(22,163,74,0.071)' }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth={2.5} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                         <span className="text-xs font-bold truncate" style={{ color: 'var(--tx-green)' }}>Lié à {b.locataire.prenom} {b.locataire.nom}</span>
                       </div>
                     ) : (
-                      <div className="mt-2 px-3 py-2.5 rounded-xl" style={{ background: '#F59E0B12', border: '1px dashed #F59E0B55' }}>
+                      <div className="mt-2 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(245,158,11,0.071)', border: '1px dashed rgba(245,158,11,0.333)' }}>
                         <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--tx-amber)' }}>En attente de liaison</p>
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-mono font-bold text-sm tracking-wider" style={{ color: 'var(--p-text)' }}>{b.code_invitation || '—'}</span>
@@ -286,7 +287,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
         ) : sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
-              style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+              style={{ background: withAlpha(BLUE, '12'), border: `1.5px solid ${withAlpha(BLUE, '25')}` }}>
               <IcPayments />
             </div>
             <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun contrat</p>
@@ -304,7 +305,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                 const prochainStatut = c.prochain ? loyerStatut(c.prochain.statut) : null
                 const cover = c.bien?.photos?.find(p => p.is_cover) || c.bien?.photos?.[0]
                 const progressPct = c.totalCount > 0 ? Math.round((c.payesCount / c.totalCount) * 100) : 0
-                const alertColor = aJour ? '#16A34A' : prochainStatut!.color
+                const alertColor = aJour ? 'var(--c-success-bright)' : prochainStatut!.color
 
                 return (
                   <div key={c.id}
@@ -324,16 +325,16 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                         ? <img loading="lazy" src={cover.url} alt=""
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         : <div className="w-full h-full flex items-center justify-center"
-                            style={{ background: `linear-gradient(135deg, ${alertColor}14, ${BLUE}10)` }}>
+                            style={{ background: `linear-gradient(135deg, ${withAlpha(alertColor, '14')}, ${withAlpha(BLUE, '10')})` }}>
                             <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-4xl"
-                              style={{ background: alertColor + '20', color: alertColor }}>{initiale}</div>
+                              style={{ background: withAlpha(alertColor, '20'), color: alertColor }}>{initiale}</div>
                           </div>
                       }
                       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.62) 0%, transparent 52%)' }} />
 
                       {/* Statut contrat haut-gauche */}
                       <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-                        style={{ background: cStatut.color, boxShadow: `0 2px 8px ${cStatut.color}55` }}>
+                        style={{ background: cStatut.color, boxShadow: `0 2px 8px ${withAlpha(cStatut.color, '55')}` }}>
                         {cStatut.label}
                       </span>
 
@@ -359,7 +360,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                       {/* Statut du prochain loyer */}
                       {aJour ? (
                         <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-3"
-                          style={{ background: '#16A34A12' }}>
+                          style={{ background: 'rgba(22,163,74,0.071)' }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth={2.5} className="w-4 h-4 flex-shrink-0">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                           </svg>
@@ -367,7 +368,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                         </div>
                       ) : (
                         <div className="flex items-center justify-between px-3 py-2.5 rounded-xl mb-3"
-                          style={{ background: prochainStatut!.color + '12' }}>
+                          style={{ background: withAlpha(prochainStatut!.color, '12') }}>
                           <div className="min-w-0">
                             <p className="text-[10px] font-medium" style={{ color: 'var(--p-muted)' }}>Prochain dû</p>
                             <p className="text-xs font-bold truncate" style={{ color: 'var(--p-text)' }}>
@@ -376,7 +377,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                             </p>
                           </div>
                           <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                            style={{ background: prochainStatut!.color + '22', color: prochainStatut!.color }}>
+                            style={{ background: withAlpha(prochainStatut!.color, '22'), color: prochainStatut!.color }}>
                             {prochainStatut!.label}
                           </span>
                         </div>
@@ -386,7 +387,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--p-border)' }}>
                           <div className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${progressPct}%`, background: progressPct === 100 ? '#16A34A' : BLUE }} />
+                            style={{ width: `${progressPct}%`, background: progressPct === 100 ? 'var(--c-success-bright)' : BLUE }} />
                         </div>
                         <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: 'var(--p-muted)' }}>
                           {c.payesCount}/{c.totalCount}

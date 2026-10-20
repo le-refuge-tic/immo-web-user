@@ -51,7 +51,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
   const title = bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
   const prix = Number(bien.prix).toLocaleString('fr-FR')
-  const accentColor = isLocation ? '#4160F2' : '#C2410C'
+  const accentColor = isLocation ? 'var(--c-brand)' : '#C2410C'
   const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
   const hasPromo = prixPromoNum != null && prixPromoNum > 0 && prixPromoNum < Number(bien.prix)
   const prixPromo = hasPromo ? prixPromoNum!.toLocaleString('fr-FR') : null
@@ -69,10 +69,10 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
 
   const modBadge = isOwnBien ? (() => {
     const mod = bien.statut_moderation || 'en_attente'
-    if (mod === 'approuve')     return { label: 'Publié',       bg: '#15803D' }
-    if (mod === 'rejete')       return { label: 'Rejeté',       bg: '#DC2626' }
-    if (mod === 'conditionnel') return { label: 'Conditionnel', bg: '#B45309' }
-    return                               { label: 'En attente',  bg: '#B45309' }
+    if (mod === 'approuve')     return { label: 'Publié',       bg: 'var(--c-success)' }
+    if (mod === 'rejete')       return { label: 'Rejeté',       bg: 'var(--c-danger)' }
+    if (mod === 'conditionnel') return { label: 'Conditionnel', bg: 'var(--c-amber-dark)' }
+    return                               { label: 'En attente',  bg: 'var(--c-amber-dark)' }
   })() : null
 
   return (
@@ -108,7 +108,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <div className="sticky top-20">
             <div className="glass-card rounded-2xl p-6">
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className={`px-3 py-1.5 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-[#C2410C]'}`}>
+                <span className={`px-3 py-1.5 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-orange-700'}`}>
                   {isLocation ? 'À LOUER' : 'À VENDRE'}
                 </span>
                 <span className="px-3 py-1.5 rounded-full text-xs font-bold glass-btn text-text-dark">{typeLabel}</span>
@@ -126,11 +126,11 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
               <div className="mb-5">
                 {hasPromo && (
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
+                    <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: 'var(--c-danger)' }}>PROMO -{promoPct}%</span>
                     <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
                   </div>
                 )}
-                <p className="text-3xl font-bold" style={{ color: hasPromo ? '#DC2626' : accentColor }}>
+                <p className="text-3xl font-bold" style={{ color: hasPromo ? 'var(--c-danger)' : accentColor }}>
                   {hasPromo ? prixPromo : prix} <span className="text-base font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
                 </p>
               </div>
@@ -194,7 +194,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       <div className="lg:hidden px-4 md:px-8 py-5 md:py-8 space-y-4 md:max-w-2xl md:mx-auto">
         <div>
           <div className="flex flex-wrap gap-2 mb-3">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-[#C2410C]'}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-orange-700'}`}>
               {isLocation ? 'À LOUER' : 'À VENDRE'}
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-bold text-text-dark" style={{ background: 'rgba(0,0,0,0.05)' }}>{typeLabel}</span>
@@ -210,11 +210,11 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <h1 className="text-lg font-bold text-text-dark mb-1">{title}</h1>
           {hasPromo && (
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: '#DC2626' }}>PROMO -{promoPct}%</span>
+              <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: 'var(--c-danger)' }}>PROMO -{promoPct}%</span>
               <span className="text-sm text-text-grey line-through">{prix} FCFA</span>
             </div>
           )}
-          <p className="text-2xl font-bold" style={{ color: hasPromo ? '#DC2626' : accentColor }}>
+          <p className="text-2xl font-bold" style={{ color: hasPromo ? 'var(--c-danger)' : accentColor }}>
             {hasPromo ? prixPromo : prix} FCFA{isLocation && <span className="text-base font-medium text-text-grey">/mois</span>}
           </p>
         </div>

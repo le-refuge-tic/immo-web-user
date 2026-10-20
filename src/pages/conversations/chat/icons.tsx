@@ -1,7 +1,7 @@
 /* ── Statut lecture ── */
 export function MsgStatus({ status, isMe }: { status?: string; isMe: boolean }) {
   if (!isMe) return null
-  const color = status === 'read' ? '#4160F2' : 'rgba(255,255,255,0.55)'
+  const color = status === 'read' ? 'var(--c-brand)' : 'rgba(255,255,255,0.55)'
   if (status === 'sent') return (
     <svg width="11" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />

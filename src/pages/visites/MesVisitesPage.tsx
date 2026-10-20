@@ -156,9 +156,9 @@ export default function MesVisitesPage() {
           <div role="group" aria-label="Filtrer les visites" className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {TABS.map((t, i) => (
               <button key={t} type="button" aria-pressed={tab === i} onClick={() => setTab(i)}
-                className={`flex-shrink-0 px-3 md:px-6 pb-3 text-[13px] font-semibold transition-all relative whitespace-nowrap ${tab === i ? 'text-[#3A5AEE] dark:text-[#9DB0FF]' : 'text-[#6B7280] dark:text-[#5F6672]'}`}>
+                className={`flex-shrink-0 px-3 md:px-6 pb-3 text-[13px] font-semibold transition-all relative whitespace-nowrap ${tab === i ? 'text-primary dark:text-brand-soft' : 'text-gray-500 dark:text-[#5F6672]'}`}>
                 {t}
-                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#4160F2]" />}
+                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-brand" />}
               </button>
             ))}
           </div>

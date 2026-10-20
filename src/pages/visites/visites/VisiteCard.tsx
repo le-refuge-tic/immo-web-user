@@ -88,7 +88,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
             <span className="text-text-grey font-medium">{fmtDate(v.date_souhaitee)}</span>
           </div>
           <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(230,126,34,0.10)', border: '1px solid rgba(230,126,34,0.25)' }}>
-            <span className="font-semibold text-[#B45309] dark:text-[#FBBF24]">Le gestionnaire propose</span>
+            <span className="font-semibold text-amber-700 dark:text-amber-400">Le gestionnaire propose</span>
             <span className="font-bold text-text-dark">{fmtDate(v.date_contre_proposee)}</span>
           </div>
         </div>
@@ -111,12 +111,12 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-micro font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Infos visite</p>
+            <p className="text-micro font-semibold" style={{ color: 'var(--c-whatsapp)' }}>Visite dans 30 min — Infos visite</p>
             <p className="text-[13px] font-bold text-text-dark">{SUPPORT_VISITE_PHONE}</p>
           </div>
           <a href={`https://wa.me/${SUPPORT_VISITE_PHONE.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
             className="px-2.5 py-1.5 rounded-lg text-caption font-bold flex-shrink-0"
-            style={{ background: '#fff', border: '1.5px solid #25D366', color: '#25D366' }}>
+            style={{ background: 'rgb(255,255,255)', border: '1.5px solid var(--c-whatsapp)', color: 'var(--c-whatsapp)' }}>
             WhatsApp
           </a>
         </div>
@@ -192,7 +192,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
         <button
           onClick={() => onPayIntegration(bien?.id)}
           className="w-full py-2.5 rounded-xl text-xs font-bold text-white mb-3"
-          style={{ background: '#4160F2' }}
+          style={{ background: 'var(--c-brand)' }}
         >
           Payer l'intégration
         </button>
@@ -206,21 +206,21 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
             {/* Ordre mobile : action destructive à gauche, action principale à droite */}
             <button
               onClick={() => onRefuserCP(v)}
-              className="px-3 py-2.5 rounded-xl text-xs font-bold text-[#DC2626] dark:text-[#F87171]"
+              className="px-3 py-2.5 rounded-xl text-xs font-bold text-red-600 dark:text-red-400"
               style={{ border: '1.5px solid rgba(239,68,68,0.4)' }}
             >
               Refuser
             </button>
             <button
               onClick={() => setReproposing(true)}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary/10 text-[#3A5AEE] dark:text-[#9DB0FF]"
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary/10 text-primary dark:text-brand-soft"
             >
               Autre date
             </button>
             <button
               onClick={() => onAccepterCP(v.id)}
               className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white"
-              style={{ background: '#3A5AEE' }}
+              style={{ background: 'var(--c-primary)' }}
             >
               Accepter
             </button>
@@ -302,7 +302,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
               Annuler
             </button>
             <button onClick={handleSubmitRepro} disabled={!newDate || !newTime || submittingRepro}
-              className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4160F2' }}>
+              className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: 'var(--c-brand)' }}>
               {submittingRepro ? 'Envoi…' : 'Envoyer'}
             </button>
           </div>

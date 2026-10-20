@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Reveal from '../../../components/Reveal'
 import type { Tokens } from './tokens'
+import { withAlpha } from '../../../utils/color'
 
 /** Arguments de vente de la plateforme (desktop uniquement). */
 export default function ServicesSection({ tk }: { tk: Tokens }) {
@@ -18,7 +19,7 @@ export default function ServicesSection({ tk }: { tk: Tokens }) {
         </span>
         <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-4" style={{ color: tk.textPrimary }}>
           L'immobilier au Bénin,<br />
-          <span style={{ background: 'linear-gradient(135deg,#4160F2,#7B4BFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <span style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             sans mauvaises surprises.
           </span>
         </h2>
@@ -39,7 +40,7 @@ export default function ServicesSection({ tk }: { tk: Tokens }) {
           <Reveal key={s.title} animation="anim-fade-up" delay={i * 70}>
             <div
               className="service-card rounded-3xl p-6 h-full flex flex-col gap-4 cursor-default transition-all duration-200"
-              style={{ outline: hoveredServiceIdx === i ? `1.5px solid ${s.color}44` : 'none', transform: hoveredServiceIdx === i ? 'translateY(-6px)' : 'none' }}
+              style={{ outline: hoveredServiceIdx === i ? `1.5px solid ${withAlpha(s.color, '44')}` : 'none', transform: hoveredServiceIdx === i ? 'translateY(-6px)' : 'none' }}
               onMouseEnter={() => setHoveredServiceIdx(i)}
               onMouseLeave={() => setHoveredServiceIdx(null)}
             >

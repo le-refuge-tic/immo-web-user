@@ -11,6 +11,7 @@ import ActiviteTab from './tabs/ActiviteTab'
 import AlertesTab from './tabs/AlertesTab'
 import ProfilTab from './tabs/ProfilTab'
 import Sidebar from './tabs/Sidebar'
+import { withAlpha } from '../../utils/color'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function LocataireDashboard() {
@@ -54,7 +55,7 @@ export default function LocataireDashboard() {
           {tab === 'activite' && <ActiviteTab />}
           {tab === 'messages' && (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: TEAL + '20' }}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: withAlpha(TEAL, '20') }}>
                 <IcChat />
               </div>
               <p className="font-bold text-text-dark mb-1">Messagerie</p>
@@ -76,7 +77,7 @@ export default function LocataireDashboard() {
                 <button key={t.key} onClick={() => t.key === 'messages' ? navigate('/conversations') : setTab(t.key)}
                   aria-current={active ? 'page' : undefined}
                   className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[56px] rounded-2xl transition-all ${active ? '' : 'text-black/55 dark:text-white/60'}`}
-                  style={active ? { background: GREEN + '18', color: GREEN } : {}}>
+                  style={active ? { background: withAlpha(GREEN, '18'), color: GREEN } : {}}>
                   <span>{t.icon(active)}</span>
                   {/* Libellé toujours visible : une icône seule n'est pas assez explicite */}
                   <span className={`text-micro ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>

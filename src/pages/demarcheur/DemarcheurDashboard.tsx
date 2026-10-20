@@ -19,6 +19,7 @@ import NotificationsTab from './tabs/NotificationsTab'
 import PortefeuilleTab from './tabs/PortefeuilleTab'
 import DelegationsRecuesTab from './tabs/DelegationsRecuesTab'
 import ProfilTab from './tabs/ProfilTab'
+import { withAlpha } from '../../utils/color'
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
@@ -91,7 +92,7 @@ export default function DemarcheurDashboard() {
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                style={active ? { background: PURPLE + '15', color: PURPLE } : { color: '#5F6B7A' }}>
+                style={active ? { background: withAlpha(PURPLE, '15'), color: PURPLE } : { color: '#5F6B7A' }}>
                 <span style={{ color: active ? PURPLE : '#5F6672' }}>{t.icon}</span>
                 {t.label}
               </button>
@@ -126,9 +127,9 @@ export default function DemarcheurDashboard() {
             {/* Cloche → onglet notifications interne à l'espace démarcheur */}
             <button onClick={() => setTab('notifications')} title="Notifications"
               className="relative w-10 h-10 rounded-full flex items-center justify-center border flex-shrink-0 transition-colors"
-              style={{ background: tab === 'notifications' ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)', color: '#fff' }}>
+              style={{ background: tab === 'notifications' ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)', color: 'rgb(255,255,255)' }}>
               <IcBell />
-              {unreadAlertes > 0 && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style={{ background: '#FF3B30', borderColor: MID_PURPLE }} />}
+              {unreadAlertes > 0 && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style={{ background: 'var(--c-red-ios)', borderColor: MID_PURPLE }} />}
             </button>
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border flex-shrink-0 xl:hidden"
               style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.25)' }}>
@@ -173,7 +174,7 @@ export default function DemarcheurDashboard() {
         <div className="xl:hidden absolute bottom-20 right-4 md:bottom-24 md:right-8 z-20">
           <button onClick={() => navigate('/nouveau-bien')}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full text-white font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
-            style={{ background: PURPLE, boxShadow: `0 4px 15px ${PURPLE}60` }}>
+            style={{ background: PURPLE, boxShadow: `0 4px 15px ${withAlpha(PURPLE, '60')}` }}>
             <IcPlus /> Nouveau bien
           </button>
         </div>
@@ -188,7 +189,7 @@ export default function DemarcheurDashboard() {
               return (
                 <button key={t.key} onClick={() => setTab(t.key)} aria-current={active ? 'page' : undefined}
                   className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${active ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
-                  style={active ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                  style={active ? { background: withAlpha(PURPLE, '18'), color: PURPLE } : {}}>
                   <span>{t.icon}</span>
                   <span className={`text-[10px] ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>
                 </button>
@@ -201,10 +202,10 @@ export default function DemarcheurDashboard() {
                   aria-current={moreActive ? 'page' : undefined}
                   aria-label={'Plus' + (unreadAlertes > 0 ? ', alertes non lues' : '')}
                   className={`relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${moreActive ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
-                  style={moreActive ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                  style={moreActive ? { background: withAlpha(PURPLE, '18'), color: PURPLE } : {}}>
                   <span className="relative">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-                    {unreadAlertes > 0 && <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+                    {unreadAlertes > 0 && <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
                   </span>
                   <span className={`text-[10px] ${moreActive ? 'font-bold' : 'font-semibold'}`}>{moreActive ? (TABS.find(t => t.key === tab)?.label ?? 'Plus') : 'Plus'}</span>
                 </button>
@@ -224,7 +225,7 @@ export default function DemarcheurDashboard() {
                 <li key={t.key}>
                   <button onClick={() => { setTab(t.key); setMoreOpen(false) }}
                     className={`w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold border border-divider dark:border-white/10 ${active ? '' : 'text-text-dark'}`}
-                    style={active ? { background: PURPLE + '18', color: PURPLE } : {}}>
+                    style={active ? { background: withAlpha(PURPLE, '18'), color: PURPLE } : {}}>
                     <span style={{ color: active ? PURPLE : undefined }} className={active ? '' : 'text-text-grey'}>{t.icon}</span>
                     {t.label}
                   </button>

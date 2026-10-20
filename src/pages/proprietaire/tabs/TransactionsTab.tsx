@@ -6,6 +6,7 @@ import { BLUE, fmtPrix } from './shared'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { onActivateKey } from '../../../utils/keyboard'
 import type { MouvementWallet } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
 
 // ─── Tab: Historique des transactions ──────────────────────────────────────────
 export function categorieTransaction(description: string | null | undefined): { label: string; color: string } {
@@ -43,21 +44,21 @@ export function TransactionDetailModal({ t, onClose }: { t: MouvementWallet; onC
         </div>
         <div className="p-5">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(cat.color, '18') }}>
               <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-bold text-[#F0EDE8] truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
-              <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
+              <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: withAlpha(cat.color, '15'), color: cat.color }}>{cat.label}</span>
             </div>
-            <p className="font-extrabold text-lg flex-shrink-0" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
+            <p className="font-extrabold text-lg flex-shrink-0" style={{ color: isCredit ? 'var(--c-success)' : 'var(--c-danger)' }}>
               {isCredit ? '+' : '-'}{Math.abs(montant).toLocaleString('fr-FR')} F
             </p>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-[#8A9BB5]">Statut</span>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ background: statut.color + '18', color: statut.color }}>{statut.label}</span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ background: withAlpha(statut.color, '18'), color: statut.color }}>{statut.label}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[#8A9BB5]">Date</span>
@@ -154,7 +155,7 @@ export function TransactionsTab() {
       {/* Cartes de synthèse */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#22C55E18' }}>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34,197,94,0.094)' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17 7 7 17M17 17H7V7" /></svg>
           </div>
           <div className="min-w-0">
@@ -163,7 +164,7 @@ export function TransactionsTab() {
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#EF444418' }}>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(239,68,68,0.094)' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h10v10M7 17 17 7" /></svg>
           </div>
           <div className="min-w-0">
@@ -172,7 +173,7 @@ export function TransactionsTab() {
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BLUE + '18' }}>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(BLUE, '18') }}>
             <span style={{ color: BLUE }}><IcTrendUp /></span>
           </div>
           <div className="min-w-0">
@@ -197,7 +198,7 @@ export function TransactionsTab() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         </span>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une transaction…"
-          className="w-full bg-[#112440] border border-[#1A3355] rounded-lg pl-8 pr-3 py-2 text-sm outline-none text-[#F0EDE8] placeholder:text-[#8A9BB5] focus:border-[#4160F2]" />
+          className="w-full bg-[#112440] border border-[#1A3355] rounded-lg pl-8 pr-3 py-2 text-sm outline-none text-[#F0EDE8] placeholder:text-[#8A9BB5] focus:border-brand" />
       </div>
 
       {/* Tableau */}
@@ -232,12 +233,12 @@ export function TransactionsTab() {
                       {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- faux positif : la cellule contient le libellé de la transaction (texte dynamique) */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cat.color + '18' }}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(cat.color, '18') }}>
                             <span style={{ color: cat.color }}>{isCredit ? <IcTrendUp /> : <IcTrendDown />}</span>
                           </div>
                           <div className="min-w-0">
                             <p className="font-semibold text-[#F0EDE8] text-sm truncate">{t.description || (isCredit ? 'Crédit' : 'Débit')}</p>
-                            <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: cat.color + '15', color: cat.color }}>{cat.label}</span>
+                            <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ background: withAlpha(cat.color, '15'), color: cat.color }}>{cat.label}</span>
                           </div>
                         </div>
                       </td>
@@ -245,7 +246,7 @@ export function TransactionsTab() {
                         <span className="font-mono text-xs text-[#8A9BB5]">{t.reference || '—'}</span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className="font-bold text-sm" style={{ color: isCredit ? '#15803D' : '#DC2626' }}>
+                        <span className="font-bold text-sm" style={{ color: isCredit ? 'var(--c-success)' : 'var(--c-danger)' }}>
                           {isCredit ? '+' : '-'}{Math.abs(montantOf(t)).toLocaleString('fr-FR')} F
                         </span>
                       </td>
@@ -253,7 +254,7 @@ export function TransactionsTab() {
                         <span className="text-xs text-[#8A9BB5]">{new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: statut.color + '18', color: statut.color }}>{statut.label}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: withAlpha(statut.color, '18'), color: statut.color }}>{statut.label}</span>
                       </td>
                     </tr>
                   )
