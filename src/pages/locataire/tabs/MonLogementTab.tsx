@@ -1,0 +1,345 @@
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { openPaymentUrl } from '../../../utils/paymentUrl'
+import { loyersApi } from '../../../api/loyersApi'
+import { paiementApi } from '../../../api/paiementApi'
+import { walletApi } from '../../../api/walletApi'
+import { chatApi } from '../../../api/chatApi'
+import { bienTypeLabel } from '../../../utils/bienType'
+import { formatMois } from '../../../utils/dateFormat'
+import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../../utils/phone'
+import { apiMessage } from '../../../utils/apiMessage'
+import { GREEN, TEAL, OPERATEURS } from '../shared'
+import { IcHome, IcCheck, IcPin } from '../icons'
+import OperateurChips from '../OperateurChips'
+import GestionnaireCard from './GestionnaireCard'
+
+// ─── Mon Logement ─────────────────────────────────────────────────────────────
+export default function MonLogementTab() {
+  const navigate = useNavigate()
+  const [data, setData]         = useState<any>(null)
+  const [loading, setLoading]   = useState(true)
+  const [selected, setSelected] = useState<number[]>([])
+  const [tel, setTel]           = useState('')
+  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay' | 'cotisation'>('momo')
+  const [cotisationSolde, setCotisationSolde] = useState(0)
+  const [paying, setPaying]     = useState(false)
+  const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
+  const [payMsg, setPayMsg]     = useState('')
+  const [payUrl, setPayUrl]     = useState('')
+  const [payProgress, setPayProgress] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const [logement, wallet] = await Promise.all([
+        loyersApi.monLogement(),
+        walletApi.me('cotisation').catch(() => null),
+      ])
+      setData(logement)
+      setCotisationSolde(Number(wallet?.balance || 0))
+    } catch {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
+
+  const loyers: any[] = data?.loyers_en_attente?.length ? data.loyers_en_attente : (data?.prochain_loyer ? [data.prochain_loyer] : [])
+  const historique: any[] = data?.historique_loyers || []
+  const contrat = data?.contrat
+  const bien    = data?.bien
+  const gestionnaire = data?.gestionnaire
+
+  const toggleLoyer = (id: number) =>
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+
+  const totalSelected = loyers.filter(l => selected.includes(l.id)).reduce((s: number, l: any) => s + Number(l.montant), 0)
+  const cotisationSuffisante = cotisationSolde >= totalSelected
+
+  const ouvrirChatGestionnaire = async () => {
+    if (!bien?.id) return
+    setChatLoading(true)
+    try {
+      const conv = await chatApi.creerConversation(bien.id)
+      navigate(`/conversations/${conv.id || conv.data?.id}`)
+    } catch {}
+    setChatLoading(false)
+  }
+
+  /** Attend la confirmation d'un paiement (polling), résout true si réussi. */
+  const attendreConfirmation = (refId: string, hasUrl: boolean): Promise<boolean> =>
+    new Promise(resolve => {
+      let attempts = 0
+      const maxAttempts = hasUrl ? 100 : 20
+      pollRef.current = setInterval(async () => {
+        attempts++
+        try {
+          const status = await paiementApi.statutLoyer(refId)
+          if (status.statut === 'reussi' || status.statut === 'success') {
+            clearInterval(pollRef.current!); resolve(true)
+          } else if (status.statut === 'echoue' || status.statut === 'failed') {
+            clearInterval(pollRef.current!); resolve(false)
+          }
+        } catch {}
+        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); resolve(false) }
+      }, 3000)
+    })
+
+  const payer = async () => {
+    if (selected.length === 0) return
+    if (operateur === 'cotisation') {
+      if (!cotisationSuffisante) return
+      setPaying(true); setPayState('waiting'); setPayMsg('')
+      try {
+        await paiementApi.payerLoyersAvecCotisation(selected)
+        setPayState('success'); setSelected([]); load()
+      } catch (e: any) {
+        setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
+      }
+      setPaying(false)
+      return
+    }
+
+    if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
+    setPaying(true)
+    setPayState('waiting')
+    try {
+      // Paie chaque loyer sélectionné l'un après l'autre (comme sur mobile) —
+      // le backend ne prend qu'un loyer_id par paiement, pas de lot possible
+      // en dehors du mode cotisation.
+      for (let i = 0; i < selected.length; i++) {
+        setPayProgress(selected.length > 1 ? `Paiement ${i + 1}/${selected.length}…` : '')
+        const res = await paiementApi.initierLoyer({ loyer_id: selected[i], methode_paiement: operateur, telephone_paiement: tel })
+        const refId = res.referenceId || res.reference_id
+        const hasUrl = !!(res as any).url_paiement
+        if (hasUrl) {
+          setPayUrl((res as any).url_paiement)
+          openPaymentUrl((res as any).url_paiement)
+        } else {
+          setPayUrl('')
+        }
+        const ok = await attendreConfirmation(refId, hasUrl)
+        if (!ok) {
+          setPayState('error'); setPayMsg(selected.length > 1 ? `Échec au paiement ${i + 1}/${selected.length}. Les précédents restent validés.` : 'Paiement échoué. Réessayez.')
+          setPaying(false)
+          load()
+          return
+        }
+      }
+      setPayProgress('')
+      setPayState('success'); setSelected([]); load()
+    } catch (e: any) {
+      setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
+    }
+    setPaying(false)
+  }
+
+  if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} /></div>
+
+  if (!contrat) return (
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: TEAL + '20' }}>
+        <IcHome />
+      </div>
+      <p className="font-bold text-text-dark text-lg mb-2">Aucun logement actif</p>
+      <p className="text-text-grey text-sm">Votre contrat de bail apparaîtra ici après intégration.</p>
+    </div>
+  )
+
+
+
+  return (
+    <div className="flex-1 overflow-y-auto pb-6 md:pb-12">
+      <div className="md:max-w-6xl md:mx-auto md:w-full md:px-8 md:pt-8 md:flex md:gap-6 md:items-start">
+        <div className="md:flex-1 md:min-w-0">
+          {/* Hero card */}
+          <div className="mx-4 mt-5 md:mx-0 md:mt-0 rounded-3xl p-5 md:p-7 text-white" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})`, boxShadow: `0 8px 24px ${GREEN}50` }}>
+            <p className="text-white/70 text-xs uppercase tracking-wider mb-1">Mon logement</p>
+            <p className="font-bold text-xl md:text-2xl mb-1">{bienTypeLabel(bien)}</p>
+            <div className="flex items-center gap-1.5 mb-4 text-white/80 text-sm">
+              <IcPin />
+              <span>{bien?.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}{bien?.localisation?.ville}</span>
+            </div>
+            <div className="grid grid-cols-4 gap-2 md:gap-3 md:max-w-xl">
+              {[
+                { label: 'Loyer/mois', value: `${Number(contrat.loyer_mensuel || 0).toLocaleString('fr-FR')}F` },
+                { label: 'Échéance', value: contrat.prochain_paiement ? new Date(contrat.prochain_paiement).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—' },
+                { label: 'Payés', value: `${data.mois_payes ?? 0}` },
+                { label: 'Dûs', value: `${data.mois_dus ?? 0}`, warn: (data.mois_dus ?? 0) > 0 },
+              ].map(s => (
+                <div key={s.label} className="rounded-xl px-2 py-2 md:py-3 text-center" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                  <p className="font-bold text-sm md:text-base leading-tight" style={{ color: s.warn ? '#FCD34D' : 'white' }}>{s.value}</p>
+                  <p className="text-micro md:text-xs mt-0.5 text-white/60">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Prépayé */}
+          {Number(contrat.loyer_prepaye_mois || 0) > 0 && (
+            <div className="mx-4 md:mx-0 mt-4 rounded-2xl p-4 flex items-center gap-3" style={{ background: TEAL + '12', border: `1px solid ${TEAL}30` }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: TEAL + '20', color: TEAL }}><IcCheck /></div>
+              <p className="text-sm font-semibold" style={{ color: TEAL }}>
+                {contrat.loyer_prepaye_mois} mois déjà prépayés à l'intégration — inclus avant votre première échéance.
+              </p>
+            </div>
+          )}
+
+          {/* Gestionnaire — mobile only, desktop copy lives in side column */}
+          {gestionnaire && (
+            <div className="mx-4 mt-4">
+              <GestionnaireCard gestionnaire={gestionnaire} chatLoading={chatLoading} onOpenChat={ouvrirChatGestionnaire} />
+            </div>
+          )}
+
+          {/* Loyers en attente */}
+          {loyers.length > 0 && (
+            <div className="mx-4 md:mx-0 mt-5">
+              <p className="font-bold text-text-dark mb-3">Loyers en attente ({loyers.length})</p>
+              <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
+                {loyers.map((l: any) => (
+                  <button key={l.id} onClick={() => toggleLoyer(l.id)}
+                    className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left"
+                    style={{ background: selected.includes(l.id) ? GREEN + '10' : 'rgba(255,255,255,0.8)', borderColor: selected.includes(l.id) ? GREEN : 'rgba(0,0,0,0.07)' }}>
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all`}
+                      style={{ borderColor: selected.includes(l.id) ? GREEN : '#D1D5DB', background: selected.includes(l.id) ? GREEN : 'transparent' }}>
+                      {selected.includes(l.id) && <span className="text-white"><IcCheck /></span>}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold text-text-dark text-sm">{formatMois(l.mois || l.date_echeance)}</p>
+                        {l.statut === 'en_retard' && (
+                          <span className="text-micro font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#EF444420', color: 'var(--tx-red)' }}>En retard</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-text-grey">Échéance : {new Date(l.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                    </div>
+                    <p className="font-bold text-text-dark text-sm flex-shrink-0">{Number(l.montant).toLocaleString('fr-FR')} F</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Paiement MoMo */}
+              {selected.length > 0 && (
+                <div className="mt-4 rounded-2xl p-4 md:max-w-md" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.08)' }}>
+                  {payState === 'success' ? (
+                    <div className="flex items-center gap-2 justify-center py-2">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: GREEN }}><IcCheck /></div>
+                      <p className="font-bold text-text-dark">Paiement confirmé !</p>
+                    </div>
+                  ) : payState === 'error' ? (
+                    <div className="text-center">
+                      <p className="text-red-500 text-sm mb-3">{payMsg}</p>
+                      <button onClick={() => setPayState('idle')} className="text-sm font-semibold text-primary">Réessayer</button>
+                    </div>
+                  ) : payState === 'waiting' ? (
+                    <div className="flex flex-col items-center gap-2 py-2">
+                      <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} />
+                      {payProgress && <p className="text-xs font-semibold" style={{ color: GREEN }}>{payProgress}</p>}
+                      {payUrl ? (
+                        <>
+                          <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
+                          <button onClick={() => openPaymentUrl(payUrl)}
+                            className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
+                            Rouvrir la page de paiement
+                          </button>
+                        </>
+                      ) : operateur === 'cotisation' ? (
+                        <p className="text-sm text-text-grey">Débit de votre cotisation…</p>
+                      ) : (
+                        <>
+                          <p className="text-sm text-text-grey">Confirmation du paiement MoMo…</p>
+                          <p className="text-xs text-text-grey">Validez la demande sur votre téléphone</p>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between mb-3">
+                        <p className="text-sm text-text-grey">{selected.length} loyer{selected.length > 1 ? 's' : ''}</p>
+                        <p className="font-bold text-text-dark">{totalSelected.toLocaleString('fr-FR')} FCFA</p>
+                      </div>
+                      <OperateurChips value={operateur} onChange={setOperateur} cotisationSolde={cotisationSolde} />
+                      {operateur === 'cotisation' ? (
+                        !cotisationSuffisante && (
+                          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--tx-red)' }}>
+                            Solde cotisation insuffisant ({cotisationSolde.toLocaleString('fr-FR')} F disponibles).
+                          </p>
+                        )
+                      ) : operateur !== 'fedapay' && (
+                        <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
+                          <span className="text-text-grey text-sm font-semibold">+229</span>
+                          <div className="w-px h-4 bg-divider" />
+                          <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
+                            placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
+                            className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
+                        </div>
+                      )}
+                      <button onClick={payer}
+                        disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
+                        className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
+                        style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
+                        {operateur === 'cotisation' ? 'Payer avec ma cotisation' : `Payer via ${OPERATEURS.find(o => o.id === operateur)?.label}`}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Historique */}
+          {historique.length > 0 && (
+            <div className="mx-4 md:mx-0 mt-5">
+              <p className="font-bold text-text-dark mb-3">Historique des paiements</p>
+              <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
+                {historique.map((h: any, i: number) => (
+                  <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#22C55E20' }}>
+                      <span style={{ color: GREEN }}><IcCheck /></span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-text-dark text-sm">{formatMois(h.mois || h.created_at)}</p>
+                      <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <p className="font-bold text-sm flex-shrink-0" style={{ color: GREEN }}>{Number(h.montant).toLocaleString('fr-FR')} F</p>
+                    {h.transaction_id && (
+                      <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)} className="text-xs font-bold flex-shrink-0" style={{ color: TEAL }}>Reçu</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {loyers.length === 0 && historique.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center px-6 md:mx-0 md:rounded-3xl md:mt-5" style={{ background: 'transparent' }}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: GREEN + '20' }}>
+                <span style={{ color: GREEN }}><IcCheck /></span>
+              </div>
+              <p className="font-bold text-text-dark mb-1">Tout est à jour !</p>
+              <p className="text-text-grey text-sm">Aucun loyer en attente.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Side column — desktop only */}
+        {gestionnaire && (
+          <div className="hidden md:block md:w-80 md:flex-shrink-0 md:sticky md:top-8 md:space-y-4">
+            <GestionnaireCard gestionnaire={gestionnaire} chatLoading={chatLoading} onOpenChat={ouvrirChatGestionnaire} desktop />
+            <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <p className="text-xs font-bold text-text-grey uppercase tracking-wider mb-3">Résumé</p>
+              <div className="space-y-2.5 text-sm">
+                <div className="flex justify-between"><span className="text-text-grey">Loyer mensuel</span><span className="font-bold text-text-dark">{Number(contrat.loyer_mensuel || 0).toLocaleString('fr-FR')} F</span></div>
+                <div className="flex justify-between"><span className="text-text-grey">Loyers payés</span><span className="font-bold text-text-dark">{data.mois_payes ?? 0}</span></div>
+                <div className="flex justify-between"><span className="text-text-grey">Loyers dûs</span><span className="font-bold" style={{ color: (data.mois_dus ?? 0) > 0 ? '#DC2626' : GREEN }}>{data.mois_dus ?? 0}</span></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
