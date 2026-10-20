@@ -1,5 +1,8 @@
 import axios from 'axios'
 import { BASE, auth } from './apiBase'
+import type { ListResponse } from '../types/api'
+import type { DelegationRecue } from '../types/demarcheur'
+import type { DelegationEmise } from '../types/proprietaire'
 
 export const delegationApi = {
   // Propriétaire : proposer une délégation à un démarcheur
@@ -13,7 +16,7 @@ export const delegationApi = {
 
   // Propriétaire : mes délégations émises
   emises: () =>
-    axios.get(`${BASE}/delegations/emises`, auth()).then(r => r.data),
+    axios.get<ListResponse<DelegationEmise>>(`${BASE}/delegations/emises`, auth()).then(r => r.data),
 
   // Propriétaire : révoquer une délégation active
   revoquer: (id: number, motif?: string) =>
@@ -21,7 +24,7 @@ export const delegationApi = {
 
   // Démarcheur : mes délégations reçues
   recues: () =>
-    axios.get(`${BASE}/delegations/recues`, auth()).then(r => r.data),
+    axios.get<ListResponse<DelegationRecue>>(`${BASE}/delegations/recues`, auth()).then(r => r.data),
 
   // Démarcheur : accepter ou refuser une délégation en attente
   repondre: (id: number, accepter: boolean, motif?: string) =>

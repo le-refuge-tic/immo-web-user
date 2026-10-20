@@ -1,14 +1,15 @@
 import BienCard from '../../../components/BienCard'
 import Reveal from '../../../components/Reveal'
+import type { Bien } from '../../../types/api'
 import type { Tokens } from './tokens'
 
 /* ══════════════════════════════════════════════════════════════
    ResultGrid
    ══════════════════════════════════════════════════════════════ */
 type ResultGridProps = {
-  biens: any[]; loading: boolean; favIds: Set<number>; isDark: boolean; tk: Tokens
+  biens: Bien[]; loading: boolean; favIds: Set<number>; isDark: boolean; tk: Tokens
   onFavToggle: (id: number, added: boolean) => void; cols: string
-  distanceFor?: (bien: any) => number | null
+  distanceFor?: (bien: Bien) => number | null
 }
 
 export default function ResultGrid({ biens, loading, favIds, onFavToggle, cols, distanceFor, isDark, tk }: ResultGridProps) {

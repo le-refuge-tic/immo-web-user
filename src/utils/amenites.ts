@@ -1,7 +1,9 @@
 // Labels lisibles pour les aménités d'un bien, miroir de la logique mobile
 // (immo_confort/lib/models/bien.dart → classe Amenites).
 
-function electriciteLabel(a: any): string | null {
+import type { Amenites } from '../types/amenites'
+
+function electriciteLabel(a: Amenites): string | null {
   switch (a.electricite ?? a.compteur_elec) {
     case 'sbee':
     case 'personnel':
@@ -16,7 +18,7 @@ function electriciteLabel(a: any): string | null {
   }
 }
 
-function eauLabel(a: any): string | null {
+function eauLabel(a: Amenites): string | null {
   switch (a.eau ?? a.compteur_eau) {
     case 'soneb':
       if (a.soneb_gestion === 'prix_m3' && a.prix_m3 != null) {
@@ -36,7 +38,7 @@ function eauLabel(a: any): string | null {
   }
 }
 
-function cuisineLabel(a: any): string | null {
+function cuisineLabel(a: Amenites): string | null {
   switch (a.type_cuisine) {
     case 'americaine': return 'Cuisine ouverte (américaine)'
     case 'couloir_balcon': return 'Cuisine couloir / balcon'
@@ -47,7 +49,7 @@ function cuisineLabel(a: any): string | null {
   }
 }
 
-function courLabel(a: any): string | null {
+function courLabel(a: Amenites): string | null {
   switch (a.type_cour) {
     case 'unique_entree': return 'Cour privée'
     case 'entree_personnelle': return 'Entrée personnelle'
@@ -60,7 +62,7 @@ function courLabel(a: any): string | null {
   }
 }
 
-function finitionLabel(a: any): string | null {
+function finitionLabel(a: Amenites): string | null {
   switch (a.finition) {
     case 'ordinaire': return 'Finition ordinaire'
     case 'semi_staffe': return 'Semi-staffé'
@@ -96,7 +98,7 @@ const POSITION_TERRAIN_LABELS: Record<string, string> = {
 export type InfoRow = { label: string; value: string }
 
 /** Section "Informations logement" */
-export function infosLogementRows(a: any): InfoRow[] {
+export function infosLogementRows(a: Amenites): InfoRow[] {
   const rows: InfoRow[] = []
 
   const elec = electriciteLabel(a)
@@ -138,7 +140,7 @@ export function infosLogementRows(a: any): InfoRow[] {
 }
 
 /** Section "Informations terrain" */
-export function infosTerrainRows(a: any): InfoRow[] {
+export function infosTerrainRows(a: Amenites): InfoRow[] {
   const rows: InfoRow[] = []
 
   if (a.document != null) {

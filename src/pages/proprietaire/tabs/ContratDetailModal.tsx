@@ -3,12 +3,13 @@ import { IcPayments } from './icons'
 import { BLUE, bienLabel, fmtPrix } from './shared'
 import { loyerStatut, CONTRAT_STATUT, moisLabel, dateLabel } from './LoyersTab'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
+import type { ContratResume } from '../../../types/proprietaire'
 
-export function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose: () => void }) {
+export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResume; onClose: () => void }) {
   const c = contrat
   const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)' }
   const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
-  const cover = c.bien?.photos?.find((p: any) => p.is_cover) || c.bien?.photos?.[0]
+  const cover = c.bien?.photos?.find(p => p.is_cover) || c.bien?.photos?.[0]
   const payesCount: number = c.payesCount ?? 0
   const totalCount: number = c.totalCount ?? 0
   const progressPct = totalCount > 0 ? Math.round((payesCount / totalCount) * 100) : 0
@@ -118,7 +119,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: any; onClose
               <p className="text-xs text-gray-500 py-8 text-center">Aucune échéance générée</p>
             ) : (
               <div className="divide-y" style={{ borderColor: '#E8EDFB' }}>
-                {[...c.loyersTries].reverse().map((l: any) => {
+                {[...c.loyersTries].reverse().map(l => {
                   const { label, color } = loyerStatut(l.statut)
                   return (
                     <div key={l.id} className="flex items-center gap-3 px-4 py-3">

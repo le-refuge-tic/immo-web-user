@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import type { Amenites } from '../../types/amenites'
+import type { Photo, Piece } from '../../types/api'
 import { infosLogementRows, infosTerrainRows, type InfoRow } from '../../utils/amenites'
 import EditBienModal from './EditBienModal'
 import ShareSheet from '../../components/ShareSheet'
@@ -42,8 +44,8 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
     </div>
   )
 
-  const photos: any[] = bien.photos || []
-  const allUrls = photos.map((p: any) => resolveUrl(p.url))
+  const photos: Photo[] = bien.photos || []
+  const allUrls = photos.map((p: Photo) => resolveUrl(p.url))
   const isLocation = bien.transaction === 'location'
   const typeLabel = bienTypeLabel(bien)
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
@@ -55,13 +57,13 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const prixPromo = hasPromo ? prixPromoNum!.toLocaleString('fr-FR') : null
   const promoPct = hasPromo ? Math.round((1 - prixPromoNum! / Number(bien.prix)) * 100) : 0
 
-  const am = bien.amenites
+  const am = bien.amenites as Amenites | null | undefined
   const voisinageLabels: string[] = am?.voisinage && Array.isArray(am.voisinage) ? am.voisinage : []
   const logementRows: InfoRow[] = am ? infosLogementRows(am) : []
   const terrainRows: InfoRow[] = am ? infosTerrainRows(am) : []
   const composition = buildComposition(bien)
 
-  const chambres = (bien.pieces || []).filter((p: any) => p.nom?.toLowerCase().includes('chambre')).length
+  const chambres = (bien.pieces || []).filter((p: Piece) => p.nom?.toLowerCase().includes('chambre')).length
   const superficie = bien.details_maison?.superficie || bien.details_terrain?.superficie || 0
   const nbConsultations = bien.nb_consultations ?? 0
 
@@ -261,7 +263,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
 
       {editing && (
         <EditBienModal bien={bien} onClose={() => setEditing(false)}
-          onSaved={updated => { setBien((prev: any) => ({ ...prev, ...updated })); setEditing(false) }} />
+          onSaved={updated => { setBien(prev => ({ ...prev, ...updated })); setEditing(false) }} />
       )}
 
       {shareOpen && <ShareSheet bien={bien} onClose={() => setShareOpen(false)} />}

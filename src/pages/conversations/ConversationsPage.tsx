@@ -5,6 +5,9 @@ import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { apiMessage } from '../../utils/apiMessage'
+import { asChatConversations, type ChatConversation, type ChatUser } from '../../types/chat-ui'
+
+type Interlocuteur = ChatUser | null | undefined
 
 const AVATAR_PALETTE = [
   'linear-gradient(135deg,#4160F2,#7B4BFF)',
@@ -15,9 +18,9 @@ const AVATAR_PALETTE = [
   'linear-gradient(135deg,#10B981,#3B82F6)',
 ]
 function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVATAR_PALETTE.length] }
-function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
-function initiale(o: any) { return (displayName(o)[0] || '?').toUpperCase() }
-function roleLabel(o: any) {
+function displayName(o: Interlocuteur) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
+function initiale(o: Interlocuteur) { return (displayName(o)[0] || '?').toUpperCase() }
+function roleLabel(o: Interlocuteur) {
   if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'
@@ -41,7 +44,7 @@ export default function ConversationsPage() {
   const match = useMatch('/conversations/:id')
   const activeId = match?.params?.id ? Number(match.params.id) : null
 
-  const [convs, setConvs] = useState<any[]>([])
+  const [convs, setConvs] = useState<ChatConversation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
@@ -51,14 +54,14 @@ export default function ConversationsPage() {
   useEffect(() => {
     setLoading(true); setError('')
     chatApi.conversations()
-      .then(d => setConvs(Array.isArray(d) ? d : d.data || []))
+      .then(d => setConvs(asChatConversations(Array.isArray(d) ? d : d.data || [])))
       .catch(e => setError(apiMessage(e) || 'Impossible de charger vos conversations.'))
       .finally(() => setLoading(false))
   }, [reloadKey])
 
-  const getOther = (c: any) => {
+  const getOther = (c: ChatConversation): ChatUser | null => {
     if (!user || !Array.isArray(c.participants)) return null
-    return c.participants.find((p: any) => p.id !== user.id) || c.participants[0] || null
+    return c.participants.find(p => p.id !== user.id) || c.participants[0] || null
   }
 
   const filtered = useMemo(() => {

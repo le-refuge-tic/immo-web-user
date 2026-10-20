@@ -66,7 +66,7 @@ export default function RechargementWalletPage() {
     rechargeEnCoursRef.current = true
     setState('loading'); setError('')
     try {
-      const res: any = await paiementApi.initierRechargementWallet({
+      const res = await paiementApi.initierRechargementWallet({
         wallet_type: type, montant: m, methode_paiement: op.methode,
         ...(op.needsPhone ? { telephone: normaliseBeninPhone(tel) } : {}),
       }, attempt.key())
@@ -82,7 +82,7 @@ export default function RechargementWalletPage() {
       if (!refId) { setState('error'); setError('Référence manquante'); return }
       setState('waiting')
       startPolling(refId)
-    } catch (e: any) {
+    } catch (e: unknown) {
       const conflit = readPaymentConflict(e)
       if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
         // Une recharge est déjà ouverte chez l'opérateur : on reprend son suivi sans la doubler.

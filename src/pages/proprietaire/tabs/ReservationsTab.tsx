@@ -7,11 +7,11 @@ import { IcRefresh } from './icons'
 import { IcPin, IcChat, BLUE, bienLabel, fmtPrix, statutVisite } from './shared'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ReservationDetailModal } from './ReservationDetailModal'
-import type { Visite } from '../../../types/api'
+import type { Bien, Visite } from '../../../types/api'
 import { suggestPush } from '../../../lib/push'
 import { onActivateKey } from '../../../utils/keyboard'
 
-export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: any[]; onScrolled?: (v: boolean) => void; onOpenMessages?: (convId: number, draftMessage?: string) => void }) {
+export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: Bien[]; onScrolled?: (v: boolean) => void; onOpenMessages?: (convId: number, draftMessage?: string) => void }) {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<Visite[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,7 +64,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
     try { await visitesApi.marquerEffectuee(id); load() } catch {}
   }
 
-  const ouvrirChat = async (v: any) => {
+  const ouvrirChat = async (v: Visite) => {
     const clientId = v.client?.id
     const bienId = v.bien?.id
     if (!clientId || !bienId) return
@@ -72,10 +72,10 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
     try {
       const convs = await chatApi.conversations()
       const list = Array.isArray(convs) ? convs : convs.data || []
-      const match = list.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === clientId))
+      const match = list.find(c => c.bien?.id === bienId && c.participants?.some(p => p.id === clientId))
       if (match) {
         const draftMessage = isEchouee(v)
-          ? `Bonjour, concernant votre visite du ${new Date(v.date_souhaitee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} qui ne s'est pas tenue, peut-on reprogrammer ?`
+          ? `Bonjour, concernant votre visite du ${new Date(v.date_souhaitee ?? '').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} qui ne s'est pas tenue, peut-on reprogrammer ?`
           : undefined
         if (onOpenMessages) onOpenMessages(match.id, draftMessage)
         else navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
@@ -214,8 +214,8 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                   ? new Date(dateRef).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
                   : ''
                 const peutConfirmer = (v.statut === 'en_attente' || v.statut === 'contre_proposee') && !echouee && !isDatePassee(v)
-                const bien = biens?.find((b: any) => b.id === v.bien?.id)
-                const cover = bien?.photos?.find((p: any) => p.is_cover) || bien?.photos?.[0]
+                const bien = biens?.find(b => b.id === v.bien?.id)
+                const cover = bien?.photos?.find(p => p.is_cover) || bien?.photos?.[0]
                 const accentColor = urgente ? '#DC2626' : sColor
 
                 return (

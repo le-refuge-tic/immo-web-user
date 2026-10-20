@@ -7,6 +7,8 @@ import { notificationsApi } from '../../../api/notificationsApi'
 import { useNotifications } from '../../../context/NotificationsContext'
 import { PURPLE, type Tab } from '../shared'
 import { IcHome, IcCal, IcBell, IcChat } from '../icons'
+import { unwrapList } from '../../../utils/unwrapList'
+import type { Notification } from '../../../types/api'
 
 /* Onglet notifications propre à l'espace démarcheur : n'affiche que les alertes
  * concernant ce rôle (target_role = 'demarcheur'/'commercial', ou null pour les
@@ -44,14 +46,14 @@ export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) =>
   const { user, activeRole } = useAuth()
   const navigate = useNavigate()
   const { refresh: refreshCounts, markAlertesRead } = useNotifications()
-  const [notifs, setNotifs] = useState<any[]>([])
+  const [notifs, setNotifs] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
 
   useEffect(() => {
     setLoading(true)
     notificationsApi.list()
-      .then(d => setNotifs(Array.isArray(d) ? d : d.data || []))
+      .then(d => setNotifs(unwrapList(d)))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -78,20 +80,20 @@ export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) =>
     if (!user) return false
     try {
       const [vd, cd] = await Promise.all([visitesApi.mesVisites(), chatApi.conversations()])
-      const visites = Array.isArray(vd) ? vd : vd.data || []
-      const visite = visites.find((v: any) => v.id === visiteId)
+      const visites = unwrapList(vd)
+      const visite = visites.find(v => v.id === visiteId)
       const bienId = visite?.bien?.id
       const otherId = visite?.client?.id === user.id ? visite?.gestionnaire?.id : visite?.client?.id
       if (!bienId || !otherId) return false
-      const convs = Array.isArray(cd) ? cd : cd.data || []
-      const match = convs.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === otherId))
+      const convs = unwrapList(cd)
+      const match = convs.find(c => c.bien?.id === bienId && c.participants?.some(p => p.id === otherId))
       if (!match) return false
       navigate(`/conversations/${match.id}`)
       return true
     } catch { return false }
   }
 
-  const openNotif = async (n: any) => {
+  const openNotif = async (n: Notification) => {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
     if (n.type === 'nouveau_message' && meta.conversation_id) {

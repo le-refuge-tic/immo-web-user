@@ -53,7 +53,7 @@ export default function ManageRolesPage() {
       setActivating(null); setJustif('')
       setSuccess(`Rôle "${roleLabel(role)}" activé avec succès.`)
       setTimeout(() => setSuccess(''), 3000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || `Impossible d'activer ce rôle.`)
     } finally {
       setLoading(null)
@@ -71,7 +71,7 @@ export default function ManageRolesPage() {
       if (role === activeRole) setActiveRole(rolePrincipal)
       setSuccess(`Rôle "${roleLabel(role)}" désactivé.`)
       setTimeout(() => setSuccess(''), 3000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de désactiver ce rôle.')
       // Ne pas toucher activeRole en cas d'échec API
     } finally {

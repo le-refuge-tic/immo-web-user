@@ -1,10 +1,11 @@
 import BienCard from '../../../components/BienCard'
 import CarouselPauseToggle from '../../../components/CarouselPauseToggle'
 import type { CarouselAutoplay } from '../../../hooks/useCarouselAutoplay'
+import type { Bien } from '../../../types/api'
 import type { Tokens } from './tokens'
 
 interface RecentCarouselProps {
-  biens: any[]
+  biens: Bien[]
   carousel: CarouselAutoplay<HTMLDivElement>
   favIds: Set<number>
   onFavoriteToggle: (id: number, added: boolean) => void

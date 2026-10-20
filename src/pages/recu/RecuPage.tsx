@@ -5,6 +5,7 @@ import { paiementApi } from '../../api/paiementApi'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { bienTypeLabel } from '../../utils/bienType'
 import type { RecuSection } from '../../utils/recuPdf'
+import type { PartieRecu, Recu } from '../../types/recu'
 import { apiMessage } from '../../utils/apiMessage'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
@@ -69,7 +70,7 @@ export default function RecuPage() {
   usePageTitle('Reçu de paiement')
   const { type, refId } = useParams<{ type: string; refId: string }>()
   const navigate = useNavigate()
-  const [recu, setRecu] = useState<any>(null)
+  const [recu, setRecu] = useState<Recu | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
@@ -118,7 +119,7 @@ export default function RecuPage() {
   const dateVisite = recu.visite?.date_confirmee || recu.visite?.date_souhaitee
   const moisLoyerLabel = recu.loyer?.mois ? moisLabel(recu.loyer.mois) : null
   const operateur = operateurLabel(recu.methode_paiement)
-  const nomComplet = (p: any) => `${p?.prenom || ''} ${p?.nom || ''}`.trim()
+  const nomComplet = (p: PartieRecu | null | undefined) => `${p?.prenom || ''} ${p?.nom || ''}`.trim()
 
   const telecharger = async () => {
     setGenerating(true)

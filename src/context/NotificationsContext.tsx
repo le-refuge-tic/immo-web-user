@@ -66,7 +66,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const refreshMessages = useCallback(() => {
     chatApi.conversations().then(list => {
       const arr = Array.isArray(list) ? list : list.data || []
-      setUnreadMessages(arr.reduce((sum: number, c: any) => sum + (c.nonLus || 0), 0))
+      setUnreadMessages(arr.reduce((sum, c) => sum + (c.nonLus || 0), 0))
 
       // Détection nouveaux messages → bannière in-app
       const prev = unreadByConvRef.current
@@ -81,7 +81,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         const isActiveConv = path === `/conversations/${c.id}`
         if (gained > 0 && !isActiveConv) {
           const other = Array.isArray(c.participants)
-            ? c.participants.find((p: any) => p.id !== user?.id) || c.participants[0]
+            ? c.participants.find(p => p.id !== user?.id) || c.participants[0]
             : null
           const name = other?.prenom || other?.pseudonyme || other?.nom || 'Nouveau message'
           const preview = c.dernierMessage?.contenu === '__supprime__' ? 'Message supprimé' : (c.dernierMessage?.contenu || 'Vous avez reçu un message')

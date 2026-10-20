@@ -1,6 +1,11 @@
+import type { Visite } from '../../../types/api'
+
+/** Champs de date lus pour juger l'état d'une visite. */
+type VisiteDatee = Pick<Visite, 'statut' | 'date_contre_proposee' | 'date_souhaitee'>
+
 // Même règle que côté mobile : une visite non traitée (confirmée ou en attente
 // de réponse) est considérée "échouée" 2h après la date programmée.
-export function isEchoueeVisite(v: any): boolean {
+export function isEchoueeVisite(v: VisiteDatee): boolean {
   if (v.statut === 'echouee') return true
   if (v.statut === 'effectuee' || v.statut === 'annulee') return false
   const raw = v.date_contre_proposee || v.date_souhaitee
@@ -8,7 +13,7 @@ export function isEchoueeVisite(v: any): boolean {
   return Date.now() > new Date(raw).getTime() + 2 * 60 * 60 * 1000
 }
 
-export function isDatePasseeVisite(v: any): boolean {
+export function isDatePasseeVisite(v: Pick<Visite, 'date_contre_proposee' | 'date_souhaitee'>): boolean {
   const raw = v.date_contre_proposee || v.date_souhaitee
   if (!raw) return false
   return Date.now() > new Date(raw).getTime()

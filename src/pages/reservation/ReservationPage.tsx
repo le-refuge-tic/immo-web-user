@@ -12,6 +12,10 @@ import { suggestPush } from '../../lib/push'
 import { apiMessage } from '../../utils/apiMessage'
 import { fraisVisiteBien, libelleFraisVisite } from '../../utils/fraisVisite'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { Bien } from '../../types/api'
+
+/** Bien affiché : la photo de couverture peut aussi arriver à plat (`photo_couverture`). */
+type BienReservation = Bien & { photo_couverture?: string }
 
 /** Rôles autorisés par le backend à réserver une visite (POST /visites → CLIENTS). */
 const ROLES_RESERVATION = ['prospect', 'locataire']
@@ -32,13 +36,13 @@ const SOUS_TYPE_LABELS: Record<string, string> = {
   boutique: 'Boutique / Local', terrain: 'Terrain',
 }
 /** Miroir de Bien.typeLabel (mobile) : privilégie le sous-type quand il existe. */
-function bienTypeLabel(bien: any): string {
+function bienTypeLabel(bien: Pick<Bien, 'type' | 'amenites'> | null | undefined): string {
   const sous = bien?.amenites?.sous_type
-  if (sous) {
-    if (sous === 'appartement') return bien.type === 'appart_meuble' ? 'Appartement meublé' : 'Appartement'
+  if (typeof sous === 'string' && sous) {
+    if (sous === 'appartement') return bien?.type === 'appart_meuble' ? 'Appartement meublé' : 'Appartement'
     return SOUS_TYPE_LABELS[sous] || sous
   }
-  return TYPE_LABELS[bien?.type] || bien?.type || 'Bien'
+  return (bien?.type && TYPE_LABELS[bien.type]) || bien?.type || 'Bien'
 }
 
 const TIME_SLOTS = [7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19]
@@ -88,7 +92,7 @@ export default function ReservationPage() {
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
 
-  const [bien, setBien] = useState<any>(null)
+  const [bien, setBien] = useState<BienReservation | null>(null)
   const [loadingBien, setLoadingBien] = useState(true)
   const [displayMonth, setDisplayMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selectedDate, setSelectedDate] = useState(tomorrow)
@@ -132,7 +136,7 @@ export default function ReservationPage() {
     try {
       await rolesApi.activer('prospect')
       updateUser({ roles_actifs: [...rolesActifs, 'prospect'] })
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || "Impossible d'activer le profil prospect. Réessayez.")
     } finally {
       setActivatingRole(false)
@@ -145,7 +149,7 @@ export default function ReservationPage() {
     try {
       const convData = await chatApi.creerConversation(Number(bienId))
       navigate(`/conversations/${convData.conversationId}`, { replace: true, state: { bienId, bienLabel: bien ? bienTypeLabel(bien) : '' } })
-    } catch (e: any) {
+    } catch (e: unknown) {
       setChatError(apiMessage(e) || "Impossible d'ouvrir la conversation pour le moment. Retrouvez-la plus tard depuis vos visites.")
       setOpeningChat(false)
     }
@@ -170,10 +174,10 @@ export default function ReservationPage() {
       suggestPush()
 
       setConfirmation({ dateLabel: dateTimeLabel() })
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Fallback si le 403 passe malgré le garde-fou (token pas encore à jour) :
       // message explicite au lieu du « Forbidden resource » brut du backend.
-      const msg = e?.response?.status === 403
+      const msg = (e as { response?: { status?: number } } | null)?.response?.status === 403
         ? 'Activez le profil prospect pour proposer une visite.'
         : (apiMessage(e) || 'Erreur lors de la réservation')
       setError(msg)

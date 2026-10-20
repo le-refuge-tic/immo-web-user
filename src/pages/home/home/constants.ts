@@ -8,11 +8,13 @@ export { HERO_IMG }
 
 export const HERO_SLIDES = [HERO_IMG, slide2, slide3, slide4, slide5]
 
+import type { BienLocalisable } from '../../../types/recherche'
+
 function norm(s: string) {
   return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 }
 
-export function matchLoc(bien: any, query: string) {
+export function matchLoc(bien: BienLocalisable, query: string) {
   if (!query) return true
   const q = norm(query)
   const fields = [
@@ -20,7 +22,7 @@ export function matchLoc(bien: any, query: string) {
     bien.localisation?.quartier,
     bien.localisation?.commune,
     bien.localisation?.adresse,
-  ].filter(Boolean).map((f: string) => norm(f))
+  ].filter((f): f is string => !!f).map(f => norm(f))
   return fields.some(f => f.includes(q))
 }
 

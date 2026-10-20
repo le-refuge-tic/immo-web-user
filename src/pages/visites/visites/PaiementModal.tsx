@@ -66,7 +66,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
           <>
             <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
             <p className="text-sm text-text-grey mb-4">
-              Montant : <span className="font-bold text-text-dark">{libelleFraisVisite(fraisVisiteAPayer(showPay))}</span>
+              Montant : <span className="font-bold text-text-dark">{libelleFraisVisite(showPay ? fraisVisiteAPayer(showPay) : 0)}</span>
             </p>
             {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
             <div className="flex gap-2 mb-4">

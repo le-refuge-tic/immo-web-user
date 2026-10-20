@@ -29,6 +29,8 @@ import { ProfilTab } from './tabs/ProfilTab'
 import CarouselPauseToggle from '../../components/CarouselPauseToggle'
 import { useCarouselAutoplay } from '../../hooks/useCarouselAutoplay'
 import { onActivateKey } from '../../utils/keyboard'
+import type { Bien, Visite } from '../../types/api'
+import type { LoyersDashboard, ProprioProfil } from '../../types/proprietaire'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -42,7 +44,9 @@ export default function ProprietaireDashboard() {
   const location = useLocation()
   // Le thème suit le réglage global (Profil > Paramètres > Apparence).
   const isDark = useTheme().theme === 'dark'
-  const fromDetail = !!(location.state as any)?.fromDetail
+  // `location.state` est typé `any` par react-router : on le déclare avec sa vraie forme.
+  const navState: { fromDetail?: boolean; tab?: Tab; convId?: number } | null = location.state
+  const fromDetail = !!navState?.fromDetail
   const [isScrolled, setIsScrolled] = useState(fromDetail)
   const [menuOpen, setMenuOpen] = useState(false)
   const tabMounted = useRef(false)
@@ -70,9 +74,9 @@ export default function ProprietaireDashboard() {
     setActiveRole(role)
     navigate(ROLE_ROUTES[role] || '/')
   }
-  const [tab, setTab] = useState<Tab>((location.state as any)?.tab ?? 'tableau')
+  const [tab, setTab] = useState<Tab>(navState?.tab ?? 'tableau')
   const [moreOpen, setMoreOpen] = useState(false)
-  const [messagesInitConvId, setMessagesInitConvId] = useState<number | null>((location.state as any)?.convId ?? null)
+  const [messagesInitConvId, setMessagesInitConvId] = useState<number | null>(navState?.convId ?? null)
   const [messagesInitDraft, setMessagesInitDraft] = useState<string | null>(null)
   const openTab = (t: Tab, convId?: number, draftMessage?: string) => {
     if (t === 'messages') {
@@ -100,13 +104,13 @@ export default function ProprietaireDashboard() {
     return () => cancelAnimationFrame(id)
   }, [fromDetail])
 
-  const [user, setUser] = useState<any>(null)
-  const [biens, setBiens] = useState<any[]>([])
+  const [user, setUser] = useState<ProprioProfil | null>(null)
+  const [biens, setBiens] = useState<Bien[]>([])
   const { ref: carousel2Ref, index: carousel2Idx, setIndex: setCarousel2Idx, paused: carousel2Paused, togglePause: toggleCarousel2, autoplayAvailable, containerProps: carousel2Props } =
     useCarouselAutoplay(Math.min(5, biens.length))
   const [loading, setLoading] = useState(true)
-  const [loyersDash, setLoyersDash] = useState<any>(null)
-  const [visites, setVisites] = useState<any[]>([])
+  const [loyersDash, setLoyersDash] = useState<LoyersDashboard | null>(null)
+  const [visites, setVisites] = useState<Visite[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [hoveredOverviewEl, setHoveredOverviewEl] = useState<string | null>(null)
@@ -158,9 +162,9 @@ export default function ProprietaireDashboard() {
 
   // Alerte loyers — réutilise les données déjà chargées (loyersDash), sans
   // appel réseau supplémentaire ; masquée si rien à signaler.
-  const loyersDashList = (loyersDash?.contrats || []).flatMap((c: any) => c.loyers || [])
-  const loyersEnRetardCount = loyersDash?.stats?.loyers_en_retard ?? loyersDashList.filter((l: any) => l.statut === 'en_retard').length
-  const loyersImpayesCount = loyersDashList.filter((l: any) => l.statut === 'impaye').length
+  const loyersDashList = (loyersDash?.contrats || []).flatMap(c => c.loyers || [])
+  const loyersEnRetardCount = loyersDash?.stats?.loyers_en_retard ?? loyersDashList.filter(l => l.statut === 'en_retard').length
+  const loyersImpayesCount = loyersDashList.filter(l => l.statut === 'impaye').length
 
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
@@ -514,7 +518,7 @@ export default function ProprietaireDashboard() {
                         const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
                         const loc = b.localisation
                         const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                        const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                        const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
                         const compo = bienComposition(b)
                         return (
                           <div

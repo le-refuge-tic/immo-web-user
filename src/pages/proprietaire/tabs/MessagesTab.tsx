@@ -4,7 +4,8 @@ import { chatApi } from '../../../api/chatApi'
 import ChatThread from '../../conversations/ChatThread'
 import { IcMessagesNav } from './icons'
 import { BLUE, MSG_AVATAR_COLORS, formatConvTime } from './shared'
-import type { Conversation } from '../../../types/api'
+import type { Conversation, User } from '../../../types/api'
+import type { MessageHit } from '../../../types/proprietaire'
 
 // ─── Tab: Messages ────────────────────────────────────────────────────────────
 // Reprend chatApi + ChatThread directement (au lieu de naviguer vers la page
@@ -19,7 +20,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
   // Résultats de recherche dans le CONTENU des messages (endpoint /chat/search,
   // équivalent de ConversationsScreen._doSearch côté mobile — jusqu'ici jamais
   // appelé côté web, qui ne filtrait que le nom du contact localement).
-  const [messageHits, setMessageHits] = useState<any[]>([])
+  const [messageHits, setMessageHits] = useState<MessageHit[]>([])
   const [searchingMsgs, setSearchingMsgs] = useState(false)
   const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
@@ -37,16 +38,16 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
     setSearchingMsgs(true)
     const t = setTimeout(() => {
       chatApi.search(q)
-        .then(d => setMessageHits(Array.isArray(d?.messages) ? d.messages : []))
+        .then(d => setMessageHits(Array.isArray(d?.messages) ? d.messages as MessageHit[] : []))
         .catch(() => setMessageHits([]))
         .finally(() => setSearchingMsgs(false))
     }, 350)
     return () => clearTimeout(t)
   }, [search])
 
-  const getOther = (conv: any) => {
+  const getOther = (conv: Conversation): User | null => {
     if (!user || !Array.isArray(conv.participants)) return null
-    return conv.participants.find((p: any) => p.id !== user.id) || conv.participants[0] || null
+    return conv.participants.find(p => p.id !== user.id) || conv.participants[0] || null
   }
 
   const filtered = (() => {
@@ -137,7 +138,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
               {searchingMsgs ? (
                 <p className="px-4 py-2 text-xs" style={{ color: 'var(--p-muted)' }}>Recherche…</p>
               ) : messageHits.map(hit => {
-                const other = hit.conversation?.participants?.find((p: any) => p.id !== user?.id) || hit.conversation?.participants?.[0]
+                const other = hit.conversation?.participants?.find(p => p.id !== user?.id) || hit.conversation?.participants?.[0]
                 const name = other?.prenom || other?.pseudonyme || other?.nom || 'Contact'
                 const initiale = (name[0] || '?').toUpperCase()
                 return (

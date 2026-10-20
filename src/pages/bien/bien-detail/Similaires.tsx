@@ -1,8 +1,9 @@
+import type { Bien, Photo } from '../../../types/api'
 import { resolveUrl } from './helpers'
 import { SectionTitle } from './DetailSections'
 
 interface SimilairesProps {
-  similaires: any[]
+  similaires: Bien[]
   onOpen: (bienId: number) => void
 }
 
@@ -13,7 +14,7 @@ export function SimilairesDesktop({ similaires, onOpen }: SimilairesProps) {
       <p className="font-bold text-text-dark text-sm mb-3">Biens à proximité</p>
       <div className="space-y-2.5">
         {similaires.map(b => {
-          const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+          const cover = b.photos?.find((p: Photo) => p.is_cover) || b.photos?.[0]
           return (
             <button key={b.id} onClick={() => onOpen(b.id)}
               className="w-full flex items-center gap-3 p-2.5 rounded-xl glass-card text-left hover:-translate-y-0.5 transition-transform">
@@ -43,7 +44,7 @@ export function SimilairesMobile({ similaires, onOpen }: SimilairesProps) {
         <SectionTitle title="Biens à proximité" />
         <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
           {similaires.map(b => {
-            const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+            const cover = b.photos?.find((p: Photo) => p.is_cover) || b.photos?.[0]
             return (
               <button key={b.id} onClick={() => onOpen(b.id)}
                 className="flex-shrink-0 w-40 text-left rounded-xl overflow-hidden card-soft">

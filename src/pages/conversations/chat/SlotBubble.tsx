@@ -1,16 +1,17 @@
 import { fmtSlot, timeLabel } from './helpers'
+import type { ChatMessage } from '../../../types/chat-ui'
 
 interface SlotBubbleProps {
-  m: any
+  m: ChatMessage
   userId: number | undefined
   isDark: boolean
   tp: string
   tm: string
   /** Identifiant du bien de la conversation (le bouton « Payer » n'apparaît que s'il existe). */
-  bienId: any
+  bienId: number | undefined
   isClientRole: boolean
   paying: boolean
-  onRepondre: (m: any, r: 'accepted' | 'declined' | 'countered') => void
+  onRepondre: (m: ChatMessage, r: 'accepted' | 'declined' | 'countered') => void
   onPayer: () => void
 }
 

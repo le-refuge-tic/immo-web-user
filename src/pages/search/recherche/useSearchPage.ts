@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { biensApi } from '../../../api/biensApi'
+import type { Bien } from '../../../types/api'
+import type { BienFavori } from '../../../types/recherche'
+import { biensApi, type BiensListParams } from '../../../api/biensApi'
 import { favoritesApi } from '../../../api/favoritesApi'
 import { useAuth } from '../../../context/AuthContext'
 import { useTheme } from '../../../context/ThemeContext'
@@ -54,7 +56,7 @@ export function useSearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
-  const [allBiens,    setAllBiens]    = useState<any[]>([])
+  const [allBiens,    setAllBiens]    = useState<Bien[]>([])
   const [total,       setTotal]       = useState(0)
   const [loadingMore, setLoadingMore] = useState(false)
   const [loadMoreError, setLoadMoreError] = useState(false)
@@ -62,7 +64,7 @@ export function useSearchPage() {
   const pageRef       = useRef(1)
   // Incrémenté à chaque nouvelle recherche : une réponse arrivée après coup est ignorée
   const generationRef = useRef(0)
-  const [wideBiens,   setWideBiens]   = useState<any[]>([])
+  const [wideBiens,   setWideBiens]   = useState<Bien[]>([])
   const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
   const [loading,     setLoading]     = useState(false)
   const [fetchError,  setFetchError]  = useState(false)
@@ -101,14 +103,14 @@ export function useSearchPage() {
     favoritesApi.list()
       .then(d => {
         const l = Array.isArray(d) ? d : d.data || []
-        setFavIds(new Set(l.map((f: any) => f.bien_id || f.id)))
+        setFavIds(new Set(l.map((f: BienFavori) => f.bien_id || f.id)))
       })
       .catch(() => {})
   }, [isLoggedIn])
 
-  const countPiece = (bien: any, nom: string) => (bien.pieces || []).filter((p: any) => p.nom === nom).length
+  const countPiece = (bien: Bien, nom: string) => (bien.pieces || []).filter(p => p.nom === nom).length
 
-  const nonLocationFilters = useCallback((biens: any[]) => {
+  const nonLocationFilters = useCallback((biens: Bien[]) => {
     let filtered = biens
     if (sousType) filtered = filtered.filter(b => b.amenites?.sous_type === sousType)
     if (chambresMin) filtered = filtered.filter(b => countPiece(b, 'Chambre') >= Number(chambresMin))
@@ -125,12 +127,12 @@ export function useSearchPage() {
     return filtered
   }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax])
 
-  const applySort = useCallback((biens: any[], q: string) => {
+  const applySort = useCallback((biens: Bien[], q: string) => {
     if (sortBy === 'prix_asc')  return [...biens].sort((a, b) => Number(a.prix) - Number(b.prix))
     if (sortBy === 'prix_desc') return [...biens].sort((a, b) => Number(b.prix) - Number(a.prix))
     if (!q) return biens
     const nq = norm(q)
-    const score = (b: any) => {
+    const score = (b: Bien) => {
       if (b.localisation?.quartier && norm(b.localisation.quartier).includes(nq)) return 2
       if (b.localisation?.ville && norm(b.localisation.ville).includes(nq)) return 1
       return 0
@@ -151,7 +153,7 @@ export function useSearchPage() {
     const wideBase = nonLocationFilters(wideBiens)
     const inBudget = base.filter(b => inBudgetRange(b, prixMin, prixMax))
 
-    let mainResults: any[] = [], environs: any[] = [], environsLabel = ''
+    let mainResults: Bien[] = [], environs: Bien[] = [], environsLabel = ''
     let isProximityFallback = false
     let quartierRecherche: string | undefined
     const environsDist = new Map<number, number>()
@@ -170,7 +172,7 @@ export function useSearchPage() {
         environs = applySort(restVille, '')
         environsLabel = `Autres biens à ${matchedQuartier.ville}`
       } else {
-        const withDist: { bien: any; km: number }[] = []
+        const withDist: { bien: Bien; km: number }[] = []
         for (const b of inBudget) {
           const bq = b.localisation?.quartier
           if (!bq) continue
@@ -198,14 +200,14 @@ export function useSearchPage() {
       )
     }
 
-    const shownIds       = new Set([...mainResults, ...environs].map((b: any) => b.id))
-    const widePool       = [...wideBase, ...base.filter(b => !wideBase.some((w: any) => w.id === b.id))]
+    const shownIds       = new Set([...mainResults, ...environs].map(b => b.id))
+    const widePool       = [...wideBase, ...base.filter(b => !wideBase.some(w => w.id === b.id))]
     const pool           = widePool.filter(b => !shownIds.has(b.id))
     const budgetSimilar  = (prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax)) : []
     const budgetSimilarIds = new Set(budgetSimilar.map(b => b.id))
     const autres         = pool.filter(b => !budgetSimilarIds.has(b.id))
 
-    const distFromQuartier = (b: any): number | null => {
+    const distFromQuartier = (b: Bien): number | null => {
       if (!matchedQuartier) return null
       const bq = b.localisation?.quartier
       if (!bq) return null
@@ -218,7 +220,7 @@ export function useSearchPage() {
   const results = search.mainResults
 
   const refCoords = !matchedQuartier && deferredQuery.trim().length >= 2 ? getQuartierCoords(deferredQuery.trim()) : null
-  const distanceFor = (bien: any): number | null => {
+  const distanceFor = (bien: Bien): number | null => {
     if (matchedQuartier) return search.distFromQuartier(bien)
     if (!refCoords) return null
     const q = bien.localisation?.quartier
@@ -228,7 +230,7 @@ export function useSearchPage() {
     return haversineKm(refCoords.lat, refCoords.lng, c.lat, c.lng)
   }
 
-  const fetchBiens = useCallback(async (params: any) => {
+  const fetchBiens = useCallback(async (params: BiensListParams) => {
     const generation = ++generationRef.current
     setLoading(true)
     setFetchError(false)
@@ -266,7 +268,7 @@ export function useSearchPage() {
       pageRef.current = next
       setAllBiens(prev => {
         const known = new Set(prev.map(b => b.id))
-        return [...prev, ...list.filter((b: any) => !known.has(b.id))]
+        return [...prev, ...list.filter(b => !known.has(b.id))]
       })
       if (!Array.isArray(data) && data.total !== undefined) setTotal(Number(data.total))
     } catch {
@@ -277,7 +279,7 @@ export function useSearchPage() {
   }, [loadingMore, loading])
 
   const buildParams = useCallback(() => {
-    const params: any = { limit: PAGE_SIZE }
+    const params: BiensListParams = { limit: PAGE_SIZE }
     if (transaction) params.transaction = transaction
     if (type)        params.type        = type
     // Filtrés par le serveur : le total et les pages restent justes (FE-D-005).

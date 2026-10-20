@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { biensApi } from '../../../api/biensApi'
 import { favoritesApi } from '../../../api/favoritesApi'
+import type { Bien } from '../../../types/api'
+import type { BienFavori } from '../../../types/recherche'
 
 /** Chargement des annonces (location + vente) et des favoris de l'utilisateur connecté. */
 export function useHomeListings(isLoggedIn: boolean) {
-  const [biens, setBiens] = useState<any[]>([])
+  const [biens, setBiens] = useState<Bien[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [favIds, setFavIds] = useState<Set<number>>(new Set())
@@ -30,7 +32,7 @@ export function useHomeListings(isLoggedIn: boolean) {
     try {
       const data = await favoritesApi.list()
       const list = Array.isArray(data) ? data : data.data || []
-      setFavIds(new Set(list.map((f: any) => f.bien_id || f.id)))
+      setFavIds(new Set(list.map((f: BienFavori) => f.bien_id || f.id)))
     } catch {}
   }
 

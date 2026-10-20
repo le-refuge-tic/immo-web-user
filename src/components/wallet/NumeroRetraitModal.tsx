@@ -25,7 +25,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
       const res = await walletApi.initierChangementNumeroRetrait(numero.trim(), motDePasse)
       setSessionToken(res.session_token)
       setStep('otp')
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de vérifier ces informations.')
     }
     setSubmitting(false)
@@ -37,7 +37,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
     try {
       await walletApi.confirmerChangementNumeroRetrait(sessionToken, otp.trim(), numero.trim())
       onSaved(numero.trim())
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || 'Code invalide ou expiré.')
     }
     setSubmitting(false)

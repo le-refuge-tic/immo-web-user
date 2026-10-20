@@ -44,7 +44,7 @@ export default function ResultHeader({ count, loading, hasFilters, reset, inline
           const active = sortBy === s.key
           return (
             <button key={s.key}
-              onClick={() => setSortBy(s.key as any)}
+              onClick={() => setSortBy(s.key)}
               className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all"
               style={active ? tk.pillActive : { color: tk.labelClr }}
               title={s.label}

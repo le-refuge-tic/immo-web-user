@@ -67,7 +67,7 @@ export function RolesTab() {
       setActivating(null); setJustif('')
       setSuccess(`Rôle « ${ROLES_META.find(r => r.key === role)?.label} » activé avec succès.`)
       setTimeout(() => setSuccess(''), 3000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || "Impossible d'activer ce rôle.")
     }
     setLoadingRole(null)
@@ -86,7 +86,7 @@ export function RolesTab() {
       }
       setSuccess('Rôle désactivé.')
       setTimeout(() => setSuccess(''), 3000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de désactiver ce rôle.')
     }
     setLoadingRole(null)

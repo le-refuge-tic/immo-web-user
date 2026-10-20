@@ -3,13 +3,14 @@ import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { chatApi } from '../../../api/chatApi'
 import { XIcon } from './icons'
 import type { ChatColors } from './helpers'
+import type { ChatMessage } from '../../../types/chat-ui'
 
 interface ComplaintModalProps {
-  msg: any
+  msg: ChatMessage
   convId: number
   colors: ChatColors
   onClose: () => void
-  onError: (e: any) => void
+  onError: (e: unknown) => void
 }
 
 /* Modal plainte (monté uniquement quand un message supprimé est ouvert : l'état repart à zéro à chaque ouverture) */

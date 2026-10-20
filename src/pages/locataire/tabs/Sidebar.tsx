@@ -1,11 +1,21 @@
 import { useState } from 'react'
+import type { NavigateFunction } from 'react-router-dom'
 import logoUrl from '../../../assets/REFUGE-LOGO.webp'
 import { GREEN } from '../shared'
 import { TABS } from '../tabsConfig'
 import { IcLogout } from '../icons'
+import type { Tab } from '../shared'
+
+interface SidebarProps {
+  tab: Tab
+  setTab: (tab: Tab) => void
+  user: { prenom?: string; nom?: string } | null
+  navigate: NavigateFunction
+  logout: () => void
+}
 
 // ─── Sidebar (desktop) ──────────────────────────────────────────────────────
-export default function Sidebar({ tab, setTab, user, navigate, logout }: any) {
+export default function Sidebar({ tab, setTab, user, navigate, logout }: SidebarProps) {
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const [hoveredBtn, setHoveredBtn] = useState<string | null>(null)
   return (

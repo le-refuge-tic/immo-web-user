@@ -75,19 +75,19 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
     try {
       const [vd, cd] = await Promise.all([visitesApi.mesVisites(), chatApi.conversations()])
       const visites = Array.isArray(vd) ? vd : vd.data || []
-      const visite = visites.find((v: any) => v.id === visiteId)
+      const visite = visites.find(v => v.id === visiteId)
       const bienId = visite?.bien?.id
       const otherId = visite?.client?.id === user.id ? visite?.gestionnaire?.id : visite?.client?.id
       if (!bienId || !otherId) return false
       const convs = Array.isArray(cd) ? cd : cd.data || []
-      const match = convs.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === otherId))
+      const match = convs.find(c => c.bien?.id === bienId && c.participants?.some(p => p.id === otherId))
       if (!match) return false
       onOpenTab('messages', match.id)
       return true
     } catch { return false }
   }
 
-  const openNotif = async (n: any) => {
+  const openNotif = async (n: Notification) => {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
     if (n.type === 'nouveau_message' && meta.conversation_id) {

@@ -1,4 +1,4 @@
-import type { Visite } from '../../../types/api'
+import type { MethodePaiement, Visite } from '../../../types/api'
 
 export const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.1)' },
@@ -10,7 +10,7 @@ export const STATUT_META: Record<string, { label: string; color: string; bg: str
   echouee:         { label: 'Échouée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
 }
 
-export const OPERATORS = [
+export const OPERATORS: { key: MethodePaiement; label: string }[] = [
   { key: 'momo',    label: 'MTN MoMo' },
   { key: 'fedapay', label: 'FedaPay'  },
 ]

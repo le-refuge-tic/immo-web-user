@@ -6,6 +6,7 @@ import { CATEGORIES, TYPES } from './constants'
 import { CAT_ICONS } from './catIcons'
 import { FilterIcon } from './icons'
 import MobileFilters from './MobileFilters'
+import type { Bien } from '../../../types/api'
 import type { Tokens } from './tokens'
 import type { HomeSearch } from './useHomeSearch'
 
@@ -13,7 +14,7 @@ interface ListingsSectionProps {
   s: HomeSearch
   isDark: boolean
   tk: Tokens
-  displayedBiens: any[]
+  displayedBiens: Bien[]
   loading: boolean
   loadError: boolean
   loadBiens: () => void

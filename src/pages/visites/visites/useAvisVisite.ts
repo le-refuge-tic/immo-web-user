@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { visitesApi } from '../../../api/visitesApi'
 import { apiMessage } from '../../../utils/apiMessage'
+import type { Visite } from '../../../types/api'
 
 // Avis après visite : état de la modale, validation et envoi.
 export function useAvisVisite({ loadVisites }: { loadVisites: () => void }) {
-  const [showFeedback, setShowFeedback] = useState<any>(null)
+  const [showFeedback, setShowFeedback] = useState<Visite | null>(null)
   const [feedbackNote, setFeedbackNote] = useState<number | null>(null)
   const [feedbackTags, setFeedbackTags] = useState<string[]>([])
   const [feedbackComment, setFeedbackComment] = useState('')
@@ -12,7 +13,7 @@ export function useAvisVisite({ loadVisites }: { loadVisites: () => void }) {
   const [feedbackError, setFeedbackError] = useState('')
   const [feedbackDone, setFeedbackDone] = useState(false)
 
-  const openFeedback = (v: any) => {
+  const openFeedback = (v: Visite) => {
     setShowFeedback(v)
     setFeedbackNote(null)
     setFeedbackTags([])
@@ -40,7 +41,7 @@ export function useAvisVisite({ loadVisites }: { loadVisites: () => void }) {
       })
       setFeedbackDone(true)
       loadVisites()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedbackError(apiMessage(err) || "Impossible d'envoyer l'avis")
     }
     setFeedbackSaving(false)

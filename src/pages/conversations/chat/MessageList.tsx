@@ -2,6 +2,7 @@ import type { RefObject } from 'react'
 import { dateSep, sameDay, timeLabel, type ChatColors } from './helpers'
 import { MsgStatus } from './icons'
 import { SlotBubble } from './SlotBubble'
+import type { ChatMessage } from '../../../types/chat-ui'
 
 interface MessageListProps {
   scrollRef: RefObject<HTMLDivElement | null>
@@ -10,19 +11,19 @@ interface MessageListProps {
   /** Clic dans la zone : ferme les menus ouverts. */
   onBackgroundClick: () => void
   loading: boolean
-  visible: any[]
+  visible: ChatMessage[]
   userId: number | undefined
   isDark: boolean
   colors: ChatColors
   menuId: number | null
   /** Ouvre (id + position) ou ferme (null) le menu contextuel d'un message. */
   onToggleMenu: (id: number | null, pos: { top: number; right: number } | null) => void
-  onComplain: (msg: any) => void
+  onComplain: (msg: ChatMessage) => void
   slot: {
-    bienId: any
+    bienId: number | undefined
     isClientRole: boolean
     paying: boolean
-    onRepondre: (m: any, r: 'accepted' | 'declined' | 'countered') => void
+    onRepondre: (m: ChatMessage, r: 'accepted' | 'declined' | 'countered') => void
     onPayer: () => void
   }
 }

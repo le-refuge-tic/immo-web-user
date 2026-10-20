@@ -33,7 +33,7 @@ export default function ProprietaireBienWrapper() {
   const location = useLocation()
   const { user, logout } = useAuth()
   const { unreadMessages, unreadAlertesEspace: unreadAlertes } = useNotifications()
-  const fromDashboard = !!(location.state as any)?.fromDashboard
+  const fromDashboard = !!(location.state as { fromDashboard?: boolean } | null)?.fromDashboard
   const [isScrolled, setIsScrolled] = useState(fromDashboard)
   const [menuOpen, setMenuOpen] = useState(false)
 

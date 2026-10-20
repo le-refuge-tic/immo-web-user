@@ -5,9 +5,10 @@ import { BLUE, fmtPrix } from './shared'
 
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { onActivateKey } from '../../../utils/keyboard'
+import type { MouvementWallet } from '../../../types/proprietaire'
 
 // ─── Tab: Historique des transactions ──────────────────────────────────────────
-export function categorieTransaction(description: string): { label: string; color: string } {
+export function categorieTransaction(description: string | null | undefined): { label: string; color: string } {
   const d = (description || '').toLowerCase()
   if (d.startsWith('loyer')) return { label: 'Loyer', color: BLUE }
   if (d.startsWith('frais de visite')) return { label: 'Visite', color: '#7B2FBE' }
@@ -27,7 +28,7 @@ function txStatutMeta(statut: string | null | undefined): { label: string; color
 }
 const METHODE_LABELS: Record<string, string> = { momo: 'MTN MoMo', flooz: 'Moov Flooz', celtiis: 'Celtiis Cash', fedapay: 'FedaPay' }
 
-export function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => void }) {
+export function TransactionDetailModal({ t, onClose }: { t: MouvementWallet; onClose: () => void }) {
   const isCredit = t.type !== 'retrait'
   const montant = Number(t.amount ?? t.montant ?? 0)
   const cat = categorieTransaction(t.description)
@@ -92,12 +93,12 @@ export function TransactionDetailModal({ t, onClose }: { t: any; onClose: () => 
 }
 
 export function TransactionsTab() {
-  const [transactions, setTransactions] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<MouvementWallet[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'tous' | 'credit' | 'debit'>('tous')
   const [catFilter, setCatFilter] = useState('Tous')
-  const [detailTx, setDetailTx] = useState<any>(null)
+  const [detailTx, setDetailTx] = useState<MouvementWallet | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -122,7 +123,7 @@ export function TransactionsTab() {
     return true
   })
 
-  const montantOf = (t: any) => Number(t.amount ?? t.montant ?? 0)
+  const montantOf = (t: MouvementWallet) => Number(t.amount ?? t.montant ?? 0)
   const totalIn = transactions.filter(t => t.type !== 'retrait').reduce((s, t) => s + montantOf(t), 0)
   const totalOut = transactions.filter(t => t.type === 'retrait').reduce((s, t) => s + Math.abs(montantOf(t)), 0)
   const largest = transactions.reduce((m, t) => Math.max(m, Math.abs(montantOf(t))), 0)

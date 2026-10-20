@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import type { Visite } from '../../../types/api'
 import { fmtVisiteDate } from './helpers'
 
 // ─── Barre d'action (bottom bar mobile fixe / panneau desktop) ─────────────
 export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibilite, visiteActive, visiteCancellee, visiteEchouee, onAnnuler, annulerBusy, onProposerVisite, onModifier, fraisVisite }: {
   isOwnBien: boolean; isOccupeLocal: boolean; togglingStatut: boolean; onToggleDisponibilite: () => void
-  fraisVisite?: number | null
-  visiteActive: any; visiteCancellee: any; visiteEchouee: any
+  fraisVisite?: number | string | null
+  visiteActive: Visite | null; visiteCancellee: Visite | null; visiteEchouee: Visite | null
   onAnnuler: () => void; annulerBusy: boolean
   onProposerVisite: () => void
   onModifier: () => void

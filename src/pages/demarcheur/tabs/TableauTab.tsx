@@ -2,6 +2,8 @@ import type { CompteursCommercial, PerfHebdoSemaine } from '../../../api/commerc
 import { bienTypeLabel } from '../../../utils/bienType'
 import { PURPLE, DARK_PURPLE, fmtPrix, fmtSemaine, statutBien, isCommercial, type Tab } from '../shared'
 import { IcHome, IcCal, IcShield, IcPin } from '../icons'
+import type { Bien } from '../../../types/api'
+import type { ProfilDemarcheur } from '../../../types/demarcheur'
 
 function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; color: string; label: string; onClick: () => void }) {
   return (
@@ -15,8 +17,8 @@ function QuickAction({ icon, color, label, onClick }: { icon: React.ReactNode; c
 }
 
 interface TableauTabProps {
-  me: any
-  biens: any[]
+  me: ProfilDemarcheur | null | undefined
+  biens: Bien[]
   loading: boolean
   score: number
   compteurs: CompteursCommercial | null

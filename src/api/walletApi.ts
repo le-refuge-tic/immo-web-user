@@ -1,5 +1,8 @@
 import axios from 'axios'
 import { BASE, auth } from './apiBase'
+import type { ListResponse } from '../types/api'
+import type { RetraitProprio } from '../types/proprietaire'
+import type { Wallet, WalletTransaction } from '../types/wallet'
 
 /** Type de wallet par défaut : c'est le seul réellement crédité par les paiements (loyers, frais de visite). */
 const TYPE_DEFAUT = 'revenus_locatifs'
@@ -7,21 +10,21 @@ const TYPE_DEFAUT = 'revenus_locatifs'
 export const walletApi = {
   /** Le wallet d'un type précis (par défaut : revenus_locatifs). Renvoie { balance, updated_at, ... }. */
   me: (type: string = TYPE_DEFAUT) =>
-    axios.get(`${BASE}/wallets/me/solde`, { ...auth(), params: { type } }).then(r => r.data),
+    axios.get<Wallet>(`${BASE}/wallets/me/solde`, { ...auth(), params: { type } }).then(r => r.data),
 
   /** Tous les wallets de l'utilisateur (array), tous types confondus. */
   mesWallets: () =>
-    axios.get(`${BASE}/wallets/me`, auth()).then(r => r.data),
+    axios.get<Wallet[]>(`${BASE}/wallets/me`, auth()).then(r => r.data),
 
   transactions: (type: string = TYPE_DEFAUT) =>
-    axios.get(`${BASE}/wallets/me/transactions`, { ...auth(), params: { type } }).then(r => r.data),
+    axios.get<ListResponse<WalletTransaction>>(`${BASE}/wallets/me/transactions`, { ...auth(), params: { type } }).then(r => r.data),
 
   /** Débite le wallet et crée une demande de retrait (payout FedaPay après validation admin). */
   demandeRetrait: (montant: number, walletType: string = TYPE_DEFAUT) =>
     axios.post(`${BASE}/retraits/me`, { montant, wallet_type: walletType }, auth()).then(r => r.data),
 
   mesRetraits: () =>
-    axios.get(`${BASE}/retraits/me`, auth()).then(r => r.data),
+    axios.get<ListResponse<RetraitProprio>>(`${BASE}/retraits/me`, auth()).then(r => r.data),
 
   /** Numéro Mobile Money utilisé pour les payouts de retrait (masqué). */
   numeroRetrait: () =>

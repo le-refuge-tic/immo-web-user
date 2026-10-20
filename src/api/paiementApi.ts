@@ -1,6 +1,9 @@
 import axios from 'axios'
 import { BASE, auth } from './apiBase'
 import { idempotencyHeader } from '../utils/paymentAttempt'
+import type { ListResponse } from '../types/api'
+import type { RechargementWalletResponse } from '../types/wallet'
+import type { HistoriquePaiement } from '../types/paiement'
 
 /** En-têtes d'une initiation de paiement : jeton + clé d'idempotence (FE-B-006). */
 const authIdempotent = (idempotencyKey: string) => {
@@ -51,7 +54,7 @@ export const paiementApi = {
 
   /** Recharge un wallet (cotisation/épargne) via Mobile Money ou FedaPay. */
   initierRechargementWallet: (body: { wallet_type: 'cotisation' | 'epargne'; montant: number; methode_paiement: MethodePaiement; telephone?: string }, idempotencyKey: string) =>
-    axios.post(`${BASE}/paiements/depot`, body, authIdempotent(idempotencyKey)).then(r => r.data),
+    axios.post(`${BASE}/paiements/depot`, body, authIdempotent(idempotencyKey)).then(r => r.data as RechargementWalletResponse),
 
   statutRechargement: (refId: string) =>
     axios.get(`${BASE}/paiements/depot/${refId}/statut`, auth()).then(r => r.data),
@@ -61,5 +64,5 @@ export const paiementApi = {
 
   /** Historique consolidé de toutes mes transactions (visites, loyers, intégration, virements). */
   historique: () =>
-    axios.get(`${BASE}/paiements/historique`, auth()).then(r => r.data),
+    axios.get<ListResponse<HistoriquePaiement>>(`${BASE}/paiements/historique`, auth()).then(r => r.data),
 }

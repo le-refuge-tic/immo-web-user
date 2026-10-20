@@ -8,6 +8,7 @@ import { IcHome, IcClock, IcWallet, IcPlus, IcShield, IcShare, BLUE, bienLabel, 
 
 import { ContratDetailModal } from './ContratDetailModal'
 import { onActivateKey } from '../../../utils/keyboard'
+import type { BienGestion, Contrat, ContratResume, Loyer, LoyersDashboard, LoyersStats } from '../../../types/proprietaire'
 
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
 // Statut d'un loyer — couvre les 4 valeurs réelles du backend (`en_attente`,
@@ -24,28 +25,28 @@ export const CONTRAT_STATUT: Record<string, { label: string; color: string }> = 
   resilie: { label: 'Résilié', color: 'var(--p-muted)' },
   expire:  { label: 'Expiré',  color: '#F44336' },
 }
-export function moisLabel(d: any) {
+export function moisLabel(d: string | number | Date | null | undefined) {
   if (!d) return '—'
   const date = new Date(d)
   if (isNaN(date.getTime())) return '—'
   const s = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
-export function dateLabel(d: any) {
+export function dateLabel(d: string | number | Date | null | undefined) {
   if (!d) return '—'
   const date = new Date(d)
   return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<LoyersDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'tous' | 'actif' | 'resilie' | 'expire' | 'gestion'>('tous')
-  const [detailContrat, setDetailContrat] = useState<any>(null)
+  const [detailContrat, setDetailContrat] = useState<ContratResume | null>(null)
   useEffect(() => { loyersApi.dashboard().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
 
   // ── Biens en gestion (sans annonce publique, liés par code d'invitation) ──
-  const [biensGestion, setBiensGestion] = useState<any[]>([])
+  const [biensGestion, setBiensGestion] = useState<BienGestion[]>([])
   const [loadingGestion, setLoadingGestion] = useState(false)
   const [gestionLoaded, setGestionLoaded] = useState(false)
   const [showAjoutGestion, setShowAjoutGestion] = useState(false)
@@ -63,7 +64,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
     if (filter === 'gestion' && !gestionLoaded) chargerGestion()
   }, [filter, gestionLoaded])
 
-  const partagerCode = (bien: any) => {
+  const partagerCode = (bien: BienGestion) => {
     const code = bien.code_invitation
     if (!code) return
     navigator.clipboard?.writeText(code).catch(() => {})
@@ -75,33 +76,33 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
     window.open(`https://wa.me/?text=${msg}`, '_blank')
   }
 
-  const regenererCode = async (bien: any) => {
+  const regenererCode = async (bien: BienGestion) => {
     try {
       const { code_invitation } = await biensApi.regenererCode(bien.id)
       setBiensGestion(prev => prev.map(b => b.id === bien.id ? { ...b, code_invitation } : b))
     } catch {}
   }
 
-  const stats = data?.stats || {}
-  const contrats: any[] = data?.contrats || []
-  const allLoyers: any[] = contrats.flatMap((c: any) => c.loyers || [])
+  const stats: Partial<LoyersStats> = data?.stats || {}
+  const contrats: Contrat[] = data?.contrats || []
+  const allLoyers: Loyer[] = contrats.flatMap(c => c.loyers || [])
   const enAttenteMontant = allLoyers.filter(l => l.statut === 'en_attente' || l.statut === 'en_retard').reduce((s, l) => s + Number(l.montant || 0), 0)
   const enRetardCount = stats.loyers_en_retard ?? allLoyers.filter(l => l.statut === 'en_retard').length
   const impayesCount = allLoyers.filter(l => l.statut === 'impaye').length
 
-  const contratsResume = contrats.map((c: any) => {
-    const loyersTries = [...(c.loyers || [])].sort((a: any, b: any) => new Date(a.date_echeance || a.mois || 0).getTime() - new Date(b.date_echeance || b.mois || 0).getTime())
-    const impayesOuAttente = loyersTries.filter((l: any) => l.statut !== 'paye')
+  const contratsResume: ContratResume[] = contrats.map(c => {
+    const loyersTries = [...(c.loyers || [])].sort((a, b) => new Date(a.date_echeance || a.mois || 0).getTime() - new Date(b.date_echeance || b.mois || 0).getTime())
+    const impayesOuAttente = loyersTries.filter(l => l.statut !== 'paye')
     const prochain = impayesOuAttente[0] || null
-    const payesCount = loyersTries.filter((l: any) => l.statut === 'paye').length
+    const payesCount = loyersTries.filter(l => l.statut === 'paye').length
     const totalCount = loyersTries.length
-    const enProblemeCount = loyersTries.filter((l: any) => l.statut === 'en_retard' || l.statut === 'impaye').length
+    const enProblemeCount = loyersTries.filter(l => l.statut === 'en_retard' || l.statut === 'impaye').length
     return { ...c, loyersTries, prochain, payesCount, totalCount, enProblemeCount }
   })
 
-  const filtered = filter === 'tous' ? contratsResume : contratsResume.filter((c: any) => c.statut === filter)
-  const sorted = [...filtered].sort((a: any, b: any) => {
-    const urg = (c: any) => c.prochain?.statut === 'impaye' ? 0 : c.prochain?.statut === 'en_retard' ? 1 : c.prochain ? 2 : 3
+  const filtered = filter === 'tous' ? contratsResume : contratsResume.filter(c => c.statut === filter)
+  const sorted = [...filtered].sort((a, b) => {
+    const urg = (c: ContratResume) => c.prochain?.statut === 'impaye' ? 0 : c.prochain?.statut === 'en_retard' ? 1 : c.prochain ? 2 : 3
     return urg(a) - urg(b)
   })
 
@@ -232,7 +233,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {biensGestion.map((b: any) => (
+                {biensGestion.map(b => (
                   <div key={b.id} className="rounded-2xl p-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
                     <div className="flex items-start justify-between mb-2">
                       <div className="min-w-0">
@@ -296,12 +297,12 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
         ) : (
           <AnimatedGroup preset="blur-slide" stagger={0.055}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-              {sorted.map((c: any) => {
+              {sorted.map(c => {
                 const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)' }
                 const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
                 const aJour = !c.prochain
                 const prochainStatut = c.prochain ? loyerStatut(c.prochain.statut) : null
-                const cover = c.bien?.photos?.find((p: any) => p.is_cover) || c.bien?.photos?.[0]
+                const cover = c.bien?.photos?.find(p => p.is_cover) || c.bien?.photos?.[0]
                 const progressPct = c.totalCount > 0 ? Math.round((c.payesCount / c.totalCount) * 100) : 0
                 const alertColor = aJour ? '#16A34A' : prochainStatut!.color
 
@@ -370,8 +371,8 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                           <div className="min-w-0">
                             <p className="text-[10px] font-medium" style={{ color: 'var(--p-muted)' }}>Prochain dû</p>
                             <p className="text-xs font-bold truncate" style={{ color: 'var(--p-text)' }}>
-                              {moisLabel(c.prochain.mois)}
-                              {c.prochain.jours_retard > 0 && <span className="font-bold ml-1.5" style={{ color: prochainStatut!.color }}>· {c.prochain.jours_retard} j</span>}
+                              {moisLabel(c.prochain?.mois)}
+                              {(c.prochain?.jours_retard ?? 0) > 0 && <span className="font-bold ml-1.5" style={{ color: prochainStatut!.color }}>· {c.prochain?.jours_retard} j</span>}
                             </p>
                           </div>
                           <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold"

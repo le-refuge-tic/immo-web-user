@@ -26,7 +26,7 @@ export default function OnboardingDestinationPage() {
   usePageTitle('Ma destination – Inscription')
   const navigate = useNavigate()
   const location = useLocation()
-  const objectif: string = (location.state as any)?.objectif || 'louer'
+  const objectif: string = (location.state as { objectif?: string } | null)?.objectif || 'louer'
 
   const [ville, setVille] = useState('')
   const [quartier, setQuartier] = useState('')

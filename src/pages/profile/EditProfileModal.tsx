@@ -50,7 +50,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
   if (!open) return null
 
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
-  const currentPhone: string = (user as any)?.telephone || ''
+  const currentPhone: string = user?.telephone || ''
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,7 +66,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       updateUser(data.user || data || { nom, prenom, email })
       setSuccess(true)
       setTimeout(onClose, 1000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || 'Erreur de mise à jour')
     }
     setLoading(false)
@@ -167,7 +167,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
               <VerifyPhoneSection
                 currentPhone={currentPhone}
                 onVerified={tel => {
-                  updateUser({ telephone: tel } as any)
+                  updateUser({ telephone: tel })
                   setEditingPhone(false)
                   setSuccess(true)
                 }}

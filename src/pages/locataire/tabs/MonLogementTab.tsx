@@ -13,15 +13,16 @@ import { GREEN, TEAL, OPERATEURS } from '../shared'
 import { IcHome, IcCheck, IcPin } from '../icons'
 import OperateurChips from '../OperateurChips'
 import GestionnaireCard from './GestionnaireCard'
+import type { InitiationLoyerReponse, Loyer, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 
 // ─── Mon Logement ─────────────────────────────────────────────────────────────
 export default function MonLogementTab() {
   const navigate = useNavigate()
-  const [data, setData]         = useState<any>(null)
+  const [data, setData]         = useState<MonLogement | null>(null)
   const [loading, setLoading]   = useState(true)
   const [selected, setSelected] = useState<number[]>([])
   const [tel, setTel]           = useState('')
-  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay' | 'cotisation'>('momo')
+  const [operateur, setOperateur] = useState<ModePaiementLoyer>('momo')
   const [cotisationSolde, setCotisationSolde] = useState(0)
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
@@ -46,8 +47,8 @@ export default function MonLogementTab() {
   useEffect(() => { load() }, [])
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
-  const loyers: any[] = data?.loyers_en_attente?.length ? data.loyers_en_attente : (data?.prochain_loyer ? [data.prochain_loyer] : [])
-  const historique: any[] = data?.historique_loyers || []
+  const loyers: Loyer[] = data?.loyers_en_attente?.length ? data.loyers_en_attente : (data?.prochain_loyer ? [data.prochain_loyer] : [])
+  const historique = data?.historique_loyers || []
   const contrat = data?.contrat
   const bien    = data?.bien
   const gestionnaire = data?.gestionnaire
@@ -55,7 +56,7 @@ export default function MonLogementTab() {
   const toggleLoyer = (id: number) =>
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
-  const totalSelected = loyers.filter(l => selected.includes(l.id)).reduce((s: number, l: any) => s + Number(l.montant), 0)
+  const totalSelected = loyers.filter(l => selected.includes(l.id)).reduce((s, l) => s + Number(l.montant), 0)
   const cotisationSuffisante = cotisationSolde >= totalSelected
 
   const ouvrirChatGestionnaire = async () => {
@@ -95,7 +96,7 @@ export default function MonLogementTab() {
       try {
         await paiementApi.payerLoyersAvecCotisation(selected)
         setPayState('success'); setSelected([]); load()
-      } catch (e: any) {
+      } catch (e: unknown) {
         setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
       }
       setPaying(false)
@@ -111,12 +112,12 @@ export default function MonLogementTab() {
       // en dehors du mode cotisation.
       for (let i = 0; i < selected.length; i++) {
         setPayProgress(selected.length > 1 ? `Paiement ${i + 1}/${selected.length}…` : '')
-        const res = await paiementApi.initierLoyer({ loyer_id: selected[i], methode_paiement: operateur, telephone_paiement: tel })
+        const res: InitiationLoyerReponse = await paiementApi.initierLoyer({ loyer_id: selected[i], methode_paiement: operateur, telephone_paiement: tel })
         const refId = res.referenceId || res.reference_id
-        const hasUrl = !!(res as any).url_paiement
-        if (hasUrl) {
-          setPayUrl((res as any).url_paiement)
-          openPaymentUrl((res as any).url_paiement)
+        const hasUrl = !!res.url_paiement
+        if (res.url_paiement) {
+          setPayUrl(res.url_paiement)
+          openPaymentUrl(res.url_paiement)
         } else {
           setPayUrl('')
         }
@@ -130,7 +131,7 @@ export default function MonLogementTab() {
       }
       setPayProgress('')
       setPayState('success'); setSelected([]); load()
-    } catch (e: any) {
+    } catch (e: unknown) {
       setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
     }
     setPaying(false)
@@ -199,7 +200,7 @@ export default function MonLogementTab() {
             <div className="mx-4 md:mx-0 mt-5">
               <p className="font-bold text-text-dark mb-3">Loyers en attente ({loyers.length})</p>
               <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
-                {loyers.map((l: any) => (
+                {loyers.map(l => (
                   <button key={l.id} onClick={() => toggleLoyer(l.id)}
                     className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left"
                     style={{ background: selected.includes(l.id) ? GREEN + '10' : 'rgba(255,255,255,0.8)', borderColor: selected.includes(l.id) ? GREEN : 'rgba(0,0,0,0.07)' }}>
@@ -295,7 +296,7 @@ export default function MonLogementTab() {
             <div className="mx-4 md:mx-0 mt-5">
               <p className="font-bold text-text-dark mb-3">Historique des paiements</p>
               <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
-                {historique.map((h: any, i: number) => (
+                {historique.map((h, i) => (
                   <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(0,0,0,0.06)' }}>
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#22C55E20' }}>
                       <span style={{ color: GREEN }}><IcCheck /></span>

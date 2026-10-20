@@ -1,6 +1,7 @@
 import { GREEN, OPERATEURS } from './shared'
+import type { ModePaiementLoyer } from '../../types/locataire'
 
-export default function OperateurChips({ value, onChange, cotisationSolde }: { value: string; onChange: (v: any) => void; cotisationSolde?: number }) {
+export default function OperateurChips({ value, onChange, cotisationSolde }: { value: string; onChange: (v: ModePaiementLoyer) => void; cotisationSolde?: number }) {
   return (
     <div className="flex gap-2 mb-3 flex-wrap">
       {cotisationSolde != null && cotisationSolde > 0 && (

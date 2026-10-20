@@ -18,7 +18,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
   const [filter, setFilter] = useState('Tous')
   const [search, setSearch] = useState('')
   const [sortByVues, setSortByVues] = useState(false)
-  const [editingBien, setEditingBien] = useState<any>(null)
+  const [editingBien, setEditingBien] = useState<Bien | null>(null)
   const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
   const [hoveredEl, setHoveredEl] = useState<string | null>(null)
   const { ref: carouselRef, index: carouselIdx, setIndex: setCarouselIdx, paused: carouselPaused, togglePause: toggleCarousel, autoplayAvailable, containerProps: carouselProps } =
@@ -85,7 +85,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                   const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
                   const loc = b.localisation
                   const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                  const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
                   const compo = bienComposition(b)
                   return (
                     <div
@@ -247,7 +247,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                   const { label, color } = statutBien(b.statut_moderation || 'en_attente')
                   const loc = b.localisation
                   const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                  const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
                   const nbPieces = Array.isArray(b.pieces) ? b.pieces.length : 0
                   const superficie = b.details_maison?.superficie ?? b.details_terrain?.superficie ?? null
                   const compo = bienComposition(b)

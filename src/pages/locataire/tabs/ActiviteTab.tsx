@@ -10,13 +10,14 @@ import { apiMessage } from '../../../utils/apiMessage'
 import { GREEN, TEAL, ORANGE } from '../shared'
 import { IcCheck, IcCal, IcMoney } from '../icons'
 import OperateurChips from '../OperateurChips'
+import type { InitiationLoyerReponse, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 
 export default function ActiviteTab() {
   const navigate = useNavigate()
-  const [data, setData]         = useState<any>(null)
+  const [data, setData]         = useState<MonLogement | null>(null)
   const [loading, setLoading]   = useState(true)
   const [tel, setTel]           = useState('')
-  const [operateur, setOperateur] = useState<'momo' | 'flooz' | 'celtiis' | 'fedapay' | 'cotisation'>('momo')
+  const [operateur, setOperateur] = useState<ModePaiementLoyer>('momo')
   const [cotisationSolde, setCotisationSolde] = useState(0)
   const [showPay, setShowPay]   = useState(false)
   const [paying, setPaying]     = useState(false)
@@ -50,7 +51,7 @@ export default function ActiviteTab() {
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   const prochainLoyer = data?.loyers_en_attente?.[0] || data?.prochain_loyer
-  const historique: any[] = data?.historique_loyers || []
+  const historique = data?.historique_loyers || []
   const contrat = data?.contrat
   const cotisationSuffisante = prochainLoyer ? cotisationSolde >= Number(prochainLoyer.montant) : false
 
@@ -72,7 +73,7 @@ export default function ActiviteTab() {
       try {
         await paiementApi.payerLoyersAvecCotisation([prochainLoyer.id])
         setPayState('success'); setShowPay(false); load()
-      } catch (e: any) {
+      } catch (e: unknown) {
         setPayState('error'); setPayMsg(apiMessage(e) || "Le paiement n'a pas pu aboutir. Réessayez dans un instant.")
       }
       setPaying(false)
@@ -81,16 +82,16 @@ export default function ActiviteTab() {
     if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
     setPaying(true); setPayState('waiting')
     try {
-      const res = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
+      const res: InitiationLoyerReponse = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
       const refId = res.referenceId || res.reference_id
-      if ((res as any).url_paiement) {
-        setPayUrl((res as any).url_paiement)
-        openPaymentUrl((res as any).url_paiement)
+      if (res.url_paiement) {
+        setPayUrl(res.url_paiement)
+        openPaymentUrl(res.url_paiement)
       } else {
         setPayUrl('')
       }
       let attempts = 0
-      const maxAttempts = (res as any).url_paiement ? 100 : 20
+      const maxAttempts = res.url_paiement ? 100 : 20
       pollRef.current = setInterval(async () => {
         attempts++
         try {
@@ -103,7 +104,7 @@ export default function ActiviteTab() {
         } catch {}
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setPayState('error'); setPayMsg(apiMessage(e) || "Le paiement n'a pas pu aboutir. Réessayez dans un instant.")
     }
     setPaying(false)
@@ -121,7 +122,7 @@ export default function ActiviteTab() {
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: TEAL + '20' }}>
             <span style={{ color: TEAL }}><IcCheck /></span>
           </div>
-          <p className="text-sm text-text-dark"><strong>{contrat.loyer_prepaye_mois}</strong> mois déjà prépayés — vous êtes à jour d'avance.</p>
+          <p className="text-sm text-text-dark"><strong>{contrat?.loyer_prepaye_mois}</strong> mois déjà prépayés — vous êtes à jour d'avance.</p>
         </div>
       )}
 
@@ -208,7 +209,7 @@ export default function ActiviteTab() {
           <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.7)' }}>
             <p className="text-text-grey text-sm">Aucun paiement effectué pour l'instant.</p>
           </div>
-        ) : historique.map((h: any, i: number) => (
+        ) : historique.map((h, i) => (
           <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl mb-2" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(0,0,0,0.06)' }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: GREEN + '15' }}>
               <span style={{ color: GREEN }}><IcMoney /></span>

@@ -1,12 +1,14 @@
 import axios from 'axios'
 import { BASE, auth } from './apiBase'
+import type { MonLogement } from '../types/locataire'
+import type { LoyersDashboard } from '../types/proprietaire'
 
 export const loyersApi = {
   monLogement: () =>
-    axios.get(`${BASE}/loyers/mon-logement`, auth()).then(r => r.data),
+    axios.get<MonLogement>(`${BASE}/loyers/mon-logement`, auth()).then(r => r.data),
 
   dashboard: () =>
-    axios.get(`${BASE}/loyers/dashboard`, auth()).then(r => r.data),
+    axios.get<LoyersDashboard>(`${BASE}/loyers/dashboard`, auth()).then(r => r.data),
 
   calendrier: (contratId: number) =>
     axios.get(`${BASE}/loyers/contrats/${contratId}/calendrier`, auth()).then(r => r.data),

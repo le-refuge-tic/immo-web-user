@@ -21,8 +21,8 @@ export default function RejoindreBienPage() {
     try {
       await biensApi.rejoindre(c)
       setSucces(true)
-    } catch (e: any) {
-      const status = e?.response?.status
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } } | null)?.response?.status
       const msg = status === 409
         ? 'Une demande est déjà en cours pour ce bien.'
         : status === 404

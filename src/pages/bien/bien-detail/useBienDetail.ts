@@ -7,13 +7,14 @@ import { shareBien } from '../../../services/shareService'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { usePageTitle } from '../../../utils/usePageTitle'
 import { track } from '../../../lib/analytics'
+import type { Bien, Visite } from '../../../types/api'
 import { isEchoueeVisite } from './helpers'
 
 /** État, chargement et actions de la fiche d'un bien (déplacé tel quel de BienDetailPage). */
 export function useBienDetail() {
   const { id } = useParams<{ id: string }>()
   const { isLoggedIn, user } = useAuth()
-  const [bien, setBien] = useState<any>(null)
+  const [bien, setBien] = useState<Bien | null>(null)
   const bienTitle = bien ? (bien.localisation?.quartier ? `${bienTypeLabel(bien)} — ${bien.localisation.quartier}` : bienTypeLabel(bien)) : ''
   const bienDescription = bien
     ? `${bienTitle}${bien.localisation?.ville ? `, ${bien.localisation.ville}` : ''} : ${Number(bien.prix).toLocaleString('fr-FR')} FCFA${bien.transaction === 'location' ? ' par mois' : ''}. ${String(bien.description ?? '').slice(0, 110)}`.trim()
@@ -28,9 +29,9 @@ export function useBienDetail() {
   const [visitesPlanifiees, setVisitesPlanifiees] = useState<{ total: number; slots: { date: string; count: number }[] } | null>(null)
   const [visitesConfirmees, setVisitesConfirmees] = useState<{ count: number; visites: { id: number; date: string | null }[] } | null>(null)
 
-  const [visiteActive, setVisiteActive] = useState<any>(null)
-  const [visiteCancellee, setVisiteCancellee] = useState<any>(null)
-  const [visiteEchouee, setVisiteEchouee] = useState<any>(null)
+  const [visiteActive, setVisiteActive] = useState<Visite | null>(null)
+  const [visiteCancellee, setVisiteCancellee] = useState<Visite | null>(null)
+  const [visiteEchouee, setVisiteEchouee] = useState<Visite | null>(null)
   const [annulerBusy, setAnnulerBusy] = useState(false)
   const [, setConfirmAnnulerVisite] = useState(false)
 
@@ -38,7 +39,7 @@ export function useBienDetail() {
   const [togglingStatut, setTogglingStatut] = useState(false)
   const [editing, setEditing] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
-  const [similaires, setSimilaires] = useState<any[]>([])
+  const [similaires, setSimilaires] = useState<Bien[]>([])
 
   useEffect(() => {
     biensApi.byId(Number(id))
@@ -56,13 +57,13 @@ export function useBienDetail() {
     biensApi.list({ transaction: bien.transaction })
       .then(d => {
         const list = Array.isArray(d) ? d : d.data || []
-        const autres = list.filter((b: any) => b.id !== bien.id)
+        const autres = list.filter((b: Bien) => b.id !== bien.id)
         const quartier = bien.localisation?.quartier
         const ville = bien.localisation?.ville
-        const parPrixCroissant = (a: any, b: any) => Number(a.prix) - Number(b.prix)
-        const memeQuartier = (quartier ? autres.filter((b: any) => b.localisation?.quartier === quartier) : []).sort(parPrixCroissant)
+        const parPrixCroissant = (a: Bien, b: Bien) => Number(a.prix) - Number(b.prix)
+        const memeQuartier = (quartier ? autres.filter((b: Bien) => b.localisation?.quartier === quartier) : []).sort(parPrixCroissant)
         const memeVille = autres
-          .filter((b: any) => b.localisation?.ville === ville && !memeQuartier.some((m: any) => m.id === b.id))
+          .filter((b: Bien) => b.localisation?.ville === ville && !memeQuartier.some((m: Bien) => m.id === b.id))
           .sort(parPrixCroissant)
         setSimilaires([...memeQuartier, ...memeVille].slice(0, 6))
       })
@@ -72,6 +73,7 @@ export function useBienDetail() {
 
   const partager = async () => {
     // Feature detection au tap : share sheet natif si dispo, sinon fenêtre custom
+    if (!bien) return
     const shared = await shareBien(bien)
     if (!shared) setShareOpen(true)
   }
@@ -85,8 +87,8 @@ export function useBienDetail() {
     visitesApi.mesVisites()
       .then(data => {
         const list = Array.isArray(data) ? data : data.data || []
-        const pourCeBien = list.filter((v: any) => v.bien?.id === bien.id)
-        let active: any = null, cancellee: any = null, echouee: any = null
+        const pourCeBien = list.filter((v: Visite) => v.bien?.id === bien.id)
+        let active: Visite | null = null, cancellee: Visite | null = null, echouee: Visite | null = null
         for (const v of pourCeBien) {
           if (['en_attente', 'contre_proposee', 'confirmee'].includes(v.statut)) {
             if (isEchoueeVisite(v)) echouee = echouee || v

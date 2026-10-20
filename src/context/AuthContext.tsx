@@ -6,27 +6,15 @@ import { revokeSession } from '../api/authApi'
 import { unsubscribeFromPush } from '../lib/push'
 import { userApi } from '../api/userApi'
 import { clearFormDrafts } from '../utils/formDraft'
+import type { LoginPayload, SessionUser } from '../types/session'
 
-type AuthUser = {
-  id: number
-  nom: string
-  prenom: string
-  email: string | null
-  telephone: string | null
-  role: string
-  roles_actifs?: string[]
-  role_principal?: string
-  photo_profil: string | null
-  score_credibilite?: number
-  nb_etoiles?: number
-  penalite_pourcentage?: number
-}
+type AuthUser = SessionUser
 
 type AuthCtx = {
   user: AuthUser | null
   token: string | null
   isLoggedIn: boolean
-  login: (data: any) => void
+  login: (data: LoginPayload) => void
   logout: () => void
   updateUser: (u: Partial<AuthUser>) => void
   hasRole: (role: string) => boolean
@@ -65,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('rg_active_role', role)
   }
 
-  const login = (data: any) => {
+  const login = (data: LoginPayload) => {
     const u: AuthUser = data.user
     const t: string = data.access_token
     const rt: string = data.refresh_token

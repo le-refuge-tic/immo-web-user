@@ -3,9 +3,11 @@ import { delegationApi } from '../../../api/delegationApi'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { PURPLE, DELEG_STATUT } from '../shared'
 import { IcPerson } from '../icons'
+import { unwrapList } from '../../../utils/unwrapList'
+import type { DelegationRecue } from '../../../types/demarcheur'
 
 export default function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
-  const [delegations, setDelegations] = useState<any[]>([])
+  const [delegations, setDelegations] = useState<DelegationRecue[]>([])
   const [loading, setLoading] = useState(true)
   const [actingId, setActingId] = useState<number | null>(null)
 
@@ -13,7 +15,7 @@ export default function DelegationsRecuesTab({ onBack }: { onBack: () => void })
     setLoading(true)
     try {
       const d = await delegationApi.recues()
-      setDelegations(Array.isArray(d) ? d : d.data || [])
+      setDelegations(unwrapList<DelegationRecue>(d))
     } catch {}
     setLoading(false)
   }

@@ -7,8 +7,9 @@ import EditProfileModal from '../../profile/EditProfileModal'
 import ChangePasswordModal from '../../profile/ChangePasswordModal'
 import { PURPLE, DARK_PURPLE } from '../shared'
 import { IcShield, IcUpload, IcChevron } from '../icons'
+import type { ProfilDemarcheur } from '../../../types/demarcheur'
 
-export default function ProfilTab({ user, onOpenDelegations }: { user: any; onOpenDelegations: () => void }) {
+export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDemarcheur | null | undefined; onOpenDelegations: () => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)

@@ -7,13 +7,14 @@ import { apiMessage } from '../../../utils/apiMessage'
 import { readPaymentConflict } from '../../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../../hooks/usePaymentAttempt'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
+import type { MethodePaiement, Visite } from '../../../types/api'
 
 // Paiement des frais de visite : état de la modale, suivi de la transaction
 // (polling), idempotence (clé de tentative) et reprise d'un paiement en cours.
 // Un seul appel par page : les refs et verrous ne sont jamais recréés.
 export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) {
-  const [showPay, setShowPay] = useState<any>(null)
-  const [operator, setOperator] = useState('momo')
+  const [showPay, setShowPay] = useState<Visite | null>(null)
+  const [operator, setOperator] = useState<MethodePaiement>('momo')
   const [phoneOp, setPhoneOp] = useState('')
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
@@ -81,7 +82,7 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
       const res = await paiementApi.initierVisite({
         visite_id: showPay.id,
         phone: normaliseBeninPhone(phoneOp),
-        methode_paiement: operator as any,
+        methode_paiement: operator,
       }, idempotencyKey)
       if (generation !== payGenerationRef.current) return
       const ref = res.referenceId || res.reference_id
@@ -90,7 +91,7 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
       // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
       if (res.url_paiement) openPaymentUrl(res.url_paiement)
       suivrePaiement(ref, res.url_paiement, maxTentatives(res.url_paiement))
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (generation !== payGenerationRef.current) return
       const conflit = readPaymentConflict(err)
       if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {

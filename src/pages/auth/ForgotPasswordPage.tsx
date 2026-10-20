@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
   const [resending, setResending] = useState(false)
 
   const telephone = toInternationalPhone(countryCode, phone)
-  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as any }
+  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] }
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
       setStepDir(1); setStep('otp')
       setResendCooldown(RESEND_COOLDOWN)
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || "Impossible d'envoyer le code"))
     }
     setLoading(false)
@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
       await withColdStartRetry(() => authApi.forgotPassword(telephone), () => setError('Le serveur se réveille…'))
       setError('')
       setResendCooldown(RESEND_COOLDOWN)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setResending(false)
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
       await withColdStartRetry(() => authApi.verifyResetCode(telephone, code), () => setError('Le serveur se réveille, nouvelle tentative…'))
       setError('')
       setStepDir(1); setStep('password')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code invalide ou expiré'))
     }
     setLoading(false)
@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
     try {
       await authApi.resetPassword(telephone, code, newPassword)
       setStepDir(1); setStep('done')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code invalide ou expiré'))
     }
     setLoading(false)

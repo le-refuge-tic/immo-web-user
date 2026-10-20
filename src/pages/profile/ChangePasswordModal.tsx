@@ -60,7 +60,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
       setLoading(true)
       try {
         await changer(sessionToken, code)
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(apiMessage(err) || 'Code incorrect ou expiré.')
       }
       setLoading(false)
@@ -73,7 +73,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
       const res = await userApi.sendPasswordOtp(current)
       if (res.requires_otp && res.session_token) setSessionToken(res.session_token)
       else await changer()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || 'Mot de passe actuel incorrect')
     }
     setLoading(false)

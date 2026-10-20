@@ -25,6 +25,7 @@ jobs:
       - run: npm run build
       - run: npm run check:size
       - run: npm run check:colors
+      - run: npm run check:any
 
   e2e:
     # Parcours critiques joués dans un vrai navigateur contre une API simulée (FE-F-003).

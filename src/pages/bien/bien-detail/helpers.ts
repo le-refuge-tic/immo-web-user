@@ -1,5 +1,7 @@
 import { API_ORIGIN } from '../../../api/apiBase'
 import type { IconType } from './Icon'
+import type { Amenites } from '../../../types/amenites'
+import type { Bien, Piece, Visite } from '../../../types/api'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -31,7 +33,7 @@ export function fcfa(v: number) {
   return `${Math.round(v).toLocaleString('fr-FR').replace(/,/g, ' ')} FCFA`
 }
 
-export function isEchoueeVisite(v: any): boolean {
+export function isEchoueeVisite(v: Pick<Visite, 'statut' | 'date_contre_proposee' | 'date_souhaitee'>): boolean {
   if (v.statut === 'effectuee' || v.statut === 'annulee') return false
   const raw = v.date_contre_proposee || v.date_souhaitee
   if (!raw) return false
@@ -52,9 +54,9 @@ function pluralPiece(nom: string, n: number) {
   return `${n} ${nom}s`
 }
 
-export function buildComposition(bien: any): { icon: IconType; label: string }[] | null {
-  const sousType = bien.amenites?.sous_type
-  const pieces: any[] = bien.pieces || []
+export function buildComposition(bien: Bien): { icon: IconType; label: string }[] | null {
+  const sousType = (bien.amenites as Amenites | null | undefined)?.sous_type
+  const pieces: Piece[] = bien.pieces || []
   if (sousType === 'boutique' || sousType === 'terrain' || pieces.length === 0) return null
 
   const counts: Record<string, number> = {}

@@ -3,20 +3,24 @@ import { bienTypeLabel } from '../../../utils/bienType'
 import { fraisVisiteAPayer, libelleFraisVisite } from '../../../utils/fraisVisite'
 import { STATUT_META, SUPPORT_VISITE_PHONE } from './constants'
 import { fmtDate, isDatePasseeVisite, isEchoueeVisite } from './helpers'
+import type { Visite } from '../../../types/api'
+
+// La carte lit `creneau.debut` (le type de l'API expose `date_debut`) : lecture conservée.
+type VisiteAffichee = Visite & { creneau?: { debut?: string } | null }
 
 type VisiteCardProps = {
-  visite: any
-  onAnnuler: (v: any) => void
+  visite: VisiteAffichee
+  onAnnuler: (v: Visite) => void
   onAccepterCP: (id: number) => void
-  onRefuserCP: (v: any) => void
+  onRefuserCP: (v: Visite) => void
   onReproposer: (id: number, isoDate: string) => void | Promise<void>
-  onMarquerEffectuee: (v: any) => void
+  onMarquerEffectuee: (v: Visite) => void
   onIntegration: (id: number, integre: boolean, bienId?: number) => void
-  onPay: (v: any) => void
+  onPay: (v: Visite) => void
   onMessage: (bienId: number) => void
-  onContacterEchouee: (v: any) => void
-  onFeedback: (v: any) => void
-  onPayIntegration: (bienId: number) => void
+  onContacterEchouee: (v: Visite) => void
+  onFeedback: (v: Visite) => void
+  onPayIntegration: (bienId?: number) => void
 }
 
 export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {

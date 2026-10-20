@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
+import type { KeyboardEvent } from 'react'
 import { onActivateKey } from '../keyboard'
 
 const evt = (key: string, same = true) => {
   const el = {}
-  return { key, target: el, currentTarget: same ? el : {}, preventDefault: vi.fn() } as any
+  // Faux évènement : seuls key, target, currentTarget et preventDefault sont lus (non typable sans DOM complet)
+  return { key, target: el, currentTarget: same ? el : {}, preventDefault: vi.fn() } as unknown as KeyboardEvent<HTMLElement>
 }
 
 describe('onActivateKey', () => {

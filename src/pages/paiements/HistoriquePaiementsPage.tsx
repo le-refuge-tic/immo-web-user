@@ -4,18 +4,19 @@ import { paiementApi } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { apiMessage } from '../../utils/apiMessage'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { HistoriquePaiement } from '../../types/paiement'
 
 type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 
-const isVisite = (t: any) => String(t.type ?? '').toLowerCase() === 'frais_visite'
-const isLoyer  = (t: any) => String(t.type ?? '').toLowerCase() === 'loyer'
-const isInteg  = (t: any) => String(t.type ?? '').toLowerCase() === 'integration'
-const isDepot  = (t: any) => String(t.type ?? '').toLowerCase() === 'depot_wallet'
+const isVisite = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'frais_visite'
+const isLoyer  = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'loyer'
+const isInteg  = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'integration'
+const isDepot  = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'depot_wallet'
 
 // FE-B-007 : le sens vient du payeur (fourni par le serveur) ; sans lui, on retombe sur l'ancienne règle par type.
-const isRecu = (t: any) => (t.sens ?? (isLoyer(t) ? 'recu' : 'paye')) === 'recu'
+const isRecu = (t: HistoriquePaiement) => (t.sens ?? (isLoyer(t) ? 'recu' : 'paye')) === 'recu'
 
-const typeLabel = (t: any) => {
+const typeLabel = (t: HistoriquePaiement) => {
   switch (String(t.type ?? '').toLowerCase()) {
     case 'frais_visite': return 'Frais de visite'
     case 'loyer':         return isRecu(t) ? 'Loyer reçu' : 'Loyer mensuel'
@@ -36,7 +37,7 @@ const methodeLabel = (m?: string) => {
   }
 }
 
-const statutLabel = (t: any) => {
+const statutLabel = (t: HistoriquePaiement) => {
   switch (String(t.statut ?? '').toLowerCase()) {
     case 'confirme':   return isRecu(t) ? 'Reçu' : 'Payé'
     case 'echoue':     return 'Échoué'
@@ -48,7 +49,7 @@ const statutLabel = (t: any) => {
 
 const statutColor = (s: string) => (s === 'Payé' || s === 'Reçu') ? '#15803D' : s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#6B7280'
 
-const iconFor = (t: any) => isVisite(t) ? (
+const iconFor = (t: HistoriquePaiement) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
 ) : isLoyer(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" /></svg>
@@ -58,7 +59,7 @@ const iconFor = (t: any) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
 )
 
-const colorFor = (t: any) => isVisite(t) ? '#FF6B35' : isLoyer(t) ? '#4160F2' : isInteg(t) ? '#7B4BFF' : '#6B7280'
+const colorFor = (t: HistoriquePaiement) => isVisite(t) ? '#FF6B35' : isLoyer(t) ? '#4160F2' : isInteg(t) ? '#7B4BFF' : '#6B7280'
 
 const fmt = (v: number) => v <= 0 ? '0 FCFA' : `${Math.trunc(v).toLocaleString('fr-FR')} FCFA`
 const fmtDate = (raw?: string, withTime = false) => {
@@ -72,18 +73,18 @@ const fmtDate = (raw?: string, withTime = false) => {
 export default function HistoriquePaiementsPage() {
   const navigate = useNavigate()
   usePageTitle('Mes paiements')
-  const [transactions, setTransactions] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<HistoriquePaiement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<Filter>('Tous')
-  const [detail, setDetail] = useState<any>(null)
+  const [detail, setDetail] = useState<HistoriquePaiement | null>(null)
 
   const load = async () => {
     setLoading(true); setError('')
     try {
       const data = await paiementApi.historique()
       setTransactions(Array.isArray(data) ? data : data?.data || [])
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de charger vos paiements.')
     }
     setLoading(false)
@@ -106,13 +107,13 @@ export default function HistoriquePaiementsPage() {
   const loyerCount = transactions.filter(isLoyer).length
   const integCount = transactions.filter(isInteg).length
 
-  const bienLabel = (t: any) => {
+  const bienLabel = (t: HistoriquePaiement) => {
     if (!t.bien) return null
     const parts = [t.bien.quartier, t.bien.ville].filter(Boolean)
     return parts.length ? parts.join(', ') : null
   }
 
-  const ouvrirRecu = (t: any) => {
+  const ouvrirRecu = (t: HistoriquePaiement) => {
     if (!t.reference) return
     if (isVisite(t)) navigate(`/recu/visite/${t.reference}`)
     else if (isLoyer(t)) navigate(`/recu/loyer/${t.reference}`)

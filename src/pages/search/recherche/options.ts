@@ -1,4 +1,5 @@
 /* Constantes de la page de recherche */
+import type { SortKey } from '../../../utils/searchFilters'
 
 export const BUDGET_TOLERANCE = 10_000
 export const PROXIMITY_MAX_KM = 3
@@ -29,7 +30,7 @@ export const SOUS_TYPES = [
   { key: 'terrain',             label: 'Terrain' },
 ]
 
-export const SORTS = [
+export const SORTS: { key: SortKey; label: string }[] = [
   { key: 'pertinence', label: 'Pertinence' },
   { key: 'prix_asc',   label: 'Prix croissant' },
   { key: 'prix_desc',  label: 'Prix décroissant' },

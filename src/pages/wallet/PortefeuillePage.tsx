@@ -4,12 +4,13 @@ import { walletApi } from '../../api/walletApi'
 import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { Wallet, WalletTransaction } from '../../types/wallet'
 
-const isLoyer = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
-const isVisite = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
-const typeLabel = (t: any) => isLoyer(t) ? 'Loyer mensuel' : isVisite(t) ? 'Frais de visite' : String(t.libelle ?? t.description ?? t.type ?? 'Transaction')
-const montantOf = (t: any) => Number(t.montant ?? t.amount ?? 0)
-const statutLabel = (t: any) => {
+const isLoyer = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
+const isVisite = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
+const typeLabel = (t: WalletTransaction) => isLoyer(t) ? 'Loyer mensuel' : isVisite(t) ? 'Frais de visite' : String(t.libelle ?? t.description ?? t.type ?? 'Transaction')
+const montantOf = (t: WalletTransaction) => Number(t.montant ?? t.amount ?? 0)
+const statutLabel = (t: WalletTransaction) => {
   const s = String(t.statut ?? t.status ?? '').toLowerCase()
   if (s.includes('rembours')) return 'Remboursé'
   if (s.includes('fail') || s.includes('echec')) return 'Échoué'
@@ -17,9 +18,9 @@ const statutLabel = (t: any) => {
   return 'Payé'
 }
 const statutColor = (s: string) => s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#15803D'
-const typeColor = (t: any) => isLoyer(t) ? '#4160F2' : isVisite(t) ? '#FF6B35' : '#6E6E73'
+const typeColor = (t: WalletTransaction) => isLoyer(t) ? '#4160F2' : isVisite(t) ? '#FF6B35' : '#6E6E73'
 const fieldLabel = (k: string) => k.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ')
-const formatDate = (t: any) => {
+const formatDate = (t: WalletTransaction) => {
   const raw = String(t.created_at ?? t.date ?? '')
   if (!raw) return '—'
   const d = new Date(raw)
@@ -27,7 +28,7 @@ const formatDate = (t: any) => {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function TypeIcon({ t, color, className }: { t: any; color: string; className: string }) {
+function TypeIcon({ t, color, className }: { t: WalletTransaction; color: string; className: string }) {
   if (isLoyer(t)) return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" /></svg>
   if (isVisite(t)) return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
   return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
@@ -52,8 +53,8 @@ function ClientWalletView() {
   const navigate = useNavigate()
   usePageTitle('Mon portefeuille')
   const [tab, setTab] = useState<WType>('cotisation')
-  const [wallets, setWallets] = useState<Record<WType, any>>({ cotisation: null, epargne: null })
-  const [txs, setTxs] = useState<Record<WType, any[]>>({ cotisation: [], epargne: [] })
+  const [wallets, setWallets] = useState<Record<WType, Wallet | null>>({ cotisation: null, epargne: null })
+  const [txs, setTxs] = useState<Record<WType, WalletTransaction[]>>({ cotisation: [], epargne: [] })
   const [loading, setLoading] = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
   const [montant, setMontant] = useState('')
@@ -91,7 +92,7 @@ function ClientWalletView() {
     setSubmitting(false)
   }
 
-  const typeLabel = (t: any) => {
+  const typeLabel = (t: WalletTransaction) => {
     switch (t.type) {
       case 'depot': return 'Dépôt'
       case 'retrait': return 'Retrait'
@@ -100,9 +101,9 @@ function ClientWalletView() {
       default: return t.description || t.type
     }
   }
-  const isDebit = (t: any) => t.type === 'retrait' || t.type === 'paiement_loyer'
-  const formatDate = (raw: any) => {
-    const d = new Date(raw)
+  const isDebit = (t: WalletTransaction) => t.type === 'retrait' || t.type === 'paiement_loyer'
+  const formatDate = (raw?: string) => {
+    const d = new Date(raw ?? NaN)
     return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
   }
 
@@ -199,7 +200,7 @@ function ClientWalletView() {
               <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
               <p className="text-text-grey text-sm">Vos opérations {W_LABEL[tab].toLowerCase()} apparaîtront ici.</p>
             </div>
-          ) : transactions.map((t: any, i: number) => (
+          ) : transactions.map((t, i) => (
             <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A` }}>
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
@@ -225,15 +226,15 @@ function ClientWalletView() {
 function WalletCommissionsView() {
   const navigate = useNavigate()
   usePageTitle('Mon portefeuille')
-  const [wallet, setWallet]         = useState<any>(null)
-  const [transactions, setTrans]    = useState<any[]>([])
+  const [wallet, setWallet]         = useState<Wallet | null>(null)
+  const [transactions, setTrans]    = useState<WalletTransaction[]>([])
   const [loading, setLoading]       = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
   const [montant, setMontant]       = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [retraitOk, setRetraitOk]  = useState(false)
   const [filter, setFilter]         = useState<'Tous' | 'Loyers' | 'Visites'>('Tous')
-  const [detailTx, setDetailTx]     = useState<any>(null)
+  const [detailTx, setDetailTx]     = useState<WalletTransaction | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -407,7 +408,7 @@ function WalletCommissionsView() {
 
                 {filteredTx.length === 0 ? (
                   <p className="text-text-grey text-sm text-center py-8">Aucune transaction dans cette catégorie.</p>
-                ) : filteredTx.map((t: any, i: number) => {
+                ) : filteredTx.map((t, i) => {
                   const statut = statutLabel(t)
                   const sColor = statutColor(statut)
                   const tColor = typeColor(t)

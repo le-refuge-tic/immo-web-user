@@ -10,6 +10,7 @@ import ErrorState from '../../components/ErrorState'
 import { TABS, NO_VISITES } from './visites/constants'
 import { fmtDate, isEchoueeVisite } from './visites/helpers'
 import type { ConfirmDialogState } from './visites/types'
+import type { Visite } from '../../types/api'
 import { VisiteCard } from './visites/VisiteCard'
 import { usePaiementVisite } from './visites/usePaiementVisite'
 import { useAvisVisite } from './visites/useAvisVisite'
@@ -37,7 +38,7 @@ export default function MesVisitesPage() {
   // dans le chat (comme sur mobile) — au lieu de laisser l'utilisateur
   // rechercher lui-même la visite dans la liste.
   useEffect(() => {
-    const targetId = (location.state as any)?.openPayForVisiteId
+    const targetId = (location.state as { openPayForVisiteId?: number } | null)?.openPayForVisiteId
     if (!targetId || visites.length === 0) return
     const v = visites.find(x => x.id === targetId)
     if (v) {
@@ -57,7 +58,7 @@ export default function MesVisitesPage() {
     return true
   })
 
-  const handleAnnuler = (v: any) => {
+  const handleAnnuler = (v: Visite) => {
     const body = v.statut === 'confirmee'
       ? 'Cette visite est déjà confirmée. Voulez-vous vraiment l\'annuler ?'
       : 'Voulez-vous vraiment annuler cette demande de visite ?'
@@ -73,7 +74,7 @@ export default function MesVisitesPage() {
     })
   }
 
-  const handleMarquerEffectuee = (v: any) => {
+  const handleMarquerEffectuee = (v: Visite) => {
     setConfirmDialog({
       title: 'Visite effectuée ?',
       body: 'Confirmez-vous que la visite a bien eu lieu ?',
@@ -91,7 +92,7 @@ export default function MesVisitesPage() {
     } catch {}
   }
 
-  const handleRefuserCP = (v: any) => {
+  const handleRefuserCP = (v: Visite) => {
     setConfirmDialog({
       title: 'Refuser le créneau proposé ?',
       body: 'La visite sera annulée. Vous pouvez faire une nouvelle demande si vous le souhaitez.',
@@ -113,7 +114,7 @@ export default function MesVisitesPage() {
     } catch {}
   }
 
-  const handleContacterEchouee = (v: any) => {
+  const handleContacterEchouee = (v: Visite) => {
     const bien = v.bien
     const gestionnairePrenom = v.gestionnaire?.prenom || ''
     const typeStr = bien ? bienTypeLabel(bien) : 'ce bien'

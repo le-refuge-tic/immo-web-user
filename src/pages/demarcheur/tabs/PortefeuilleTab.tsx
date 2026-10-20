@@ -2,16 +2,21 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../../api/walletApi'
 import { PURPLE } from '../shared'
+import { unwrapList } from '../../../utils/unwrapList'
+import type { WalletTransaction } from '../../../types/wallet'
+
+// L'écran lit toujours `created_at` pour la date de la ligne.
+type TransactionAffichee = WalletTransaction & { created_at: string }
 
 export default function PortefeuilleTab() {
   const navigate = useNavigate()
-  const [transactions, setTrans] = useState<any[]>([])
+  const [transactions, setTrans] = useState<TransactionAffichee[]>([])
   const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
     setLoading(true)
     walletApi.transactions()
-      .then(t => setTrans(Array.isArray(t) ? t : t.data || []))
+      .then(t => setTrans(unwrapList<TransactionAffichee>(t)))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -40,7 +45,7 @@ export default function PortefeuilleTab() {
           </div>
         ) : (
           <>
-            {recent.map((t: any, i: number) => {
+            {recent.map((t, i) => {
               const isCredit = t.type !== 'retrait'
               const amt = Number(t.amount ?? t.montant ?? 0)
               return (

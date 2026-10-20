@@ -8,6 +8,8 @@
  * génération des types depuis l'OpenAPI du backend.
  */
 
+import type { NotificationMeta } from './notification'
+
 /** Date ISO 8601 renvoyée par l'API. */
 export type IsoDate = string
 
@@ -251,7 +253,7 @@ export interface Notification {
   corps?: string
   target_role?: string | null
   lu: boolean
-  meta?: Record<string, any> | null
+  meta?: NotificationMeta | null
   created_at: IsoDate
 }
 

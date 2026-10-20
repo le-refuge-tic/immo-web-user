@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
 import { track } from '../lib/analytics'
+import type { Bien } from '../types/api'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -21,7 +22,7 @@ function fmtAddedDate(iso: string) {
 }
 
 type Props = {
-  bien: any
+  bien: Bien
   favoriteIds?: Set<number>
   onFavoriteToggle?: (id: number, added: boolean) => void
   distanceKm?: number | null
@@ -43,7 +44,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     setIsFav(favoriteIds?.has(bien.id) ?? false)
   }, [favoriteIds, bien.id])
 
-  const cover    = bien.photos?.find((p: any) => p.is_cover) || bien.photos?.[0]
+  const cover    = bien.photos?.find(p => p.is_cover) || bien.photos?.[0]
   const coverUrl = cover ? resolveUrl(cover.url) : null
 
   const isLocation = bien.transaction === 'location'
@@ -61,7 +62,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     studio:         'Studio',
     f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
   }
-  const sousType = bien.amenites?.sous_type
+  const sousType = typeof bien.amenites?.sous_type === 'string' ? bien.amenites.sous_type : undefined
   const label    = (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
   const title    = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
 
@@ -168,14 +169,14 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)' }} />
 
         {/* Badge nombre de photos */}
-        {showPhotoCount && bien.photos?.length > 0 && (
+        {showPhotoCount && (bien.photos?.length ?? 0) > 0 && (
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-white text-xs font-semibold"
             style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}>
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            {bien.photos.length}
+            {bien.photos?.length}
           </div>
         )}
       </div>

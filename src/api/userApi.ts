@@ -3,12 +3,14 @@ import { tokenStore } from '../utils/tokenStore'
 import { deviceTrust } from '../utils/deviceTrust'
 import { BASE, auth } from './apiBase'
 import { compressImage } from '../utils/compressImage'
+import type { ProfilUpdateBody } from '../types/auth'
+import type { TypeWallet } from '../types/wallet'
 
 export const userApi = {
   me: () =>
     axios.get(`${BASE}/users/me`, auth()).then(r => r.data),
 
-  updateProfil: (body: any) =>
+  updateProfil: (body: ProfilUpdateBody) =>
     axios.patch(`${BASE}/users/me`, body, auth()).then(r => r.data),
 
   /**
@@ -88,7 +90,7 @@ export const userApi = {
   loyersStats: () =>
     axios.get(`${BASE}/users/me/loyers`, auth()).then(r => r.data),
 
-  retrait: (body: any) =>
+  retrait: (body: { montant: number; wallet_type?: TypeWallet }) =>
     axios.post(`${BASE}/users/me/retrait`, body, auth()).then(r => r.data),
 
   historiqueTransactions: () =>

@@ -1,10 +1,11 @@
 import { BUDGET_TOLERANCE, PROXIMITY_MAX_KM, AUTRES_PAGE_SIZE } from './options'
 import ResultGrid from './ResultGrid'
+import type { Bien } from '../../../types/api'
 import type { Tokens } from './tokens'
 
 type GuidedSearch = {
-  mainResults: any[]; environs: any[]; environsLabel: string; environsDist: Map<number, number>
-  budgetSimilar: any[]; autres: any[]; distFromQuartier: (bien: any) => number | null
+  mainResults: Bien[]; environs: Bien[]; environsLabel: string; environsDist: Map<number, number>
+  budgetSimilar: Bien[]; autres: Bien[]; distFromQuartier: (bien: Bien) => number | null
   isProximityFallback: boolean; quartierRecherche: string | undefined
 }
 
@@ -50,7 +51,7 @@ export default function GuidedResults({
   favIds: Set<number>; isDark: boolean; tk: Tokens
   onFavToggle: (id: number, added: boolean) => void; cols: string
   showAllAutres: boolean; setShowAllAutres: (v: boolean) => void
-  mainDistanceFor?: (bien: any) => number | null
+  mainDistanceFor?: (bien: Bien) => number | null
 }) {
   if (loading) return <ResultGrid biens={[]} loading favIds={favIds} onFavToggle={onFavToggle} cols={cols} isDark={isDark} tk={tk} />
 

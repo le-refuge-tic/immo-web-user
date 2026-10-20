@@ -1,3 +1,5 @@
+import type { Amenites, AutreFrais } from '../../../types/amenites'
+import type { Bien } from '../../../types/api'
 import type { InfoRow } from '../../../utils/amenites'
 import logoSbee from '../../../assets/logo-SBEE.png'
 import logoSoneb from '../../../assets/logo-SONEB.webp'
@@ -6,16 +8,17 @@ import { fmtSlot, fcfa, INFO_ROW_META } from './helpers'
 
 // ─── Contenu partagé (mobile & desktop) — sections empilées, sans onglets ────
 export function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows, terrainRows, voisinageLabels, visitesPlanifiees, visitesConfirmees }: {
-  bien: any; isOwnBien: boolean; isLocation: boolean
+  bien: Bien; isOwnBien: boolean; isLocation: boolean
   composition: { icon: IconType; label: string }[] | null
   logementRows: InfoRow[]; terrainRows: InfoRow[]; voisinageLabels: string[]
   visitesPlanifiees: { total: number; slots: { date: string; count: number }[] } | null
   visitesConfirmees: { count: number; visites: { id: number; date: string | null }[] } | null
 }) {
-  const hasFeatureChips = (bien.details_maison?.superficie > 0) ||
-    (bien.details_terrain?.superficie > 0) || bien.details_appart?.entree_personnelle ||
+  const am = bien.amenites as Amenites | null | undefined
+  const hasFeatureChips = ((bien.details_maison?.superficie ?? 0) > 0) ||
+    ((bien.details_terrain?.superficie ?? 0) > 0) || bien.details_appart?.entree_personnelle ||
     bien.details_maison?.cloture || bien.details_terrain?.cloture ||
-    bien.amenites?.parking || bien.amenites?.cour || bien.amenites?.boyerie || bien.amenites?.sanitaire != null
+    am?.parking || am?.cour || am?.boyerie || am?.sanitaire != null
 
   return (
     <div className="space-y-6">
@@ -67,15 +70,15 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       {hasFeatureChips && (
         <div className="flex flex-wrap gap-2.5">
 
-          {bien.details_maison?.superficie > 0 && <FeatureChip icon="ruler" label={`${bien.details_maison.superficie} m²`} />}
-          {bien.details_terrain?.superficie > 0 && <FeatureChip icon="ruler" label={`${bien.details_terrain.superficie} m²`} />}
+          {(bien.details_maison?.superficie ?? 0) > 0 && <FeatureChip icon="ruler" label={`${bien.details_maison?.superficie} m²`} />}
+          {(bien.details_terrain?.superficie ?? 0) > 0 && <FeatureChip icon="ruler" label={`${bien.details_terrain?.superficie} m²`} />}
           {bien.details_appart?.entree_personnelle && <FeatureChip icon="door" label="Entrée privée" />}
           {(bien.details_maison?.cloture || bien.details_terrain?.cloture) && <FeatureChip icon="fence" label="Clôturé" />}
-          {bien.amenites?.parking && <FeatureChip icon="parking" label={bien.amenites?.parking_capacite ? `Parking ×${bien.amenites.parking_capacite}` : 'Parking'} />}
-          {bien.amenites?.cour && <FeatureChip icon="yard" label="Cour" />}
-          {bien.amenites?.boyerie && <FeatureChip icon="person" label="Boyerie" />}
-          {bien.amenites?.sanitaire === true && <FeatureChip icon="bathtub" label="Sanitaire" />}
-          {bien.amenites?.sanitaire === false && <FeatureChip icon="people" label="Douche et WC extérieurs" />}
+          {am?.parking && <FeatureChip icon="parking" label={am.parking_capacite ? `Parking ×${am.parking_capacite}` : 'Parking'} />}
+          {am?.cour && <FeatureChip icon="yard" label="Cour" />}
+          {am?.boyerie && <FeatureChip icon="person" label="Boyerie" />}
+          {am?.sanitaire === true && <FeatureChip icon="bathtub" label="Sanitaire" />}
+          {am?.sanitaire === false && <FeatureChip icon="people" label="Douche et WC extérieurs" />}
         </div>
       )}
 
@@ -106,7 +109,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       {logementRows.length > 0 && (
         <div>
           <SectionTitle title="Informations logement" />
-          <InfoCard rows={logementRows} amenites={bien.amenites} />
+          <InfoCard rows={logementRows} amenites={am} />
         </div>
       )}
 
@@ -178,7 +181,7 @@ function VisitesBanner({ title, lines }: { title: string; lines: string[] }) {
   )
 }
 
-function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: any }) {
+function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: Amenites | null }) {
   const isSonebEau = (amenites?.eau ?? amenites?.compteur_eau) === 'soneb'
   return (
     <div className="rounded-2xl bg-white border border-divider shadow-sm divide-y divide-divider">
@@ -208,14 +211,14 @@ function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: any }) {
   )
 }
 
-function IntegrationCard({ bien, isOwnBien }: { bien: any; isOwnBien: boolean }) {
-  const a = bien.amenites || {}
+function IntegrationCard({ bien, isOwnBien }: { bien: Bien; isOwnBien: boolean }) {
+  const a: Amenites = (bien.amenites as Amenites | null | undefined) || {}
   const avanceMois = a.avance_mois ?? 2
   const prepayeMois = a.loyer_prepaye_mois ?? 0
   const cautionEau = Number(a.caution_eau ?? 0)
   const cautionElec = Number(a.caution_elec ?? 0)
   const commission = Number(a.commission_agence ?? 0)
-  const autresFrais: { label: string; montant: number }[] = Array.isArray(a.autres_frais) ? a.autres_frais : []
+  const autresFrais: AutreFrais[] = Array.isArray(a.autres_frais) ? a.autres_frais : []
   const prix = Number(bien.prix)
 
   const montantAvance = avanceMois * prix

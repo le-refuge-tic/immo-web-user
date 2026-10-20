@@ -3,9 +3,11 @@ import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
 import { apiMessage } from '../../utils/apiMessage'
+import type { Bien, Localisation } from '../../types/api'
+import type { BienPayload } from '../../api/biensApi'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 
-type Props = { bien: any; onClose: () => void; onSaved: (bien: any) => void }
+type Props = { bien: Bien; onClose: () => void; onSaved: (bien: Bien) => void }
 
 export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   useEffect(() => {
@@ -14,7 +16,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
     return () => document.removeEventListener('keydown', handleEscape)
   }, [onClose])
 
-  const loc = bien.localisation || {}
+  const loc: Localisation & { arrondissement?: string } = bien.localisation || {}
   const [prix, setPrix] = useState(String(bien.prix ?? ''))
   const [prixPromo, setPrixPromo] = useState(bien.prix_promo != null ? String(bien.prix_promo) : '')
   const [fraisVisite, setFraisVisite] = useState(String(bien.frais_visite ?? ''))
@@ -42,7 +44,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
     setSaving(true)
     setError('')
     try {
-      const body: any = {
+      const body: BienPayload = {
         prix: Number(prix),
         prix_promo: prixPromo.trim() ? Number(prixPromo) : null,
         frais_visite: fraisVisite.trim() ? Number(fraisVisite) : 0,
@@ -58,7 +60,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       setSuccess(true)
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       setTimeout(() => onSaved(saved), 900)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || 'Erreur lors de la mise à jour')
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }

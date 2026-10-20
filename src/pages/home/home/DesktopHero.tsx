@@ -5,6 +5,7 @@ import { usePrefersReducedMotion } from '../../../hooks/useCarouselAutoplay'
 import { HERO_SLIDES } from './constants'
 import { SearchIcon } from './icons'
 import SearchPanel from './SearchPanel'
+import type { Bien } from '../../../types/api'
 import type { Tokens } from './tokens'
 import type { HomeSearch } from './useHomeSearch'
 
@@ -12,7 +13,7 @@ interface DesktopHeroProps {
   s: HomeSearch
   isDark: boolean
   tk: Tokens
-  biens: any[]
+  biens: Bien[]
 }
 
 /** Hero desktop : diaporama plein écran, accroche, chiffres clés et panneau de recherche flottant. */

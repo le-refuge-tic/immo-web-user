@@ -1,6 +1,7 @@
 
-
 import { IcPayments, IcMessagesNav } from './icons'
+import type { Bien, Piece } from '../../../types/api'
+import type { Contrat } from '../../../types/proprietaire'
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
 export const IcHome    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -65,22 +66,22 @@ const SOUS_TYPE_LABELS: Record<string, string> = {
   appartement: 'Appartement', villa: 'Villa', maison_individuelle: 'Maison',
   villa_maison: 'Villa / Maison', boutique: 'Boutique / Local', terrain: 'Terrain',
 }
-export function bienLabel(b: any): string {
+export function bienLabel(b: Partial<Pick<Bien, 'type' | 'amenites'>> | null | undefined): string {
   const sous = b?.amenites?.sous_type
-  if (sous && SOUS_TYPE_LABELS[sous]) {
-    if (sous === 'appartement' && b.type === 'appart_meuble') return 'Appartement meublé'
+  if (typeof sous === 'string' && SOUS_TYPE_LABELS[sous]) {
+    if (sous === 'appartement' && b?.type === 'appart_meuble') return 'Appartement meublé'
     return SOUS_TYPE_LABELS[sous]
   }
   return typeLabel(b?.type || '')
 }
-export function bienComposition(b: any): string {
-  const pieces: any[] = b?.pieces || []
+export function bienComposition(b: { pieces?: Piece[] } | null | undefined): string {
+  const pieces: Piece[] = b?.pieces || []
   if (!pieces.length) return ''
   const counts: Record<string, number> = {}
   for (const p of pieces) counts[p.nom] = (counts[p.nom] || 0) + 1
   return Object.entries(counts).map(([nom, n]) => `${n} ${nom}${n > 1 ? 's' : ''}`).join(' · ')
 }
-export function fmtPrix(p: any) {
+export function fmtPrix(p: number | string | null | undefined) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
 }
 export function statutBien(s: string) {
@@ -100,7 +101,7 @@ export function statutVisite(s: string) {
 const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
 
 /** Revenus locatifs encaissés (loyers payés), regroupés par mois — `n` derniers mois. */
-export function buildRevenueSeries(contrats: any[], n = 6): { label: string; value: number }[] {
+export function buildRevenueSeries(contrats: Contrat[], n = 6): { label: string; value: number }[] {
   const now = new Date()
   const months = Array.from({ length: n }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1)

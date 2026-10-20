@@ -10,8 +10,10 @@ import DelegationModal from '../DelegationModal'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { IcPayments, IcChevron, IcHandshake } from './icons'
 import { IcWallet, IcPerson, IcStar, IcShield, IcEdit, IcUpload, BLUE } from './shared'
+import type { Bien, Visite } from '../../../types/api'
+import type { ProprioProfil } from '../../../types/proprietaire'
 
-export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onScrolled }: { user: any; biens: any[]; visites: any[]; onOpenTransactions: () => void; onOpenRoles: () => void; onScrolled?: (v: boolean) => void }) {
+export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onScrolled }: { user: ProprioProfil | null | undefined; biens: Bien[]; visites: Visite[]; onOpenTransactions: () => void; onOpenRoles: () => void; onScrolled?: (v: boolean) => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)

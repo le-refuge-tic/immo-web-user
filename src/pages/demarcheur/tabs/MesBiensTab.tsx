@@ -6,9 +6,11 @@ import EditBienModal from '../../bien/EditBienModal'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { PURPLE, DARK_PURPLE, fmtPrix, statutBien } from '../shared'
 import { IcPlus, IcPin, IcTrash, IcEdit, IcRefresh } from '../icons'
+import { unwrapList } from '../../../utils/unwrapList'
+import type { Bien } from '../../../types/api'
 
 export default function MesBiensTab() {
-  const [biens, setBiens] = useState<any[]>([])
+  const [biens, setBiens] = useState<Bien[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('Tous')
   const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
@@ -16,7 +18,7 @@ export default function MesBiensTab() {
 
   const load = async () => {
     setLoading(true)
-    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch {}
+    try { const d = await biensApi.mesBiens(); setBiens(unwrapList(d)) } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -31,7 +33,7 @@ export default function MesBiensTab() {
     setConfirmDeleteBienId(null)
   }
 
-  const [editingBien, setEditingBien] = useState<any>(null)
+  const [editingBien, setEditingBien] = useState<Bien | null>(null)
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -83,7 +85,7 @@ export default function MesBiensTab() {
               const { label, color } = statutBien(b.statut_moderation || 'en_attente')
               const loc = b.localisation
               const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-              const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+              const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
               return (
                 <div key={b.id} onClick={() => navigate(`/biens/${b.id}`)} onKeyDown={onActivateKey(() => navigate(`/biens/${b.id}`))} role="button" tabIndex={0}
                   className="focus-visible:outline-2 focus-visible:outline-[#4160F2] focus-visible:outline-offset-2 card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">

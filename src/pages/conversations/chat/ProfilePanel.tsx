@@ -1,17 +1,18 @@
 import { avatarGrad, initial, type ChatColors } from './helpers'
 import { XIcon } from './icons'
+import type { ChatConversation, ChatUser } from '../../../types/chat-ui'
 
 interface ProfilePanelProps {
   onClose: () => void
   colors: ChatColors
-  other: any
+  other: ChatUser | null
   otherName: string
   role: string
   isVerified: boolean
   isOnline: boolean
-  conv: any
+  conv: ChatConversation | null
   bienTypeLabel: string | null
-  bienLoc: string | null
+  bienLoc: string | null | undefined
   hoveredSettingsIdx: number | null
   onHoverSettings: (i: number | null) => void
   onOpenBien: (bienId: number) => void
@@ -23,6 +24,7 @@ export function ProfilePanel({
   hoveredSettingsIdx, onHoverSettings, onOpenBien,
 }: ProfilePanelProps) {
   const { tp, ts, tm, profileBg, profileBdr, divider, iconBtn, menuHov } = colors
+  const bienId = conv?.bien?.id
   return (
     <div className="h-full flex flex-col" style={{ background: profileBg, borderLeft: `1px solid ${profileBdr}` }}>
       {/* Header profil */}
@@ -93,8 +95,8 @@ export function ProfilePanel({
             </div>
           </div>
           {/* Lien vers le bien */}
-          {conv?.bien?.id && (
-            <button onClick={() => onOpenBien(conv.bien.id)}
+          {bienId && (
+            <button onClick={() => onOpenBien(bienId)}
               className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer transition-opacity hover:opacity-80"
               style={{ color: 'var(--tx-blue)' }}>
               <span className="text-[12px] font-bold">Voir le bien</span>

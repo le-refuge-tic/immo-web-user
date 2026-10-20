@@ -2,6 +2,7 @@ import axios from 'axios'
 import { tokenStore } from '../utils/tokenStore'
 import { deviceTrust } from '../utils/deviceTrust'
 import { BASE, auth } from './apiBase'
+import type { RegisterBody } from '../types/auth'
 
 export const authApi = {
   // device_token : appareil déjà validé par OTP (30 jours) → le serveur peut
@@ -12,7 +13,7 @@ export const authApi = {
   loginEmail: (email: string, password: string) =>
     axios.post(`${BASE}/auth/login`, { email, password, device_token: deviceTrust.get() }).then(r => r.data),
 
-  register: (body: any) =>
+  register: (body: RegisterBody) =>
     axios.post(`${BASE}/auth/register`, body).then(r => r.data),
 
   logout: (refresh_token: string) =>

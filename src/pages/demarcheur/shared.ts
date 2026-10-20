@@ -1,4 +1,6 @@
 // Constantes et helpers partagés de l'espace démarcheur.
+import type { ProfilDemarcheur } from '../../types/demarcheur'
+
 export const PURPLE      = '#9B59B6'
 export const DARK_PURPLE = '#4A0E8F'
 export const MID_PURPLE  = '#7B2FBE'
@@ -13,7 +15,7 @@ export const DELEG_STATUT: Record<string, { label: string; color: string }> = {
   refusee:    { label: 'Refusée',     color: 'var(--tx-red)' },
 }
 
-export function fmtPrix(p: any) {
+export function fmtPrix(p: number | string | null | undefined) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
 }
 /** Libellé « Sem. du 8 sept. » à partir du début de semaine (lundi). */
@@ -36,6 +38,6 @@ export function statutVisite(s: string) {
   return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 
-export const isCommercial = (u: any) =>
+export const isCommercial = (u: Pick<ProfilDemarcheur, 'role_principal' | 'roles_actifs'> | null | undefined) =>
   u?.role_principal === 'commercial' ||
   (Array.isArray(u?.roles_actifs) && u.roles_actifs.includes('commercial'))

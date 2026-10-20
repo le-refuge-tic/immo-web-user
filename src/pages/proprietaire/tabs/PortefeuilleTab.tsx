@@ -9,6 +9,7 @@ import { svgMaskUrl } from './RolesTab'
 import { apiMessage } from '../../../utils/apiMessage'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { messageMontantRetrait } from '../../../utils/retrait'
+import type { MouvementWallet, RetraitProprio, WalletProprio } from '../../../types/proprietaire'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -48,7 +49,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
       await walletApi.demandeRetrait(montantNum, 'revenus_locatifs')
       setSuccessMsg(true)
       onSuccess()
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || "Impossible d'envoyer la demande. Réessayez.")
     }
     setSubmitting(false)
@@ -150,12 +151,12 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 }
 
 export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => void }) {
-  const [wallet, setWallet] = useState<any>(null)
-  const [transactions, setTrans] = useState<any[]>([])
-  const [retraits, setRetraits] = useState<any[]>([])
+  const [wallet, setWallet] = useState<WalletProprio | null>(null)
+  const [transactions, setTrans] = useState<MouvementWallet[]>([])
+  const [retraits, setRetraits] = useState<RetraitProprio[]>([])
   const [loading, setLoading] = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
-  const [detailTx, setDetailTx] = useState<any>(null)
+  const [detailTx, setDetailTx] = useState<MouvementWallet | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -238,7 +239,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
         {retraitsEnCours.length > 0 && (
           <div className="mb-6">
             <p className="font-bold text-[#F0EDE8] mb-3">Retraits en cours</p>
-            {retraitsEnCours.map((r: any) => {
+            {retraitsEnCours.map(r => {
               const approuve = r.statut === 'approuve'
               const color = approuve ? '#B45309' : '#8A9BB5'
               return (
@@ -267,7 +268,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
             <p className="font-bold text-[#F0EDE8] mb-1">Aucune transaction</p>
             <p className="text-sm text-[#8A9BB5]">Vos loyers, frais de visite et intégrations apparaîtront ici.</p>
           </div>
-        ) : transactions.slice(0, 5).map((t: any, i: number) => {
+        ) : transactions.slice(0, 5).map((t, i) => {
           const isCredit = t.type !== 'retrait'
           const montant = Number(t.amount ?? t.montant ?? 0)
           const cat = categorieTransaction(t.description)

@@ -12,6 +12,7 @@ import { suggestPush } from '../../lib/push'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import { MenuPopover, MenuItem } from '../../components/ui/MenuPopover'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { asChatConversations, asChatMessage, asChatMessages, type ChatConversation, type ChatMessage } from '../../types/chat-ui'
 
 import { SlotModal, type SlotColors } from './chat/SlotModal'
 import { ProfilePanel } from './chat/ProfilePanel'
@@ -29,23 +30,23 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const location = useLocation()
 
   /* ── state ── */
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
-  const [conv, setConv] = useState<any>(null)
+  const [conv, setConv] = useState<ChatConversation | null>(null)
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
-  const [replyingTo, setReplyingTo] = useState<any>(null)
-  const [editingMsg, setEditingMsg] = useState<any>(null)
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null)
+  const [editingMsg, setEditingMsg] = useState<ChatMessage | null>(null)
   const [hidden, setHidden] = useState<Set<number>>(new Set())
   const [menuId, setMenuId] = useState<number | null>(null)
   const [showSlot, setShowSlot] = useState(false)
-  const [counterFor, setCounterFor] = useState<any>(null)
+  const [counterFor, setCounterFor] = useState<ChatMessage | null>(null)
   const [proposing, setProposing] = useState(false)
   const [paying, setPaying] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const [confirmDeleteForAllId, setConfirmDeleteForAllId] = useState<number | null>(null)
-  const [complainMsg, setComplainMsg] = useState<any>(null)
+  const [complainMsg, setComplainMsg] = useState<ChatMessage | null>(null)
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
   const [headerMenuPos, setHeaderMenuPos] = useState<{ top: number; right: number } | null>(null)
   const [showProfile, setShowProfile] = useState(false)
@@ -70,10 +71,10 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       setLoading(true)
       try {
         const [md, cd] = await Promise.all([chatApi.messages(convId), chatApi.conversations()])
-        const msgs = Array.isArray(md) ? md : md.data || []
-        setMessages(msgs.filter((m: any) => m.sender_id !== null))
-        const list = Array.isArray(cd) ? cd : cd.data || []
-        setConv(list.find((c: any) => c.id === convId) || null)
+        const msgs = asChatMessages(Array.isArray(md) ? md : md.data || [])
+        setMessages(msgs.filter(m => m.sender_id !== null))
+        const list = asChatConversations(Array.isArray(cd) ? cd : cd.data || [])
+        setConv(list.find(c => c.id === convId) || null)
       } catch {}
       setLoading(false)
     }
@@ -82,10 +83,12 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   }, [convId])
 
   useEffect(() => {
-    const draft = (location.state as any)?.draftMessage || initialDraft
+    // État de navigation : seule la clé draftMessage nous concerne (frontière non typable de react-router)
+    const navState = location.state as { draftMessage?: string } | null
+    const draft = navState?.draftMessage || initialDraft
     if (draft) {
       setInput(draft)
-      if ((location.state as any)?.draftMessage) navigate(location.pathname, { replace: true, state: {} })
+      if (navState?.draftMessage) navigate(location.pathname, { replace: true, state: {} })
     }
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate et le chemin courant ne servent qu'à effacer l'état de navigation une fois le brouillon consommé
   }, [location.state, initialDraft])
@@ -95,7 +98,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     const s = io(`${WS_URL}/chat`, { auth: { token }, transports: ['websocket'] })
     socketRef.current = s
     s.on('connect', () => s.emit('rejoindre', { conversation_id: convId }))
-    s.on('message', (msg: any) => {
+    s.on('message', (msg: ChatMessage) => {
       if (msg.sender_id === null) return
       setMessages(prev => {
         const idx = prev.findIndex(m => m.id === msg.id)
@@ -130,7 +133,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     return () => document.removeEventListener('mousedown', fn)
   }, [showHeaderMenu])
 
-  const other = conv?.participants?.find((p: any) => p.id !== user?.id) || conv?.participants?.[0] || null
+  const other = conv?.participants?.find(p => p.id !== user?.id) || conv?.participants?.[0] || null
   const otherName = displayName(other)
   usePageTitle(otherName !== 'Contact' ? `Conversation – ${otherName}` : 'Conversation')
   const role = roleLabel(other)
@@ -139,34 +142,35 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const bienLoc = conv?.bien?.localisation ? (conv.bien.localisation.quartier || conv.bien.localisation.ville) : null
   const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
   const isOnline = !!(other?.isOnline ?? conv?.isOnline)
+  const convBienId = conv?.bien?.id
 
-  const showError = (e: any) => { setError(apiMessage(e) || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
+  const showError = (e: unknown) => { setError(apiMessage(e) || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
   const scrollBot = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
 
   const send = async () => {
     const text = input.trim(); if (!text || sending) return
     if (editingMsg) {
       setInput(''); const ed = editingMsg; setEditingMsg(null)
-      try { const u = await chatApi.modifierMessage(ed.id, text); setMessages(p => p.map(m => m.id === ed.id ? u : m)) } catch (e) { showError(e) }
+      try { const u = await chatApi.modifierMessage(ed.id, text); setMessages(p => p.map(m => m.id === ed.id ? asChatMessage(u) : m)) } catch (e) { showError(e) }
       return
     }
     setInput(''); setSending(true)
     try {
       const rid = replyingTo?.id, rc = replyingTo?.contenu; setReplyingTo(null)
       const sent = await chatApi.envoyer(convId, text, rid, rc)
-      setMessages(p => p.some(m => m.id === sent.id) ? p : [...p, sent])
+      setMessages(p => p.some(m => m.id === sent.id) ? p : [...p, asChatMessage(sent)])
       suggestPush()
     } catch (e) { showError(e) }
     setSending(false)
   }
 
   const handleKey = (e: React.KeyboardEvent) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
-  const startReply = (m: any) => { if (m.type === 'slot_proposal') return; setReplyingTo(m); setEditingMsg(null); setMenuId(null); inputRef.current?.focus() }
-  const startEdit  = (m: any) => { setEditingMsg(m); setReplyingTo(null); setInput(m.contenu); setMenuId(null); inputRef.current?.focus() }
+  const startReply = (m: ChatMessage) => { if (m.type === 'slot_proposal') return; setReplyingTo(m); setEditingMsg(null); setMenuId(null); inputRef.current?.focus() }
+  const startEdit  = (m: ChatMessage) => { setEditingMsg(m); setReplyingTo(null); setInput(m.contenu); setMenuId(null); inputRef.current?.focus() }
   const cancelCtx  = () => { const wasEdit = !!editingMsg; setReplyingTo(null); setEditingMsg(null); if (wasEdit) setInput('') }
-  const deleteForMe = (m: any) => { setHidden(p => new Set(p).add(m.id)); setMenuId(null) }
+  const deleteForMe = (m: ChatMessage) => { setHidden(p => new Set(p).add(m.id)); setMenuId(null) }
 
-  const deleteForAll = async (m: any) => {
+  const deleteForAll = async (m: ChatMessage) => {
     setConfirmDeleteForAllId(null)
     setMenuId(null)
     try {
@@ -175,7 +179,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     } catch (e) { showError(e) }
   }
 
-  const togglePin = async (m: any) => {
+  const togglePin = async (m: ChatMessage) => {
     setMenuId(null)
     const newId = m.epingle ? null : m.id
     try { await chatApi.togglePin(convId, newId); setMessages(p => p.map(x => ({ ...x, epingle: x.id === newId }))) } catch (e) { showError(e) }
@@ -189,7 +193,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     try { const m = await chatApi.proposerCreneau(convId, iso); setMessages(p => [...p, m]); scrollBot() } catch (e) { showError(e) }
     setProposing(false)
   }
-  const repondre = async (m: any, r: 'accepted'|'declined'|'countered') => {
+  const repondre = async (m: ChatMessage, r: 'accepted'|'declined'|'countered') => {
     if (r === 'countered') { setCounterFor(m); return }
     try { const u = await chatApi.repondreProposition(m.id, r); setMessages(p => p.map(x => x.id === m.id ? u : x)) } catch (e) { showError(e) }
   }
@@ -203,9 +207,10 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const copyCode = () => { if (!conv?.code_visite) return; navigator.clipboard?.writeText(conv.code_visite); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000) }
   const payer = async () => {
     if (!conv?.bien?.id) return; setPaying(true)
+    const bienId = conv.bien.id
     try {
       const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
-      const v = l.find((x: any) => x.bien?.id === conv.bien.id)
+      const v = l.find(x => x.bien?.id === bienId)
       if (!v) { showError({ response: { data: { message: 'Aucune visite trouvée.' } } }); setPaying(false); return }
       if (v.paiement_effectue) { showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
       if (!(Number(v.frais_visite) > 0)) { showError({ response: { data: { message: 'Cette visite est gratuite.' } } }); setPaying(false); return }
@@ -214,7 +219,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     setPaying(false)
   }
 
-  const canEdit = (m: any) => m.sender_id === user?.id && !m.supprime_pour_tous && Date.now() - new Date(m.created_at).getTime() <= 15 * 60_000
+  const canEdit = (m: ChatMessage) => m.sender_id === user?.id && !m.supprime_pour_tous && Date.now() - new Date(m.created_at).getTime() <= 15 * 60_000
   const visible = messages.filter(m => !hidden.has(m.id))
 
 
@@ -267,7 +272,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
             {/* Bien lié — compact */}
             {bienTypeLabel && conv?.bien && (
-              <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
+              <button onClick={() => navigate(`/biens/${convBienId}`)}
                 className="hidden sm:flex flex-col text-left px-3 py-2 rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, maxWidth: 120 }}>
                 <p className="text-[11.5px] font-semibold truncate" style={{ color: tp }}>{bienTypeLabel}</p>
@@ -430,7 +435,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)', '--menu-hover': menuHov } as CSSProperties}
           data-headermenu>
           <MenuItem color={tp} label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
-          {conv?.bien?.id && <MenuItem color={tp} label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
+          {convBienId && <MenuItem color={tp} label="Voir le bien" onClick={() => { navigate(`/biens/${convBienId}`); setShowHeaderMenu(false) }} />}
           <div className="h-px mx-2 my-1" style={{ background: divider }} />
           <MenuItem color={tp} label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
           <MenuItem color={tp} label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />

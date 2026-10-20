@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
+import type { Bien } from '../../types/api'
 
 function fmtFcfa(n: number) {
   if (!n) return '---'
@@ -14,7 +15,7 @@ export default function ContratBailPage() {
   const navigate = useNavigate()
   usePageTitle('Contrat de bail')
   const [accepted, setAccepted] = useState(false)
-  const [bien, setBien] = useState<any>(null)
+  const [bien, setBien] = useState<Bien | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

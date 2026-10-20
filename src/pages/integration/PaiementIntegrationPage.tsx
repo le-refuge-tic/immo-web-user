@@ -10,6 +10,8 @@ import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { usePaymentPolling } from '../../hooks/usePaymentPolling'
+import { unwrapList } from '../../utils/unwrapList'
+import type { Bien, Visite } from '../../types/api'
 
 const TEAL = '#0EA5E9'
 
@@ -18,8 +20,8 @@ export default function PaiementIntegrationPage() {
   const navigate = useNavigate()
   usePageTitle("Paiement d'intégration")
 
-  const [bien, setBien]         = useState<any>(null)
-  const [visite, setVisite]     = useState<any>(null)
+  const [bien, setBien]         = useState<Bien | null>(null)
+  const [visite, setVisite]     = useState<Visite | null>(null)
   const [visiteId, setVisiteId] = useState<number | null>(null)
   const [tel, setTel]           = useState('')
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
@@ -36,8 +38,8 @@ export default function PaiementIntegrationPage() {
       .catch(() => {})
     visitesApi.mesVisites()
       .then(data => {
-        const list = Array.isArray(data) ? data : data.data || []
-        const found = list.find((v: any) => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
+        const list = unwrapList(data)
+        const found = list.find(v => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
         if (found) { setVisiteId(found.id); setVisite(found) }
       })
       .catch(() => {})
@@ -68,7 +70,7 @@ export default function PaiementIntegrationPage() {
     try {
       const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: normaliseBeninPhone(tel) }, attempt.key())
       suivre(res.referenceId || res.reference_id)
-    } catch (e: any) {
+    } catch (e: unknown) {
       const conflit = readPaymentConflict(e)
       if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
         // Un paiement est déjà ouvert chez l'opérateur : on reprend son suivi sans débiter à nouveau.

@@ -8,8 +8,10 @@ import { bienTypeLabel } from '../../../utils/bienType'
 import { suggestPush } from '../../../lib/push'
 import { PURPLE, DARK_PURPLE, statutVisite } from '../shared'
 import { IcHome, IcCal, IcChat } from '../icons'
+import { unwrapList } from '../../../utils/unwrapList'
+import type { Visite } from '../../../types/api'
 
-function isEchouee(v: any): boolean {
+function isEchouee(v: Pick<Visite, 'statut' | 'date_contre_proposee' | 'date_souhaitee'>): boolean {
   if (v.statut === 'effectuee' || v.statut === 'annulee') return false
   const raw = v.date_contre_proposee || v.date_souhaitee
   if (!raw) return false
@@ -18,7 +20,7 @@ function isEchouee(v: any): boolean {
 
 export default function ReservationsTab() {
   const navigate = useNavigate()
-  const [visites, setVisites] = useState<any[]>([])
+  const [visites, setVisites] = useState<Visite[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('Toutes')
   const [cpId, setCpId] = useState<number | null>(null)
@@ -30,7 +32,7 @@ export default function ReservationsTab() {
 
   const load = async () => {
     setLoading(true)
-    try { const d = await visitesApi.reservationsRecues(); setVisites(Array.isArray(d) ? d : d.data || []) } catch {}
+    try { const d = await visitesApi.reservationsRecues(); setVisites(unwrapList(d)) } catch {}
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -45,15 +47,15 @@ export default function ReservationsTab() {
     try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch {}
   }
 
-  const ouvrirChat = async (v: any, draftMessage?: string) => {
+  const ouvrirChat = async (v: Visite, draftMessage?: string) => {
     const clientId = v.client?.id
     const bienId = v.bien?.id
     if (!clientId || !bienId) return
     setChatLoadingId(v.id)
     try {
       const convs = await chatApi.conversations()
-      const list = Array.isArray(convs) ? convs : convs.data || []
-      const match = list.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === clientId))
+      const list = unwrapList(convs)
+      const match = list.find(c => c.bien?.id === bienId && c.participants?.some(p => p.id === clientId))
       if (match) navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
       else setChatError('Ce client n\'a pas encore démarré de conversation pour ce bien.')
     } catch {}
@@ -62,7 +64,7 @@ export default function ReservationsTab() {
 
   // Message de relance pré-rempli pour une visite échouée — comme
   // demarcheur_reservations.dart::_ouvrirChatEchouee sur mobile.
-  const ouvrirChatEchouee = (v: any) => {
+  const ouvrirChatEchouee = (v: Visite) => {
     const prenom = v.client?.prenom || ''
     const bType = v.bien ? bienTypeLabel(v.bien) : ''
     const bLoc = v.bien?.localisation ? `${v.bien.localisation.quartier || ''} ${v.bien.localisation.ville || ''}`.trim() : ''

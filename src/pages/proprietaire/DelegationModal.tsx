@@ -4,6 +4,8 @@ import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { apiMessage } from '../../utils/apiMessage'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { Bien, User } from '../../types/api'
+import type { DelegationEmise } from '../../types/proprietaire'
 
 type Props = { onClose: () => void }
 
@@ -18,15 +20,15 @@ const STATUT_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function DelegationModal({ onClose }: Props) {
   const [view, setView] = useState<'liste' | 'nouvelle'>('liste')
-  const [delegations, setDelegations] = useState<any[]>([])
+  const [delegations, setDelegations] = useState<DelegationEmise[]>([])
   const [loading, setLoading] = useState(true)
 
-  const [biens, setBiens] = useState<any[]>([])
+  const [biens, setBiens] = useState<Bien[]>([])
   const [bienId, setBienId] = useState('')
   const [search, setSearch] = useState('')
-  const [resultats, setResultats] = useState<any[]>([])
+  const [resultats, setResultats] = useState<User[]>([])
   const [searching, setSearching] = useState(false)
-  const [demarcheur, setDemarcheur] = useState<any>(null)
+  const [demarcheur, setDemarcheur] = useState<User | null>(null)
   const [dateFin, setDateFin] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -73,7 +75,7 @@ export default function DelegationModal({ onClose }: Props) {
       setView('liste')
       setDemarcheur(null); setSearch(''); setBienId(''); setDateFin('')
       chargerListe()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || "Erreur lors de l'envoi de la proposition")
     }
     setSaving(false)
@@ -116,7 +118,7 @@ export default function DelegationModal({ onClose }: Props) {
               <p className="text-sm text-center py-8" style={{ color: 'var(--p-muted)' }}>Aucune délégation pour l'instant</p>
             ) : (
               <div className="space-y-2">
-                {delegations.map((d: any) => {
+                {delegations.map(d => {
                   const st = STATUT_LABELS[d.statut] || { label: d.statut, color: 'var(--p-muted)' }
                   return (
                     <div key={d.id} className="rounded-xl p-3.5" style={{ background: 'var(--p-deep)', border: '1px solid var(--p-border)' }}>

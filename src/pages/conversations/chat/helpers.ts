@@ -1,4 +1,7 @@
 /* Constantes et fonctions pures de la messagerie (formatage, libellés, couleurs du thème). */
+import type { ChatUser } from '../../../types/chat-ui'
+
+type Interlocuteur = Pick<ChatUser, 'prenom' | 'pseudonyme' | 'nom' | 'role'> | null | undefined
 
 export const BIEN_TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appt. meublé',
@@ -34,8 +37,8 @@ export function fmtSlot(dt: Date) {
   const M = ['janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc']
   return `${J[dt.getDay()]} ${dt.getDate()} ${M[dt.getMonth()]} à ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
 }
-export function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
-export function roleLabel(o: any) {
+export function displayName(o: Interlocuteur) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
+export function roleLabel(o: Interlocuteur) {
   if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'

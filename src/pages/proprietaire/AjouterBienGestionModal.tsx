@@ -4,8 +4,9 @@ import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
 import { apiMessage } from '../../utils/apiMessage'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { Bien } from '../../types/api'
 
-type Props = { onClose: () => void; onCreated: (bien: any) => void }
+type Props = { onClose: () => void; onCreated: (bien: Bien) => void }
 
 const TYPES_BIEN = [
   { key: 'entree_coucher', label: 'Entrée-Coucher' },
@@ -70,7 +71,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
       const saved = created.data || created.bien || created
       setSuccess(true)
       setTimeout(() => onCreated(saved), 900)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || "Erreur lors de l'ajout du bien")
     }
     setSaving(false)

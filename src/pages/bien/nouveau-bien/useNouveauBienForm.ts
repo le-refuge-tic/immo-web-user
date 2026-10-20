@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../../utils/usePageTitle'
-import { biensApi } from '../../../api/biensApi'
+import { biensApi, type BienPayload } from '../../../api/biensApi'
 import { useAuth } from '../../../context/AuthContext'
 import { QUARTIERS } from '../../../data/quartiers'
 
@@ -209,7 +209,7 @@ export function useNouveauBienForm() {
   }
 
   const buildTarifsMeuble = () => {
-    const t: any = {}
+    const t: Record<string, unknown> = {}
     if (parsePrix(prixLongSejour) !== undefined) t.prix_long_sejour = parsePrix(prixLongSejour)
     if (parsePrix(prixSejourRestreint) !== undefined) t.prix_sejour_restreint = parsePrix(prixSejourRestreint)
     if (parsePrix(prixHeure) !== undefined) t.prix_heure = parsePrix(prixHeure)
@@ -219,7 +219,7 @@ export function useNouveauBienForm() {
   }
 
   const buildAmenites = () => {
-    const a: any = { sous_type: sousType }
+    const a: Record<string, unknown> = { sous_type: sousType }
 
     if (isTerrain) {
       if (documentTerrain) a.document = documentTerrain
@@ -287,12 +287,12 @@ export function useNouveauBienForm() {
     if (isTerrain || isBoutique) return []
     if (typeBien === 'entree_coucher') return [{ nom: 'Chambre', surface: 0 }, { nom: 'Entrée', surface: 0 }]
     if (typeBien === 'chambre_salon') {
-      const p: any[] = []
+      const p: { nom: string; surface: number }[] = []
       for (let i = 0; i < chambres; i++) p.push({ nom: 'Chambre', surface: 0 })
       for (let i = 0; i < salons; i++) p.push({ nom: 'Salon', surface: 0 })
       return p
     }
-    const p: any[] = []
+    const p: { nom: string; surface: number }[] = []
     for (let i = 0; i < chambres; i++) p.push({ nom: 'Chambre', surface: 0 })
     for (let i = 0; i < salons; i++) p.push({ nom: 'Salon', surface: 0 })
     for (let i = 0; i < cuisines; i++) p.push({ nom: 'Cuisine', surface: 0 })
@@ -317,7 +317,7 @@ export function useNouveauBienForm() {
       const titre = isTerrain ? titreTerrain.trim() : ''
       const descFull = titre ? (notes ? `${titre}\n\n${notes}` : titre) : notes
 
-      const body: any = {
+      const body: BienPayload = {
         type: typeBackend,
         transaction: typeTransaction,
         prix: prixFinal,
@@ -362,7 +362,7 @@ export function useNouveauBienForm() {
       draft.clear()
       suggestPush()
       setCreated(true)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || 'Erreur lors de la création')
     }
     setSubmitting(false)

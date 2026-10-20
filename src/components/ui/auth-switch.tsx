@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, type Transition } from 'framer-motion'
+import type { LoginPayload } from '../../types/session'
+import type { RegisterBody } from '../../types/auth'
 import { Eye, EyeOff, Search, Home, Check, ShieldCheck, AlertTriangle, Loader2, Lock, ChevronDown, Mail } from 'lucide-react'
 import { ImageSlider } from './image-slider'
 import { CountryFlag } from './auth/CountryFlag'
@@ -240,7 +242,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     return () => clearTimeout(t)
   }, [resendCooldown])
 
-  const completeLogin = (data: any) => {
+  const completeLogin = (data: LoginPayload) => {
     login(data)
     const redirect = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
     if (redirect) {
@@ -270,7 +272,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         setStepDir(1); setFormStep('otp')
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || 'Identifiants incorrects'))
     }
     setLoading(false)
@@ -284,7 +286,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       const data = await withColdStartRetry(() => authApi.loginPhone(fullPhone, password), () => setOtpError('Le serveur se réveille…'))
       setOtpError('')
       if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setLoading(false)
@@ -296,7 +298,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     try {
       const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code incorrect'))
       setOtpDigits(Array(OTP_LENGTH).fill(''))
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
@@ -321,7 +323,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   }
 
   const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
-  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as any }
+  const transition: Transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }
 
   return (
     <AnimatePresence mode="wait" custom={stepDir}>
@@ -453,7 +455,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     return () => clearTimeout(t)
   }, [resendCooldown])
 
-  const completeLogin = (data: any) => {
+  const completeLogin = (data: LoginPayload) => {
     login(data)
     const userRole = data.user?.role
     if (userRole === 'proprietaire') navigate('/proprietaire', { replace: true })
@@ -473,7 +475,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     if (Date.now() - formShownAtRef.current < MIN_FORM_MS) { setError('Vérifiez vos informations puis validez à nouveau.'); return }
     setLoading(true); setError('')
     try {
-      const body: any = { role, nom: nom.trim(), prenom: prenom.trim(), password, site_web: siteWeb }
+      const body: RegisterBody = { role, nom: nom.trim(), prenom: prenom.trim(), password, site_web: siteWeb }
       if (phone.trim()) body.telephone = telephone
       if (email.trim()) body.email = email.trim()
       const registerData = await authApi.register(body)
@@ -492,7 +494,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         setStepDir(1); setStep(3)
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || "Erreur lors de l'inscription"))
     }
     setLoading(false)
@@ -508,7 +510,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       const data = await withColdStartRetry(resendFn, () => setOtpError('Le serveur se réveille…'))
       setOtpError('')
       if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setResending(false)
@@ -520,7 +522,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     try {
       const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code incorrect'))
       setOtpDigits(Array(OTP_LENGTH).fill(''))
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
@@ -546,7 +548,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
   const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
   const goTo = (s: number) => { setStepDir(s > step ? 1 : -1); setStep(s) }
-  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as any }
+  const transition: Transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }
 
   return (
     <>

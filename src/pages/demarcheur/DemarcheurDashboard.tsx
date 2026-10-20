@@ -7,6 +7,9 @@ import { commercialApi, type CompteursCommercial, type PerfHebdoSemaine } from '
 import { usePageTitle } from '../../utils/usePageTitle'
 import { useNotifications } from '../../context/NotificationsContext'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { Bien } from '../../types/api'
+import type { ProfilDemarcheur } from '../../types/demarcheur'
+import { unwrapList } from '../../utils/unwrapList'
 import { PURPLE, DARK_PURPLE, MID_PURPLE, isCommercial, type Tab } from './shared'
 import { IcDash, IcHome, IcCal, IcPerson, IcPlus, IcVerif, IcEye, IcStar, IcBell, IcWallet } from './icons'
 import TableauTab from './tabs/TableauTab'
@@ -36,8 +39,8 @@ export default function DemarcheurDashboard() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
   const [moreOpen, setMoreOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [biens, setBiens] = useState<any[]>([])
+  const [user, setUser] = useState<ProfilDemarcheur | null>(null)
+  const [biens, setBiens] = useState<Bien[]>([])
   const [loading, setLoading] = useState(true)
   const [compteurs, setCompteurs] = useState<CompteursCommercial | null>(null)
   const [perfHebdo, setPerfHebdo] = useState<PerfHebdoSemaine[]>([])
@@ -47,7 +50,7 @@ export default function DemarcheurDashboard() {
       const [u, b] = await Promise.allSettled([userApi.me(), biensApi.mesBiens()])
       const me = u.status === 'fulfilled' ? (u.value?.user || u.value) : null
       if (me) setUser(me)
-      if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
+      if (b.status === 'fulfilled') setBiens(unwrapList(b.value))
 
       // Compteurs + performance hebdo : uniquement pour les commerciaux, sur leur propre id.
       if (me && isCommercial(me) && me.id) {
