@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../config/inscription'
 import { useNotifications } from '../context/NotificationsContext'
 import { useScrolled } from '../context/ScrollContext'
 import { useTheme } from '../context/ThemeContext'
@@ -204,7 +205,7 @@ export default function TopNav() {
                   className="px-3 lg:px-4 py-2 text-[13px] lg:text-sm font-semibold rounded-xl text-white transition-all btn-glow whitespace-nowrap"
                   style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}
                 >
-                  S'inscrire
+                  {PROPRIO_SEUL ? 'Je suis propriétaire' : "S'inscrire"}
                 </button>
               </div>
             ) : (

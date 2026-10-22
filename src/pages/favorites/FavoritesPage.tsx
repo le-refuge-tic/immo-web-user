@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { favoritesApi } from '../../api/favoritesApi'
@@ -95,10 +96,10 @@ export default function FavoritesPage() {
               Connectez-vous pour retrouver facilement tous les biens qui vous ont plu
             </p>
             <div className="flex flex-col items-center gap-3">
-              <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,var(--c-primary),#6D3FE0)' }}>
-                Créer mon compte en 1 minute
+              <button onClick={() => navigate(PROPRIO_SEUL ? '/login' : '/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,var(--c-primary),#6D3FE0)' }}>
+                {PROPRIO_SEUL ? 'Se connecter' : 'Créer mon compte en 1 minute'}
               </button>
-              <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-brand-soft">J’ai déjà un compte</button>
+              {!PROPRIO_SEUL && <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-brand-soft">J’ai déjà un compte</button>}
             </div>
           </div>
 

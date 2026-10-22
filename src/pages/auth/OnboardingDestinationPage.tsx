@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
 import sideImg from '../../assets/onboarding-side.webp'
 import logoUrl from '../../assets/REFUGE-ICON.webp'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 import { QUARTIERS as QUARTIERS_DB, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 
 // Mêmes villes/quartiers que le reste de l'app (data/quartiers.ts, utilisé
@@ -26,12 +27,15 @@ export default function OnboardingDestinationPage() {
   usePageTitle('Ma destination – Inscription')
   const navigate = useNavigate()
   const location = useLocation()
-  const objectif: string = (location.state as { objectif?: string } | null)?.objectif || 'louer'
+  // Inscription propriétaire uniquement : l'étape de choix est sautée, l'objectif est toujours propriétaire.
+  const objectif: string = PROPRIO_SEUL ? 'proprietaire' : ((location.state as { objectif?: string } | null)?.objectif || 'louer')
 
   const [ville, setVille] = useState('')
   const [quartier, setQuartier] = useState('')
 
   const dep = VILLE_DEP[ville] || ''
+  // Le parcours propriétaire se termine sur l'inscription.
+  const apresOnboarding = PROPRIO_SEUL ? '/register' : '/'
 
   const handleVilleChange = (v: string) => { setVille(v); setQuartier('') }
 
@@ -45,14 +49,14 @@ export default function OnboardingDestinationPage() {
     localStorage.setItem('rg_objectif', objectif)
     localStorage.setItem('rg_role_suggere', roleSuggere)
     localStorage.setItem('rg_onboarded', 'true')
-    navigate('/', { replace: true })
+    navigate(apresOnboarding, { replace: true })
   }
 
   const handleSkip = () => {
     localStorage.setItem('rg_objectif', objectif)
     localStorage.setItem('rg_role_suggere', roleSuggere)
     localStorage.setItem('rg_onboarded', 'true')
-    navigate('/', { replace: true })
+    navigate(apresOnboarding, { replace: true })
   }
 
   const isProprietaire = objectif === 'proprietaire'
@@ -77,7 +81,7 @@ export default function OnboardingDestinationPage() {
           </div>
           {/* Progress */}
           <div className="flex gap-1.5">
-            <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />
+            {!PROPRIO_SEUL && <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />}
             <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />
           </div>
         </div>
@@ -86,7 +90,7 @@ export default function OnboardingDestinationPage() {
 
         {/* Contenu bas */}
         <div className="px-6 md:px-16 pb-12 md:pb-16">
-          <p className="text-white/45 text-xs uppercase tracking-[2px] mb-3">Étape 2 sur 2</p>
+          <p className="text-white/45 text-xs uppercase tracking-[2px] mb-3">{PROPRIO_SEUL ? 'Étape 1 sur 1' : 'Étape 2 sur 2'}</p>
           <h2 className="text-white font-bold leading-[1.1] tracking-tight mb-2" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 3.2rem)' }}>
             {isProprietaire ? 'Où se trouve votre bien ?' : 'Où souhaitez-vous louer ?'}
           </h2>

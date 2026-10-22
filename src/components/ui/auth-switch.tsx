@@ -22,6 +22,7 @@ import { nameError, NAME_MAX_LENGTH } from '../../utils/nameRules'
 import { applyOtpInput } from '../../utils/otpInput'
 import { apiMessage } from '../../utils/apiMessage'
 import { POST_LOGIN_REDIRECT_KEY, isSessionExpired, clearSessionExpired, estDestinationInterne } from '../../utils/sessionExpiry'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 
 /** Délai minimal entre l'affichage du formulaire et l'envoi (anti-robot). */
 const MIN_FORM_MS = 3000
@@ -363,8 +364,8 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           </form>
           <div className="auth-divider" />
           <p className="auth-footer">
-            Nouveau ici ?{' '}
-            <button type="button" onClick={onSwitch} className="auth-link">Créer un compte</button>
+            {PROPRIO_SEUL ? 'Vous êtes propriétaire ?' : 'Nouveau ici ?'}{' '}
+            <button type="button" onClick={onSwitch} className="auth-link">{PROPRIO_SEUL ? 'Créez votre compte' : 'Créer un compte'}</button>
           </p>
           <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour à l'accueil
@@ -414,9 +415,11 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const { login } = useAuth()
   const navigate = useNavigate()
   const prefersReduced = useReducedMotion()
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(PROPRIO_SEUL ? 2 : 1)
   const [stepDir, setStepDir] = useState(1)
   const [role, setRole] = useState(() => {
+    // Inscription web propriétaire uniquement : le rôle est fixé, ni suggestion ni paramètre d'URL.
+    if (PROPRIO_SEUL) return 'proprietaire'
     const suggere = localStorage.getItem('rg_role_suggere')
     return suggere === 'proprietaire' || suggere === 'prospect' ? suggere : ''
   })
@@ -554,7 +557,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     <>
       {step !== 3 && (
         <div className="auth-step-dots">
-          {[1, 2, 3].map(s => (
+          {(PROPRIO_SEUL ? [2, 3] : [1, 2, 3]).map(s => (
             <div key={s} className={`auth-step-dot${s === step ? ' active' : s < step ? ' done' : ''}`} />
           ))}
         </div>
@@ -587,8 +590,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
         {step === 2 && (
           <motion.div key="r2" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
-            <h1 className="auth-title">Vos informations</h1>
-            <p className="auth-sub">Quelques infos pour créer votre compte</p>
+            <h1 className="auth-title">{PROPRIO_SEUL ? 'Vous êtes propriétaire ?' : 'Vos informations'}</h1>
+            <p className="auth-sub">{PROPRIO_SEUL ? 'Créez votre compte propriétaire' : 'Quelques infos pour créer votre compte'}</p>
             <ErrorBanner message={error} id="register-error" />
             <form onSubmit={handleRegister} className="flex flex-col gap-2" aria-describedby={error ? 'register-error' : undefined}>
               <div className="flex gap-2">
@@ -651,7 +654,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 </span>
               </label>
               <div className="flex gap-2 mt-1">
-                <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-text-dark hover:bg-black/5 transition-colors shrink-0">Retour</button>
+                {!PROPRIO_SEUL && <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-text-dark hover:bg-black/5 transition-colors shrink-0">Retour</button>}
                 <PrimaryButton loading={loading} loadingLabel="Création…" className="flex-1">S'inscrire</PrimaryButton>
               </div>
             </form>

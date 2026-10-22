@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
 import img1 from '../../assets/onboarding-1.webp'
 import img2 from '../../assets/onboarding-2.webp'
 import img3 from '../../assets/onboarding-3.webp'
 import logoUrl from '../../assets/REFUGE-ICON.webp'
 import { withAlpha } from '../../utils/color'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 
 const SLIDES = [
   {
@@ -49,7 +50,13 @@ const SLIDES = [
   },
 ]
 
+/** Inscription propriétaire uniquement : les diaporamas sont destinés aux chercheurs de logement, on les saute. */
 export default function OnboardingPage() {
+  if (PROPRIO_SEUL) return <Navigate to="/onboarding/destination" state={{ objectif: 'proprietaire' }} replace />
+  return <Diaporama />
+}
+
+function Diaporama() {
   usePageTitle('Bienvenue sur REFUGE')
   const navigate = useNavigate()
   const [current, setCurrent] = useState(0)
