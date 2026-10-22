@@ -32,3 +32,6 @@ export interface DelegationRecue {
   /** Absent = délégation sur tous les biens du propriétaire. */
   bien?: Bien | null
 }
+
+/** Résultat de `GET /users/demarcheurs?search=` : annuaire sans coordonnées. */
+export type DemarcheurResume = Pick<User, 'id' | 'nom' | 'prenom'>

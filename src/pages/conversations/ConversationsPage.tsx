@@ -111,7 +111,7 @@ export default function ConversationsPage() {
       </div>
     )
     if (error) return (
-      <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
+      <div role="alert" className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
         <p className="text-sm font-semibold" style={{ color: textPrimary }}>{error}</p>
         <button onClick={() => setReloadKey(k => k + 1)}
           className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90"

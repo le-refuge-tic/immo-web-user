@@ -8,6 +8,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
 import type { Bien } from '../../types/api'
+import { apiMessage } from '../../utils/apiMessage'
+import ErrorState from '../../components/ErrorState'
 
 // Les favoris sont parfois renvoyés avec l'identifiant du bien dans `bien_id`.
 type Favori = Bien & { bien_id?: number; bien?: Bien }
@@ -18,7 +20,7 @@ export default function FavoritesPage() {
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
   // Chargement annulable, sans réponse périmée (FE-A-004).
-  const { data, setData, loading } = useApiQuery(
+  const { data, setData, loading, error: loadError, refetch } = useApiQuery(
     signal => favoritesApi.list(signal).then(unwrapList),
     [isLoggedIn],
     { enabled: isLoggedIn },
@@ -26,6 +28,7 @@ export default function FavoritesPage() {
   const biens: Favori[] = data ?? NO_FAVORIS
   const favIds = useMemo(() => new Set<number>(biens.map(f => (f as Favori).bien_id || f.id)), [biens])
   const [confirmClearAll, setConfirmClearAll] = useState(false)
+  const [clearError, setClearError] = useState('')
 
   const handleFavToggle = (id: number, added: boolean) => {
     if (!added) {
@@ -37,7 +40,12 @@ export default function FavoritesPage() {
     const ids = Array.from(favIds)
     setData([])
     setConfirmClearAll(false)
-    try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch {}
+    setClearError('')
+    try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (e: unknown) {
+      // La liste affichée doit refléter le serveur : on la recharge et on prévient la personne.
+      setClearError(apiMessage(e) || "Tous les favoris n'ont pas pu être supprimés. Réessayez.")
+      refetch()
+    }
   }
 
   return (
@@ -84,6 +92,7 @@ export default function FavoritesPage() {
           )}
         </div>
 
+        {clearError && <p role="alert" className="text-sm font-semibold mb-4" style={{ color: 'var(--c-danger)' }}>{clearError}</p>}
         {!isLoggedIn ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(75,107,255,0.10)' }}>
@@ -109,6 +118,9 @@ export default function FavoritesPage() {
               <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />
             ))}
           </div>
+
+        ) : loadError && biens.length === 0 ? (
+          <ErrorState title="Impossible de charger vos favoris" onRetry={refetch} />
 
         ) : biens.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">

@@ -9,6 +9,7 @@ import { IcMessage } from './icons'
 import { IcHome, IcCal, IcBell, BLUE, formatConvTime } from './shared'
 import type { Tab } from './shared'
 import type { Notification } from '../../../types/api'
+import ErrorState from '../../../components/ErrorState'
 
 /* ── Onglet Notifications — propre à l'espace propriétaire ─────────────────
  * Affiche uniquement les alertes concernant le rôle propriétaire (target_role
@@ -39,15 +40,18 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
   const { refresh: refreshCounts, markAlertesRead } = useNotifications()
   const [notifs, setNotifs] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
 
-  useEffect(() => {
+  const charger = () => {
     setLoading(true)
+    setLoadError(false)
     notificationsApi.list()
       .then(d => setNotifs(Array.isArray(d) ? d : d.data || []))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { charger() }, [])
 
   // Notifications de l'espace propriétaire : rôle cible explicite = proprietaire,
   // ou sans rôle (alertes antérieures au champ target_role).
@@ -137,6 +141,8 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
           <div className="space-y-3">
             {[1, 2, 3, 4].map(i => <div key={i} className="skeleton rounded-2xl h-20" />)}
           </div>
+        ) : loadError && notifs.length === 0 ? (
+          <ErrorState palette="proprietaire" title="Impossible de charger vos notifications" onRetry={charger} />
         ) : displayed.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'var(--p-card)', color: 'var(--p-muted)' }}>

@@ -9,6 +9,7 @@ import { PURPLE, type Tab } from '../shared'
 import { IcHome, IcCal, IcBell, IcChat } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { Notification } from '../../../types/api'
+import ErrorState from '../../../components/ErrorState'
 
 /* Onglet notifications propre à l'espace démarcheur : n'affiche que les alertes
  * concernant ce rôle (target_role = 'demarcheur'/'commercial', ou null pour les
@@ -48,15 +49,18 @@ export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) =>
   const { refresh: refreshCounts, markAlertesRead } = useNotifications()
   const [notifs, setNotifs] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
 
-  useEffect(() => {
+  const charger = () => {
     setLoading(true)
+    setLoadError(false)
     notificationsApi.list()
       .then(d => setNotifs(unwrapList(d)))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { charger() }, [])
 
   const mine = notifs.filter(n => !n.target_role || DEMARCHEUR_ROLES.has(n.target_role))
   const unread = mine.filter(n => !n.lu).length
@@ -132,6 +136,8 @@ export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) =>
       <div className="flex-1 overflow-y-auto px-4 md:px-5 py-4 pb-24 space-y-2">
         {loading ? (
           [1, 2, 3, 4].map(i => <div key={i} className="skeleton rounded-2xl h-20" />)
+        ) : loadError && notifs.length === 0 ? (
+          <ErrorState title="Impossible de charger vos notifications" onRetry={charger} />
         ) : displayed.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-surface-g text-text-grey"><IcBell /></div>

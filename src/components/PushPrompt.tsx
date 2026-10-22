@@ -13,6 +13,7 @@ export default function PushPrompt() {
     if (!isLoggedIn || !pushSupported()) return
 
     if (Notification.permission === 'granted') {
+      // Abonnement push facultatif : un échec ne doit rien afficher (réessayé à la prochaine ouverture)
       subscribeToPush().catch(() => {})
       return
     }
@@ -28,6 +29,7 @@ export default function PushPrompt() {
 
   const activate = async () => {
     setBusy(true)
+    // Un abonnement refusé ou en échec se traite comme « non activé » : le bandeau se referme selon la permission
     const ok = await subscribeToPush().catch(() => false)
     setBusy(false)
     if (ok || Notification.permission !== 'default') setShow(false)

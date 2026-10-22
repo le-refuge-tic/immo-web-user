@@ -11,11 +11,15 @@ import type { Bien, Visite } from '../../../types/api'
 import { suggestPush } from '../../../lib/push'
 import { onActivateKey } from '../../../utils/keyboard'
 import { withAlpha } from '../../../utils/color'
+import { apiMessage } from '../../../utils/apiMessage'
+import ErrorState from '../../../components/ErrorState'
+import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
 
 export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: Bien[]; onScrolled?: (v: boolean) => void; onOpenMessages?: (convId: number, draftMessage?: string) => void }) {
   const navigate = useNavigate()
   const [visites, setVisites] = useState<Visite[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [filter, setFilter] = useState('Toutes')
   const [bienIdFilter, setBienIdFilter] = useState<number | null>(null)
   const [cpId, setCpId] = useState<number | null>(null)
@@ -30,7 +34,8 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
 
   const load = async () => {
     setLoading(true)
-    try { const d = await visitesApi.reservationsRecues(); setVisites(Array.isArray(d) ? d : d.data || []) } catch {}
+    setLoadError(false)
+    try { const d = await visitesApi.reservationsRecues(); setVisites(Array.isArray(d) ? d : d.data || []) } catch { setLoadError(true) }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -58,11 +63,17 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
     : byBien.filter(v => v.statut === 'annulee')
 
   const confirmer = async (id: number) => {
-    try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch {}
+    setChatError('')
+    try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch (e: unknown) {
+      setChatError(apiMessage(e) || 'La confirmation de la visite a échoué. Réessayez.')
+    }
   }
 
   const marquerEffectuee = async (id: number) => {
-    try { await visitesApi.marquerEffectuee(id); load() } catch {}
+    setChatError('')
+    try { await visitesApi.marquerEffectuee(id); load() } catch (e: unknown) {
+      setChatError(apiMessage(e) || 'La mise à jour de la visite a échoué. Réessayez.')
+    }
   }
 
   const ouvrirChat = async (v: Visite) => {
@@ -82,7 +93,9 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
         else navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
       }
       else setChatError('Ce client n\'a pas encore démarré de conversation pour ce bien.')
-    } catch {}
+    } catch (e: unknown) {
+      setChatError(apiMessage(e) || 'Impossible d\'ouvrir la conversation. Réessayez.')
+    }
     setChatLoadingId(null)
   }
 
@@ -93,7 +106,10 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
       await visitesApi.contreProposer(cpId, `${cpDate}T${cpTime}:00`)
       setCpId(null); setCpDate(''); setCpTime('')
       load()
-    } catch {}
+    } catch (e: unknown) {
+      // Le formulaire reste ouvert et le bouton d'envoi redevient actif.
+      setChatError(apiMessage(e) || 'La contre-proposition a échoué. Réessayez.')
+    }
     setSubmitting(false)
   }
 
@@ -167,6 +183,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 md:px-8 xl:px-10 pb-24"
         onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
 
+        {loadError && !loading && visites.length > 0 && <RefreshFailedNotice palette="proprietaire" className="mt-2 mb-2" onRetry={load} />}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             {[1,2,3,4,5,6].map(n => (
@@ -179,6 +196,8 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
               </div>
             ))}
           </div>
+        ) : loadError && visites.length === 0 ? (
+          <ErrorState palette="proprietaire" title="Impossible de charger vos réservations" onRetry={load} />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"

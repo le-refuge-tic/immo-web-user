@@ -6,7 +6,7 @@ import { authApi } from '../../api/authApi'
 import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
 import { motion, AnimatePresence, useReducedMotion, type Transition } from 'framer-motion'
 import type { LoginPayload } from '../../types/session'
-import type { RegisterBody } from '../../types/auth'
+import { estOtpRequise, type RegisterBody } from '../../types/auth'
 import { Eye, EyeOff, Search, Home, Check, ShieldCheck, AlertTriangle, Loader2, Lock, ChevronDown, Mail } from 'lucide-react'
 import { ImageSlider } from './image-slider'
 import { CountryFlag } from './auth/CountryFlag'
@@ -267,7 +267,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         () => setError('Le serveur se réveille, nouvelle tentative…'),
       )
       setError('')
-      if (data.requires_otp && data.session_token) {
+      if (estOtpRequise(data)) {
         setSessionToken(data.session_token)
         setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
         setStepDir(1); setFormStep('otp')
@@ -286,7 +286,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       const fullPhone = toInternationalPhone(countryCode, phone)
       const data = await withColdStartRetry(() => authApi.loginPhone(fullPhone, password), () => setOtpError('Le serveur se réveille…'))
       setOtpError('')
-      if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
+      if (estOtpRequise(data)) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
     } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
@@ -491,7 +491,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         : () => authApi.loginEmail(email.trim(), password)
       const data = await withColdStartRetry(loginFn, () => setError('Le serveur se réveille, nouvelle tentative…'))
       setError('')
-      if (data.requires_otp && data.session_token) {
+      if (estOtpRequise(data)) {
         setSessionToken(data.session_token)
         setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
         setStepDir(1); setStep(3)
@@ -512,7 +512,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         : () => authApi.loginEmail(email.trim(), password)
       const data = await withColdStartRetry(resendFn, () => setOtpError('Le serveur se réveille…'))
       setOtpError('')
-      if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
+      if (estOtpRequise(data)) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
     } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }

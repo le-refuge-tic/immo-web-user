@@ -8,6 +8,7 @@ import ChangePasswordModal from '../../profile/ChangePasswordModal'
 import { PURPLE, DARK_PURPLE } from '../shared'
 import { IcShield, IcUpload, IcChevron } from '../icons'
 import type { ProfilDemarcheur } from '../../../types/demarcheur'
+import { apiMessage } from '../../../utils/apiMessage'
 
 export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDemarcheur | null | undefined; onOpenDelegations: () => void }) {
   const navigate = useNavigate()
@@ -17,19 +18,27 @@ export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDem
   const [cipFile, setCipFile] = useState<File | null>(null)
   const [ifuFile, setIfuFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
 
   const uploadCip = async () => {
     if (!cipFile) return
     setUploading(true)
-    try { await userApi.uploadCip(cipFile); setCipFile(null) } catch {}
+    setUploadError('')
+    try { await userApi.uploadCip(cipFile); setCipFile(null) } catch (e: unknown) {
+      // Le fichier reste sélectionné et le bouton « Envoyer » redevient actif.
+      setUploadError(apiMessage(e) || "L'envoi du document a échoué. Réessayez.")
+    }
     setUploading(false)
   }
   const uploadIfu = async () => {
     if (!ifuFile) return
     setUploading(true)
-    try { await userApi.uploadIfu(ifuFile); setIfuFile(null) } catch {}
+    setUploadError('')
+    try { await userApi.uploadIfu(ifuFile); setIfuFile(null) } catch (e: unknown) {
+      setUploadError(apiMessage(e) || "L'envoi du document a échoué. Réessayez.")
+    }
     setUploading(false)
   }
 
@@ -64,6 +73,7 @@ export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDem
       {/* Vérification docs */}
       <div className="px-4 mb-4">
         <p className="font-bold text-text-dark mb-3">Vérification d'identité</p>
+        {uploadError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{uploadError}</p>}
         <div className="space-y-3">
           {[
             { label: 'CIP (Carte d\'identité professionnelle)', file: cipFile, setFile: setCipFile, onUpload: uploadCip },

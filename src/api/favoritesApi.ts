@@ -8,5 +8,5 @@ export const favoritesApi = {
 
   /** Ajoute ou retire le bien des favoris (toggle) ; renvoie l'état résultant. */
   toggle: (bienId: number) =>
-    axios.post(`${BASE}/biens/${bienId}/favori`, {}, auth()).then(r => r.data as FavoriToggleResponse),
+    axios.post<FavoriToggleResponse>(`${BASE}/biens/${bienId}/favori`, {}, auth()).then(r => r.data),
 }

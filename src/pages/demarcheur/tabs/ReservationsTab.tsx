@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { tokenStore } from '../../../utils/tokenStore'
 import { visitesApi } from '../../../api/visitesApi'
 import { chatApi } from '../../../api/chatApi'
-import { BASE } from '../../../api/apiBase'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { suggestPush } from '../../../lib/push'
 import { PURPLE, DARK_PURPLE, statutVisite } from '../shared'
 import { IcHome, IcCal, IcChat } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
+import { apiMessage } from '../../../utils/apiMessage'
 import type { Visite } from '../../../types/api'
 import { withAlpha } from '../../../utils/color'
 
@@ -28,6 +27,7 @@ export default function ReservationsTab() {
   const [cpDate, setCpDate] = useState('')
   const [cpTime, setCpTime] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [cpError, setCpError] = useState('')
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
   const [chatError, setChatError] = useState('')
 
@@ -78,14 +78,14 @@ export default function ReservationsTab() {
   const contreProposer = async () => {
     if (!cpId || !cpDate || !cpTime) return
     setSubmitting(true)
+    setCpError('')
     try {
-      await fetch(`${BASE}/visites/${cpId}/contre-proposer`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenStore.getToken()}` },
-        body: JSON.stringify({ date_proposee: `${cpDate}T${cpTime}:00` }),
-      })
+      // Passe par l'intercepteur axios : jeton, rafraîchissement sur 401 et délai d'attente.
+      await visitesApi.contreProposer(cpId, `${cpDate}T${cpTime}:00`)
       setCpId(null); setCpDate(''); setCpTime(''); load()
-    } catch {}
+    } catch (e) {
+      setCpError(apiMessage(e) || "Impossible d'envoyer la proposition. Réessayez.")
+    }
     setSubmitting(false)
   }
 
@@ -194,7 +194,7 @@ export default function ReservationsTab() {
                   </button>
                 )}
                 {!echouee && v.statut === 'en_attente' && <>
-                  <button onClick={() => setCpId(v.id)} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: withAlpha(PURPLE, '80'), color: PURPLE }}>Autre créneau</button>
+                  <button onClick={() => { setCpError(''); setCpId(v.id) }} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: withAlpha(PURPLE, '80'), color: PURPLE }}>Autre créneau</button>
                   <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
                 </>}
                 {!echouee && v.statut === 'confirmee' && (
@@ -210,6 +210,7 @@ export default function ReservationsTab() {
                     <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
                       className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider" />
                   </div>
+                  {cpError && <p role="alert" className="text-xs font-semibold mb-3" style={{ color: 'var(--tx-red)' }}>{cpError}</p>}
                   <div className="flex gap-2">
                     <button onClick={() => setCpId(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
                     <button onClick={contreProposer} disabled={!cpDate || !cpTime || submitting}

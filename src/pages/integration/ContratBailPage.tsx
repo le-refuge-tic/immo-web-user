@@ -4,6 +4,7 @@ import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import type { Bien } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
 
 function fmtFcfa(n: number) {
   if (!n) return '---'
@@ -17,11 +18,15 @@ export default function ContratBailPage() {
   const [accepted, setAccepted] = useState(false)
   const [bien, setBien] = useState<Bien | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
+  const chargerBien = () => {
     if (!bienId) return
-    biensApi.byId(Number(bienId)).then(setBien).catch(() => {}).finally(() => setLoading(false))
-  }, [bienId])
+    setLoading(true)
+    setLoadError(false)
+    biensApi.byId(Number(bienId)).then(setBien).catch(() => setLoadError(true)).finally(() => setLoading(false))
+  }
+  useEffect(chargerBien, [bienId])
 
   const bienType = bien ? bienTypeLabel(bien) : '...'
   const bienAdresse = bien
@@ -87,6 +92,8 @@ export default function ContratBailPage() {
         <div className="max-w-2xl mx-auto px-5 py-6 space-y-4 pb-32 print:pb-6">
           {loading ? (
             <div className="flex justify-center py-10"><div className="w-7 h-7 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} /></div>
+          ) : loadError && !bien ? (
+            <ErrorState title="Impossible de charger le contrat" hint="Les informations du bien ne sont pas disponibles. Vérifiez votre connexion et réessayez." onRetry={chargerBien} />
           ) : (
             <>
               {/* Info bien */}
@@ -131,7 +138,7 @@ export default function ContratBailPage() {
       <div className="print:hidden flex-shrink-0 px-5 py-4 border-t" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.07)' }}>
         <div className="max-w-2xl mx-auto">
           <button onClick={() => accepted && navigate(`/paiement-integration/${bienId}`)}
-            disabled={!accepted}
+            disabled={!accepted || (loadError && !bien)}
             className="w-full py-4 rounded-xl font-bold text-white text-sm disabled:opacity-40 transition-all"
             style={{ background: accepted ? 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' : 'var(--c-line)', boxShadow: accepted ? '0 4px 14px rgba(75,107,255,0.4)' : 'none' }}>
             Continuer vers le paiement

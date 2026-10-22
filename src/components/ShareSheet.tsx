@@ -30,7 +30,7 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
     navigator.clipboard?.writeText(links.url).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    }).catch(() => {})
+    }).catch(() => { /* copie refusée par le navigateur : le lien reste partageable via les boutons ci-dessus */ })
   }
 
   const networks: { key: string; label: string; href: string; bg: string; iconColor?: string; icon: ReactNode }[] = [

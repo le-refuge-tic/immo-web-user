@@ -12,11 +12,13 @@ import { IcCheck, IcCal, IcMoney } from '../icons'
 import OperateurChips from '../OperateurChips'
 import type { InitiationLoyerReponse, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 import { withAlpha } from '../../../utils/color'
+import ErrorState from '../../../components/ErrorState'
 
 export default function ActiviteTab() {
   const navigate = useNavigate()
   const [data, setData]         = useState<MonLogement | null>(null)
   const [loading, setLoading]   = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [tel, setTel]           = useState('')
   const [operateur, setOperateur] = useState<ModePaiementLoyer>('momo')
   const [cotisationSolde, setCotisationSolde] = useState(0)
@@ -29,9 +31,11 @@ export default function ActiviteTab() {
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [logement, wallet] = await Promise.all([
         loyersApi.monLogement(),
+        // Solde de cotisation facultatif : sans lui, seul le paiement par cotisation est indisponible.
         walletApi.me('cotisation').catch(() => null),
       ])
       // Réconciliation silencieuse : un loyer resté "en attente" alors que la
@@ -41,11 +45,13 @@ export default function ActiviteTab() {
         try {
           const repaired = await paiementApi.repairerLoyer(prochain.id)
           if (repaired?.reparee) { setData(await loyersApi.monLogement()); setCotisationSolde(Number(wallet?.balance || 0)); setLoading(false); return }
-        } catch {}
+        } catch { /* réparation facultative : on affiche le logement déjà chargé */ }
       }
       setData(logement)
       setCotisationSolde(Number(wallet?.balance || 0))
-    } catch {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -102,7 +108,7 @@ export default function ActiviteTab() {
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
             clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Paiement échoué.')
           }
-        } catch {}
+        } catch { /* réseau instable : on retentera au prochain tour, la boucle s'arrête à maxAttempts */ }
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
       }, 3000)
     } catch (e: unknown) {
@@ -112,6 +118,12 @@ export default function ActiviteTab() {
   }
 
   if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} /></div>
+
+  if (loadError && !data) return (
+    <div className="flex-1 flex items-center justify-center">
+      <ErrorState title="Impossible de charger votre activité" onRetry={load} />
+    </div>
+  )
 
   const urg = urgence()
 

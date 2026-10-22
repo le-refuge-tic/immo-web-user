@@ -32,6 +32,7 @@ import { onActivateKey } from '../../utils/keyboard'
 import type { Bien, Visite } from '../../types/api'
 import type { LoyersDashboard, ProprioProfil } from '../../types/proprietaire'
 import { withAlpha } from '../../utils/color'
+import ErrorState from '../../components/ErrorState'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -114,6 +115,9 @@ export default function ProprietaireDashboard() {
   const [visites, setVisites] = useState<Visite[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  // Échec d'un chargement demandé par la personne (ouverture ou « Réessayer ») ; un rafraîchissement
+  // automatique qui échoue garde les données déjà affichées sans bruit.
+  const [loadError, setLoadError] = useState(false)
   const [hoveredOverviewEl, setHoveredOverviewEl] = useState<string | null>(null)
 
   const loadData = async (silent = false) => {
@@ -126,8 +130,12 @@ export default function ProprietaireDashboard() {
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
       if (l.status === 'fulfilled') setLoyersDash(l.value)
       if (v.status === 'fulfilled') setVisites(Array.isArray(v.value) ? v.value : v.value.data || [])
-      setLastUpdated(new Date())
-    } catch {}
+      const echec = b.status === 'rejected' || l.status === 'rejected' || v.status === 'rejected'
+      if (!echec) { setLoadError(false); setLastUpdated(new Date()) }
+      else if (!silent) setLoadError(true)
+    } catch {
+      if (!silent) setLoadError(true)
+    }
     setLoading(false)
     setRefreshing(false)
   }
@@ -379,6 +387,12 @@ export default function ProprietaireDashboard() {
                   container: { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } },
                   item: { hidden: { opacity: 0, scale: 0.92, y: 16 }, visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 22 } } },
                 }}>
+
+              {loadError && (
+                <div className="rounded-2xl mb-5 border" style={{ background: 'var(--p-card)', borderColor: 'var(--p-border)' }}>
+                  <ErrorState palette="proprietaire" title="Impossible de charger votre tableau de bord" hint="Certaines informations peuvent être manquantes. Vérifiez votre connexion et réessayez." onRetry={() => loadData()} className="py-6" />
+                </div>
+              )}
 
               {/* Alert loyers */}
               {(loyersImpayesCount > 0 || loyersEnRetardCount > 0) && (

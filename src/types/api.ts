@@ -283,3 +283,29 @@ export interface Paiement {
   created_at?: IsoDate
   updated_at?: IsoDate
 }
+
+// ─── Réponses « action » et agrégats (FE-A-003) ───────────────────────────
+
+/** `GET /biens/:id/visites-planifiees` : créneaux à venir (public, sans noms). */
+export interface VisitesPlanifieesResponse {
+  total: number
+  slots: { date: string; count: number }[]
+}
+
+/** `GET /visites/bien/:id/confirmees` : visites confirmées d'un bien (gestionnaire). */
+export interface VisitesConfirmeesResponse {
+  count: number
+  visites: { id: number; date: string | null }[]
+}
+
+/** `POST /biens/:id/vue` : compteur de consultations mis à jour. */
+export interface VueResponse { nb_consultations: number }
+
+/** `POST /chat/conversations/:id/lus` et `/pin` : accusé de succès. */
+export interface SuccesResponse { success: boolean; pinnedMessageId?: number | null }
+
+/** `DELETE /chat/messages/:id`. */
+export interface MessageSupprimeResponse { id: number; supprime: boolean }
+
+/** `POST /users/me/plainte` : la plainte enregistrée. */
+export interface PlainteResponse { id: number }

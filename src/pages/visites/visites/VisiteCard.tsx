@@ -3,13 +3,11 @@ import { bienTypeLabel } from '../../../utils/bienType'
 import { fraisVisiteAPayer, libelleFraisVisite } from '../../../utils/fraisVisite'
 import { STATUT_META, SUPPORT_VISITE_PHONE } from './constants'
 import { fmtDate, isDatePasseeVisite, isEchoueeVisite } from './helpers'
+import { dateEffectiveVisite } from '../../../utils/dateVisite'
 import type { Visite } from '../../../types/api'
 
-// La carte lit `creneau.debut` (le type de l'API expose `date_debut`) : lecture conservée.
-type VisiteAffichee = Visite & { creneau?: { debut?: string } | null }
-
 type VisiteCardProps = {
-  visite: VisiteAffichee
+  visite: Visite
   onAnnuler: (v: Visite) => void
   onAccepterCP: (id: number) => void
   onRefuserCP: (v: Visite) => void
@@ -20,7 +18,7 @@ type VisiteCardProps = {
   onMessage: (bienId: number) => void
   onContacterEchouee: (v: Visite) => void
   onFeedback: (v: Visite) => void
-  onPayIntegration: (bienId?: number) => void
+  onPayIntegration: (bienId: number) => void
 }
 
 export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {
@@ -97,7 +95,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
           <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span>{v.statut === 'confirmee' ? 'Prévue' : 'Souhaitée'} : {fmtDate(v.date_souhaitee || v.creneau?.debut)}</span>
+          <span>{v.statut === 'confirmee' ? 'Prévue' : 'Souhaitée'} : {fmtDate(dateEffectiveVisite(v))}</span>
         </div>
       )}
 
@@ -188,9 +186,9 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
       )}
 
       {/* Décision oui, paiement d'intégration en attente */}
-      {v.statut === 'effectuee' && v.client_decision_integration === true && !v.paiement_integration_effectue && (
+      {v.statut === 'effectuee' && v.client_decision_integration === true && !v.paiement_integration_effectue && bien?.id != null && (
         <button
-          onClick={() => onPayIntegration(bien?.id)}
+          onClick={() => onPayIntegration(bien.id)}
           className="w-full py-2.5 rounded-xl text-xs font-bold text-white mb-3"
           style={{ background: 'var(--c-brand)' }}
         >

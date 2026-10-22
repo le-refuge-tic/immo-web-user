@@ -12,6 +12,7 @@ import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 import { unwrapList } from '../../utils/unwrapList'
 import type { Bien, Visite } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
 
 const TEAL = 'var(--c-sky)'
 
@@ -30,20 +31,24 @@ export default function PaiementIntegrationPage() {
   const polling                 = usePaymentPolling()
   const payerEnCoursRef         = useRef(false)
   const attempt                 = usePaymentAttempt()
+  // Échec du chargement du bien ou des visites : sans lui le montant à payer serait faux (0 FCFA).
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
+  const charger = () => {
     if (!bienId) return
+    setLoadError(false)
     biensApi.byId(Number(bienId))
       .then(d => setBien(d.bien || d))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
     visitesApi.mesVisites()
       .then(data => {
         const list = unwrapList(data)
         const found = list.find(v => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
         if (found) { setVisiteId(found.id); setVisite(found) }
       })
-      .catch(() => {})
-  }, [bienId])
+      .catch(() => setLoadError(true))
+  }
+  useEffect(charger, [bienId])
 
   const suivre = (ref: string) => {
     setRefId(ref)
@@ -69,7 +74,7 @@ export default function PaiementIntegrationPage() {
     setState('waiting')
     try {
       const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: normaliseBeninPhone(tel) }, attempt.key())
-      suivre(res.referenceId || res.reference_id)
+      suivre(res.referenceId)
     } catch (e: unknown) {
       const conflit = readPaymentConflict(e)
       if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
@@ -147,8 +152,14 @@ export default function PaiementIntegrationPage() {
             </div>
           )}
 
+          {loadError && (
+            <div className="rounded-2xl" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
+              <ErrorState title="Impossible de charger le paiement" hint="Le montant à payer n'est pas disponible. Vérifiez votre connexion et réessayez." onRetry={charger} className="py-8" />
+            </div>
+          )}
+
           {/* Détail paiement */}
-          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
+          {!loadError && <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
             <p className="font-bold text-text-dark mb-4">Détail du paiement</p>
             <div className="space-y-3">
               {avanceTotal > 0 && (
@@ -192,10 +203,10 @@ export default function PaiementIntegrationPage() {
                 <span className="font-bold text-text-dark text-lg">{total.toLocaleString('fr-FR')} FCFA</span>
               </div>
             </div>
-          </div>
+          </div>}
 
           {/* MTN MoMo input */}
-          {state === 'idle' || state === 'error' ? (
+          {loadError ? null : state === 'idle' || state === 'error' ? (
             <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
               <div className="flex items-center gap-3 mb-4">
                 <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/MTN_Logo.svg/200px-MTN_Logo.svg.png" alt="MTN MoMo" className="h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />

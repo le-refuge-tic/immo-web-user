@@ -24,7 +24,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
   const [numeroRetraitOpen, setNumeroRetraitOpen] = useState(false)
   const [numeroRetrait, setNumeroRetrait] = useState<{ masque: string | null } | null>(null)
   const [hoveredEl, setHoveredEl] = useState<string | null>(null)
-  useEffect(() => { walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => {}) }, [])
+  useEffect(() => { walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }, [])
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
 
@@ -202,7 +202,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
         <NumeroRetraitModal
           current={numeroRetrait?.masque ?? null}
           onClose={() => setNumeroRetraitOpen(false)}
-          onSaved={() => { setNumeroRetraitOpen(false); walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => {}) }}
+          onSaved={() => { setNumeroRetraitOpen(false); walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }}
         />
       )}
     </div>

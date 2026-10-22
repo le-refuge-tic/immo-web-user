@@ -11,6 +11,7 @@ import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { messageMontantRetrait } from '../../../utils/retrait'
 import type { MouvementWallet, RetraitProprio, WalletProprio } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
+import ErrorState from '../../../components/ErrorState'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -34,7 +35,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
   const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
   const [showNumeroModal, setShowNumeroModal] = useState(false)
 
-  useEffect(() => { walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }, [])
+  useEffect(() => { walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }, [])
 
   const montantNum = Number(montant)
   const montantValide = montantNum >= 500 && montantNum <= solde
@@ -144,7 +145,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
       <NumeroRetraitModal
         current={numeroInfo?.masque ?? null}
         onClose={() => setShowNumeroModal(false)}
-        onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+        onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }}
       />
     )}
     </>
@@ -158,16 +159,23 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
   const [loading, setLoading] = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
   const [detailTx, setDetailTx] = useState<MouvementWallet | null>(null)
+  // Échec du chargement : jamais présenté comme « 0 FCFA / aucune transaction » ; un solde déjà affiché reste.
+  const [loadError, setLoadError] = useState(false)
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [w, t, r] = await Promise.all([walletApi.me(), walletApi.transactions(), walletApi.mesRetraits()])
       setWallet(w); setTrans(Array.isArray(t) ? t : t.data || []); setRetraits(Array.isArray(r) ? r : r.data || [])
-    } catch {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
+
+  const noData = loadError && !wallet
 
   const retraitsEnCours = retraits.filter(r => r.statut === 'en_attente' || r.statut === 'approuve')
 
@@ -203,7 +211,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
             </div>
             <span className="px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(255,255,255,0.16)' }}>PROPRIÉTAIRE</span>
           </div>
-          <p className="relative text-[32px] font-extrabold tracking-tight mb-1">{loading ? '…' : solde.toLocaleString('fr-FR')} <span className="text-lg font-bold">FCFA</span></p>
+          <p className="relative text-[32px] font-extrabold tracking-tight mb-1">{loading ? '…' : noData ? '—' : solde.toLocaleString('fr-FR')} <span className="text-lg font-bold">FCFA</span></p>
           <p className="relative text-white/50 text-xs mb-6">Mis à jour le {updatedLabel}</p>
           <div className="relative flex flex-wrap gap-2.5">
             <button onClick={() => setShowRetrait(o => !o)}
@@ -224,11 +232,11 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="card-soft rounded-2xl p-3.5 min-w-0">
             <p className="text-[10px] font-semibold text-p-muted uppercase tracking-wide mb-1">Reçu ce mois</p>
-            <p className="text-sm font-bold text-p-text truncate">{recuCeMois.toLocaleString('fr-FR')} F</p>
+            <p className="text-sm font-bold text-p-text truncate">{noData ? '—' : `${recuCeMois.toLocaleString('fr-FR')} F`}</p>
           </div>
           <div className="card-soft rounded-2xl p-3.5">
             <p className="text-[10px] font-semibold text-p-muted uppercase tracking-wide mb-1">Transactions</p>
-            <p className="text-sm font-bold text-p-text">{transactions.length}</p>
+            <p className="text-sm font-bold text-p-text">{noData ? '—' : transactions.length}</p>
           </div>
           <div className="card-soft rounded-2xl p-3.5">
             <p className="text-[10px] font-semibold text-p-muted uppercase tracking-wide mb-1">Dernière</p>
@@ -264,7 +272,9 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
             <button onClick={onOpenTransactions} className="text-xs font-semibold" style={{ color: BLUE }}>Voir tout →</button>
           )}
         </div>
-        {loading ? [1, 2, 3].map(n => <div key={n} className="h-16 skeleton-dark rounded-xl mb-2" />) : transactions.length === 0 ? (
+        {loading ? [1, 2, 3].map(n => <div key={n} className="h-16 skeleton-dark rounded-xl mb-2" />) : noData ? (
+          <ErrorState palette="proprietaire" title="Impossible de charger votre portefeuille" onRetry={load} className="py-10" />
+        ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center card-navy rounded-2xl">
             <p className="font-bold text-p-text mb-1">Aucune transaction</p>
             <p className="text-sm text-p-muted">Vos loyers, frais de visite et intégrations apparaîtront ici.</p>

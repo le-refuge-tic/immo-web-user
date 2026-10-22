@@ -7,6 +7,7 @@ import { BLUE, MSG_AVATAR_COLORS, formatConvTime } from './shared'
 import type { Conversation, User } from '../../../types/api'
 import type { MessageHit } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
+import ErrorState from '../../../components/ErrorState'
 
 // ─── Tab: Messages ────────────────────────────────────────────────────────────
 // Reprend chatApi + ChatThread directement (au lieu de naviguer vers la page
@@ -16,6 +17,8 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
   const { user } = useAuth()
   const [convs, setConvs] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [searchError, setSearchError] = useState(false)
   const [search, setSearch] = useState('')
   const [activeConvId, setActiveConvId] = useState<number | null>(initialConvId ?? null)
   // Résultats de recherche dans le CONTENU des messages (endpoint /chat/search,
@@ -25,24 +28,31 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
   const [searchingMsgs, setSearchingMsgs] = useState(false)
   const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
-  useEffect(() => {
+  const charger = () => {
     setLoading(true)
+    setLoadError(false)
     chatApi.conversations()
       .then(d => setConvs(Array.isArray(d) ? d : d.data || []))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { charger() }, [])
+
+  const rechercherMessages = (q: string) => {
+    setSearchingMsgs(true)
+    setSearchError(false)
+    chatApi.search(q)
+      .then(d => setMessageHits(Array.isArray(d?.messages) ? d.messages as MessageHit[] : []))
+      .catch(() => { setMessageHits([]); setSearchError(true) })
+      .finally(() => setSearchingMsgs(false))
+  }
 
   useEffect(() => {
     const q = search.trim()
+    setSearchError(false)
     if (q.length < 2) { setMessageHits([]); return }
     setSearchingMsgs(true)
-    const t = setTimeout(() => {
-      chatApi.search(q)
-        .then(d => setMessageHits(Array.isArray(d?.messages) ? d.messages as MessageHit[] : []))
-        .catch(() => setMessageHits([]))
-        .finally(() => setSearchingMsgs(false))
-    }, 350)
+    const t = setTimeout(() => rechercherMessages(q), 350)
     return () => clearTimeout(t)
   }, [search])
 
@@ -85,7 +95,9 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-4 space-y-2">{[1, 2, 3].map(n => <div key={n} className="h-[64px] rounded-xl animate-pulse" style={{ background: 'var(--p-border)' }} />)}</div>
-          ) : filtered.length === 0 && messageHits.length === 0 && !searchingMsgs ? (
+          ) : loadError && convs.length === 0 ? (
+            <ErrorState palette="proprietaire" title="Impossible de charger vos conversations" onRetry={charger} className="py-10" />
+          ) : filtered.length === 0 && messageHits.length === 0 && !searchingMsgs && !searchError ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: withAlpha(BLUE, '14') }}>
                 <span style={{ color: BLUE }}><IcMessagesNav /></span>
@@ -133,6 +145,12 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
               </button>
             )
           })}
+          {search.trim().length >= 2 && searchError && !searchingMsgs && (
+            <p role="alert" className="px-4 py-3 text-xs" style={{ color: 'var(--c-danger)' }}>
+              La recherche dans les messages a échoué.{' '}
+              <button type="button" onClick={() => rechercherMessages(search.trim())} className="font-bold underline">Réessayer</button>
+            </p>
+          )}
           {search.trim().length >= 2 && (searchingMsgs || messageHits.length > 0) && (
             <>
               <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--p-muted)' }}>Messages</p>

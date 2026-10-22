@@ -68,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     // Révocation serveur d'abord (lit les jetons avant leur effacement), puis nettoyage local.
     revokeSession()
+    // Nettoyage à la déconnexion : un échec de désabonnement push ne doit pas bloquer la sortie
     void unsubscribeFromPush().catch(() => {})
     setActiveRoleState('')
     localStorage.removeItem('rg_active_role')
@@ -101,9 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     userApi.me().then((full) => {
       if (cancelled || !full || typeof full !== 'object') return
-      const { roles_actifs: _r, role_principal: _p, role: _ro, ...details } = full as Record<string, unknown>
+      const { roles_actifs: _r, role_principal: _p, role: _ro, ...details } = full
       setUser(prev => (prev ? { ...prev, ...details } : prev))
-    }).catch(() => {})
+    }).catch(() => { /* enrichissement du profil facultatif : la session garde les informations déjà connues */ })
     return () => { cancelled = true }
   }, [token])
 

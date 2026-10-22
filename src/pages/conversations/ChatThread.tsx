@@ -33,6 +33,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [conv, setConv] = useState<ChatConversation | null>(null)
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
@@ -66,21 +67,25 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const isMobileViewport = useMediaQuery('(max-width: 767px)')
 
   /* ── load ── */
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      try {
-        const [md, cd] = await Promise.all([chatApi.messages(convId), chatApi.conversations()])
-        const msgs = asChatMessages(Array.isArray(md) ? md : md.data || [])
-        setMessages(msgs.filter(m => m.sender_id !== null))
-        const list = asChatConversations(Array.isArray(cd) ? cd : cd.data || [])
-        setConv(list.find(c => c.id === convId) || null)
-      } catch {}
-      setLoading(false)
+  const loadThread = useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const [md, cd] = await Promise.all([chatApi.messages(convId), chatApi.conversations()])
+      const msgs = asChatMessages(Array.isArray(md) ? md : md.data || [])
+      setMessages(msgs.filter(m => m.sender_id !== null))
+      const list = asChatConversations(Array.isArray(cd) ? cd : cd.data || [])
+      setConv(list.find(c => c.id === convId) || null)
+    } catch {
+      setLoadError(true)
     }
-    setConv(null); setMessages([]); setShowProfile(false)
-    load(); setHidden(new Set()); setReplyingTo(null); setEditingMsg(null)
+    setLoading(false)
   }, [convId])
+
+  useEffect(() => {
+    setConv(null); setMessages([]); setShowProfile(false)
+    loadThread(); setHidden(new Set()); setReplyingTo(null); setEditingMsg(null)
+  }, [convId, loadThread])
 
   useEffect(() => {
     // État de navigation : seule la clé draftMessage nous concerne (frontière non typable de react-router)
@@ -365,7 +370,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
         <MessageList scrollRef={scrollRef} bottomRef={bottomRef} onScroll={onScroll}
           onBackgroundClick={() => { setMenuId(null); setMenuPos(null); setShowHeaderMenu(false) }}
-          loading={loading} visible={visible} userId={user?.id} isDark={isDark} colors={colors}
+          loading={loading} loadError={loadError} onRetry={loadThread} visible={visible} userId={user?.id} isDark={isDark} colors={colors}
           menuId={menuId} onToggleMenu={(id, pos) => { setMenuId(id); setMenuPos(pos) }}
           onComplain={setComplainMsg}
           slot={{ bienId: conv?.bien?.id, isClientRole, paying, onRepondre: repondre, onPayer: payer }} />

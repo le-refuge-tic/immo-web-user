@@ -7,6 +7,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
 import ErrorState from '../../components/ErrorState'
+import RefreshFailedNotice from '../../components/RefreshFailedNotice'
+import { apiMessage } from '../../utils/apiMessage'
 import { TABS, NO_VISITES } from './visites/constants'
 import { fmtDate, isEchoueeVisite } from './visites/helpers'
 import type { ConfirmDialogState } from './visites/types'
@@ -32,6 +34,9 @@ export default function MesVisitesPage() {
   const pay = usePaiementVisite({ loadVisites })
   const { setShowPay } = pay
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
+  // Échec d'une action (annuler, confirmer…) : le bouton de la carte reste utilisable pour recommencer.
+  const [actionError, setActionError] = useState('')
+  const echecAction = (e: unknown, repli: string) => setActionError(apiMessage(e) || repli)
   const avis = useAvisVisite({ loadVisites })
 
   // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
@@ -69,7 +74,8 @@ export default function MesVisitesPage() {
         setConfirmDialog(null)
         // Recharger même en cas d'erreur réseau — le serveur a peut-être traité
         // la demande (cold start Render) et l'état affiché doit refléter la réalité.
-        try { await visitesApi.annuler(v.id) } catch {} finally { loadVisites() }
+        setActionError('')
+        try { await visitesApi.annuler(v.id) } catch (e: unknown) { echecAction(e, "L'annulation de la visite a échoué. Réessayez.") } finally { loadVisites() }
       },
     })
   }
@@ -80,16 +86,20 @@ export default function MesVisitesPage() {
       body: 'Confirmez-vous que la visite a bien eu lieu ?',
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.marquerEffectuee(v.id) } catch {} finally { loadVisites() }
+        setActionError('')
+        try { await visitesApi.marquerEffectuee(v.id) } catch (e: unknown) { echecAction(e, 'La mise à jour de la visite a échoué. Réessayez.') } finally { loadVisites() }
       },
     })
   }
 
   const handleAccepterCP = async (id: number) => {
+    setActionError('')
     try {
       await visitesApi.accepterContreProposition(id)
       loadVisites()
-    } catch {}
+    } catch (e: unknown) {
+      echecAction(e, "Le créneau proposé n'a pas pu être accepté. Réessayez.")
+    }
   }
 
   const handleRefuserCP = (v: Visite) => {
@@ -98,20 +108,24 @@ export default function MesVisitesPage() {
       body: 'La visite sera annulée. Vous pouvez faire une nouvelle demande si vous le souhaitez.',
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.annuler(v.id) } catch {} finally { loadVisites() }
+        setActionError('')
+        try { await visitesApi.annuler(v.id) } catch (e: unknown) { echecAction(e, 'Le refus du créneau a échoué. Réessayez.') } finally { loadVisites() }
       },
     })
   }
 
   const handleReproposer = async (id: number, isoDate: string) => {
-    try { await visitesApi.reProposer(id, isoDate) } catch {} finally { loadVisites() }
+    setActionError('')
+    try { await visitesApi.reProposer(id, isoDate) } catch (e: unknown) { echecAction(e, 'La nouvelle proposition a échoué. Réessayez.') } finally { loadVisites() }
   }
 
   const openChat = async (bienId: number, draftMessage?: string) => {
     try {
       const conv = await chatApi.creerConversation(bienId)
       navigate(`/conversations/${conv.conversationId}`, draftMessage ? { state: { draftMessage } } : undefined)
-    } catch {}
+    } catch (e: unknown) {
+      echecAction(e, "Impossible d'ouvrir la conversation. Réessayez.")
+    }
   }
 
   const handleContacterEchouee = (v: Visite) => {
@@ -124,13 +138,16 @@ export default function MesVisitesPage() {
   }
 
   const handleIntegration = async (id: number, integre: boolean, bienId?: number) => {
+    setActionError('')
     try {
       await visitesApi.deciderIntegration(id, integre)
       loadVisites()
       // Comme sur mobile : le contrat de bail s'affiche une seule fois,
       // juste après avoir accepté d'intégrer — avant d'aller au paiement.
       if (integre && bienId) navigate(`/contrat-bail/${bienId}`)
-    } catch {}
+    } catch (e: unknown) {
+      echecAction(e, "Votre choix n'a pas pu être enregistré. Réessayez.")
+    }
   }
 
   return (
@@ -166,6 +183,8 @@ export default function MesVisitesPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 py-6">
+        {actionError && <RefreshFailedNotice message={actionError} />}
+        {!!loadError && !loading && visites.length > 0 && <RefreshFailedNotice onRetry={loadVisites} />}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(n => <div key={n} className="skeleton rounded-2xl h-28" />)}

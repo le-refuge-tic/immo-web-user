@@ -85,7 +85,7 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
         methode_paiement: operator,
       }, idempotencyKey)
       if (generation !== payGenerationRef.current) return
-      const ref = res.referenceId || res.reference_id
+      const ref = res.referenceId
       // FedaPay : la transaction est créée côté serveur mais le paiement ne
       // se fait que sur sa page hébergée — sans cette ouverture, l'utilisateur
       // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.

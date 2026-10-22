@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { tokenStore } from '../utils/tokenStore'
 import { BASE } from './apiBase'
+import type { RefreshResponse } from '../types/auth'
 import { revokeSession } from './authApi'
 import { readStoredUser, writeStoredUser } from '../utils/storedUser'
 import { markSessionExpired } from '../utils/sessionExpiry'
@@ -36,7 +37,7 @@ export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = tokenStore.getRefresh()
   if (!refreshToken) return null
   try {
-    const { data } = await axios.post(`${BASE}/auth/refresh`, { refresh_token: refreshToken })
+    const { data } = await axios.post<RefreshResponse>(`${BASE}/auth/refresh`, { refresh_token: refreshToken })
     tokenStore.setToken(data.access_token)
     if (data.refresh_token) tokenStore.setRefresh(data.refresh_token)
     if (data.user) {

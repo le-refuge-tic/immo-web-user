@@ -7,6 +7,7 @@ import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { Bien, User } from '../../types/api'
 import type { DelegationEmise } from '../../types/proprietaire'
 import { withAlpha } from '../../utils/color'
+import ErrorState from '../../components/ErrorState'
 
 type Props = { onClose: () => void }
 
@@ -23,6 +24,10 @@ export default function DelegationModal({ onClose }: Props) {
   const [view, setView] = useState<'liste' | 'nouvelle'>('liste')
   const [delegations, setDelegations] = useState<DelegationEmise[]>([])
   const [loading, setLoading] = useState(true)
+  const [listeError, setListeError] = useState(false)
+  const [revoqueError, setRevoqueError] = useState('')
+  const [biensError, setBiensError] = useState(false)
+  const [searchError, setSearchError] = useState(false)
 
   const [biens, setBiens] = useState<Bien[]>([])
   const [bienId, setBienId] = useState('')
@@ -43,24 +48,35 @@ export default function DelegationModal({ onClose }: Props) {
 
   const chargerListe = () => {
     setLoading(true)
+    setListeError(false)
     delegationApi.emises()
       .then(d => setDelegations(Array.isArray(d) ? d : d.data || []))
-      .catch(() => {})
+      .catch(() => setListeError(true))
       .finally(() => setLoading(false))
   }
   useEffect(() => { chargerListe() }, [])
-  useEffect(() => { if (view === 'nouvelle' && biens.length === 0) biensApi.mesBiens().then(d => setBiens(Array.isArray(d) ? d : d.data || [])).catch(() => {}) }, [view, biens.length])
+
+  const chargerBiens = () => {
+    setBiensError(false)
+    biensApi.mesBiens().then(d => setBiens(Array.isArray(d) ? d : d.data || [])).catch(() => setBiensError(true))
+  }
+  useEffect(() => { if (view === 'nouvelle' && biens.length === 0) chargerBiens() }, [view, biens.length])
+
+  const rechercher = (terme: string) => {
+    setSearching(true)
+    setSearchError(false)
+    delegationApi.rechercherDemarcheur(terme)
+      .then(d => setResultats(Array.isArray(d) ? d : d.data || []))
+      .catch(() => { setResultats([]); setSearchError(true) })
+      .finally(() => setSearching(false))
+  }
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearchError(false)
     if (search.trim().length < 2) { setResultats([]); return }
     setSearching(true)
-    debounceRef.current = setTimeout(() => {
-      delegationApi.rechercherDemarcheur(search.trim())
-        .then(d => setResultats(Array.isArray(d) ? d : d.data || []))
-        .catch(() => setResultats([]))
-        .finally(() => setSearching(false))
-    }, 350)
+    debounceRef.current = setTimeout(() => rechercher(search.trim()), 350)
   }, [search])
 
   const proposer = async () => {
@@ -83,10 +99,14 @@ export default function DelegationModal({ onClose }: Props) {
   }
 
   const revoquer = async (id: number) => {
+    setRevoqueError('')
     try {
       await delegationApi.revoquer(id)
       setDelegations(prev => prev.map(d => d.id === id ? { ...d, statut: 'revoquee' } : d))
-    } catch {}
+    } catch (err: unknown) {
+      // Le bouton « Révoquer » reste affiché : la personne peut simplement recliquer.
+      setRevoqueError(apiMessage(err) || 'La révocation a échoué. Réessayez.')
+    }
   }
 
   return (
@@ -113,8 +133,11 @@ export default function DelegationModal({ onClose }: Props) {
             </button>
 
             <p className="text-xs font-bold uppercase tracking-wide pt-2" style={{ color: 'var(--p-muted)' }}>Mes délégations émises</p>
+            {revoqueError && <p role="alert" className="text-sm text-danger">{revoqueError}</p>}
             {loading ? (
               <div className="space-y-2">{[1, 2].map(n => <div key={n} className="h-16 rounded-xl animate-pulse" style={{ background: 'var(--p-deep)' }} />)}</div>
+            ) : listeError ? (
+              <ErrorState palette="proprietaire" title="Impossible de charger vos délégations" onRetry={chargerListe} className="py-6" />
             ) : delegations.length === 0 ? (
               <p className="text-sm text-center py-8" style={{ color: 'var(--p-muted)' }}>Aucune délégation pour l'instant</p>
             ) : (
@@ -160,6 +183,12 @@ export default function DelegationModal({ onClose }: Props) {
                 <option value="">Tous mes biens</option>
                 {biens.map(b => <option key={b.id} value={b.id}>{bienTypeLabel(b)} — {b.localisation?.ville}</option>)}
               </select>
+              {biensError && (
+                <p role="alert" className="text-xs mt-1.5 text-danger">
+                  Impossible de charger vos biens.{' '}
+                  <button type="button" onClick={chargerBiens} className="font-semibold underline">Réessayer</button>
+                </p>
+              )}
             </div>
 
             <div>
@@ -185,7 +214,13 @@ export default function DelegationModal({ onClose }: Props) {
                       ))}
                     </div>
                   )}
-                  {!searching && search.trim().length >= 2 && resultats.length === 0 && (
+                  {!searching && searchError && (
+                    <p role="alert" className="text-xs mt-1.5 text-danger">
+                      La recherche a échoué.{' '}
+                      <button type="button" onClick={() => rechercher(search.trim())} className="font-semibold underline">Réessayer</button>
+                    </p>
+                  )}
+                  {!searching && !searchError && search.trim().length >= 2 && resultats.length === 0 && (
                     <p className="text-xs mt-1.5" style={{ color: 'var(--p-muted)' }}>Aucun démarcheur trouvé</p>
                   )}
                 </>

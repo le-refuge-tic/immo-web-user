@@ -20,6 +20,7 @@ import PortefeuilleTab from './tabs/PortefeuilleTab'
 import DelegationsRecuesTab from './tabs/DelegationsRecuesTab'
 import ProfilTab from './tabs/ProfilTab'
 import { withAlpha } from '../../utils/color'
+import ErrorState from '../../components/ErrorState'
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
@@ -45,13 +46,17 @@ export default function DemarcheurDashboard() {
   const [loading, setLoading] = useState(true)
   const [compteurs, setCompteurs] = useState<CompteursCommercial | null>(null)
   const [perfHebdo, setPerfHebdo] = useState<PerfHebdoSemaine[]>([])
+  // Échec du chargement du tableau de bord : affiché avec « Réessayer » (jamais présenté comme « 0 bien »).
+  const [loadError, setLoadError] = useState(false)
 
   const loadData = async () => {
+    setLoadError(false)
     try {
       const [u, b] = await Promise.allSettled([userApi.me(), biensApi.mesBiens()])
       const me = u.status === 'fulfilled' ? (u.value?.user || u.value) : null
       if (me) setUser(me)
       if (b.status === 'fulfilled') setBiens(unwrapList(b.value))
+      if (u.status === 'rejected' || b.status === 'rejected') setLoadError(true)
 
       // Compteurs + performance hebdo : uniquement pour les commerciaux, sur leur propre id.
       if (me && isCommercial(me) && me.id) {
@@ -62,7 +67,9 @@ export default function DemarcheurDashboard() {
         if (c.status === 'fulfilled') setCompteurs(c.value)
         if (p.status === 'fulfilled') setPerfHebdo(p.value)
       }
-    } catch {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { loadData() }, [])
@@ -157,6 +164,13 @@ export default function DemarcheurDashboard() {
 
       {/* Content */}
       <div className="flex-1 overflow-hidden flex flex-col md:max-w-5xl md:mx-auto md:w-full xl:max-w-none xl:mx-0">
+        {tab === 'tableau' && loadError && !loading && (
+          <div className="flex-shrink-0 px-5 md:px-8 xl:px-10 pt-4">
+            <div className="rounded-2xl border border-divider bg-white dark:bg-transparent">
+              <ErrorState title="Impossible de charger votre tableau de bord" hint="Certaines informations peuvent être manquantes. Vérifiez votre connexion et réessayez." onRetry={loadData} className="py-5" />
+            </div>
+          </div>
+        )}
         {tab === 'tableau' && (
           <TableauTab me={me} biens={biens} loading={loading} score={score} compteurs={compteurs} perfHebdo={perfHebdo}
             onOpenTab={setTab} onNouveauBien={() => navigate('/nouveau-bien')} />

@@ -3,6 +3,7 @@ import { dateSep, sameDay, timeLabel, type ChatColors } from './helpers'
 import { MsgStatus } from './icons'
 import { SlotBubble } from './SlotBubble'
 import type { ChatMessage } from '../../../types/chat-ui'
+import ErrorState from '../../../components/ErrorState'
 
 interface MessageListProps {
   scrollRef: RefObject<HTMLDivElement | null>
@@ -11,6 +12,9 @@ interface MessageListProps {
   /** Clic dans la zone : ferme les menus ouverts. */
   onBackgroundClick: () => void
   loading: boolean
+  /** Échec du chargement de la conversation : message d'erreur avec relance, jamais « Démarrez la conversation ». */
+  loadError?: boolean
+  onRetry?: () => void
   visible: ChatMessage[]
   userId: number | undefined
   isDark: boolean
@@ -29,7 +33,7 @@ interface MessageListProps {
 }
 
 export function MessageList({
-  scrollRef, bottomRef, onScroll, onBackgroundClick, loading, visible, userId, isDark, colors,
+  scrollRef, bottomRef, onScroll, onBackgroundClick, loading, loadError, onRetry, visible, userId, isDark, colors,
   menuId, onToggleMenu, onComplain, slot,
 }: MessageListProps) {
   const { tp, ts, tm, sepBg, bubbleMeBg, bubbleOtherBg, bubbleOtherBdr } = colors
@@ -45,6 +49,8 @@ export function MessageList({
           <div className="flex flex-col items-center justify-center h-40 gap-3">
             <div className="w-7 h-7 rounded-full border-[3px] border-t-transparent animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} />
           </div>
+        ) : loadError && visible.length === 0 && onRetry ? (
+          <ErrorState title="Impossible de charger la conversation" onRetry={onRetry} titleColor={tp} hintColor={tm} className="py-12" />
         ) : visible.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(75,107,255,0.10)' }}>

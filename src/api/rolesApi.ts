@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { refreshAccessToken } from './httpInterceptor'
 import { BASE, auth } from './apiBase'
+import type { User } from '../types/api'
 
 export const rolesApi = {
   activer: async (role: string) => {
-    const data = await axios.post(`${BASE}/users/me/roles/activate`, { role }, auth()).then(r => r.data)
+    const data = await axios.post<User>(`${BASE}/users/me/roles/activate`, { role }, auth()).then(r => r.data)
     // Le token en cours embarque l'ancien roles_actifs — sans ce refresh,
     // les routes protégées par le rôle qu'on vient d'activer répondent 403.
     await refreshAccessToken()
@@ -12,7 +13,7 @@ export const rolesApi = {
   },
 
   desactiver: async (role: string) => {
-    const data = await axios.delete(`${BASE}/users/me/roles/${role}`, auth()).then(r => r.data)
+    const data = await axios.delete<User>(`${BASE}/users/me/roles/${role}`, auth()).then(r => r.data)
     await refreshAccessToken()
     return data
   },

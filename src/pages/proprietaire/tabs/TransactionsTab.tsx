@@ -7,6 +7,7 @@ import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { onActivateKey } from '../../../utils/keyboard'
 import type { MouvementWallet } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
+import ErrorState from '../../../components/ErrorState'
 
 // ─── Tab: Historique des transactions ──────────────────────────────────────────
 export function categorieTransaction(description: string | null | undefined): { label: string; color: string } {
@@ -96,18 +97,21 @@ export function TransactionDetailModal({ t, onClose }: { t: MouvementWallet; onC
 export function TransactionsTab() {
   const [transactions, setTransactions] = useState<MouvementWallet[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'tous' | 'credit' | 'debit'>('tous')
   const [catFilter, setCatFilter] = useState('Tous')
   const [detailTx, setDetailTx] = useState<MouvementWallet | null>(null)
 
-  useEffect(() => {
+  const charger = () => {
     setLoading(true)
+    setLoadError(false)
     walletApi.transactions()
       .then(t => setTransactions(Array.isArray(t) ? t : t.data || []))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { charger() }, [])
 
   const categories = ['Tous', ...Array.from(new Set(transactions.map(t => categorieTransaction(t.description).label)))]
 
@@ -205,6 +209,8 @@ export function TransactionsTab() {
       <div className="rounded-xl overflow-hidden card-soft">
         {loading ? (
           <div className="p-4 space-y-2">{[1, 2, 3, 4].map(n => <div key={n} className="h-14 skeleton-dark rounded-xl" />)}</div>
+        ) : loadError && transactions.length === 0 ? (
+          <ErrorState palette="proprietaire" title="Impossible de charger vos transactions" onRetry={charger} className="py-10" />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 text-center">
             <p className="font-bold text-p-text mb-1">Aucune transaction</p>

@@ -15,6 +15,7 @@ import OperateurChips from '../OperateurChips'
 import GestionnaireCard from './GestionnaireCard'
 import type { InitiationLoyerReponse, Loyer, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 import { withAlpha } from '../../../utils/color'
+import ErrorState from '../../../components/ErrorState'
 
 // ─── Mon Logement ─────────────────────────────────────────────────────────────
 export default function MonLogementTab() {
@@ -31,18 +32,24 @@ export default function MonLogementTab() {
   const [payUrl, setPayUrl]     = useState('')
   const [payProgress, setPayProgress] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [chatError, setChatError] = useState('')
+  const [loadError, setLoadError] = useState(false)
   const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [logement, wallet] = await Promise.all([
         loyersApi.monLogement(),
+        // Solde de cotisation facultatif : sans lui, seul le paiement par cotisation est indisponible.
         walletApi.me('cotisation').catch(() => null),
       ])
       setData(logement)
       setCotisationSolde(Number(wallet?.balance || 0))
-    } catch {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -63,10 +70,14 @@ export default function MonLogementTab() {
   const ouvrirChatGestionnaire = async () => {
     if (!bien?.id) return
     setChatLoading(true)
+    setChatError('')
     try {
       const conv = await chatApi.creerConversation(bien.id)
       navigate(`/conversations/${conv.id || conv.data?.id}`)
-    } catch {}
+    } catch (e: unknown) {
+      // Le bouton de discussion redevient actif : on peut simplement recliquer.
+      setChatError(apiMessage(e) || "Impossible d'ouvrir la conversation. Réessayez.")
+    }
     setChatLoading(false)
   }
 
@@ -84,7 +95,7 @@ export default function MonLogementTab() {
           } else if (status.statut === 'echoue' || status.statut === 'failed') {
             clearInterval(pollRef.current!); resolve(false)
           }
-        } catch {}
+        } catch { /* réseau instable : on retentera au prochain tour, la boucle s'arrête à maxAttempts */ }
         if (attempts >= maxAttempts) { clearInterval(pollRef.current!); resolve(false) }
       }, 3000)
     })
@@ -140,6 +151,12 @@ export default function MonLogementTab() {
 
   if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} /></div>
 
+  if (loadError && !data) return (
+    <div className="flex-1 flex items-center justify-center">
+      <ErrorState title="Impossible de charger votre logement" onRetry={load} />
+    </div>
+  )
+
   if (!contrat) return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
       <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: withAlpha(TEAL, '20') }}>
@@ -192,7 +209,7 @@ export default function MonLogementTab() {
           {/* Gestionnaire — mobile only, desktop copy lives in side column */}
           {gestionnaire && (
             <div className="mx-4 mt-4">
-              <GestionnaireCard gestionnaire={gestionnaire} chatLoading={chatLoading} onOpenChat={ouvrirChatGestionnaire} />
+              <GestionnaireCard gestionnaire={gestionnaire} chatLoading={chatLoading} chatError={chatError} onOpenChat={ouvrirChatGestionnaire} />
             </div>
           )}
 
@@ -330,7 +347,7 @@ export default function MonLogementTab() {
         {/* Side column — desktop only */}
         {gestionnaire && (
           <div className="hidden md:block md:w-80 md:flex-shrink-0 md:sticky md:top-8 md:space-y-4">
-            <GestionnaireCard gestionnaire={gestionnaire} chatLoading={chatLoading} onOpenChat={ouvrirChatGestionnaire} desktop />
+            <GestionnaireCard gestionnaire={gestionnaire} chatLoading={chatLoading} chatError={chatError} onOpenChat={ouvrirChatGestionnaire} desktop />
             <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <p className="text-xs font-bold text-text-grey uppercase tracking-wider mb-3">Résumé</p>
               <div className="space-y-2.5 text-sm">

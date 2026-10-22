@@ -5,6 +5,7 @@ import { PURPLE } from '../shared'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { WalletTransaction } from '../../../types/wallet'
 import { withAlpha } from '../../../utils/color'
+import ErrorState from '../../../components/ErrorState'
 
 // L'écran lit toujours `created_at` pour la date de la ligne.
 type TransactionAffichee = WalletTransaction & { created_at: string }
@@ -13,14 +14,17 @@ export default function PortefeuilleTab() {
   const navigate = useNavigate()
   const [transactions, setTrans] = useState<TransactionAffichee[]>([])
   const [loading, setLoading]   = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
+  const charger = () => {
     setLoading(true)
+    setLoadError(false)
     walletApi.transactions()
       .then(t => setTrans(unwrapList<TransactionAffichee>(t)))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { charger() }, [])
 
   const recent = transactions.slice(0, 4)
 
@@ -36,6 +40,8 @@ export default function PortefeuilleTab() {
 
         {loading ? (
           [1,2,3,4].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
+        ) : loadError && transactions.length === 0 ? (
+          <ErrorState title="Impossible de charger vos transactions" onRetry={charger} />
         ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: withAlpha(PURPLE, '15') }}>

@@ -12,6 +12,7 @@ import { suggestPush } from '../../lib/push'
 import { apiMessage } from '../../utils/apiMessage'
 import { fraisVisiteBien, libelleFraisVisite } from '../../utils/fraisVisite'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import ErrorState from '../../components/ErrorState'
 import type { Bien } from '../../types/api'
 
 /** Bien affiché : la photo de couverture peut aussi arriver à plat (`photo_couverture`). */
@@ -94,6 +95,7 @@ export default function ReservationPage() {
 
   const [bien, setBien] = useState<BienReservation | null>(null)
   const [loadingBien, setLoadingBien] = useState(true)
+  const [bienError, setBienError] = useState(false)
   const [displayMonth, setDisplayMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selectedDate, setSelectedDate] = useState(tomorrow)
   const [selectedTime, setSelectedTime] = useState('')
@@ -106,13 +108,16 @@ export default function ReservationPage() {
   const [chatError, setChatError] = useState('')
   const [activatingRole, setActivatingRole] = useState(false)
 
-  useEffect(() => {
+  const chargerBien = () => {
     if (!bienId) return
+    setLoadingBien(true)
+    setBienError(false)
     biensApi.byId(Number(bienId))
       .then(d => setBien(d.bien || d))
-      .catch(() => {})
+      .catch(() => setBienError(true))
       .finally(() => setLoadingBien(false))
-  }, [bienId])
+  }
+  useEffect(chargerBien, [bienId])
 
   const isPast = (d: Date) => d < today
   const isToday = (d: Date) => d.getTime() === today.getTime()
@@ -193,7 +198,11 @@ export default function ReservationPage() {
 
   // ── Blocs réutilisables ──────────────────────────────────────────────
 
-  const PropertyCard = () => !loadingBien && bien ? (
+  const PropertyCard = () => !loadingBien && !bien && bienError ? (
+    <div className="rounded-2xl" style={GLASS}>
+      <ErrorState title="Impossible de charger le bien" hint="Les frais et les informations du bien ne sont pas disponibles." onRetry={chargerBien} className="py-6" />
+    </div>
+  ) : !loadingBien && bien ? (
     <div className="rounded-2xl overflow-hidden flex gap-3 p-3" style={GLASS}>
       {cover
         ? <img loading="lazy" src={cover} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />

@@ -39,6 +39,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   const [isFav,     setIsFav]     = useState(favoriteIds?.has(bien.id) ?? false)
   const [toggling,  setToggling]  = useState(false)
   const [favPopped, setFavPopped] = useState(false)
+  const [favError, setFavError] = useState(false)
 
   useEffect(() => {
     setIsFav(favoriteIds?.has(bien.id) ?? false)
@@ -82,6 +83,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     }
     if (toggling) return
     setToggling(true)
+    setFavError(false)
     setFavPopped(true)
     setTimeout(() => setFavPopped(false), 400)
     try {
@@ -89,7 +91,11 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       setIsFav(isFavori)
       if (isFavori) track('favori_ajoute', { type: bien.type })
       onFavoriteToggle?.(bien.id, isFavori)
-    } catch {}
+    } catch {
+      // Le cœur garde son état réel ; la personne peut simplement recliquer.
+      setFavError(true)
+      setTimeout(() => setFavError(false), 3000)
+    }
     setToggling(false)
   }
 
@@ -163,6 +169,11 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
         </button>
+        {favError && (
+          <p role="alert" className="absolute top-12 right-3 z-10 px-2 py-1 rounded-lg text-micro font-semibold text-white" style={{ background: 'var(--c-danger)' }}>
+            Favori non enregistré
+          </p>
+        )}
 
         {/* Gradient bas pour lisibilité */}
         <div className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none"

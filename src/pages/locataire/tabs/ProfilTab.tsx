@@ -14,7 +14,7 @@ export default function ProfilTab() {
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
   const [showNumeroModal, setShowNumeroModal] = useState(false)
-  useEffect(() => { walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }, [])
+  useEffect(() => { walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }, [])
   return (
     <div className="flex-1 overflow-y-auto pb-10 pt-5 md:pt-10 md:max-w-2xl md:mx-auto md:w-full">
       <div className="flex flex-col items-center px-5 mb-6">
@@ -52,7 +52,7 @@ export default function ProfilTab() {
           current={numeroInfo?.masque ?? null}
           accent={GREEN}
           onClose={() => setShowNumeroModal(false)}
-          onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+          onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }}
         />
       )}
     </div>

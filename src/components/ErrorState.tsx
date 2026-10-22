@@ -7,6 +7,11 @@ interface ErrorStateProps {
   /** Libellé du bouton de relance. */
   retryLabel?: string
   className?: string
+  /** `proprietaire` : couleurs du thème de l'espace propriétaire (variables --p-*). */
+  palette?: 'default' | 'proprietaire'
+  /** Couleurs de texte propres à un écran (ex. messagerie en thème sombre) ; priment sur `palette`. */
+  titleColor?: string
+  hintColor?: string
 }
 
 /**
@@ -20,7 +25,13 @@ export default function ErrorState({
   onRetry,
   retryLabel = 'Réessayer',
   className = 'py-16',
+  palette = 'default',
+  titleColor,
+  hintColor,
 }: ErrorStateProps) {
+  const isProprio = palette === 'proprietaire'
+  const titleStyleColor = titleColor ?? (isProprio ? 'var(--p-text)' : undefined)
+  const hintStyleColor = hintColor ?? (isProprio ? 'var(--p-muted)' : undefined)
   return (
     <div role="alert" className={`flex flex-col items-center justify-center text-center px-4 ${className}`}>
       <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(239,68,68,0.1)' }}>
@@ -28,8 +39,8 @@ export default function ErrorState({
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
         </svg>
       </div>
-      <p className="font-bold text-base mb-1 text-text-dark">{title}</p>
-      <p className="text-sm mb-5 text-text-grey">{hint}</p>
+      <p className={`font-bold text-base mb-1 ${titleStyleColor ? '' : 'text-text-dark'}`} style={titleStyleColor ? { color: titleStyleColor } : undefined}>{title}</p>
+      <p className={`text-sm mb-5 ${hintStyleColor ? '' : 'text-text-grey'}`} style={hintStyleColor ? { color: hintStyleColor } : undefined}>{hint}</p>
       <button
         type="button"
         onClick={onRetry}

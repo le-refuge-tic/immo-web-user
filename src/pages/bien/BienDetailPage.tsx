@@ -11,11 +11,12 @@ import { DetailContent } from './bien-detail/DetailSections'
 import { BottomCta } from './bien-detail/BottomCta'
 import { GalleryMobile, GalleryDesktop } from './bien-detail/Galleries'
 import { SimilairesDesktop, SimilairesMobile } from './bien-detail/Similaires'
+import ErrorState from '../../components/ErrorState'
 
 export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: boolean }) {
   const navigate = useNavigate()
   const {
-    bien, setBien, loading, error, bienTitle, isLoggedIn, isOwnBien,
+    bien, setBien, loading, error, loadError, actionError, recharger, bienTitle, isLoggedIn, isOwnBien,
     photoIdx, setPhotoIdx,
     visitesPlanifiees, visitesConfirmees,
     visiteActive, visiteCancellee, visiteEchouee, annulerBusy,
@@ -27,6 +28,12 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   if (loading) return (
     <div className="min-h-full flex items-center justify-center">
       <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+  if (loadError && !bien) return (
+    <div className="min-h-full flex flex-col items-center justify-center">
+      <ErrorState title="Impossible de charger ce bien" onRetry={recharger} />
+      <button onClick={() => navigate(-1)} className="text-primary font-semibold text-sm mb-8">Retour</button>
     </div>
   )
   if (error || !bien) return (
@@ -77,6 +84,11 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
 
   return (
     <div className="min-h-full pb-32 lg:pb-0">
+      {actionError && (
+        <div role="alert" className="fixed inset-x-4 top-4 z-50 mx-auto max-w-md rounded-xl px-4 py-3 text-sm font-semibold text-white" style={{ background: 'var(--c-danger)' }}>
+          {actionError}
+        </div>
+      )}
 
       {/* ── MOBILE header / galerie ── */}
       <GalleryMobile allUrls={allUrls} photoIdx={photoIdx} setPhotoIdx={setPhotoIdx} altText={bienTitle || 'Photo du bien'} showOwnBack={showOwnBack} onBack={() => navigate(-1)} />

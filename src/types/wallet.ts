@@ -45,3 +45,23 @@ export interface RechargementWalletResponse {
   reference_id?: string
   url_paiement?: string
 }
+
+/** Réponse de `GET /wallets/me/numero-retrait`. */
+export interface NumeroRetraitInfo {
+  numero_retrait: string | null
+  masque: string | null
+  source: string
+}
+
+/** Réponse de `POST /wallets/me/numero-retrait/initier`. */
+export interface InitierChangementNumeroResponse {
+  session_token: string
+  expires_in: number
+  nouveau_numero: string
+}
+
+/** Réponse de `POST /wallets/me/numero-retrait/confirmer`. */
+export interface ConfirmerChangementNumeroResponse {
+  message?: string
+  numero_retrait?: string
+}

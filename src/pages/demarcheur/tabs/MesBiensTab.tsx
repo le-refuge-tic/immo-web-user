@@ -9,17 +9,23 @@ import { IcPlus, IcPin, IcTrash, IcEdit, IcRefresh } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { Bien } from '../../../types/api'
 import { withAlpha } from '../../../utils/color'
+import { apiMessage } from '../../../utils/apiMessage'
+import ErrorState from '../../../components/ErrorState'
+import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
 
 export default function MesBiensTab() {
   const [biens, setBiens] = useState<Bien[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [filter, setFilter] = useState('Tous')
   const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
   const navigate = useNavigate()
 
   const load = async () => {
     setLoading(true)
-    try { const d = await biensApi.mesBiens(); setBiens(unwrapList(d)) } catch {}
+    setLoadError(false)
+    try { const d = await biensApi.mesBiens(); setBiens(unwrapList(d)) } catch { setLoadError(true) }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -30,7 +36,10 @@ export default function MesBiensTab() {
     : biens.filter(b => b.statut_moderation === 'rejete')
 
   const del = async (id: number) => {
-    try { await biensApi.delete(id); load() } catch {}
+    setDeleteError('')
+    try { await biensApi.delete(id); load() } catch (e: unknown) {
+      setDeleteError(apiMessage(e) || 'La suppression du bien a échoué. Réessayez.')
+    }
     setConfirmDeleteBienId(null)
   }
 
@@ -65,10 +74,14 @@ export default function MesBiensTab() {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+        {deleteError && <RefreshFailedNotice message={deleteError} />}
+        {loadError && !loading && biens.length > 0 && <RefreshFailedNotice onRetry={load} />}
         {loading ? (
           <div className="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
             {[1,2,3].map(n => <div key={n} className="h-48 skeleton rounded-2xl mb-3 sm:mb-0" />)}
           </div>
+        ) : loadError && biens.length === 0 ? (
+          <ErrorState title="Impossible de charger vos biens" onRetry={load} />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(PURPLE, '15') }}>

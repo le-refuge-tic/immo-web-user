@@ -9,7 +9,7 @@ const CORS = {
   'access-control-expose-headers': 'Retry-After',
 }
 
-export type MockResponse = { status: number; body: unknown }
+export type MockResponse = { status: number; body: unknown; /** Délai avant la réponse (ms), pour tester les doubles clics. */ delayMs?: number }
 export type Mock = MockResponse | ((req: Request, calls: ApiCall[]) => MockResponse)
 export type Role = 'prospect' | 'locataire' | 'proprietaire' | 'demarcheur'
 
@@ -33,6 +33,47 @@ export interface Mocks {
   reserver?: Mock
   creerConv?: Mock
   numeroRetrait?: Mock
+  /**
+   * Réponses pour tout autre point d'accès, par clé « MÉTHODE /chemin » (chemin sans le préfixe /api/v1),
+   * par exemple `'GET /biens/favoris'`. Les clés nommées de cette interface restent prioritaires.
+   */
+  routes?: Record<string, Mock>
+  /** GET /alertes (liste des notifications) */
+  alertes?: Mock
+  /** PATCH /visites/:id/contre-proposer */
+  contreProposer?: Mock
+  /** GET /wallets/me/solde?type=… : la fonction lit le type dans `new URL(req.url()).searchParams`. */
+  solde?: Mock
+  /** GET /wallets/me/transactions?type=… */
+  transactions?: Mock
+  /** GET /retraits/me */
+  retraits?: Mock
+  /** POST /retraits/me */
+  demandeRetrait?: Mock
+  /** POST /wallets/me/numero-retrait/initier */
+  numeroRetraitInitier?: Mock
+  /** POST /wallets/me/numero-retrait/confirmer */
+  numeroRetraitConfirmer?: Mock
+  /** POST /paiements/depot (recharge d'un wallet) */
+  depot?: Mock
+  /** GET /paiements/depot/:ref/statut */
+  depotStatut?: Mock
+  /** GET /paiements/historique */
+  historique?: Mock
+  /** POST /auth/login/phone */
+  loginPhone?: Mock
+  /** POST /auth/register */
+  register?: Mock
+  /** POST /auth/otp/verify */
+  otpVerify?: Mock
+  /** POST /auth/forgot-password */
+  forgotPassword?: Mock
+  /** POST /auth/reset-password/verify */
+  resetVerify?: Mock
+  /** POST /auth/reset-password */
+  resetPassword?: Mock
+  /** POST /auth/changes/cancel */
+  annulerChangement?: Mock
 }
 
 const FUTURE = new Date(Date.now() + 3 * 86_400_000).toISOString()
@@ -64,7 +105,7 @@ export const visite = (over: Record<string, unknown> = {}) => ({
 export const biensList = (count: number, start = 1) =>
   Array.from({ length: count }, (_, i) => ({ ...BIEN, id: start + i, prix: 30000 + (start + i) * 10 }))
 
-const userOf = (role: Role) => ({
+export const userOf = (role: Role) => ({
   id: 42,
   prenom: 'Awa',
   nom: 'Test',
@@ -115,7 +156,7 @@ export async function mockApp(page: Page, { role = 'prospect', mocks = {}, logge
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS })
     calls.push({ method: req.method(), path, headers: req.headers(), body: req.postData() })
 
-    const pick = (key: keyof Mocks): MockResponse | undefined => {
+    const pick = (key: Exclude<keyof Mocks, 'routes'>): MockResponse | undefined => {
       const mock = mocks[key]
       return typeof mock === 'function' ? mock(req, calls) : mock
     }
@@ -131,9 +172,34 @@ export async function mockApp(page: Page, { role = 'prospect', mocks = {}, logge
     else if (method === 'POST' && path === '/visites') result = pick('reserver')
     else if (method === 'POST' && path === '/chat/conversations') result = pick('creerConv')
     else if (method === 'GET' && /^\/biens\/\d+$/.test(path)) result = pick('bienDetail')
-    else if (method === 'GET' && path === '/wallets/numero-retrait') result = pick('numeroRetrait')
+    else if (method === 'GET' && (path === '/wallets/me/numero-retrait' || path === '/wallets/numero-retrait')) result = pick('numeroRetrait')
+    else if (method === 'GET' && path === '/wallets/me/solde') result = pick('solde')
+    else if (method === 'GET' && path === '/wallets/me/transactions') result = pick('transactions')
+    else if (method === 'GET' && path === '/retraits/me') result = pick('retraits')
+    else if (method === 'POST' && path === '/retraits/me') result = pick('demandeRetrait')
+    else if (method === 'POST' && path === '/wallets/me/numero-retrait/initier') result = pick('numeroRetraitInitier')
+    else if (method === 'POST' && path === '/wallets/me/numero-retrait/confirmer') result = pick('numeroRetraitConfirmer')
+    else if (method === 'POST' && path === '/paiements/depot') result = pick('depot')
+    else if (method === 'GET' && /^\/paiements\/depot\/.+\/statut$/.test(path)) result = pick('depotStatut')
+    else if (method === 'GET' && path === '/paiements/historique') result = pick('historique')
+    else if (method === 'POST' && path === '/auth/login/phone') result = pick('loginPhone')
+    else if (method === 'POST' && path === '/auth/register') result = pick('register')
+    else if (method === 'POST' && path === '/auth/otp/verify') result = pick('otpVerify')
+    else if (method === 'POST' && path === '/auth/forgot-password') result = pick('forgotPassword')
+    else if (method === 'POST' && path === '/auth/reset-password/verify') result = pick('resetVerify')
+    else if (method === 'POST' && path === '/auth/reset-password') result = pick('resetPassword')
+    else if (method === 'POST' && path === '/auth/changes/cancel') result = pick('annulerChangement')
+
+    else if (method === 'GET' && path === '/alertes') result = pick('alertes')
+    else if (method === 'PATCH' && /^\/visites\/\d+\/contre-proposer$/.test(path)) result = pick('contreProposer')
+
+    if (!result) {
+      const route = mocks.routes?.[`${method} ${path}`]
+      result = typeof route === 'function' ? route(req, calls) : route
+    }
 
     const fallback = path === '/visites' || path === '/biens' ? { data: [] } : {}
+    if (result?.delayMs) await new Promise(resolve => setTimeout(resolve, result.delayMs))
     return route.fulfill({
       status: result?.status ?? 200,
       headers: { ...CORS, 'content-type': 'application/json' },

@@ -12,6 +12,7 @@ import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import type { User } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -172,30 +173,36 @@ export default function ProfilePage() {
   const [apiUser, setApiUser] = useState<User | null>(null)
   const [visites, setVisites] = useState<Visite[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  // Échec du chargement des visites : on ne l'affiche pas comme « 0 visite ».
+  const [visitesError, setVisitesError] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
   const [numeroOpen, setNumeroOpen] = useState(false)
   const [confirmAnnulerVisite, setConfirmAnnulerVisite] = useState(false)
 
-  useEffect(() => {
-    const load = async () => {
-      setIsLoading(true)
-      try {
-        const [u, v] = await Promise.allSettled([
-          userApi.me(),
-          visitesApi.mesVisites(),
-        ])
-        if (u.status === 'fulfilled') setApiUser(u.value)
-        if (v.status === 'fulfilled') {
-          const list = Array.isArray(v.value) ? v.value : v.value?.data || []
-          setVisites(list as unknown as Visite[]) // type local divergent de types/api (FE-A-003)
-        }
-      } catch {}
-      setIsLoading(false)
+  const load = async () => {
+    setIsLoading(true)
+    setVisitesError(false)
+    const [u, v] = await Promise.allSettled([
+      userApi.me(),
+      visitesApi.mesVisites(),
+    ])
+    // Le profil reste affiché depuis la session si `me` échoue : seule la liste de visites est bloquante.
+    if (u.status === 'fulfilled') setApiUser(u.value)
+    if (v.status === 'fulfilled') {
+      const list = Array.isArray(v.value) ? v.value : v.value?.data || []
+      setVisites(list as unknown as Visite[]) // type local divergent de types/api (FE-A-003)
+    } else {
+      setVisitesError(true)
     }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
     load()
-    walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {})
+    // Numéro de retrait : information secondaire, le profil s'affiche sans elle (la ligne reste « non défini »).
+    walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ })
   }, [])
 
   if (!user) return null
@@ -206,6 +213,7 @@ export default function ProfilePage() {
   const roleLabel = ROLE_LABELS[role] || role
 
   const visitCount = visites.filter(v => v.statut !== 'annulee').length
+  const visitesIndispo = visitesError && visites.length === 0
   const score = (Number(apiUser?.nb_etoiles) || 0) * 20
 
   const visiteActive = visites.find(v => v.statut === 'en_attente' || v.statut === 'confirmee')
@@ -255,9 +263,9 @@ export default function ProfilePage() {
 
   const StatsRow = () => (
     <div className="flex gap-3">
-      <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="var(--c-brand)" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
+      <StatBadge icon={<CalendarStatIcon />} value={visitesIndispo ? '—' : String(visitCount)} label="Visites" color="var(--c-brand)" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
       <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="var(--c-success)" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
-      <StatBadge icon={<StarMenuIcon />} value={String(mesAvis.length)} label="Avis" color="var(--c-amber-dark)" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
+      <StatBadge icon={<StarMenuIcon />} value={visitesIndispo ? '—' : String(mesAvis.length)} label="Avis" color="var(--c-amber-dark)" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
     </div>
   )
 
@@ -265,7 +273,7 @@ export default function ProfilePage() {
     <>
       <MenuGroup title="Mon compte">
         <MenuItem icon={<PersonMenuIcon />}   label="Modifier le profil" onClick={() => setEditOpen(true)} />
-        <MenuItem icon={<CalendarMenuIcon />} label="Mes visites" value={visiteActive ? '1 en cours' : String(visitCount)} onClick={() => navigate('/mes-visites')} />
+        <MenuItem icon={<CalendarMenuIcon />} label="Mes visites" value={visiteActive ? '1 en cours' : visitesIndispo ? '—' : String(visitCount)} onClick={() => navigate('/mes-visites')} />
         <MenuItem icon={<UsersMenuIcon />}    label="Rôles et espaces" value={roleLabel} onClick={() => navigate('/mes-roles')} />
         <MenuItem icon={<KeyMenuIcon />}      label="Rejoindre un bien (code d'invitation)" onClick={() => navigate('/rejoindre-bien')} showDivider={false} />
       </MenuGroup>
@@ -396,6 +404,10 @@ export default function ProfilePage() {
             </div>
             {isLoading ? (
               <div className="flex justify-center py-4"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            ) : visitesIndispo ? (
+              <div className="glass-card rounded-2xl">
+                <ErrorState title="Impossible de charger vos visites" onRetry={load} className="py-8" />
+              </div>
             ) : <VisiteActiveBlock />}
           </div>
 
@@ -417,7 +429,7 @@ export default function ProfilePage() {
         <NumeroRetraitModal
           current={numeroInfo?.masque ?? null}
           onClose={() => setNumeroOpen(false)}
-          onSaved={() => { setNumeroOpen(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+          onSaved={() => { setNumeroOpen(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }}
         />
       )}
     </div>

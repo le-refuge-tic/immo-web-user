@@ -10,6 +10,7 @@ import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
 import { useNotifications } from '../../context/NotificationsContext'
 import type { Notification } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -155,7 +156,7 @@ export default function NotificationsPage() {
   const navigate = useNavigate()
   // Chargement annulable, sans réponse périmée (FE-A-004) ; les mises à jour
   // locales (lu / tout lu) passent par setNotifsData.
-  const { data: notifsData, setData: setNotifsData, loading } = useApiQuery(
+  const { data: notifsData, setData: setNotifsData, loading, error: loadError, refetch } = useApiQuery(
     signal => notificationsApi.list(signal).then(unwrapList),
     [isLoggedIn],
     { enabled: isLoggedIn },
@@ -320,6 +321,8 @@ export default function NotificationsPage() {
               <div key={n} className="skeleton rounded-2xl h-20" />
             ))}
           </div>
+        ) : loadError && notifs.length === 0 ? (
+          <ErrorState title="Impossible de charger vos alertes" onRetry={refetch} />
         ) : notifs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(75,107,255,0.10)' }}>

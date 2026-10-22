@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { FeedbackVisiteBody, ListResponse, Visite } from '../types/api'
+import type { FeedbackVisiteBody, ListResponse, Visite, VisitesConfirmeesResponse } from '../types/api'
 import { BASE, auth } from './apiBase'
 
 export interface ReserverVisiteBody { bien_id: number; date_souhaitee?: string; creneau_id?: number }
@@ -48,5 +48,5 @@ export const visitesApi = {
 
   /** Visites confirmées d'un bien — gestionnaire uniquement (compte + dates, sans noms). */
   visitesConfirmeesParBien: (bienId: number) =>
-    axios.get(`${BASE}/visites/bien/${bienId}/confirmees`, auth()).then(r => r.data),
+    axios.get<VisitesConfirmeesResponse>(`${BASE}/visites/bien/${bienId}/confirmees`, auth()).then(r => r.data),
 }

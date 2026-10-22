@@ -57,6 +57,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const espaceRole = ESPACES_FILTRES.has(activeRole) ? activeRole : ''
 
   const refreshAlertes = useCallback(() => {
+    // Pastilles de comptage : mise à jour de fond, la valeur précédente reste affichée en cas d'échec
     notificationsApi.count().then(d => setUnreadAlertes(d?.count ?? 0)).catch(() => {})
     if (espaceRole) {
       notificationsApi.count(espaceRole).then(d => setUnreadAlertesEspace(d?.count ?? 0)).catch(() => {})
@@ -99,7 +100,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
       unreadByConvRef.current = next
       firstLoadRef.current = false
-    }).catch(() => {})
+    }).catch(() => { /* sondage de fond des messages : on retentera au prochain cycle */ })
     // showBanner et user?.id sont stables pendant la session
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])

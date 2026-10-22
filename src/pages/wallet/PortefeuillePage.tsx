@@ -6,6 +6,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { Wallet, WalletTransaction } from '../../types/wallet'
 import { withAlpha } from '../../utils/color'
+import { apiMessage } from '../../utils/apiMessage'
+import ErrorState from '../../components/ErrorState'
 
 const isLoyer = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -61,9 +63,13 @@ function ClientWalletView() {
   const [montant, setMontant] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [retraitOk, setRetraitOk] = useState(false)
+  const [retraitError, setRetraitError] = useState('')
+  // Échec du chargement : n'écrase jamais des soldes déjà affichés (rafraîchissement après un retrait).
+  const [loadError, setLoadError] = useState(false)
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [wc, we, tc, te] = await Promise.all([
         walletApi.me('cotisation'), walletApi.me('epargne'),
@@ -74,11 +80,14 @@ function ClientWalletView() {
         cotisation: Array.isArray(tc) ? tc : tc?.data || [],
         epargne: Array.isArray(te) ? te : te?.data || [],
       })
-    } catch {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
 
+  const noData = loadError && !wallets.cotisation && !wallets.epargne
   const solde = Number(wallets[tab]?.balance || 0)
   const color = W_COLOR[tab]
   const transactions = txs[tab]
@@ -86,10 +95,14 @@ function ClientWalletView() {
   const demanderRetrait = async () => {
     if (!montant || Number(montant) <= 0) return
     setSubmitting(true)
+    setRetraitError('')
     try {
       await walletApi.demandeRetrait(Number(montant), 'epargne')
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
-    } catch {}
+    } catch (e: unknown) {
+      // Le bouton « Confirmer » redevient actif : la personne peut simplement renvoyer sa demande.
+      setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
+    }
     setSubmitting(false)
   }
 
@@ -131,7 +144,7 @@ function ClientWalletView() {
           </div>
           <div className="rounded-2xl p-5 text-white" style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.18)' }}>
             <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Solde {W_LABEL[tab].toLowerCase()}</p>
-            <p className="text-3xl font-bold mb-1">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-3xl font-bold mb-1">{loading ? '…' : noData ? '—' : `${solde.toLocaleString('fr-FR')} FCFA`}</p>
             <p className="text-white/50 text-caption mb-4">Mis à jour : {wallets[tab]?.updated_at ? formatDate(wallets[tab].updated_at) : '—'}</p>
             {tab === 'cotisation' ? (
               <div className="space-y-2.5">
@@ -179,6 +192,7 @@ function ClientWalletView() {
                 <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={Number(wallets.epargne?.balance || 0)}
                   placeholder="Ex: 5000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
+                {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
@@ -195,6 +209,8 @@ function ClientWalletView() {
           <p className="font-bold text-text-dark mb-4">Historique</p>
           {loading ? (
             [1, 2, 3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
+          ) : noData ? (
+            <ErrorState title="Impossible de charger votre portefeuille" onRetry={load} className="py-10" />
           ) : transactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} className="w-14 h-14 mb-3" style={{ opacity: 0.25 }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
@@ -236,25 +252,37 @@ function WalletCommissionsView() {
   const [retraitOk, setRetraitOk]  = useState(false)
   const [filter, setFilter]         = useState<'Tous' | 'Loyers' | 'Visites'>('Tous')
   const [detailTx, setDetailTx]     = useState<WalletTransaction | null>(null)
+  const [retraitError, setRetraitError] = useState('')
+  // Échec du chargement : n'écrase jamais un solde déjà affiché (rafraîchissement après un retrait).
+  const [loadError, setLoadError]   = useState(false)
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
       setWallet(w)
       setTrans(Array.isArray(t) ? t : t.data || [])
-    } catch {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
 
+  const noData = loadError && !wallet
+
   const demanderRetrait = async () => {
     if (!montant || Number(montant) <= 0) return
     setSubmitting(true)
+    setRetraitError('')
     try {
       await walletApi.demandeRetrait(Number(montant))
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
-    } catch {}
+    } catch (e: unknown) {
+      // Le bouton « Envoyer » redevient actif : la personne peut simplement renvoyer sa demande.
+      setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
+    }
     setSubmitting(false)
   }
 
@@ -283,7 +311,7 @@ function WalletCommissionsView() {
           {/* Balance card */}
           <div className="rounded-2xl p-5 text-white" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }}>
             <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Solde disponible</p>
-            <p className="text-3xl font-bold mb-4">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-3xl font-bold mb-4">{loading ? '…' : noData ? '—' : `${solde.toLocaleString('fr-FR')} FCFA`}</p>
             <button onClick={() => setShowRetrait(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm"
               style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)' }}>
@@ -315,6 +343,7 @@ function WalletCommissionsView() {
                 <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={1} max={solde}
                   placeholder="Ex: 50000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
+                {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
@@ -366,6 +395,8 @@ function WalletCommissionsView() {
             <p className="font-bold text-text-dark mb-4">Historique des transactions</p>
             {loading ? (
               [1,2,3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
+            ) : noData ? (
+              <ErrorState title="Impossible de charger votre portefeuille" onRetry={load} className="py-10" />
             ) : transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: 'rgba(75,107,255,0.1)' }}>

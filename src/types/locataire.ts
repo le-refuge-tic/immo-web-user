@@ -47,9 +47,16 @@ export interface MonLogement {
 
 /** Réponse de `POST /paiements/loyer`. */
 export interface InitiationLoyerReponse {
-  /** L'API renvoie l'une ou l'autre graphie (lues avec `referenceId || reference_id`). */
+  /**
+   * Le backend renvoie `reference` (jamais `referenceId` ni `reference_id`) :
+   * les écrans lisent `referenceId || reference_id` (défaut de lecture, la
+   * référence est alors `undefined`).
+   */
   referenceId: string
   reference_id: string
+  reference?: string
+  montant?: number
+  statut?: string
   /** Présent pour les paiements redirigés (FedaPay). */
   url_paiement?: string
 }

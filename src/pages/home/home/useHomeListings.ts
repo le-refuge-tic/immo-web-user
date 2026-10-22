@@ -33,7 +33,7 @@ export function useHomeListings(isLoggedIn: boolean) {
       const data = await favoritesApi.list()
       const list = Array.isArray(data) ? data : data.data || []
       setFavIds(new Set(list.map((f: BienFavori) => f.bien_id || f.id)))
-    } catch {}
+    } catch { /* cœurs des favoris facultatifs : les annonces s'affichent sans eux */ }
   }
 
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- rechargement voulu uniquement à la connexion ou déconnexion ; les fonctions sont recréées à chaque rendu

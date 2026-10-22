@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { biensApi } from '../../../api/biensApi'
@@ -7,6 +7,7 @@ import { shareBien } from '../../../services/shareService'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { usePageTitle } from '../../../utils/usePageTitle'
 import { track } from '../../../lib/analytics'
+import { apiMessage } from '../../../utils/apiMessage'
 import type { Bien, Visite } from '../../../types/api'
 import { isEchoueeVisite } from './helpers'
 
@@ -24,6 +25,9 @@ export function useBienDetail() {
   useEffect(() => { if (bien?.id) track('vue_annonce', { type: bien.type, transaction: bien.transaction }) }, [bien?.id])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  // Panne (réseau, 5xx) : distincte d'un bien réellement introuvable (404), avec relance possible.
+  const [loadError, setLoadError] = useState(false)
+  const [actionError, setActionError] = useState('')
   const [photoIdx, setPhotoIdx] = useState(0)
 
   const [visitesPlanifiees, setVisitesPlanifiees] = useState<{ total: number; slots: { date: string; count: number }[] } | null>(null)
@@ -41,12 +45,20 @@ export function useBienDetail() {
   const [shareOpen, setShareOpen] = useState(false)
   const [similaires, setSimilaires] = useState<Bien[]>([])
 
-  useEffect(() => {
+  const charger = useCallback(() => {
+    setLoading(true)
+    setLoadError(false)
+    setError('')
     biensApi.byId(Number(id))
       .then(d => { setBien(d); setIsOccupeLocal(d.statut === 'occupe') })
-      .catch(() => setError('Bien introuvable'))
+      .catch((e: unknown) => {
+        const status = (e as { response?: { status?: number } } | null)?.response?.status
+        if (status === 404) setError('Bien introuvable')
+        else setLoadError(true)
+      })
       .finally(() => setLoading(false))
   }, [id])
+  useEffect(() => { charger() }, [charger])
 
   // Biens à proximité — même transaction (location/vente), hors le bien
   // courant, triés par proximité réelle : même quartier d'abord, puis même
@@ -67,7 +79,7 @@ export function useBienDetail() {
           .sort(parPrixCroissant)
         setSimilaires([...memeQuartier, ...memeVille].slice(0, 6))
       })
-      .catch(() => {})
+      .catch(() => { /* suggestions facultatives : la fiche s'affiche sans elles */ })
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- la liste de biens proches ne dépend que de l'identité du bien affiché, pas de chaque champ
   }, [bien?.id])
 
@@ -83,6 +95,7 @@ export function useBienDetail() {
   // Vues + visite active du client (non-propriétaire, connecté)
   useEffect(() => {
     if (!bien || !isLoggedIn || isOwnBien) return
+    // Compteur de vues : statistique de fond, sans effet pour la personne
     biensApi.incrementerVue(bien.id).catch(() => {})
     visitesApi.mesVisites()
       .then(data => {
@@ -99,13 +112,14 @@ export function useBienDetail() {
         }
         setVisiteActive(active); setVisiteCancellee(cancellee); setVisiteEchouee(echouee)
       })
-      .catch(() => {})
+      .catch(() => { /* état de la visite facultatif : la fiche reste consultable, le bouton de réservation s'affiche */ })
   }, [bien, isLoggedIn, isOwnBien])
 
   // Visites confirmées — vue owner (avec accès) ou publique (créneaux seuls)
   useEffect(() => {
     if (!bien) return
     if (isOwnBien) {
+      // Créneaux déjà pris : information complémentaire, la fiche s'affiche sans elle
       visitesApi.visitesConfirmeesParBien(bien.id).then(setVisitesConfirmees).catch(() => {})
     } else {
       biensApi.visitesPlanifiees(bien.id).then(setVisitesPlanifiees).catch(() => {})
@@ -116,10 +130,14 @@ export function useBienDetail() {
     if (!bien || togglingStatut) return
     setTogglingStatut(true)
     const newStatut = isOccupeLocal ? 'actif' : 'occupe'
+    setActionError('')
     try {
       await biensApi.updateStatut(bien.id, newStatut)
       setIsOccupeLocal(!isOccupeLocal)
-    } catch {}
+    } catch (e: unknown) {
+      // Le bouton redevient actif : on peut simplement recliquer.
+      setActionError(apiMessage(e) || 'Le changement de disponibilité a échoué. Réessayez.')
+    }
     setTogglingStatut(false)
   }
 
@@ -127,15 +145,18 @@ export function useBienDetail() {
     if (!visiteActive) return
     setConfirmAnnulerVisite(false)
     setAnnulerBusy(true)
+    setActionError('')
     try {
       await visitesApi.annuler(visiteActive.id)
       setVisiteCancellee(visiteActive); setVisiteActive(null)
-    } catch {}
+    } catch (e: unknown) {
+      setActionError(apiMessage(e) || "L'annulation de la visite a échoué. Réessayez.")
+    }
     setAnnulerBusy(false)
   }
 
   return {
-    bien, setBien, loading, error, bienTitle, isLoggedIn, isOwnBien,
+    bien, setBien, loading, error, loadError, actionError, recharger: charger, bienTitle, isLoggedIn, isOwnBien,
     photoIdx, setPhotoIdx,
     visitesPlanifiees, visitesConfirmees,
     visiteActive, visiteCancellee, visiteEchouee, annulerBusy,

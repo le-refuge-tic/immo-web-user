@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Bien, BienResponse, ListResponse, Photo } from '../types/api'
+import type { Bien, BienResponse, ListResponse, Photo, VisitesPlanifieesResponse, VueResponse } from '../types/api'
 import { tokenStore } from '../utils/tokenStore'
 import { BASE, auth } from './apiBase'
 import { compressImage } from '../utils/compressImage'
@@ -56,7 +56,7 @@ export const biensApi = {
 
   /** Régénère le code d'invitation d'un bien en gestion. */
   regenererCode: (id: number) =>
-    axios.post(`${BASE}/biens/${id}/regenerer-code`, {}, auth()).then(r => r.data as { code_invitation: string }),
+    axios.post<{ code_invitation: string }>(`${BASE}/biens/${id}/regenerer-code`, {}, auth()).then(r => r.data),
 
   /** Locataire : rejoint un bien en gestion via le code d'invitation partagé par le propriétaire. */
   rejoindre: (code: string) =>
@@ -74,14 +74,14 @@ export const biensApi = {
 
   /** Visites confirmées/à venir pour ce bien — public, sans noms (créneaux uniquement). */
   visitesPlanifiees: (id: number) =>
-    axios.get(`${BASE}/biens/${id}/visites-planifiees`).then(r => r.data),
+    axios.get<VisitesPlanifieesResponse>(`${BASE}/biens/${id}/visites-planifiees`).then(r => r.data),
 
   /** Enregistre une vue (1 user = 1 vue) et retourne le compteur mis à jour. */
   incrementerVue: (id: number) =>
-    axios.post(`${BASE}/biens/${id}/vue`, {}, auth()).then(r => r.data),
+    axios.post<VueResponse>(`${BASE}/biens/${id}/vue`, {}, auth()).then(r => r.data),
 
   delete: (id: number) =>
-    axios.delete(`${BASE}/biens/${id}`, auth()).then(r => r.data),
+    axios.delete<unknown>(`${BASE}/biens/${id}`, auth()).then(r => r.data),
 
   uploadPhoto: async (bienId: number, file: File) => {
     const form = new FormData()
@@ -97,7 +97,8 @@ export const biensApi = {
   uploadVideo: (bienId: number, file: File) => {
     const form = new FormData()
     form.append('video', file)
-    return axios.post(`${BASE}/biens/${bienId}/video`, form, {
+    // NB : aucune route `POST /biens/:id/video` n'existe dans le backend (appel sans effet).
+    return axios.post<unknown>(`${BASE}/biens/${bienId}/video`, form, {
       headers: {
         Authorization: `Bearer ${tokenStore.getToken()}`,
         'Content-Type': 'multipart/form-data',

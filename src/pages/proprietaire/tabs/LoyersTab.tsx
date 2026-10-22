@@ -10,6 +10,8 @@ import { ContratDetailModal } from './ContratDetailModal'
 import { onActivateKey } from '../../../utils/keyboard'
 import type { BienGestion, Contrat, ContratResume, Loyer, LoyersDashboard, LoyersStats } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
+import { apiMessage } from '../../../utils/apiMessage'
+import ErrorState from '../../../components/ErrorState'
 
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
 // Statut d'un loyer — couvre les 4 valeurs réelles du backend (`en_attente`,
@@ -44,7 +46,13 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'tous' | 'actif' | 'resilie' | 'expire' | 'gestion'>('tous')
   const [detailContrat, setDetailContrat] = useState<ContratResume | null>(null)
-  useEffect(() => { loyersApi.dashboard().then(setData).catch(() => {}).finally(() => setLoading(false)) }, [])
+  const [loadError, setLoadError] = useState(false)
+  const chargerDashboard = () => {
+    setLoading(true)
+    setLoadError(false)
+    loyersApi.dashboard().then(setData).catch(() => setLoadError(true)).finally(() => setLoading(false))
+  }
+  useEffect(() => { chargerDashboard() }, [])
 
   // ── Biens en gestion (sans annonce publique, liés par code d'invitation) ──
   const [biensGestion, setBiensGestion] = useState<BienGestion[]>([])
@@ -52,12 +60,15 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
   const [gestionLoaded, setGestionLoaded] = useState(false)
   const [showAjoutGestion, setShowAjoutGestion] = useState(false)
   const [copiedCode, setCopiedCode] = useState<number | null>(null)
+  const [gestionError, setGestionError] = useState(false)
+  const [codeError, setCodeError] = useState('')
 
   const chargerGestion = () => {
     setLoadingGestion(true)
+    setGestionError(false)
     biensApi.mesBiensGestion()
       .then(d => setBiensGestion(Array.isArray(d) ? d : d.data || []))
-      .catch(() => {})
+      .catch(() => setGestionError(true))
       .finally(() => { setLoadingGestion(false); setGestionLoaded(true) })
   }
 
@@ -68,6 +79,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
   const partagerCode = (bien: BienGestion) => {
     const code = bien.code_invitation
     if (!code) return
+    // Copie facultative : si le presse-papiers est refusé, le partage WhatsApp ci-dessous contient déjà le code.
     navigator.clipboard?.writeText(code).catch(() => {})
     setCopiedCode(bien.id)
     setTimeout(() => setCopiedCode(null), 1500)
@@ -78,10 +90,14 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
   }
 
   const regenererCode = async (bien: BienGestion) => {
+    setCodeError('')
     try {
       const { code_invitation } = await biensApi.regenererCode(bien.id)
       setBiensGestion(prev => prev.map(b => b.id === bien.id ? { ...b, code_invitation } : b))
-    } catch {}
+    } catch (e: unknown) {
+      // Le bouton « Régénérer » reste actif : on peut simplement recliquer.
+      setCodeError(apiMessage(e) || 'Le code n\'a pas pu être régénéré. Réessayez.')
+    }
   }
 
   const stats: Partial<LoyersStats> = data?.stats || {}
@@ -210,12 +226,15 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
               </button>
             </div>
 
+            {codeError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{codeError}</p>}
             {loadingGestion ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1,2,3].map(n => (
                   <div key={n} className="rounded-2xl overflow-hidden animate-pulse h-32" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }} />
                 ))}
               </div>
+            ) : gestionError && biensGestion.length === 0 ? (
+              <ErrorState palette="proprietaire" title="Impossible de charger vos biens en gestion" onRetry={chargerGestion} />
             ) : biensGestion.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
@@ -284,6 +303,8 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
               </div>
             ))}
           </div>
+        ) : loadError && !data ? (
+          <ErrorState palette="proprietaire" title="Impossible de charger vos loyers" onRetry={chargerDashboard} />
         ) : sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"

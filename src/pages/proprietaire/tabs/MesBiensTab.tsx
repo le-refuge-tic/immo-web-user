@@ -11,11 +11,16 @@ import CarouselPauseToggle from '../../../components/CarouselPauseToggle'
 import { useCarouselAutoplay } from '../../../hooks/useCarouselAutoplay'
 import { onActivateKey } from '../../../utils/keyboard'
 import { withAlpha } from '../../../utils/color'
+import { apiMessage } from '../../../utils/apiMessage'
+import ErrorState from '../../../components/ErrorState'
+import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
 
 // ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
 export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [biens, setBiens] = useState<Bien[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [filter, setFilter] = useState('Tous')
   const [search, setSearch] = useState('')
   const [sortByVues, setSortByVues] = useState(false)
@@ -28,7 +33,8 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
 
   const load = async () => {
     setLoading(true)
-    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch {}
+    setLoadError(false)
+    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch { setLoadError(true) }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -52,7 +58,10 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
   })()
 
   const del = async (id: number) => {
-    try { await biensApi.delete(id); load() } catch {}
+    setDeleteError('')
+    try { await biensApi.delete(id); load() } catch (e: unknown) {
+      setDeleteError(apiMessage(e) || 'La suppression du bien a échoué. Réessayez.')
+    }
     setConfirmDeleteBienId(null)
   }
 
@@ -214,6 +223,8 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
 
         {/* ── Contenu ── */}
         <div className="px-5 md:px-8 xl:px-10 pb-24">
+          {deleteError && <RefreshFailedNotice palette="proprietaire" message={deleteError} />}
+          {loadError && !loading && biens.length > 0 && <RefreshFailedNotice palette="proprietaire" onRetry={load} />}
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1,2,3,4,5,6].map(n => (
@@ -226,6 +237,8 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                 </div>
               ))}
             </div>
+          ) : loadError && biens.length === 0 ? (
+            <ErrorState palette="proprietaire" title="Impossible de charger vos biens" onRetry={load} />
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24">
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: withAlpha(BLUE, '12'), border: `1.5px solid ${withAlpha(BLUE, '25')}` }}>

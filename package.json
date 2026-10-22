@@ -8,6 +8,7 @@
     "npm": ">=10"
   },
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || exit 0",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint --max-warnings 26",
@@ -17,6 +18,7 @@
     "check:size": "node scripts/check-bundle-size.mjs",
     "check:colors": "node scripts/check-inline-colors.mjs",
     "check:any": "node scripts/check-explicit-any.mjs",
+    "check": "tsc -b && npm run lint && npm run check:any && npm run check:colors && npm run check:links",
     "test:e2e": "playwright test",
     "check:e2e-types": "tsc -p e2e"
   },

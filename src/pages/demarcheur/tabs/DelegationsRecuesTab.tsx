@@ -6,25 +6,36 @@ import { IcPerson } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { DelegationRecue } from '../../../types/demarcheur'
 import { withAlpha } from '../../../utils/color'
+import { apiMessage } from '../../../utils/apiMessage'
+import ErrorState from '../../../components/ErrorState'
 
 export default function DelegationsRecuesTab({ onBack }: { onBack: () => void }) {
   const [delegations, setDelegations] = useState<DelegationRecue[]>([])
   const [loading, setLoading] = useState(true)
   const [actingId, setActingId] = useState<number | null>(null)
+  const [loadError, setLoadError] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const d = await delegationApi.recues()
       setDelegations(unwrapList<DelegationRecue>(d))
-    } catch {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
 
   const repondre = async (id: number, accepter: boolean) => {
     setActingId(id)
-    try { await delegationApi.repondre(id, accepter); load() } catch {}
+    setActionError('')
+    try { await delegationApi.repondre(id, accepter); load() } catch (e: unknown) {
+      // Les boutons Accepter / Refuser redeviennent actifs : on peut simplement recliquer.
+      setActionError(apiMessage(e) || "Votre réponse n'a pas pu être envoyée. Réessayez.")
+    }
     setActingId(null)
   }
 
@@ -38,7 +49,10 @@ export default function DelegationsRecuesTab({ onBack }: { onBack: () => void })
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {loading ? [1, 2].map(n => <div key={n} className="h-24 skeleton rounded-xl mb-3" />) : delegations.length === 0 ? (
+        {actionError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{actionError}</p>}
+        {loading ? [1, 2].map(n => <div key={n} className="h-24 skeleton rounded-xl mb-3" />) : loadError && delegations.length === 0 ? (
+          <ErrorState title="Impossible de charger vos délégations" onRetry={load} />
+        ) : delegations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(PURPLE, '15') }}>
               <IcPerson />
