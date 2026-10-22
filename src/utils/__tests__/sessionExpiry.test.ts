@@ -50,6 +50,13 @@ describe('expiration de session (FE-B-002)', () => {
     expect(estDestinationInterne('https://evil.example')).toBe(false)
   })
 
+  it('refuse les caractères de contrôle que le navigateur ignorerait en résolvant l\'URL', () => {
+    expect(estDestinationInterne('/\t/evil.example')).toBe(false)
+    expect(estDestinationInterne('/\n/evil.example')).toBe(false)
+    expect(estDestinationInterne('/ok\u0000')).toBe(false)
+    expect(estDestinationInterne('/recherche?q=a b&page=2')).toBe(true)
+  })
+
   it('ignore une destination externe', () => {
     markSessionExpired('//evil.example/x', store)
     expect(store.getItem(POST_LOGIN_REDIRECT_KEY)).toBeNull()

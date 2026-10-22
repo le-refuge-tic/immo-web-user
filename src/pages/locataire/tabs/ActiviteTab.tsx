@@ -7,12 +7,15 @@ import { walletApi } from '../../../api/walletApi'
 import { formatMois } from '../../../utils/dateFormat'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../../utils/phone'
 import { apiMessage } from '../../../utils/apiMessage'
+import { issueStatutLoyer, loyerRepare, referenceLoyer } from '../../../utils/loyerPaiement'
+import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
 import { GREEN, TEAL, ORANGE } from '../shared'
 import { IcCheck, IcCal, IcMoney } from '../icons'
 import OperateurChips from '../OperateurChips'
-import type { InitiationLoyerReponse, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
+import type { ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
+import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
 
 export default function ActiviteTab() {
   const navigate = useNavigate()
@@ -27,7 +30,8 @@ export default function ActiviteTab() {
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [payMsg, setPayMsg]     = useState('')
   const [payUrl, setPayUrl]     = useState('')
-  const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
+  const polling                 = usePaymentPolling()
+  const initiationEnCoursRef    = useRef(false)
 
   const load = async () => {
     setLoading(true)
@@ -44,7 +48,7 @@ export default function ActiviteTab() {
       if (prochain?.id) {
         try {
           const repaired = await paiementApi.repairerLoyer(prochain.id)
-          if (repaired?.reparee) { setData(await loyersApi.monLogement()); setCotisationSolde(Number(wallet?.balance || 0)); setLoading(false); return }
+          if (loyerRepare(repaired)) { setData(await loyersApi.monLogement()); setCotisationSolde(Number(wallet?.balance || 0)); setLoading(false); return }
         } catch { /* réparation facultative : on affiche le logement déjà chargé */ }
       }
       setData(logement)
@@ -55,7 +59,6 @@ export default function ActiviteTab() {
     setLoading(false)
   }
   useEffect(() => { load() }, [])
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   const prochainLoyer = data?.loyers_en_attente?.[0] || data?.prochain_loyer
   const historique = data?.historique_loyers || []
@@ -79,7 +82,7 @@ export default function ActiviteTab() {
       setPaying(true); setPayState('waiting')
       try {
         await paiementApi.payerLoyersAvecCotisation([prochainLoyer.id])
-        setPayState('success'); setShowPay(false); load()
+        setPayState('success'); load()
       } catch (e: unknown) {
         setPayState('error'); setPayMsg(apiMessage(e) || "Le paiement n'a pas pu aboutir. Réessayez dans un instant.")
       }
@@ -87,34 +90,43 @@ export default function ActiviteTab() {
       return
     }
     if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
+    if (initiationEnCoursRef.current) return
+    initiationEnCoursRef.current = true
+    const loyerId = prochainLoyer.id
     setPaying(true); setPayState('waiting')
     try {
-      const res: InitiationLoyerReponse = await paiementApi.initierLoyer({ loyer_id: prochainLoyer.id, methode_paiement: operateur, telephone_paiement: tel })
-      const refId = res.referenceId || res.reference_id
+      const res = await paiementApi.initierLoyer({ loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel })
       if (res.url_paiement) {
+        // Lien refusé par la liste de domaines autorisés : on n'annonce pas « terminez dans l'onglet ouvert » et on ne suit rien.
+        if (!openPaymentUrl(res.url_paiement)) {
+          setPayUrl('')
+          setPayState('error'); setPayMsg('Le lien de paiement reçu est invalide. Vérifiez votre historique avant de réessayer.')
+          return
+        }
         setPayUrl(res.url_paiement)
-        openPaymentUrl(res.url_paiement)
       } else {
         setPayUrl('')
       }
-      let attempts = 0
-      const maxAttempts = res.url_paiement ? 100 : 20
-      pollRef.current = setInterval(async () => {
-        attempts++
-        try {
-          const status = await paiementApi.statutLoyer(refId)
-          if (status.statut === 'reussi' || status.statut === 'success') {
-            clearInterval(pollRef.current!); setPayState('success'); setShowPay(false); load()
-          } else if (status.statut === 'echoue' || status.statut === 'failed') {
-            clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Paiement échoué.')
-          }
-        } catch { /* réseau instable : on retentera au prochain tour, la boucle s'arrête à maxAttempts */ }
-        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('error'); setPayMsg('Délai expiré.') }
-      }, 3000)
+      // Le backend renvoie `reference` : sans elle, aucun suivi ne peut partir.
+      const reference = referenceLoyer(res)
+      if (!reference) {
+        setPayState('error'); setPayMsg('Référence de paiement manquante. Vérifiez votre historique avant de réessayer.')
+      } else {
+        polling.start({
+          intervalMs: 3000,
+          maxAttempts: res.url_paiement ? 100 : 20,
+          check: async () => issueStatutLoyer((await paiementApi.statutLoyer(reference)).statut),
+          onSuccess: () => { setPayState('success'); load() },
+          onFailed: () => { setPayState('error'); setPayMsg('Paiement échoué.') },
+          onTimeout: () => { setPayState('error'); setPayMsg('Délai expiré.') },
+        })
+      }
     } catch (e: unknown) {
       setPayState('error'); setPayMsg(apiMessage(e) || "Le paiement n'a pas pu aboutir. Réessayez dans un instant.")
+    } finally {
+      initiationEnCoursRef.current = false
+      setPaying(false)
     }
-    setPaying(false)
   }
 
   if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} /></div>
@@ -129,6 +141,7 @@ export default function ActiviteTab() {
 
   return (
     <div className="flex-1 overflow-y-auto pb-6 px-4 md:px-8 md:max-w-3xl md:mx-auto md:w-full">
+      {loadError && <RefreshFailedNotice onRetry={load} />}
       {/* Prépayé */}
       {Number(contrat?.loyer_prepaye_mois || 0) > 0 && (
         <div className="mt-5 md:mt-8 rounded-2xl p-4 flex items-center gap-3" style={{ background: withAlpha(TEAL, '15'), border: `1px solid ${withAlpha(TEAL, '30')}` }}>
@@ -151,7 +164,7 @@ export default function ActiviteTab() {
             <IcCal />
             <span>{new Date(prochainLoyer.date_echeance).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
           </div>
-          <button onClick={() => setShowPay(!showPay)} className="mt-4 w-full py-3 rounded-xl font-bold text-white text-sm"
+          <button onClick={() => { if (payState !== 'waiting') setPayState('idle'); setShowPay(!showPay) }} className="mt-4 w-full py-3 rounded-xl font-bold text-white text-sm"
             style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>
             Payer ce loyer
           </button>
@@ -162,7 +175,7 @@ export default function ActiviteTab() {
       {showPay && (
         <div className="mt-3 rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.08)' }}>
           {payState === 'waiting' ? (
-            <div className="flex flex-col items-center gap-2 py-3">
+            <div role="status" className="flex flex-col items-center gap-2 py-3">
               <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} />
               {payUrl ? (
                 <>
@@ -177,13 +190,13 @@ export default function ActiviteTab() {
               )}
             </div>
           ) : payState === 'success' ? (
-            <div className="flex items-center gap-2 justify-center py-2">
+            <div role="status" className="flex items-center gap-2 justify-center py-2">
               <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: GREEN }}><IcCheck /></div>
               <p className="font-bold text-text-dark">Paiement confirmé !</p>
             </div>
           ) : payState === 'error' ? (
             <div className="text-center">
-              <p className="text-red-500 text-sm mb-2">{payMsg}</p>
+              <p role="alert" className="text-red-500 text-sm mb-2">{payMsg}</p>
               <button onClick={() => setPayState('idle')} className="text-sm font-semibold" style={{ color: TEAL }}>Réessayer</button>
             </div>
           ) : (

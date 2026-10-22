@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { biensApi } from '../../../api/biensApi'
@@ -45,18 +45,29 @@ export function useBienDetail() {
   const [shareOpen, setShareOpen] = useState(false)
   const [similaires, setSimilaires] = useState<Bien[]>([])
 
+  // Un chargement plus récent (autre identifiant, nouvel essai) rend les réponses précédentes caduques.
+  const chargementRef = useRef(0)
   const charger = useCallback(() => {
+    const courant = ++chargementRef.current
+    // Jamais l'ancien bien sous la nouvelle adresse : une panne doit afficher l'erreur, pas le bien précédent.
+    setBien(null)
     setLoading(true)
     setLoadError(false)
     setError('')
     biensApi.byId(Number(id))
-      .then(d => { setBien(d); setIsOccupeLocal(d.statut === 'occupe') })
+      .then(d => {
+        if (courant !== chargementRef.current) return
+        setBien(d)
+        setIsOccupeLocal(d.statut === 'occupe')
+      })
       .catch((e: unknown) => {
+        if (courant !== chargementRef.current) return
         const status = (e as { response?: { status?: number } } | null)?.response?.status
-        if (status === 404) setError('Bien introuvable')
+        // 404 (absent), 400 (identifiant invalide) et 403 (non accessible) : le bien n'existe pas pour cette personne.
+        if (status === 404 || status === 400 || status === 403) setError('Bien introuvable')
         else setLoadError(true)
       })
-      .finally(() => setLoading(false))
+      .finally(() => { if (courant === chargementRef.current) setLoading(false) })
   }, [id])
   useEffect(() => { charger() }, [charger])
 

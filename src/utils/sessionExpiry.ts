@@ -10,9 +10,13 @@ type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 const PAGES_CONNEXION = ['/login', '/register', '/mot-de-passe-oublie']
 
-/** Chemin interne uniquement : refuse `//hote`, `/\\hote` et toute URL absolue. */
+/**
+ * Chemin interne uniquement : refuse `//hote`, `/\\hote`, toute URL absolue et les caractères de contrôle
+ * (le navigateur retire tabulations et retours à la ligne en résolvant l'URL : `/<tab>/hote` deviendrait `//hote`).
+ */
 export function estDestinationInterne(path: string): boolean {
-  return path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\')
+  // eslint-disable-next-line no-control-regex
+  return /^\/(?![/\\])[^\u0000-\u001f\u007f]*$/.test(path)
 }
 
 export function markSessionExpired(pathWithSearch: string, storage?: StorageLike): void {

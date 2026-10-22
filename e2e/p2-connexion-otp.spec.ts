@@ -441,25 +441,34 @@ test.describe('P2 inscription propriétaire', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Politique de confidentialité' })).toBeVisible()
   })
 
-  // Défaut : les mentions légales ne sont pas accessibles depuis la case des conditions.
+  // En attente des CGU (audit FE-B-003) : le texte juridique doit être fourni par l'équipe avant de lier la case.
   test.fixme('la case des conditions renvoie aussi vers les mentions légales', async ({ page }) => {
-    // DÉFAUT : src/components/ui/auth-switch.tsx:650-654 : « conditions d'utilisation » est du texte brut
-    // (commentaire ligne 651 : lien à ajouter) ; seul /confidentialite est lié, aucun lien vers /mentions-legales.
+    // À FAIRE quand les CGU seront rédigées : src/components/ui/auth-switch.tsx (case des conditions) affiche
+    // « conditions d'utilisation » en texte brut ; seul /confidentialite est lié, aucun lien vers /mentions-legales.
     await ouvrirInscription(page)
 
     await expect(page.getByRole('link', { name: /mentions légales|conditions d'utilisation/i })).toHaveAttribute('href', '/mentions-legales')
   })
 
-  // Défaut : l'inscription ignore la page d'origine mémorisée, contrairement à la connexion.
-  test.fixme('après inscription, l’utilisateur retrouve la page d’origine mémorisée', async ({ page }) => {
-    // DÉFAUT : src/components/ui/auth-switch.tsx:461-467 : completeLogin de l'inscription n'applique pas
-    // POST_LOGIN_REDIRECT_KEY (contrairement à LoginForm, lignes 246-257).
+  // L'inscription applique la page d'origine mémorisée, comme la connexion.
+  test('après inscription, l’utilisateur retrouve la page d’origine mémorisée', async ({ page }) => {
     await mockApp(page, { loggedIn: false, mocks: { register: { status: 201, body: { access_token: 'a.e30.b', refresh_token: 'r-3', user: userOf('proprietaire') } } } })
     await page.addInitScript(() => sessionStorage.setItem('post_login_redirect', '/nouveau-bien'))
     await page.goto('/register')
     await sInscrire(page)
 
     await page.waitForURL('**/nouveau-bien')
+    expect(await page.evaluate(() => sessionStorage.getItem('post_login_redirect'))).toBeNull()
+  })
+
+  test('après inscription, une destination externe mémorisée est ignorée', async ({ page }) => {
+    await mockApp(page, { loggedIn: false, mocks: { register: { status: 201, body: { access_token: 'a.e30.b', refresh_token: 'r-3', user: userOf('proprietaire') } } } })
+    await page.addInitScript(() => sessionStorage.setItem('post_login_redirect', 'https://exemple.test/piege'))
+    await page.goto('/register')
+    await sInscrire(page)
+
+    await page.waitForURL('**/proprietaire')
+    expect(new URL(page.url()).origin).toBe(new URL(await page.evaluate(() => location.origin)).origin)
   })
 
   test('« Se connecter » bascule vers le formulaire de connexion', async ({ page }) => {

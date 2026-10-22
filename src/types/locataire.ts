@@ -48,15 +48,13 @@ export interface MonLogement {
 /** Réponse de `POST /paiements/loyer`. */
 export interface InitiationLoyerReponse {
   /**
-   * Le backend renvoie `reference` (jamais `referenceId` ni `reference_id`) :
-   * les écrans lisent `referenceId || reference_id` (défaut de lecture, la
-   * référence est alors `undefined`).
+   * Référence de la transaction, à passer à `GET /paiements/loyer/:reference/statut`.
+   * Le backend (`initierPaiementLoyer`) ne renvoie ni `referenceId` ni `reference_id`.
    */
-  referenceId: string
-  reference_id: string
-  reference?: string
-  montant?: number
-  statut?: string
-  /** Présent pour les paiements redirigés (FedaPay). */
+  reference: string
+  montant: number
+  /** Statut de la transaction : `en_attente` à l'initiation, ou celui de la transaction rejouée (clé d'idempotence). */
+  statut: string
+  /** Présent pour les paiements redirigés (FedaPay) ; absent quand la demande est rejouée avec la même clé. */
   url_paiement?: string
 }

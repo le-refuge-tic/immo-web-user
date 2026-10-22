@@ -9,13 +9,16 @@ import { bienTypeLabel } from '../../../utils/bienType'
 import { formatMois } from '../../../utils/dateFormat'
 import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../../utils/phone'
 import { apiMessage } from '../../../utils/apiMessage'
+import { issueStatutLoyer, referenceLoyer } from '../../../utils/loyerPaiement'
+import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
 import { GREEN, TEAL, OPERATEURS } from '../shared'
 import { IcHome, IcCheck, IcPin } from '../icons'
 import OperateurChips from '../OperateurChips'
 import GestionnaireCard from './GestionnaireCard'
-import type { InitiationLoyerReponse, Loyer, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
+import type { Loyer, ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
+import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
 
 // ─── Mon Logement ─────────────────────────────────────────────────────────────
 export default function MonLogementTab() {
@@ -34,7 +37,8 @@ export default function MonLogementTab() {
   const [chatLoading, setChatLoading] = useState(false)
   const [chatError, setChatError] = useState('')
   const [loadError, setLoadError] = useState(false)
-  const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
+  const polling                 = usePaymentPolling()
+  const initiationEnCoursRef    = useRef(false)
 
   const load = async () => {
     setLoading(true)
@@ -53,7 +57,6 @@ export default function MonLogementTab() {
     setLoading(false)
   }
   useEffect(() => { load() }, [])
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   const loyers: Loyer[] = data?.loyers_en_attente?.length ? data.loyers_en_attente : (data?.prochain_loyer ? [data.prochain_loyer] : [])
   const historique = data?.historique_loyers || []
@@ -81,23 +84,17 @@ export default function MonLogementTab() {
     setChatLoading(false)
   }
 
-  /** Attend la confirmation d'un paiement (polling), résout true si réussi. */
-  const attendreConfirmation = (refId: string, hasUrl: boolean): Promise<boolean> =>
+  /** Attend la confirmation d'un paiement (polling) : `ok`, `echec` annoncé par le serveur, ou `delai` dépassé. */
+  const attendreConfirmation = (refId: string, hasUrl: boolean): Promise<'ok' | 'echec' | 'delai'> =>
     new Promise(resolve => {
-      let attempts = 0
-      const maxAttempts = hasUrl ? 100 : 20
-      pollRef.current = setInterval(async () => {
-        attempts++
-        try {
-          const status = await paiementApi.statutLoyer(refId)
-          if (status.statut === 'reussi' || status.statut === 'success') {
-            clearInterval(pollRef.current!); resolve(true)
-          } else if (status.statut === 'echoue' || status.statut === 'failed') {
-            clearInterval(pollRef.current!); resolve(false)
-          }
-        } catch { /* réseau instable : on retentera au prochain tour, la boucle s'arrête à maxAttempts */ }
-        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); resolve(false) }
-      }, 3000)
+      polling.start({
+        intervalMs: 3000,
+        maxAttempts: hasUrl ? 100 : 20,
+        check: async () => issueStatutLoyer((await paiementApi.statutLoyer(refId)).statut),
+        onSuccess: () => resolve('ok'),
+        onFailed: () => resolve('echec'),
+        onTimeout: () => resolve('delai'),
+      })
     })
 
   const payer = async () => {
@@ -116,6 +113,9 @@ export default function MonLogementTab() {
     }
 
     if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
+    if (initiationEnCoursRef.current) return
+    initiationEnCoursRef.current = true
+    let loyerCourant: number | null = null
     setPaying(true)
     setPayState('waiting')
     try {
@@ -124,19 +124,38 @@ export default function MonLogementTab() {
       // en dehors du mode cotisation.
       for (let i = 0; i < selected.length; i++) {
         setPayProgress(selected.length > 1 ? `Paiement ${i + 1}/${selected.length}…` : '')
-        const res: InitiationLoyerReponse = await paiementApi.initierLoyer({ loyer_id: selected[i], methode_paiement: operateur, telephone_paiement: tel })
-        const refId = res.referenceId || res.reference_id
+        loyerCourant = selected[i]
+        const res = await paiementApi.initierLoyer({ loyer_id: loyerCourant, methode_paiement: operateur, telephone_paiement: tel })
         const hasUrl = !!res.url_paiement
         if (res.url_paiement) {
+          // Lien refusé par la liste de domaines autorisés : on ne suit rien et on n'annonce pas d'onglet ouvert.
+          if (!openPaymentUrl(res.url_paiement)) {
+            setPayUrl('')
+            setPayState('error'); setPayMsg('Le lien de paiement reçu est invalide. Vérifiez votre historique avant de réessayer.')
+            setPayProgress(''); setPaying(false); initiationEnCoursRef.current = false
+            load()
+            return
+          }
           setPayUrl(res.url_paiement)
-          openPaymentUrl(res.url_paiement)
         } else {
           setPayUrl('')
         }
-        const ok = await attendreConfirmation(refId, hasUrl)
-        if (!ok) {
-          setPayState('error'); setPayMsg(selected.length > 1 ? `Échec au paiement ${i + 1}/${selected.length}. Les précédents restent validés.` : 'Paiement échoué. Réessayez.')
-          setPaying(false)
+        // Le backend renvoie `reference` : sans elle, aucun suivi ne peut partir.
+        const refId = referenceLoyer(res)
+        if (!refId) {
+          setPayState('error'); setPayMsg('Référence de paiement manquante. Vérifiez votre historique avant de réessayer.')
+          setPayProgress(''); setPaying(false); initiationEnCoursRef.current = false
+          load()
+          return
+        }
+        const issue = await attendreConfirmation(refId, hasUrl)
+        if (issue !== 'ok') {
+          // Délai dépassé : le paiement est peut-être encore en cours chez l'opérateur, ne pas inviter à relancer à l'aveugle.
+          const suite = issue === 'delai'
+            ? 'Le paiement est en attente de confirmation. Vérifiez votre historique avant de réessayer.'
+            : (selected.length > 1 ? `Échec au paiement ${i + 1}/${selected.length}. Les précédents restent validés.` : 'Paiement échoué. Réessayez.')
+          setPayState('error'); setPayMsg(suite)
+          setPayProgress(''); setPaying(false); initiationEnCoursRef.current = false
           load()
           return
         }
@@ -147,6 +166,7 @@ export default function MonLogementTab() {
       setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
     }
     setPaying(false)
+    initiationEnCoursRef.current = false
   }
 
   if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} /></div>
@@ -171,6 +191,7 @@ export default function MonLogementTab() {
 
   return (
     <div className="flex-1 overflow-y-auto pb-6 md:pb-12">
+      {loadError && <RefreshFailedNotice onRetry={load} />}
       <div className="md:max-w-6xl md:mx-auto md:w-full md:px-8 md:pt-8 md:flex md:gap-6 md:items-start">
         <div className="md:flex-1 md:min-w-0">
           {/* Hero card */}
@@ -244,17 +265,17 @@ export default function MonLogementTab() {
               {selected.length > 0 && (
                 <div className="mt-4 rounded-2xl p-4 md:max-w-md" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.08)' }}>
                   {payState === 'success' ? (
-                    <div className="flex items-center gap-2 justify-center py-2">
+                    <div role="status" className="flex items-center gap-2 justify-center py-2">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: GREEN }}><IcCheck /></div>
                       <p className="font-bold text-text-dark">Paiement confirmé !</p>
                     </div>
                   ) : payState === 'error' ? (
                     <div className="text-center">
-                      <p className="text-red-500 text-sm mb-3">{payMsg}</p>
+                      <p role="alert" className="text-red-500 text-sm mb-3">{payMsg}</p>
                       <button onClick={() => setPayState('idle')} className="text-sm font-semibold text-primary">Réessayer</button>
                     </div>
                   ) : payState === 'waiting' ? (
-                    <div className="flex flex-col items-center gap-2 py-2">
+                    <div role="status" className="flex flex-col items-center gap-2 py-2">
                       <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} />
                       {payProgress && <p className="text-xs font-semibold" style={{ color: GREEN }}>{payProgress}</p>}
                       {payUrl ? (

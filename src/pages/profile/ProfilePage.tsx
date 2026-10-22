@@ -13,6 +13,7 @@ import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
 import type { User } from '../../types/api'
 import ErrorState from '../../components/ErrorState'
+import { dateEffectiveVisite } from '../../utils/dateVisite'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -101,7 +102,9 @@ type Visite = {
   statut: string
   bienType?: string
   dateVisite?: string
-  creneau?: { debut: string; bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } } }
+  date_souhaitee?: string | null
+  date_contre_proposee?: string | null
+  creneau?: { date_debut?: string | null; bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } } }
   bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } }
   feedback_donne?: boolean
   note_client?: number | null
@@ -336,8 +339,10 @@ export default function ProfilePage() {
     const bienId = bien?.id
     const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
     const lieu = bien?.localisation ? (bien.localisation.quartier || bien.localisation.ville) : null
-    const dateStr = visiteActive.creneau?.debut
-      ? new Date(visiteActive.creneau.debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+    // Date retenue : contre-proposition, sinon date souhaitée, sinon début du créneau (ancien flux).
+    const dateRetenue = dateEffectiveVisite(visiteActive)
+    const dateStr = dateRetenue
+      ? new Date(dateRetenue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
       : visiteActive.dateVisite || null
     const goToBien = () => { if (bienId) navigate(`/biens/${bienId}`) }
 

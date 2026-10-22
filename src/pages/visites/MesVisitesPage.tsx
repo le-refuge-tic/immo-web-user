@@ -116,7 +116,15 @@ export default function MesVisitesPage() {
 
   const handleReproposer = async (id: number, isoDate: string) => {
     setActionError('')
-    try { await visitesApi.reProposer(id, isoDate) } catch (e: unknown) { echecAction(e, 'La nouvelle proposition a échoué. Réessayez.') } finally { loadVisites() }
+    try {
+      await visitesApi.reProposer(id, isoDate)
+    } catch (e) {
+      // Refus du serveur (4xx) : la carte affiche l'erreur et garde son formulaire ouvert, sans recharger la liste.
+      // Pas de réponse (délai dépassé, coupure) : le serveur a peut-être enregistré la proposition, on recharge.
+      if (!(e as { response?: unknown } | null)?.response) loadVisites()
+      throw e
+    }
+    loadVisites()
   }
 
   const openChat = async (bienId: number, draftMessage?: string) => {

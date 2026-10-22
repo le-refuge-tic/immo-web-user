@@ -29,7 +29,7 @@ export interface Recu {
   /** Reçus d'intégration et de loyer : le bien est à la racine. */
   bien?: Bien | null
   /** Reçu de visite : le bien est sous la visite. */
-  visite?: { bien?: Bien | null; date_confirmee?: IsoDate | null; date_souhaitee?: IsoDate | null } | null
+  visite?: { bien?: Bien | null; date_confirmee?: IsoDate | null; date_souhaitee?: IsoDate | null; date_contre_proposee?: IsoDate | null } | null
   locataire?: PartieRecu | null
   client?: PartieRecu | null
   gestionnaire?: PartieRecu | null

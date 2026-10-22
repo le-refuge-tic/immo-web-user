@@ -7,6 +7,7 @@ import { bienTypeLabel } from '../../utils/bienType'
 import type { RecuSection } from '../../utils/recuPdf'
 import type { PartieRecu, Recu } from '../../types/recu'
 import { apiMessage } from '../../utils/apiMessage'
+import { dateVisiteRecu } from '../../utils/dateVisite'
 import { withAlpha } from '../../utils/color'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
@@ -117,7 +118,7 @@ export default function RecuPage() {
   const client = recu.locataire || recu.client
   const gestionnaire = recu.gestionnaire
   const gestionnaireRoleLabel = gestionnaire?.role === 'demarcheur' ? 'Démarcheur' : 'Propriétaire'
-  const dateVisite = recu.visite?.date_confirmee || recu.visite?.date_souhaitee
+  const dateVisite = dateVisiteRecu(recu.visite)
   const moisLoyerLabel = recu.loyer?.mois ? moisLabel(recu.loyer.mois) : null
   const operateur = operateurLabel(recu.methode_paiement)
   const nomComplet = (p: PartieRecu | null | undefined) => `${p?.prenom || ''} ${p?.nom || ''}`.trim()

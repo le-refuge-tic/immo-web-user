@@ -4,6 +4,7 @@ import { fraisVisiteAPayer, libelleFraisVisite } from '../../../utils/fraisVisit
 import { STATUT_META, SUPPORT_VISITE_PHONE } from './constants'
 import { fmtDate, isDatePasseeVisite, isEchoueeVisite } from './helpers'
 import { dateEffectiveVisite } from '../../../utils/dateVisite'
+import { apiMessage } from '../../../utils/apiMessage'
 import type { Visite } from '../../../types/api'
 
 type VisiteCardProps = {
@@ -32,16 +33,21 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
   const [newDate, setNewDate] = useState('')
   const [newTime, setNewTime] = useState('')
   const [submittingRepro, setSubmittingRepro] = useState(false)
+  const [reproError, setReproError] = useState('')
 
   const handleSubmitRepro = async () => {
     if (!newDate || !newTime) return
     setSubmittingRepro(true)
+    setReproError('')
     try {
       await onReproposer(v.id, `${newDate}T${newTime}:00`)
       setReproposing(false)
       setNewDate('')
       setNewTime('')
-    } catch {}
+    } catch (e: unknown) {
+      // Le formulaire reste ouvert : on peut corriger la date et renvoyer.
+      setReproError(apiMessage(e) || 'La nouvelle proposition a échoué. Réessayez.')
+    }
     setSubmittingRepro(false)
   }
 
@@ -294,8 +300,9 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
             <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
               className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
           </div>
+          {reproError && <p role="alert" className="text-xs font-semibold mb-3" style={{ color: 'var(--tx-red)' }}>{reproError}</p>}
           <div className="flex gap-2">
-            <button onClick={() => { setReproposing(false); setNewDate(''); setNewTime('') }}
+            <button onClick={() => { setReproposing(false); setNewDate(''); setNewTime(''); setReproError('') }}
               className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">
               Annuler
             </button>

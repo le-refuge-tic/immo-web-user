@@ -8,6 +8,7 @@ import type { Wallet, WalletTransaction } from '../../types/wallet'
 import { withAlpha } from '../../utils/color'
 import { apiMessage } from '../../utils/apiMessage'
 import ErrorState from '../../components/ErrorState'
+import { messageMontantRetrait } from '../../utils/retrait'
 
 const isLoyer = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -92,8 +93,12 @@ function ClientWalletView() {
   const color = W_COLOR[tab]
   const transactions = txs[tab]
 
+  // Le minimum (500 FCFA) et le plafond (solde) sont vérifiés dès la saisie, comme côté serveur (FE-B-015).
+  const soldeEpargne = Number(wallets.epargne?.balance || 0)
+  const montantMessage = messageMontantRetrait(montant, soldeEpargne)
+
   const demanderRetrait = async () => {
-    if (!montant || Number(montant) <= 0) return
+    if (!montant || montantMessage) return
     setSubmitting(true)
     setRetraitError('')
     try {
@@ -189,14 +194,16 @@ function ClientWalletView() {
                 <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{Number(wallets.epargne?.balance || 0).toLocaleString('fr-FR')} FCFA</strong></p>
                 <p className="text-xs text-text-grey mb-3">Minimum 500 FCFA · Max 3 retraits / 24h</p>
                 <label htmlFor="portefeuille-page-178" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={Number(wallets.epargne?.balance || 0)}
+                <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={soldeEpargne}
+                  aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 5000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
+                <p id="retrait-montant-message" aria-live="polite" className={montantMessage ? '-mt-2 mb-3 text-sm font-semibold' : 'sr-only'} style={montantMessage ? { color: 'var(--c-danger)' } : undefined}>{montantMessage}</p>
                 {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={demanderRetrait} disabled={submitting || !montant || Number(montant) > Number(wallets.epargne?.balance || 0)}
+                  <button onClick={demanderRetrait} disabled={submitting || !montant || !!montantMessage}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
                     style={{ background: W_COLOR.epargne }}>
                     {submitting ? 'Envoi…' : 'Confirmer'}
@@ -273,7 +280,7 @@ function WalletCommissionsView() {
   const noData = loadError && !wallet
 
   const demanderRetrait = async () => {
-    if (!montant || Number(montant) <= 0) return
+    if (!montant || montantMessage) return
     setSubmitting(true)
     setRetraitError('')
     try {
@@ -287,6 +294,7 @@ function WalletCommissionsView() {
   }
 
   const solde = Number(wallet?.balance || 0)
+  const montantMessage = messageMontantRetrait(montant, solde)
   const loyerCount = transactions.filter(isLoyer).length
   const visiteCount = transactions.filter(isVisite).length
   const filteredTx = filter === 'Loyers' ? transactions.filter(isLoyer) : filter === 'Visites' ? transactions.filter(isVisite) : transactions
@@ -340,14 +348,16 @@ function WalletCommissionsView() {
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demande de retrait</h3>
                 <p className="text-sm text-text-grey mb-3">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
                 <label htmlFor="portefeuille-page-317" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={1} max={solde}
+                <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={solde}
+                  aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 50000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
+                <p id="retrait-montant-message" aria-live="polite" className={montantMessage ? '-mt-2 mb-3 text-sm font-semibold' : 'text-xs text-text-grey -mt-2 mb-3'} style={montantMessage ? { color: 'var(--c-danger)' } : undefined}>{montantMessage || 'Minimum 500 FCFA.'}</p>
                 {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={demanderRetrait} disabled={submitting || !montant || Number(montant) > solde}
+                  <button onClick={demanderRetrait} disabled={submitting || !montant || !!montantMessage}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
                     style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
                     {submitting ? 'Envoi…' : 'Envoyer'}

@@ -460,6 +460,12 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
   const completeLogin = (data: LoginPayload) => {
     login(data)
+    // Même retour à la page d'origine que LoginForm ; destination interne uniquement (jamais de redirection externe).
+    const redirect = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
+    if (redirect) {
+      sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+      if (estDestinationInterne(redirect)) { navigate(redirect, { replace: true }); return }
+    }
     const userRole = data.user?.role
     if (userRole === 'proprietaire') navigate('/proprietaire', { replace: true })
     else if (userRole === 'demarcheur') navigate('/demarcheur', { replace: true })

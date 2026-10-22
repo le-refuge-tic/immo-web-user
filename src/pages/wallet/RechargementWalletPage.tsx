@@ -163,8 +163,8 @@ export default function RechargementWalletPage() {
               })}
             </div>
 
-            <p className="font-bold text-text-dark text-sm mb-2">Montant à recharger</p>
-            <input type="text" inputMode="numeric" value={montant} onChange={e => { setMontant(e.target.value.replace(/\D/g, '')); attempt.reset() }}
+            <label htmlFor="recharge-montant" className="block font-bold text-text-dark text-sm mb-2">Montant à recharger</label>
+            <input id="recharge-montant" type="text" inputMode="numeric" value={montant} onChange={e => { setMontant(e.target.value.replace(/\D/g, '')); attempt.reset() }}
               placeholder="Ex. 5 000" className="w-full bg-white border border-divider rounded-xl px-4 py-4 text-lg font-bold outline-none text-text-dark mb-2" />
             <div className="flex gap-2 mb-4">
               {[5000, 10000, 25000, 50000].map(v => (

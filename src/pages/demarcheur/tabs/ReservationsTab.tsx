@@ -8,6 +8,7 @@ import { PURPLE, DARK_PURPLE, statutVisite } from '../shared'
 import { IcHome, IcCal, IcChat } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import { apiMessage } from '../../../utils/apiMessage'
+import ErrorState from '../../../components/ErrorState'
 import type { Visite } from '../../../types/api'
 import { withAlpha } from '../../../utils/color'
 
@@ -30,10 +31,13 @@ export default function ReservationsTab() {
   const [cpError, setCpError] = useState('')
   const [chatLoadingId, setChatLoadingId] = useState<number | null>(null)
   const [chatError, setChatError] = useState('')
+  const [loadError, setLoadError] = useState(false)
+  const [actionId, setActionId] = useState<number | null>(null)
 
   const load = async () => {
     setLoading(true)
-    try { const d = await visitesApi.reservationsRecues(); setVisites(unwrapList(d)) } catch {}
+    setLoadError(false)
+    try { const d = await visitesApi.reservationsRecues(); setVisites(unwrapList(d)) } catch { setLoadError(true) }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
@@ -44,9 +48,18 @@ export default function ReservationsTab() {
     : filter === 'Échouées' ? visites.filter(v => isEchouee(v))
     : visites.filter(v => v.statut === 'annulee')
 
-  const confirmer = async (id: number) => {
-    try { await visitesApi.confirmerVisite(id); load(); suggestPush() } catch {}
+  // Action sur une visite : un seul appel à la fois, message d'erreur affiché, bouton à nouveau actif.
+  const agir = async (id: number, action: () => Promise<unknown>, repli: string, apres?: () => void) => {
+    if (actionId !== null) return
+    setActionId(id)
+    setChatError('')
+    try { await action(); load(); apres?.() } catch (e: unknown) { setChatError(apiMessage(e) || repli) }
+    setActionId(null)
   }
+  const confirmer = (id: number) =>
+    agir(id, () => visitesApi.confirmerVisite(id), 'La confirmation a échoué. Réessayez.', suggestPush)
+  const marquerEffectuee = (id: number) =>
+    agir(id, () => visitesApi.marquerEffectuee(id), 'La mise à jour de la visite a échoué. Réessayez.')
 
   const ouvrirChat = async (v: Visite, draftMessage?: string) => {
     const clientId = v.client?.id
@@ -59,7 +72,9 @@ export default function ReservationsTab() {
       const match = list.find(c => c.bien?.id === bienId && c.participants?.some(p => p.id === clientId))
       if (match) navigate(`/conversations/${match.id}`, draftMessage ? { state: { draftMessage } } : undefined)
       else setChatError('Ce client n\'a pas encore démarré de conversation pour ce bien.')
-    } catch {}
+    } catch (e: unknown) {
+      setChatError(apiMessage(e) || "Impossible d'ouvrir la conversation. Réessayez.")
+    }
     setChatLoadingId(null)
   }
 
@@ -92,7 +107,7 @@ export default function ReservationsTab() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {chatError && (
-        <div className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: 'var(--tx-red)' }}>
+        <div role="alert" className="mx-4 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: 'var(--tx-red)' }}>
           {chatError}
           <button onClick={() => setChatError('')} className="text-base leading-none flex-shrink-0">✕</button>
         </div>
@@ -111,6 +126,8 @@ export default function ReservationsTab() {
           <div className="md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4">
             {[1,2].map(n => <div key={n} className="h-40 skeleton rounded-2xl mb-3 md:mb-0" />)}
           </div>
+        ) : loadError && visites.length === 0 ? (
+          <ErrorState title="Impossible de charger vos réservations" onRetry={load} />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(PURPLE, '15') }}>
@@ -195,10 +212,10 @@ export default function ReservationsTab() {
                 )}
                 {!echouee && v.statut === 'en_attente' && <>
                   <button onClick={() => { setCpError(''); setCpId(v.id) }} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: withAlpha(PURPLE, '80'), color: PURPLE }}>Autre créneau</button>
-                  <button onClick={() => confirmer(v.id)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
+                  <button onClick={() => confirmer(v.id)} disabled={actionId === v.id} className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
                 </>}
                 {!echouee && v.statut === 'confirmee' && (
-                  <button onClick={() => visitesApi.marquerEffectuee(v.id).then(load)} className="flex-1 py-2 rounded-xl text-white text-xs font-bold" style={{ background: PURPLE }}>Marquer effectuée</button>
+                  <button onClick={() => marquerEffectuee(v.id)} disabled={actionId === v.id} className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: PURPLE }}>Marquer effectuée</button>
                 )}
               </div>
               {cpId === v.id && (

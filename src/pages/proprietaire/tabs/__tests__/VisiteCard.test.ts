@@ -21,7 +21,7 @@ describe('minutesAvant (réservations du propriétaire)', () => {
   })
 
   it("ignore date_confirmee, champ absent de l'entité Visite du backend", () => {
-    const v = visite({ date_souhaitee: iso(90), date_confirmee: iso(10) })
+    const v = visite({ date_souhaitee: iso(90), ...{ date_confirmee: iso(10) } })
     expect(minutesAvant(v, NOW)).toBe(90)
   })
 

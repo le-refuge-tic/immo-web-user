@@ -17,6 +17,19 @@ export function dateEffectiveVisite(v: VisiteDatable): string | null {
   return v.date_contre_proposee || v.date_souhaitee || v.creneau?.date_debut || null
 }
 
+/**
+ * Date de visite affichée sur un reçu : règle du backend (contre-proposition, sinon date souhaitée),
+ * avec repli sur `date_confirmee` (champ calculé par le reçu, identique) pour les anciens reçus.
+ */
+export function dateVisiteRecu(v: {
+  date_contre_proposee?: string | null
+  date_souhaitee?: string | null
+  date_confirmee?: string | null
+} | null | undefined): string | null {
+  if (!v) return null
+  return dateEffectiveVisite(v) || v.date_confirmee || null
+}
+
 /** Minutes avant la visite (négatif si passée) ; `null` sans date exploitable. */
 export function minutesAvantVisite(v: VisiteDatable, now: number): number | null {
   const raw = dateEffectiveVisite(v)

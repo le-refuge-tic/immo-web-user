@@ -48,7 +48,7 @@ export interface StatutPaiementIntegration {
 }
 
 /** Réponse de `GET /paiements/loyer/:ref/statut`. */
-export interface StatutPaiementLoyer { statut: StatutPaiementPolling }
+export interface StatutPaiementLoyer { statut: 'en_attente' | 'reussi' | 'echoue' }
 
 /** Réponse de `GET /paiements/depot/:ref/statut`. */
 export interface StatutRechargement {
@@ -58,13 +58,13 @@ export interface StatutRechargement {
 }
 
 /**
- * Réponse de `POST /paiements/loyer/:id/repair`. Le serveur renvoie `repare` ;
- * `reparee` est lu par ActiviteTab mais n'existe pas côté backend (défaut de lecture).
+ * Réponse de `POST /paiements/loyer/:id/repair` (`repairerLoyer` du backend) :
+ * `repare` vaut true seulement quand une transaction confirmée a été rejouée.
  */
 export interface RepairLoyerResponse {
-  repare?: boolean
-  statut?: string
-  reparee?: boolean
+  repare: boolean
+  /** `reussi`, `deja_paye` ou `aucune_transaction_confirmee`. */
+  statut: string
 }
 
 /** Réponse de `POST /paiements/loyer/cotisation`. */

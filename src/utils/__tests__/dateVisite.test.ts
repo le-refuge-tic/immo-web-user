@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dateEffectiveVisite, minutesAvantVisite } from '../dateVisite'
+import { dateEffectiveVisite, dateVisiteRecu, minutesAvantVisite } from '../dateVisite'
 
 const NOW = Date.parse('2026-10-22T10:00:00.000Z')
 const DANS_1H = '2026-10-22T11:00:00.000Z'
@@ -47,5 +47,18 @@ describe('minutesAvantVisite', () => {
   it('renvoie null sans date ou avec une date invalide', () => {
     expect(minutesAvantVisite({}, NOW)).toBeNull()
     expect(minutesAvantVisite({ date_souhaitee: 'pas une date' }, NOW)).toBeNull()
+  })
+})
+
+describe('dateVisiteRecu', () => {
+  it('suit la règle du backend : contre-proposition, puis date souhaitée', () => {
+    expect(dateVisiteRecu({ date_contre_proposee: DANS_2H, date_souhaitee: DANS_1H, date_confirmee: DANS_3H })).toBe(DANS_2H)
+    expect(dateVisiteRecu({ date_souhaitee: DANS_1H })).toBe(DANS_1H)
+  })
+
+  it('garde date_confirmee en repli, et renvoie null sans date', () => {
+    expect(dateVisiteRecu({ date_confirmee: DANS_3H })).toBe(DANS_3H)
+    expect(dateVisiteRecu({})).toBeNull()
+    expect(dateVisiteRecu(null)).toBeNull()
   })
 })

@@ -74,30 +74,33 @@ test.describe('P5 portefeuille du client', () => {
     expect(posts(calls, '/retraits/me')).toHaveLength(0)
   })
 
-  // Défaut FE-B-015 : seul l'onglet Portefeuille du propriétaire explique le refus dès la saisie.
-  test.fixme('un montant supérieur au solde affiche un message dès la saisie (FE-B-015)', async ({ page }) => {
-    // DÉFAUT : src/pages/wallet/PortefeuillePage.tsx:192-199 (vue client) et :343-350 (vue propriétaire)
-    // se contentent de désactiver « Confirmer » ; messageMontantRetrait (utils/retrait.ts) n'y est pas utilisé.
+  // FE-B-015 : le refus est expliqué dès la saisie, comme dans l'onglet Portefeuille du propriétaire.
+  test('un montant supérieur au solde affiche un message dès la saisie (FE-B-015)', async ({ page }) => {
     await mockApp(page, { role: 'locataire', mocks: clientMocks() })
     const dialog = await ouvrirRetraitEpargne(page)
 
     await dialog.getByLabel('Montant à retirer (FCFA)').fill('9000')
 
+    const champ = dialog.getByLabel('Montant à retirer (FCFA)')
     await expect(dialog.getByText(/dépasse votre solde/)).toBeVisible()
+    await expect(champ).toHaveAttribute('aria-invalid', 'true')
+    await expect(champ).toHaveAccessibleDescription(/dépasse votre solde/)
   })
 
-  // Défaut : le minimum de 500 FCFA annoncé n'est pas appliqué côté interface.
-  test.fixme('un retrait sous le minimum de 500 FCFA est refusé avant l’envoi', async ({ page }) => {
-    // DÉFAUT : src/pages/wallet/PortefeuillePage.tsx:96 et :199 ne contrôlent que « montant > 0 » et « <= solde » ;
-    // l'attribut min={500} (ligne 192) n'empêche pas l'envoi d'un retrait de 300 FCFA.
+  // Le minimum de 500 FCFA (identique au backend) est appliqué avant l'envoi.
+  test('un retrait sous le minimum de 500 FCFA est refusé avant l’envoi', async ({ page }) => {
     const calls = await mockApp(page, { role: 'locataire', mocks: clientMocks() })
     const dialog = await ouvrirRetraitEpargne(page)
 
     await dialog.getByLabel('Montant à retirer (FCFA)').fill('300')
 
-    await expect(dialog.getByText(/minimum/i).last()).toBeVisible()
+    await expect(dialog.getByText('Le minimum de retrait est de 500 FCFA.')).toBeVisible()
     await expect(dialog.getByRole('button', { name: 'Confirmer' })).toBeDisabled()
     expect(posts(calls, '/retraits/me')).toHaveLength(0)
+
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('500')
+    await expect(dialog.getByText('Le minimum de retrait est de 500 FCFA.')).toHaveCount(0)
+    await expect(dialog.getByRole('button', { name: 'Confirmer' })).toBeEnabled()
   })
 
   test('un retrait valide envoie la demande sur le wallet épargne et confirme l’envoi', async ({ page }) => {
@@ -195,6 +198,25 @@ test.describe('P5 portefeuille des commissions', () => {
     await expect(detail.getByText('LOY-1')).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(detail).toHaveCount(0)
+  })
+
+  test('la demande de retrait refuse un montant sous le minimum ou au-dessus du solde dès la saisie', async ({ page }) => {
+    const calls = await mockApp(page, { role: 'proprietaire', mocks: commissions })
+    await page.goto('/portefeuille')
+    await expect(page.getByText(fcfa(90000)).first()).toBeVisible()
+    await page.getByRole('button', { name: 'Demander un retrait' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Demande de retrait' })
+    const champ = dialog.getByLabel('Montant à retirer (FCFA)')
+
+    await champ.fill('300')
+    await expect(dialog.getByText('Le minimum de retrait est de 500 FCFA.')).toBeVisible()
+    await expect(champ).toHaveAttribute('aria-invalid', 'true')
+    await expect(dialog.getByRole('button', { name: 'Envoyer' })).toBeDisabled()
+
+    await champ.fill('95000')
+    await expect(dialog.getByText(/dépasse votre solde/)).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Envoyer' })).toBeDisabled()
+    expect(posts(calls, '/retraits/me')).toHaveLength(0)
   })
 })
 
@@ -445,14 +467,13 @@ test.describe('P5 recharge du wallet', () => {
     await expect.poll(async () => gets(calls, '/paiements/depot/dep-6/statut').length, { timeout: 4000 }).toBe(avant)
   })
 
-  // Défaut d'accessibilité : le champ du montant n'a ni étiquette ni nom accessible.
-  test.fixme('le champ « Montant à recharger » est relié à son étiquette', async ({ page }) => {
-    // DÉFAUT : src/pages/wallet/RechargementWalletPage.tsx:166-168 : le texte « Montant à recharger » est un <p>,
-    // l'<input> n'a ni <label htmlFor> ni aria-label ; getByLabel ne le trouve pas.
+  // Accessibilité : le champ du montant est relié à son étiquette.
+  test('le champ « Montant à recharger » est relié à son étiquette', async ({ page }) => {
     await mockApp(page, { role: 'locataire' })
     await page.goto('/portefeuille/recharger/epargne')
 
     await expect(page.getByLabel('Montant à recharger')).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Montant à recharger' })).toBeVisible()
   })
 })
 

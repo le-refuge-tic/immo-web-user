@@ -163,6 +163,8 @@ export default function ReservationPage() {
   const handleSubmit = async () => {
     if (!selectedTime) { setError('Choisissez une heure pour la visite'); return }
     if (!bienId) { setError("Impossible d'envoyer la demande : bien non identifié"); return }
+    // Sans le bien, les frais de visite sont inconnus : on ne laisse pas réserver une visite annoncée à tort « gratuite ».
+    if (!bien) { setError("Les informations du bien ne sont pas chargées. Réessayez avant d'envoyer la demande."); return }
     // Garde-fou : sans rôle prospect/locataire, le backend renverrait un 403.
     // On invite à activer le profil prospect au lieu de laisser passer l'erreur.
     if (!peutReserver) {
@@ -386,7 +388,7 @@ export default function ReservationPage() {
         <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.54)" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p className="text-caption" style={{ color: 'rgba(255,255,255,0.54)' }}>{frais > 0 ? 'Les frais de visite seront prélevés à la confirmation' : 'Cette visite est gratuite'}</p>
+        <p className="text-caption" style={{ color: 'rgba(255,255,255,0.54)' }}>{!bien ? 'Les frais de visite ne sont pas disponibles' : frais > 0 ? 'Les frais de visite seront prélevés à la confirmation' : 'Cette visite est gratuite'}</p>
       </div>
     </div>
   )
@@ -414,7 +416,7 @@ export default function ReservationPage() {
   ) : null
 
   const SubmitBtn = ({ full = false }) => !peutReserver ? <ActivateProspectBtn /> : (
-    <button onClick={handleSubmit} disabled={submitting || !selectedTime}
+    <button onClick={handleSubmit} disabled={submitting || !selectedTime || !bien}
       className={`${full ? 'w-full' : 'w-full'} py-4 rounded-[16px] font-bold text-white flex items-center justify-center gap-2 transition-all`}
       style={{ background: !selectedTime ? 'var(--c-line)' : 'var(--c-brand)', boxShadow: selectedTime ? '0 4px 12px rgba(75,107,255,0.35)' : 'none' }}>
       {submitting
@@ -448,7 +450,7 @@ export default function ReservationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-white text-caption font-bold">{libelleFraisVisite(frais)}</span>
+            <span className="text-white text-caption font-bold">{bien ? libelleFraisVisite(frais) : '—'}</span>
           </div>
         </div>
       </div>
@@ -517,7 +519,7 @@ export default function ReservationPage() {
             <dl className="text-left text-sm rounded-2xl p-4 mb-5 space-y-2" style={{ background: 'rgba(65,96,242,0.07)' }}>
               <div className="flex justify-between gap-3"><dt className="text-text-grey">Bien</dt><dd className="font-semibold text-text-dark text-right">{bien ? bienTypeLabel(bien) : '—'}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-text-grey">Créneau demandé</dt><dd className="font-semibold text-text-dark text-right">{confirmation.dateLabel}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-text-grey">Frais de visite</dt><dd className="font-semibold text-text-dark text-right">{frais > 0 ? `${libelleFraisVisite(frais)}, à régler après confirmation` : 'Gratuite'}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-text-grey">Frais de visite</dt><dd className="font-semibold text-text-dark text-right">{!bien ? 'Non disponibles' : frais > 0 ? `${libelleFraisVisite(frais)}, à régler après confirmation` : 'Gratuite'}</dd></div>
             </dl>
             {chatError && <p role="alert" className="text-sm font-semibold mb-2 text-[color:var(--tx-red)]">{chatError}</p>}
             <button type="button" onClick={ouvrirConversation} disabled={openingChat}

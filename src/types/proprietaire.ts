@@ -99,12 +99,8 @@ export interface LoyersDashboard {
 
 // ─── Réservations ─────────────────────────────────────────────────────────
 
-/**
- * Visite reçue par le propriétaire. `date_confirmee` est lue par
- * `minutesAvant` mais n'existe pas sur l'entité backend (lecture historique,
- * toujours `undefined` : le repli sur les autres dates s'applique).
- */
-export type VisiteReservation = Visite & { date_confirmee?: IsoDate | null }
+/** Visite reçue par le propriétaire (même forme que l'entité Visite du backend). */
+export type VisiteReservation = Visite
 
 // ─── Messagerie ───────────────────────────────────────────────────────────
 
