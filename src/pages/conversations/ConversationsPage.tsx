@@ -14,7 +14,7 @@ const AVATAR_PALETTE = [
   'linear-gradient(135deg,var(--c-accent),#FF3B7A)',
   'linear-gradient(135deg,#00C6A2,#0099CC)',
   'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,#6366F1)',
+  'linear-gradient(135deg,#A855F7,var(--c-indigo))',
   'linear-gradient(135deg,#10B981,#3B82F6)',
 ]
 function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVATAR_PALETTE.length] }
@@ -76,22 +76,22 @@ export default function ConversationsPage() {
 
   /* ── Design tokens ── */
   // Backgrounds
-  const bgPage     = isDark ? '#0F1117' : '#F3F4F8'
+  const bgPage     = isDark ? '#0F1117' : 'var(--c-fog)'
   const bgSidebar  = isDark ? '#161820' : 'rgb(255,255,255)'
   const bgChatArea = isDark ? '#0F1117' : '#EEF0F7'
   // Text
-  const textPrimary   = isDark ? '#E8E9F0' : '#111827'
+  const textPrimary   = isDark ? 'var(--c-mist)' : 'var(--c-ink-900)'
   const textSecondary = isDark ? 'rgba(232,233,240,0.60)' : '#6B7280'
-  const textMuted     = isDark ? 'rgba(232,233,240,0.60)' : '#5F6672'
+  const textMuted     = isDark ? 'rgba(232,233,240,0.60)' : 'var(--c-slate)'
   // Borders & dividers
-  const border    = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  const border    = isDark ? 'rgba(255,255,255,0.07)' : 'var(--c-line)'
   const divider   = isDark ? 'rgba(255,255,255,0.05)' : '#F0F1F4'
   // Interactive
   const activeBg  = isDark ? 'rgba(75,107,255,0.14)' : 'rgba(75,107,255,0.08)'
   const hoverBg   = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)'
   // Search field
-  const searchBg  = isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F8'
-  const searchBdr = isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB'
+  const searchBg  = isDark ? 'rgba(255,255,255,0.06)' : 'var(--c-fog)'
+  const searchBdr = isDark ? 'rgba(255,255,255,0.09)' : 'var(--c-line)'
   // Empty state
   const emptyIconBg = isDark ? 'rgba(75,107,255,0.12)' : 'rgba(75,107,255,0.08)'
 
@@ -123,7 +123,7 @@ export default function ConversationsPage() {
     if (filtered.length === 0) return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-3">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: emptyIconBg }}>
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
             <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
         </div>
@@ -304,7 +304,7 @@ export default function ConversationsPage() {
           {activeId !== null ? <Outlet /> : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-5">
               <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: emptyIconBg }}>
-                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>

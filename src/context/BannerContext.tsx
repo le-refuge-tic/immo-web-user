@@ -96,7 +96,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
 
   const bg     = isDark ? 'rgba(30,33,48,0.92)' : 'rgba(255,255,255,0.92)'
   const border = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
-  const tp     = isDark ? '#E8E9F0' : '#111827'
+  const tp     = isDark ? 'var(--c-mist)' : 'var(--c-ink-900)'
   const ts     = isDark ? 'rgba(232,233,240,0.62)' : '#6B7280'
 
   return (

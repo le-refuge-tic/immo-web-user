@@ -128,7 +128,7 @@ export default function RechargementWalletPage() {
         ) : state === 'success' ? (
           <div className="flex flex-col items-center text-center pt-10">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(34,197,94,0.102)' }}>
-              <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p className="font-bold text-text-dark text-xl mb-2">Wallet {LABELS[type]} rechargé !</p>
             <p className="text-text-grey text-sm mb-8">Votre solde a été mis à jour.</p>

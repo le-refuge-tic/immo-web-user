@@ -119,7 +119,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
           <SectionTitle title="Voisinage & environnement" />
           <div className="flex flex-wrap gap-2">
             {voisinageLabels.map((a, i) => (
-              <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(46,134,193,0.08)', color: '#2E86C1', border: '1px solid rgba(46,134,193,0.25)' }}>
+              <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(46,134,193,0.08)', color: 'var(--c-steel)', border: '1px solid rgba(46,134,193,0.25)' }}>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 {a}
               </span>
@@ -164,14 +164,14 @@ function VisitesBanner({ title, lines }: { title: string; lines: string[] }) {
   return (
     <div className="p-3.5 rounded-xl border" style={{ background: 'rgba(39,174,96,0.07)', borderColor: 'rgba(39,174,96,0.25)' }}>
       <div className="flex items-center gap-2">
-        <svg className="w-[18px] h-[18px]" style={{ color: '#27AE60' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        <p className="text-sm font-bold" style={{ color: '#27AE60' }}>{title}</p>
+        <svg className="w-[18px] h-[18px]" style={{ color: 'var(--c-green-flat)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        <p className="text-sm font-bold" style={{ color: 'var(--c-green-flat)' }}>{title}</p>
       </div>
       {lines.filter(Boolean).length > 0 && (
         <div className="mt-2 space-y-1">
           {lines.filter(Boolean).map((l, i) => (
             <div key={i} className="flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5" style={{ color: '#27AE60' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg className="w-3.5 h-3.5" style={{ color: 'var(--c-green-flat)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <span className="text-xs text-text-dark">{l}</span>
             </div>
           ))}
@@ -188,7 +188,7 @@ function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: Amenites | n
       {rows.map((r, i) => {
         const isElec = r.label === 'Électricité'
         const isEau = r.label === 'Eau'
-        const meta = INFO_ROW_META[r.label] || { icon: 'document' as IconType, color: '#6B7280' }
+        const meta = INFO_ROW_META[r.label] || { icon: 'document' as IconType, color: 'var(--c-grey)' }
         return (
           <div key={i} className="flex items-center gap-3 px-4 py-3">
             <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
@@ -227,15 +227,15 @@ function IntegrationCard({ bien, isOwnBien }: { bien: Bien; isOwnBien: boolean }
   const total = (avanceMois + prepayeMois) * prix + cautionEau + cautionElec + autresFraisTotal + (!isOwnBien ? commission : 0)
 
   const rows: { icon: IconType; color: string; label: string; amount: number; note?: string }[] = []
-  if (avanceMois > 0) rows.push({ icon: 'wallet', color: '#7B2FBE', label: `Avance (${avanceMois} mois)`, amount: montantAvance })
+  if (avanceMois > 0) rows.push({ icon: 'wallet', color: 'var(--c-purple-dark)', label: `Avance (${avanceMois} mois)`, amount: montantAvance })
   if (prepayeMois > 0) rows.push({ icon: 'calendargrid', color: 'var(--tx-green)', label: `Prépayé (${prepayeMois} mois)`, amount: montantPrepaye })
-  if (cautionEau > 0) rows.push({ icon: 'waterdrop', color: '#2E86C1', label: 'Caution eau', amount: cautionEau })
+  if (cautionEau > 0) rows.push({ icon: 'waterdrop', color: 'var(--c-steel)', label: 'Caution eau', amount: cautionEau })
   if (cautionElec > 0) rows.push({ icon: 'bolt', color: '#FFCC00', label: 'Caution électricité', amount: cautionElec })
   for (const f of autresFrais) {
     const montant = Number(f.montant) || 0
     if (montant > 0) rows.push({ icon: 'document', color: '#8E44AD', label: f.label || 'Autre frais', amount: montant })
   }
-  if (!isOwnBien && commission > 0) rows.push({ icon: 'tag', color: '#2E86C1', label: 'Commission agence', amount: commission, note: "Frais d'agence inclus dans votre paiement" })
+  if (!isOwnBien && commission > 0) rows.push({ icon: 'tag', color: 'var(--c-steel)', label: 'Commission agence', amount: commission, note: "Frais d'agence inclus dans votre paiement" })
 
   return (
     <div className="rounded-2xl bg-white border border-divider shadow-sm overflow-hidden">

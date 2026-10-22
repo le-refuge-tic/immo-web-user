@@ -101,7 +101,7 @@ export default function ReservationsTab() {
         {['Toutes', 'À traiter', 'Confirmées', 'Échouées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
-            style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: '#6B7280' }}>
+            style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: 'var(--c-grey)' }}>
             {f}
           </button>
         ))}
@@ -163,7 +163,7 @@ export default function ReservationsTab() {
               {!echouee && v.statut === 'confirmee' && v.numeros_partages && contactNumero && (
                 <div className="flex items-center gap-3 p-3 rounded-xl mb-3" style={{ background: 'rgba(37,211,102,0.078)', border: '1px solid rgba(37,211,102,0.314)' }}>
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(37,211,102,0.149)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-whatsapp)" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-micro font-semibold" style={{ color: 'var(--c-whatsapp)' }}>Visite dans 30 min — Contact client</p>
@@ -177,7 +177,7 @@ export default function ReservationsTab() {
               )}
               {echouee && (
                 <div className="flex items-center gap-2 p-2.5 rounded-xl mb-3" style={{ background: 'rgba(239,68,68,0.063)', border: '1px solid rgba(239,68,68,0.251)' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" /></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" strokeWidth={2} className="w-4 h-4 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" /></svg>
                   <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
                 </div>
               )}

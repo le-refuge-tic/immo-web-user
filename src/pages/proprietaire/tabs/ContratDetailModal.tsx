@@ -29,7 +29,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
     <ModalSheet open onClose={handleClose} label="Détail du bien" placement="center" panelClassName="w-full max-w-lg">
       <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl"
         style={{
-          background: '#F8FAFF',
+          background: 'var(--c-wash)',
           boxShadow: '0 32px 96px rgba(10,16,30,0.32), 0 8px 24px rgba(10,16,30,0.12)',
           transform: shown ? 'scale(1)' : 'scale(0.82)',
           opacity: shown ? 1 : 0,
@@ -71,55 +71,55 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
 
           {/* ── Loyer + progression ── */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Loyer mensuel</p>
               <p className="font-black text-[20px]" style={{ color: BLUE }}>{fmtPrix(c.loyer_mensuel)}</p>
             </div>
-            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Progression</p>
               <p className="font-black text-[20px]" style={{ color: progressPct === 100 ? 'var(--c-success-bright)' : BLUE }}>
                 {payesCount}<span className="text-sm font-medium text-gray-500">/{totalCount}</span>
               </p>
-              <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: '#E8EDFB' }}>
+              <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--c-blue-wash)' }}>
                 <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: progressPct === 100 ? 'var(--c-success-bright)' : BLUE }} />
               </div>
             </div>
           </div>
 
           {/* ── Infos contrat ── */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
-            <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Détails du contrat</p>
             </div>
-            <div className="grid grid-cols-2 divide-x divide-y" style={{ borderColor: '#E8EDFB' }}>
+            <div className="grid grid-cols-2 divide-x divide-y" style={{ borderColor: 'var(--c-blue-wash)' }}>
               {[
                 { label: 'Début', value: dateLabel(c.date_debut) },
                 { label: 'Fin', value: c.date_fin ? dateLabel(c.date_fin) : 'En cours' },
                 { label: 'Échéance', value: `Le ${c.jour_echeance ?? 10} du mois` },
                 { label: 'Prépayé', value: c.loyer_prepaye_mois > 0 ? `${c.loyer_prepaye_mois} mois` : 'Aucun' },
               ].map(row => (
-                <div key={row.label} className="px-4 py-3" style={{ borderColor: '#E8EDFB' }}>
+                <div key={row.label} className="px-4 py-3" style={{ borderColor: 'var(--c-blue-wash)' }}>
                   <p className="text-[10px] text-gray-500 mb-0.5">{row.label}</p>
                   <p className="text-sm font-semibold text-gray-800">{row.value}</p>
                 </div>
               ))}
             </div>
             {c.gestion_via_app === false && (
-              <div className="px-4 py-2.5 border-t text-xs text-gray-500 italic" style={{ borderColor: '#E8EDFB' }}>
+              <div className="px-4 py-2.5 border-t text-xs text-gray-500 italic" style={{ borderColor: 'var(--c-blue-wash)' }}>
                 Gestion déléguée (hors application)
               </div>
             )}
           </div>
 
           {/* ── Historique des échéances ── */}
-          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
-            <div className="px-4 py-3 border-b" style={{ borderColor: '#E8EDFB' }}>
+          <div className="rounded-xl border overflow-hidden" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Historique des échéances</p>
             </div>
             {(!c.loyersTries || c.loyersTries.length === 0) ? (
               <p className="text-xs text-gray-500 py-8 text-center">Aucune échéance générée</p>
             ) : (
-              <div className="divide-y" style={{ borderColor: '#E8EDFB' }}>
+              <div className="divide-y" style={{ borderColor: 'var(--c-blue-wash)' }}>
                 {[...c.loyersTries].reverse().map(l => {
                   const { label, color } = loyerStatut(l.statut)
                   return (

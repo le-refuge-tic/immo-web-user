@@ -28,12 +28,12 @@ export default function LocataireDashboard() {
     : 'Mon Profil'
 
   return (
-    <div className="flex h-dvh" style={{ background: '#F0FDF4' }}>
+    <div className="flex h-dvh" style={{ background: 'var(--c-page-green)' }}>
       <Sidebar tab={tab} setTab={setTab} user={user} navigate={navigate} logout={logout} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <div className="md:hidden flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-5" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
+        <div className="md:hidden flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] pb-5" style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/60 text-xs uppercase tracking-wider">REFUGE · Locataire</p>

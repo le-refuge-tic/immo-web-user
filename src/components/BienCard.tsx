@@ -155,8 +155,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           }}
         >
           <svg viewBox="0 0 24 24"
-            fill={isFav ? '#4160F2' : 'none'}
-            stroke={isFav ? '#4160F2' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)')}
+            fill={isFav ? 'var(--c-brand)' : 'none'}
+            stroke={isFav ? 'var(--c-brand)' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)')}
             strokeWidth={2}
             className="w-4 h-4 transition-colors duration-200"
           >

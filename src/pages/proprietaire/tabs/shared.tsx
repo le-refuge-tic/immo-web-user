@@ -86,13 +86,13 @@ export function fmtPrix(p: number | string | null | undefined) {
 }
 export function statutBien(s: string) {
   if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--c-green-material)' }
-  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
+  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: 'var(--c-red-material)' }
   if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)' }
   return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 export function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--c-green-material)' }
-  if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
+  if (s === 'annulee')         return { label: 'Annulée',         color: 'var(--c-red-material)' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE }
   if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)' }
   return { label: 'En attente', color: 'var(--tx-amber)' }
@@ -159,12 +159,12 @@ export function LiveIndicator({ label, refreshing }: { label: string; refreshing
         {!refreshing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: 'var(--c-success)' }} />}
         <span className="relative inline-flex rounded-full w-2 h-2" style={{ background: refreshing ? 'var(--c-amber-dark)' : 'var(--c-success)' }} />
       </span>
-      <span className="text-[11px] text-[#8A9BB5]">{refreshing ? 'Synchronisation…' : `À jour · ${label}`}</span>
+      <span className="text-[11px] text-p-muted">{refreshing ? 'Synchronisation…' : `À jour · ${label}`}</span>
     </div>
   )
 }
 
-export const MSG_AVATAR_COLORS = ['#2563EB', '#7C3AED', '#DB2777', '#D97706', 'var(--c-success-bright)', '#0891B2']
+export const MSG_AVATAR_COLORS = ['#2563EB', '#7C3AED', '#DB2777', 'var(--c-amber-600)', 'var(--c-success-bright)', '#0891B2']
 export function formatConvTime(iso?: string): string {
   if (!iso) return ''
   const d = new Date(iso)

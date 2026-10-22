@@ -17,14 +17,14 @@ import { withAlpha } from '../../../utils/color'
 // l'administration (`escalade_admin`) : distingué du simple retard.
 export function loyerStatut(s: string): { label: string; color: string } {
   if (s === 'paye')      return { label: 'Payé',       color: 'var(--c-green-material)' }
-  if (s === 'en_retard') return { label: 'En retard',  color: '#F44336' }
+  if (s === 'en_retard') return { label: 'En retard',  color: 'var(--c-red-material)' }
   if (s === 'impaye')    return { label: 'Impayé',     color: '#C62828' }
   return { label: 'En attente', color: 'var(--tx-amber)' }
 }
 export const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
   actif:   { label: 'Actif',   color: 'var(--c-green-material)' },
   resilie: { label: 'Résilié', color: 'var(--p-muted)' },
-  expire:  { label: 'Expiré',  color: '#F44336' },
+  expire:  { label: 'Expiré',  color: 'var(--c-red-material)' },
 }
 export function moisLabel(d: string | number | Date | null | undefined) {
   if (!d) return '—'

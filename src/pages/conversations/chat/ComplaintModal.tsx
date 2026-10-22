@@ -31,7 +31,7 @@ export function ComplaintModal({ msg, convId, colors, onClose, onError }: Compla
         {complainSent ? (
           <div className="text-center py-4">
             <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(34,197,94,0.12)' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <p className="font-bold text-[14px] mb-1" style={{ color: tp }}>Plainte envoyée</p>
             <p className="text-[12px]" style={{ color: tm }}>Notre équipe examinera votre signalement.</p>

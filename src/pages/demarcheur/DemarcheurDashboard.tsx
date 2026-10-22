@@ -93,7 +93,7 @@ export default function DemarcheurDashboard() {
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                 style={active ? { background: withAlpha(PURPLE, '15'), color: PURPLE } : { color: '#5F6B7A' }}>
-                <span style={{ color: active ? PURPLE : '#5F6672' }}>{t.icon}</span>
+                <span style={{ color: active ? PURPLE : 'var(--c-slate)' }}>{t.icon}</span>
                 {t.label}
               </button>
             )

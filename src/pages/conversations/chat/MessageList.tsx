@@ -48,7 +48,7 @@ export function MessageList({
         ) : visible.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(75,107,255,0.10)' }}>
-              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5}>
+              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
               </svg>
             </div>

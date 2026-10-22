@@ -22,7 +22,7 @@ const IcKey = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" str
 
 const ROLES: RoleInfo[] = [
   { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
-  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: '#2E86C1', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
+  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: 'var(--c-steel)', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
   { key: 'demarcheur',   label: 'Démarcheur',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
   { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
 ]
@@ -126,7 +126,7 @@ export default function ManageRolesPage() {
           </div>
           {success && (
             <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>{success}</p>
             </div>
           )}
@@ -196,7 +196,7 @@ export default function ManageRolesPage() {
                               <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white disabled:opacity-50" style={{ background: 'var(--c-danger)' }}>
                                 {busy ? '…' : 'Confirmer'}
                               </button>
-                              <button onClick={() => setConfirmDesactiver(null)} className="py-2 px-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: '#E5E7EB', color: '#6B7280', background: 'transparent' }}>✕</button>
+                              <button onClick={() => setConfirmDesactiver(null)} className="py-2 px-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: 'var(--c-line)', color: 'var(--c-grey)', background: 'transparent' }}>✕</button>
                             </div>
                           ) : (
                             <button onClick={() => setConfirmDesactiver(r.key)} disabled={busy}

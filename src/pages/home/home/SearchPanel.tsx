@@ -210,7 +210,7 @@ export default function SearchPanel({ s, isDark, tk, searchOpen, setSearchOpen, 
             <button
               onClick={() => { goToSearch(); setSearchOpen(false) }}
               className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-              style={{ background: 'var(--c-accent)', color: '#1A1A2E', boxShadow: '0 4px 20px rgba(255,107,53,0.40)' }}
+              style={{ background: 'var(--c-accent)', color: 'var(--c-ink-navy)', boxShadow: '0 4px 20px rgba(255,107,53,0.40)' }}
             >
               <SearchIcon />Trouver mon logement
             </button>

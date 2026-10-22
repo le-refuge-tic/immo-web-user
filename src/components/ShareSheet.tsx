@@ -15,10 +15,10 @@ export default function ShareSheet({ bien, onClose }: { bien: ShareBien; onClose
   const links = shareLinks(bien)
 
   const bg      = isDark ? '#161820' : 'rgb(255,255,255)'
-  const border  = isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB'
-  const tp      = isDark ? '#E8E9F0' : '#111827'
+  const border  = isDark ? 'rgba(255,255,255,0.09)' : 'var(--c-line)'
+  const tp      = isDark ? 'var(--c-mist)' : 'var(--c-ink-900)'
   const ts      = isDark ? 'rgba(232,233,240,0.60)' : '#6B7280'
-  const fieldBg = isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F8'
+  const fieldBg = isDark ? 'rgba(255,255,255,0.06)' : 'var(--c-fog)'
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }

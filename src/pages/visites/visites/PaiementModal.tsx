@@ -22,7 +22,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
         {payState === 'pending' ? (
           <div className="flex flex-col items-center text-center py-6">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#FEF3C7' }}>
-              <svg className="w-8 h-8" fill="none" stroke="#F59E0B" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <svg className="w-8 h-8" fill="none" stroke="var(--c-amber)" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p className="font-bold text-text-dark mb-2">Confirmation en attente</p>
             <p className="text-sm text-text-grey mb-6">Nous n'avons pas encore reçu la confirmation de l'opérateur. Si vous avez validé sur votre téléphone, le paiement apparaîtra ici dès réception.</p>
@@ -35,8 +35,8 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
           </div>
         ) : payState === 'success' ? (
           <div className="flex flex-col items-center text-center py-4">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
-              <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--c-page-green)' }}>
+              <svg className="w-8 h-8" fill="none" stroke="var(--c-green)" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
             </div>
             <p className="font-bold text-text-dark mb-1">Paiement confirmé !</p>
             <p className="text-sm text-text-grey mb-5">Les frais de visite ont bien été réglés.</p>
@@ -54,7 +54,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
               <>
                 <p className="text-sm text-text-grey mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
                 <button onClick={() => openPaymentUrl(payUrl)}
-                  className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#C2410C' }}>
+                  className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'var(--c-orange-dark)' }}>
                   Rouvrir la page de paiement
                 </button>
               </>
@@ -76,8 +76,8 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
                   onClick={() => { setOperator(op.key); attempt.reset() }}
                   className="flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
                   style={{
-                    borderColor: operator === op.key ? 'var(--c-brand)' : '#E5E7EB',
-                    color: operator === op.key ? 'var(--c-brand)' : '#5F6672',
+                    borderColor: operator === op.key ? 'var(--c-brand)' : 'var(--c-line)',
+                    color: operator === op.key ? 'var(--c-brand)' : 'var(--c-slate)',
                     background: operator === op.key ? 'rgba(75,107,255,0.06)' : 'transparent',
                   }}
                 >
@@ -105,7 +105,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
               onClick={handlePayer}
               disabled={(operator !== 'fedapay' && !validateBeninPhone(phoneOp)) || paying}
               className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
-              style={{ background: '#C2410C' }}
+              style={{ background: 'var(--c-orange-dark)' }}
             >
               {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Confirmer le paiement'}
             </button>

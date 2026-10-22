@@ -127,8 +127,8 @@ export default function TopNav() {
           {/* Logo */}
           <button onClick={() => navigate('/')} className="flex items-center gap-2.5 lg:gap-3 flex-shrink-0">
             <img src={logoUrl} alt="REFUGE" style={{ width: 60, height: 60, objectFit: 'contain', filter: isDark ? 'brightness(1.15) drop-shadow(0 0 6px rgba(0,174,239,0.35))' : 'none' }} className="lg:w-[68px] lg:h-[68px]" />
-            {/* #0077B6 en clair : #00AEEF sur fond clair ne passe pas le contraste AA (2,6:1) */}
-            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: isDark ? '#00AEEF' : '#0077B6' }}>REFUGE</span>
+            {/* #0077B6 en clair : var(--c-cyan) sur fond clair ne passe pas le contraste AA (2,6:1) */}
+            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: isDark ? 'var(--c-cyan)' : '#0077B6' }}>REFUGE</span>
           </button>
 
           {/* Nav centré */}

@@ -32,6 +32,13 @@ export default {
         'gold-200':    '#F0D898',
         'proprio-text': '#F0EDE8',
         'proprio-muted': '#8A9BB5',
+        // Palette « proprio » : suit les variables --p-* (marine par défaut, claire sous .proprio-light)
+        'p-deep':      'var(--p-deep)',
+        'p-surface':   'var(--p-surface)',
+        'p-card':      'var(--p-card)',
+        'p-border':    'var(--p-border)',
+        'p-text':      'var(--p-text)',
+        'p-muted':     'var(--p-muted)',
       },
       // Échelle de textes compacts (remplace text-[9px]/[10px]/[11px] écrits en dur)
       fontSize: {

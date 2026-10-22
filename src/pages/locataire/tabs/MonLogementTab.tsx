@@ -157,7 +157,7 @@ export default function MonLogementTab() {
       <div className="md:max-w-6xl md:mx-auto md:w-full md:px-8 md:pt-8 md:flex md:gap-6 md:items-start">
         <div className="md:flex-1 md:min-w-0">
           {/* Hero card */}
-          <div className="mx-4 mt-5 md:mx-0 md:mt-0 rounded-3xl p-5 md:p-7 text-white" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})`, boxShadow: `0 8px 24px ${withAlpha(GREEN, '50')}` }}>
+          <div className="mx-4 mt-5 md:mx-0 md:mt-0 rounded-3xl p-5 md:p-7 text-white" style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})`, boxShadow: `0 8px 24px ${withAlpha(GREEN, '50')}` }}>
             <p className="text-white/70 text-xs uppercase tracking-wider mb-1">Mon logement</p>
             <p className="font-bold text-xl md:text-2xl mb-1">{bienTypeLabel(bien)}</p>
             <div className="flex items-center gap-1.5 mb-4 text-white/80 text-sm">
@@ -206,7 +206,7 @@ export default function MonLogementTab() {
                     className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left"
                     style={{ background: selected.includes(l.id) ? withAlpha(GREEN, '10') : 'rgba(255,255,255,0.8)', borderColor: selected.includes(l.id) ? GREEN : 'rgba(0,0,0,0.07)' }}>
                     <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all`}
-                      style={{ borderColor: selected.includes(l.id) ? GREEN : '#D1D5DB', background: selected.includes(l.id) ? GREEN : 'transparent' }}>
+                      style={{ borderColor: selected.includes(l.id) ? GREEN : 'var(--c-gray-300)', background: selected.includes(l.id) ? GREEN : 'transparent' }}>
                       {selected.includes(l.id) && <span className="text-white"><IcCheck /></span>}
                     </div>
                     <div className="flex-1">
@@ -282,7 +282,7 @@ export default function MonLogementTab() {
                       <button onClick={payer}
                         disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
-                        style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
+                        style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>
                         {operateur === 'cotisation' ? 'Payer avec ma cotisation' : `Payer via ${OPERATEURS.find(o => o.id === operateur)?.label}`}
                       </button>
                     </>

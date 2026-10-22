@@ -21,7 +21,7 @@ export default function MobileHeader({ search, goToSearch }: Pick<HomeSearch, 's
           <div className="flex items-center gap-2.5">
             <img loading="lazy" src={logoUrl} alt="REFUGE" className="object-contain drop-shadow-lg flex-shrink-0" style={{ width: 64, height: 'auto' }} />
             <div>
-              <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: '#00AEEF' }}>REFUGE</p>
+              <p className="text-white font-extrabold text-[17px] tracking-tight leading-none" style={{ color: 'var(--c-cyan)' }}>REFUGE</p>
               <h1 className="text-white/60 text-caption mt-0.5 font-normal">
                 {isLoggedIn ? `Bonjour, ${firstName}` : 'Trouvez votre bien'}
               </h1>

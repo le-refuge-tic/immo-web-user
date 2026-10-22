@@ -10,8 +10,8 @@ import { apiMessage } from '../../utils/apiMessage'
 import { withAlpha } from '../../utils/color'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
-const VISITE = { dark: '#1A6B3C', light: '#27AE60' } // vert
-const LOYER = { dark: '#1A3A6B', light: '#2E86C1' } // bleu
+const VISITE = { dark: '#1A6B3C', light: 'var(--c-green-flat)' } // vert
+const LOYER = { dark: '#1A3A6B', light: 'var(--c-steel)' } // bleu
 const DEPOT = { dark: '#5B2A8C', light: 'var(--c-violet)' } // violet
 
 function fmtDate(raw: string | undefined | null) {
@@ -213,7 +213,7 @@ export default function RecuPage() {
   }
 
   return (
-    <div className="min-h-dvh py-8 px-4" style={{ background: '#F4F6FA' }}>
+    <div className="min-h-dvh py-8 px-4" style={{ background: 'var(--c-page-blue)' }}>
       <div className="max-w-md mx-auto">
 
         {/* Barre d'actions */}

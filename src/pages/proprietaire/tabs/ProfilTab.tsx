@@ -49,7 +49,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
 
   const menuItems = [
     { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE, onClick: () => setEditOpen(true) },
-    { icon: <IcShield />, label: 'Changer le mot de passe', color: '#7B2FBE', onClick: () => setPasswordOpen(true) },
+    { icon: <IcShield />, label: 'Changer le mot de passe', color: 'var(--c-purple-dark)', onClick: () => setPasswordOpen(true) },
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: 'var(--c-sky)', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
@@ -89,14 +89,14 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                     ? <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-lg mb-3"
                         style={{ border: '3px solid rgba(255,255,255,0.9)' }} />
                     : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg"
-                        style={{ background: 'linear-gradient(135deg, var(--c-brand), #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
+                        style={{ background: 'linear-gradient(135deg, var(--c-brand), var(--c-indigo))', border: '3px solid rgba(255,255,255,0.9)' }}>
                         {initials}
                       </div>
                   }
                   <p className="font-black text-[19px] leading-tight" style={{ color: '#1E1B4B' }}>{user?.prenom} {user?.nom}</p>
                   <p className="text-[13px] mt-1" style={{ color: '#4338CA' }}>{user?.email || user?.telephone}</p>
                   {memberSince && (
-                    <p className="text-[12px] mt-2" style={{ color: '#6366F1' }}>Membre depuis {memberSince}</p>
+                    <p className="text-[12px] mt-2" style={{ color: 'var(--c-indigo)' }}>Membre depuis {memberSince}</p>
                   )}
                 </div>
               </div>
@@ -140,7 +140,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                 { label: 'Total', value: visites.length, color: BLUE },
                 { label: 'Confirmées', value: visitesConfirmees, color: 'var(--tx-green)' },
                 { label: 'En attente', value: visitesEnAttente, color: 'var(--tx-amber)' },
-                { label: 'Effectuées', value: visitesEffectuees, color: '#7B2FBE' },
+                { label: 'Effectuées', value: visitesEffectuees, color: 'var(--c-purple-dark)' },
               ].map((s, i) => (
                 <div key={s.label} className="flex-1 min-w-0 flex flex-col items-center justify-center"
                   style={{ borderLeft: i > 0 ? '1px solid var(--p-border)' : 'none' }}>

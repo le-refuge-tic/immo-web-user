@@ -35,11 +35,11 @@ function notifTimeAgo(iso?: string): string {
 
 function notifIconD(type: string): { node: React.ReactNode; color: string } {
   if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: 'var(--tx-green)' }
-  if (type === 'nouveau_message') return { node: <IcChat />, color: '#8B5CF6' }
+  if (type === 'nouveau_message') return { node: <IcChat />, color: 'var(--c-violet-soft)' }
   if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: 'var(--tx-red)' }
   if (type === 'visite_confirmee') return { node: <IcBell />, color: 'var(--tx-green)' }
   if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE }
-  return { node: <IcBell />, color: '#6B7280' }
+  return { node: <IcBell />, color: 'var(--c-grey)' }
 }
 
 export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) => void }) {
@@ -144,7 +144,7 @@ export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) =>
             return (
               <button key={n.id} onClick={() => openNotif(n)}
                 className="w-full text-left bg-white rounded-2xl p-4 flex items-start gap-4 transition-colors border"
-                style={{ borderColor: n.lu ? 'var(--divider, #E5E7EB)' : PURPLE }}>
+                style={{ borderColor: n.lu ? 'var(--divider, var(--c-line))' : PURPLE }}>
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-surface-g" style={{ color: ic.color }}>
                   {ic.node}
                 </div>

@@ -107,7 +107,7 @@ export default function FaceRating({ selected, onSelect, size = 56 }: { selected
               style={{
                 fontSize: isSel ? 10.5 : 9.5,
                 fontWeight: isSel ? 700 : 500,
-                color: isSel ? cfg.face : '#5F6672',
+                color: isSel ? cfg.face : 'var(--c-slate)',
                 maxWidth: size,
               }}
             >

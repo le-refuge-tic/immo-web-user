@@ -140,7 +140,7 @@ export default function ActiviteTab() {
             <span>{new Date(prochainLoyer.date_echeance).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
           </div>
           <button onClick={() => setShowPay(!showPay)} className="mt-4 w-full py-3 rounded-xl font-bold text-white text-sm"
-            style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>
+            style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>
             Payer ce loyer
           </button>
         </div>

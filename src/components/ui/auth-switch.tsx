@@ -385,7 +385,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
               <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                 onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                 inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
-                animate={{ borderColor: d ? 'var(--c-brand)' : otpError ? 'var(--c-red-ios)' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                 transition={{ duration: 0.15 }}
                 className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                 aria-label={`Chiffre ${i + 1}`}
@@ -675,7 +675,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                   onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                   inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
-                  animate={{ borderColor: d ? 'var(--c-brand)' : otpError ? 'var(--c-red-ios)' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                  animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                   transition={{ duration: 0.15 }}
                   className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                   aria-label={`Chiffre ${i + 1}`}

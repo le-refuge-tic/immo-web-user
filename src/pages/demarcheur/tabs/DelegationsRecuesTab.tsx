@@ -47,7 +47,7 @@ export default function DelegationsRecuesTab({ onBack }: { onBack: () => void })
             <p className="text-sm text-text-grey text-center px-6">Les propositions de gestion des propriétaires apparaîtront ici.</p>
           </div>
         ) : delegations.map(d => {
-          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: '#6B7280' }
+          const meta = DELEG_STATUT[d.statut] || { label: d.statut, color: 'var(--c-grey)' }
           return (
             <div key={d.id} className="card-soft rounded-xl p-4 mb-3">
               <div className="flex items-center justify-between mb-1">

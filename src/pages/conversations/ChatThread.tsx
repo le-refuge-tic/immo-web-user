@@ -259,7 +259,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 <div className="flex items-center gap-1">
                   <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
                   {isVerified && (
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#4160F2" aria-label="Vérifié">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="var(--c-brand)" aria-label="Vérifié">
                       <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
                       <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="rgb(255,255,255)"/>
                     </svg>
@@ -461,7 +461,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
                   {/* oxlint-disable-next-line jsx-a11y/no-autofocus -- confirmation de suppression : le focus reprend sur le bouton qui remplace l'entrée du menu */}
                   <button type="button" role="menuitem" autoFocus onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--c-danger)', color: 'rgb(255,255,255)', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
-                  <button type="button" role="menuitem" onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
+                  <button type="button" role="menuitem" onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? 'var(--c-gray-300)' : '#6B7280', fontSize: 12 }}>Annuler</button>
                 </div>
               ) : (
                 // oxlint-disable-next-line jsx-a11y/no-autofocus -- annulation de la confirmation : le focus revient sur l'entrée du menu

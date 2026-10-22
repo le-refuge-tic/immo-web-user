@@ -103,8 +103,8 @@ export function RolesTab() {
     <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-8">
       <div className="xl:max-w-4xl xl:mx-auto">
         <div className="mb-5">
-          <p className="text-lg font-bold text-[#F0EDE8]">Mes espaces &amp; rôles</p>
-          <p className="text-sm text-[#8A9BB5] mt-0.5">Basculez entre vos espaces ou activez-en un nouveau — jusqu'à 3 rôles actifs simultanément.</p>
+          <p className="text-lg font-bold text-p-text">Mes espaces &amp; rôles</p>
+          <p className="text-sm text-p-muted mt-0.5">Basculez entre vos espaces ou activez-en un nouveau — jusqu'à 3 rôles actifs simultanément.</p>
         </div>
 
         <div role="alert" aria-live="assertive" aria-atomic="true">
@@ -136,7 +136,7 @@ export function RolesTab() {
             const statusLabel = isActiveNow ? 'Espace actuel' : isPrincipal ? 'Rôle principal' : isActif ? 'Actif' : null
 
             return (
-              <div key={r.key} className="rounded-2xl overflow-hidden bg-[#112440] transition-shadow hover:shadow-md"
+              <div key={r.key} className="rounded-2xl overflow-hidden bg-p-card transition-shadow hover:shadow-md"
                 style={{
                   border: isActiveNow ? `1.5px solid ${r.color}` : '1px solid rgba(0,0,0,0.07)',
                   boxShadow: isActiveNow ? `0 4px 16px ${r.color}25` : '0 1px 3px rgba(0,0,0,0.03)',
@@ -152,7 +152,7 @@ export function RolesTab() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-bold text-[#F0EDE8] text-sm">{r.label}</p>
+                      <p className="font-bold text-p-text text-sm">{r.label}</p>
                       {statusLabel && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
                           style={{ background: isActiveNow ? r.color : r.color + '18', color: isActiveNow ? '#fff' : r.color }}>
@@ -160,7 +160,7 @@ export function RolesTab() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#8A9BB5] mt-0.5 leading-relaxed">{r.desc}</p>
+                    <p className="text-xs text-p-muted mt-0.5 leading-relaxed">{r.desc}</p>
                   </div>
                 </div>
 
@@ -172,7 +172,7 @@ export function RolesTab() {
                       Activer ce rôle
                     </button>
                   ) : isDisponible ? (
-                    <p className="flex-1 py-2.5 text-center text-[11px] text-[#8A9BB5]">Non disponible pour un compte propriétaire</p>
+                    <p className="flex-1 py-2.5 text-center text-[11px] text-p-muted">Non disponible pour un compte propriétaire</p>
                   ) : (
                     <>
                       {!isActiveNow && (
@@ -204,12 +204,12 @@ export function RolesTab() {
 
                 {activating === r.key && (
                   <div className="mx-4 mb-4 px-4 pt-3 pb-4 rounded-xl space-y-3" style={{ background: 'var(--p-card)', border: `1px solid var(--p-border)` }}>
-                    <p className="text-sm font-semibold text-[#F0EDE8]">Justification (optionnelle)</p>
+                    <p className="text-sm font-semibold text-p-text">Justification (optionnelle)</p>
                     <textarea value={justif} onChange={e => setJustif(e.target.value)} rows={2}
                       placeholder="Ex: Je souhaite aussi proposer des biens à la vente"
-                      className="w-full border border-[#1A3355] rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-brand bg-[#0B1C30] text-[#F0EDE8] placeholder:text-[#8A9BB5]" />
+                      className="w-full border border-p-border rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-brand bg-p-surface text-p-text placeholder:text-[#8A9BB5]" />
                     <div className="flex gap-2">
-                      <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-[#1A3355] text-sm font-semibold text-[#8A9BB5] bg-[#0B1C30]">Annuler</button>
+                      <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-p-border text-sm font-semibold text-p-muted bg-p-surface">Annuler</button>
                       <button onClick={() => activerRole(r.key)} disabled={busy}
                         className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
                         style={{ background: r.color }}>

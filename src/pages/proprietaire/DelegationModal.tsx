@@ -13,8 +13,8 @@ type Props = { onClose: () => void }
 const STATUT_LABELS: Record<string, { label: string; color: string }> = {
   en_attente: { label: 'En attente', color: 'var(--tx-amber)' },
   active:     { label: 'Active',     color: 'var(--tx-green)' },
-  revoquee:   { label: 'Révoquée',   color: '#6B7280' },
-  expiree:    { label: 'Expirée',    color: '#6B7280' },
+  revoquee:   { label: 'Révoquée',   color: 'var(--c-grey)' },
+  expiree:    { label: 'Expirée',    color: 'var(--c-grey)' },
   refusee:    { label: 'Refusée',    color: 'var(--tx-red)' },
 }
 

@@ -44,7 +44,7 @@ export function ProfilePanel({
             <div className="flex items-center justify-center gap-1.5">
               <p className="text-[16px] font-bold" style={{ color: tp }}>{otherName}</p>
               {isVerified && (
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#4160F2" aria-label="Vérifié">
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="var(--c-brand)" aria-label="Vérifié">
                   <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
                   <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="rgb(255,255,255)"/>
                 </svg>

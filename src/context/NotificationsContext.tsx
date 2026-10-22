@@ -38,7 +38,7 @@ const TITRE_BADGE = /^\(\d+\+?\) /
 const AVATAR_PALETTE = [
   'linear-gradient(135deg,var(--c-brand),var(--c-violet))', 'linear-gradient(135deg,var(--c-accent),#FF3B7A)',
   'linear-gradient(135deg,#00C6A2,#0099CC)', 'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,#6366F1)', 'linear-gradient(135deg,#10B981,#3B82F6)',
+  'linear-gradient(135deg,#A855F7,var(--c-indigo))', 'linear-gradient(135deg,#10B981,#3B82F6)',
 ]
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {

@@ -19,7 +19,7 @@ export default function ProfilTab() {
     <div className="flex-1 overflow-y-auto pb-10 pt-5 md:pt-10 md:max-w-2xl md:mx-auto md:w-full">
       <div className="flex flex-col items-center px-5 mb-6">
         <div className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-3"
-          style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>{initials}</div>
+          style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>{initials}</div>
         <p className="font-bold text-text-dark text-lg">{user?.prenom} {user?.nom}</p>
         <p className="text-sm text-text-grey mt-0.5">{user?.email || user?.telephone}</p>
         <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold" style={{ background: withAlpha(GREEN, '20'), color: GREEN }}>Locataire</span>

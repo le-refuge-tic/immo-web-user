@@ -125,7 +125,7 @@ export default function HistoriquePaiementsPage() {
   return (
     <div className="min-h-full flex flex-col">
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
-        style={{ background: 'linear-gradient(135deg,#1A1A2E,#0F3460)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: 'linear-gradient(135deg,#1A1A2E,var(--c-navy-deep))', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
@@ -179,7 +179,7 @@ export default function HistoriquePaiementsPage() {
                     className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors"
                     style={filter === f
                       ? { background: 'var(--c-brand)', color: 'rgb(255,255,255)', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
-                      : { background: 'rgb(255,255,255)', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
+                      : { background: 'rgb(255,255,255)', color: 'var(--c-grey-warm)', border: '1px solid rgba(0,0,0,0.08)' }}>
                     {f}
                   </button>
                 ))}

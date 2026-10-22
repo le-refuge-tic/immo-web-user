@@ -58,7 +58,7 @@ export default function MesBiensTab() {
           {['Tous', 'Publié', 'En attente', 'Rejeté'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border"
-              style={filter === f ? { background: PURPLE, color: 'rgb(255,255,255)', borderColor: PURPLE } : { color: '#6B7280', borderColor: '#E8EAED' }}>
+              style={filter === f ? { background: PURPLE, color: 'rgb(255,255,255)', borderColor: PURPLE } : { color: 'var(--c-grey)', borderColor: '#E8EAED' }}>
               {f}
             </button>
           ))}

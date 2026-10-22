@@ -386,7 +386,7 @@ export default function ProprietaireDashboard() {
                   className="w-full flex items-center gap-3 rounded-2xl mb-5 p-4 border text-left cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_4px_16px_rgba(244,67,54,0.12)]"
                   style={{ background: 'rgba(244,67,54,0.031)', borderColor: 'rgba(244,67,54,0.157)', minHeight: '56px' }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(244,67,54,0.094)' }}>
-                    <span style={{ color: '#F44336' }}><IcClock /></span>
+                    <span style={{ color: 'var(--c-red-material)' }}><IcClock /></span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm" style={{ color: 'var(--p-text)' }}>
@@ -460,7 +460,7 @@ export default function ProprietaireDashboard() {
                     subColor: hasVisites && visitesTrendPct !== undefined
                       ? (visitesTrendPct >= 0 ? 'var(--c-success)' : 'var(--c-danger)')
                       : undefined,
-                    color: '#7B2FBE',
+                    color: 'var(--c-purple-dark)',
                     icon: <IcCal />,
                   },
                   {

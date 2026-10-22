@@ -287,7 +287,7 @@ export default function ReservationPage() {
           if (isDateToday && visibleSlots.length === 0) return (
             <div className="w-full py-3 px-4 rounded-xl flex items-start gap-2.5"
               style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)' }}>
-              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth={2}>
+              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="var(--c-amber-600)" strokeWidth={2}>
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
               <div>
@@ -309,7 +309,7 @@ export default function ReservationPage() {
                 style={{
                   background: sel ? 'var(--c-brand)' : 'rgb(255,255,255)',
                   color: sel ? 'rgb(255,255,255)' : '#1A1A2E',
-                  border: `${sel ? 1.5 : 1}px solid ${sel ? 'var(--c-brand)' : '#E5E7EB'}`,
+                  border: `${sel ? 1.5 : 1}px solid ${sel ? 'var(--c-brand)' : 'var(--c-line)'}`,
                   boxShadow: sel ? '0 3px 8px rgba(75,107,255,0.25)' : 'none',
                 }}>
                 {String(h).padStart(2, '00')}h00
@@ -319,7 +319,7 @@ export default function ReservationPage() {
         })()}
         <button onClick={() => timeInputRef.current?.showPicker?.() || timeInputRef.current?.click()}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-semibold"
-          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid #E5E7EB', color: '#6B7280' }}>
+          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid var(--c-line)', color: 'var(--c-grey)' }}>
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <circle cx="12" cy="13" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4l2 2M9 3h6" />
           </svg>
@@ -329,7 +329,7 @@ export default function ReservationPage() {
       <input ref={timeInputRef} type="time" aria-label="Heure de visite personnalisée" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="sr-only" />
       {selectedTime && (
         <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-[10px]" style={{ background: 'rgba(34,197,94,0.08)' }}>
-          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2}>
+          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-xs font-semibold" style={{ color: 'var(--tx-green)' }}>Créneau proposé : {dateTimeLabel()}</p>
@@ -341,7 +341,7 @@ export default function ReservationPage() {
   const PeopleCard = () => (
     <div className="rounded-2xl p-5 flex items-center gap-3" style={GLASS}>
       <div className="w-11 h-11 flex items-center justify-center rounded-[12px] flex-shrink-0" style={{ background: 'rgba(75,107,255,0.1)' }}>
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={2}>
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </div>
@@ -353,7 +353,7 @@ export default function ReservationPage() {
         <button aria-label="Un visiteur de moins" onClick={() => setTravelers(t => Math.max(1, t - 1))}
           className="w-8 h-8 flex items-center justify-center rounded-[9px] transition-all"
           style={{ background: travelers > 1 ? 'rgba(75,107,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={travelers > 1 ? '#4160F2' : '#5F6672'} strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={travelers > 1 ? 'var(--c-brand)' : 'var(--c-slate)'} strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
         </button>
         <span className="text-lg font-bold text-text-dark w-5 text-center">{travelers}</span>
         <button aria-label="Un visiteur de plus" onClick={() => setTravelers(t => t + 1)}
@@ -365,7 +365,7 @@ export default function ReservationPage() {
   )
 
   const SummaryCard = () => (
-    <div className="rounded-[18px] p-5" style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)', boxShadow: '0 6px 16px rgba(15,52,96,0.3)' }}>
+    <div className="rounded-[18px] p-5" style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, var(--c-navy-deep) 100%)', boxShadow: '0 6px 16px rgba(15,52,96,0.3)' }}>
       <p className="text-white/70 text-[13px] font-semibold mb-3">Récapitulatif</p>
       <SummaryRow icon="calendar" label="Date" value={`${selectedDate.getDate()} ${MONTH_SHORT[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`} />
       <div className="h-2.5" />
@@ -407,7 +407,7 @@ export default function ReservationPage() {
   const SubmitBtn = ({ full = false }) => !peutReserver ? <ActivateProspectBtn /> : (
     <button onClick={handleSubmit} disabled={submitting || !selectedTime}
       className={`${full ? 'w-full' : 'w-full'} py-4 rounded-[16px] font-bold text-white flex items-center justify-center gap-2 transition-all`}
-      style={{ background: !selectedTime ? '#E5E7EB' : 'var(--c-brand)', boxShadow: selectedTime ? '0 4px 12px rgba(75,107,255,0.35)' : 'none' }}>
+      style={{ background: !selectedTime ? 'var(--c-line)' : 'var(--c-brand)', boxShadow: selectedTime ? '0 4px 12px rgba(75,107,255,0.35)' : 'none' }}>
       {submitting
         ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
         : <>
@@ -425,7 +425,7 @@ export default function ReservationPage() {
 
       {/* ── Header ── */}
       <div className="flex-shrink-0 px-5 md:px-8 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5 md:pb-5"
-        style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, var(--c-navy-deep) 100%)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-5xl mx-auto flex items-center gap-4">
           <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>

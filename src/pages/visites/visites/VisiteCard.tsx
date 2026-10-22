@@ -26,7 +26,7 @@ type VisiteCardProps = {
 export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {
   const isEchouee = isEchoueeVisite(v)
   const isDatePassee = isDatePasseeVisite(v)
-  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#6B7280', bg: '#F4F6FA' })
+  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: 'var(--c-grey)', bg: '#F4F6FA' })
   const bien = v.bien
   const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
   const isCP = v.statut === 'contre_proposee' && !isEchouee
@@ -59,7 +59,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
             className="w-[46px] h-[46px] rounded-[13px] flex items-center justify-center flex-shrink-0"
             style={{ background: 'rgba(75,107,255,0.1)' }}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.8}>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               <polyline strokeLinecap="round" strokeLinejoin="round" points="9 22 9 12 15 12 15 22" />
             </svg>
@@ -106,7 +106,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
         <div className="flex items-center gap-2.5 p-3 rounded-xl mb-3"
           style={{ background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.3)' }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(37,211,102,0.15)' }}>
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2}>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--c-whatsapp)" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
           </div>
@@ -126,7 +126,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
       {isEchouee && (
         <div className="flex items-center gap-2 p-3 rounded-xl mb-3"
           style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)' }}>
-          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
+          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" />
           </svg>
           <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
@@ -232,7 +232,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
           <button
             onClick={() => onPay(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
-            style={{ background: '#C2410C' }}
+            style={{ background: 'var(--c-orange-dark)' }}
           >
             Payer les frais de visite ({libelleFraisVisite(fraisVisiteAPayer(v))})
           </button>

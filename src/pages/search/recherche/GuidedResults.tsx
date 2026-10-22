@@ -26,14 +26,14 @@ function FallbackBanner({ quartier, isProximity, isDark }: { quartier: string; i
         borderLeftColor: 'var(--c-amber-dark)',
       }}>
       <div className="flex items-start gap-3">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-amber-600)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <div>
           <p className="text-sm font-semibold" style={{ color: isDark ? '#FCD34D' : '#92400E' }}>
             Aucun bien disponible à « {quartier} »
           </p>
-          <p className="text-xs mt-0.5" style={{ color: isDark ? '#FDE68A' : 'var(--c-amber-dark)' }}>
+          <p className="text-xs mt-0.5" style={{ color: isDark ? 'var(--c-amber-soft)' : 'var(--c-amber-dark)' }}>
             {isProximity
               ? `Biens à moins de ${PROXIMITY_MAX_KM} km — triés par distance`
               : 'Voici les biens disponibles dans les environs'}
@@ -59,7 +59,7 @@ export default function GuidedResults({
     <div className="flex flex-col items-center justify-center py-16 text-center px-4">
       <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
         style={{ background: isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.08)' }}>
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
+        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
         </svg>
       </div>

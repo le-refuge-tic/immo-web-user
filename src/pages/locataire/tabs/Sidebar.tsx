@@ -24,7 +24,7 @@ export default function Sidebar({ tab, setTab, user, navigate, logout }: Sidebar
       style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(40px) saturate(180%)', borderRight: '1px solid rgba(0,0,0,0.06)' }}>
       <button onClick={() => navigate('/')} className="flex items-center gap-2.5 px-6 pt-6 pb-5 flex-shrink-0">
         <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 34, height: 34, objectFit: 'contain' }} />
-        <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
+        <span className="font-bold text-lg tracking-tight" style={{ color: 'var(--c-cyan)' }}>REFUGE</span>
       </button>
       <p className="px-6 mb-2 text-micro font-bold uppercase tracking-wider" style={{ color: 'rgba(0,0,0,0.35)' }}>Espace Locataire</p>
       <nav className="flex-1 px-3 space-y-1">
@@ -46,7 +46,7 @@ export default function Sidebar({ tab, setTab, user, navigate, logout }: Sidebar
           style={{ background: hoveredBtn === 'profil' ? 'rgba(0,0,0,0.04)' : 'transparent' }}
           onMouseEnter={() => setHoveredBtn('profil')}
           onMouseLeave={() => setHoveredBtn(null)}>
-          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, #065F46, ${GREEN})` }}>{initials}</div>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>{initials}</div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-xs font-bold text-text-dark truncate">{user?.prenom} {user?.nom}</p>
             <p className="text-micro text-text-grey">Locataire</p>

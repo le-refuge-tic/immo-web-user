@@ -301,7 +301,7 @@ export default function ProfilePage() {
                 </p>
                 <div className="flex items-center gap-0.5 flex-shrink-0">
                   {[1, 2, 3, 4, 5].map(n => (
-                    <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= (v.note_client ?? 0) ? '#B45309' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                    <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= (v.note_client ?? 0) ? '#B45309' : 'none'} stroke="var(--c-amber)" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                     </svg>
                   ))}
@@ -362,7 +362,7 @@ export default function ProfilePage() {
         {confirmAnnulerVisite ? (
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button onClick={handleAnnuler} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--c-danger)' }}>Confirmer</button>
-            <button onClick={() => setConfirmAnnulerVisite(false)} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#6B7280' }}>✕</button>
+            <button onClick={() => setConfirmAnnulerVisite(false)} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--c-grey)' }}>✕</button>
           </div>
         ) : (
           <button
@@ -403,7 +403,7 @@ export default function ProfilePage() {
           <div className="space-y-5 min-w-0">
             <MenuBlocks />
             <MesAvisBlock />
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-2xl font-bold text-white" style={{ backgroundColor: '#C2410C' }}>
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-2xl font-bold text-white" style={{ backgroundColor: 'var(--c-orange-dark)' }}>
               <LogoutIcon />
               <span className="text-[15px]">Se déconnecter</span>
             </button>

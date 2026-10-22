@@ -16,8 +16,8 @@ export function FeedbackModal({ avis }: { avis: ReturnType<typeof useAvisVisite>
     <div className="w-full h-full flex flex-col" style={{ background: '#F8F9FA' }}>
       {feedbackDone ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
-            <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--c-page-green)' }}>
+            <svg className="w-8 h-8" fill="none" stroke="var(--c-green)" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           </div>
           <p className="font-bold text-text-dark mb-1">Merci pour votre avis !</p>
           <button onClick={() => setShowFeedback(null)} className="mt-3 text-sm font-semibold text-text-grey">Fermer</button>
@@ -65,7 +65,7 @@ export function FeedbackModal({ avis }: { avis: ReturnType<typeof useAvisVisite>
                         className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
                         style={sel
                           ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: 'var(--tx-red)', fontWeight: 600 }
-                          : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
+                          : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: 'var(--c-grey)' }}>
                         {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                         {tag}
                       </button>

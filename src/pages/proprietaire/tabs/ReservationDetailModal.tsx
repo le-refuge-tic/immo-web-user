@@ -59,7 +59,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
       <div
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl"
         style={{
-          background: '#F8FAFF',
+          background: 'var(--c-wash)',
           boxShadow: '0 32px 96px rgba(10,16,30,0.32), 0 8px 24px rgba(10,16,30,0.12)',
           transform: shown ? 'scale(1)' : 'scale(0.82)',
           opacity: shown ? 1 : 0,
@@ -71,7 +71,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 
         {/* ── Header ── */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b"
-          style={{ background: '#F8FAFF', borderColor: '#E8EDFB' }}>
+          style={{ background: 'var(--c-wash)', borderColor: 'var(--c-blue-wash)' }}>
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-base text-white flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))` }}>{initiale}</div>
@@ -114,7 +114,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           )}
           {v.statut === 'contre_proposee' && !echouee && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
-              style={{ background: '#FFFBEB', borderColor: '#FDE68A', color: 'var(--tx-amber)' }}>
+              style={{ background: '#FFFBEB', borderColor: 'var(--c-amber-soft)', color: 'var(--tx-amber)' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -123,7 +123,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           )}
 
           {/* ── Date ── */}
-          <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
+          <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Créneau demandé</p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -141,15 +141,15 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 
           {/* ── Frais + paiement ── */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Frais de visite</p>
               <p className="font-black text-[18px]" style={{ color: BLUE }}>
                 {Number(v.frais_visite) > 0 ? fmtPrix(v.frais_visite) : 'Gratuit'}
               </p>
             </div>
-            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Paiement</p>
-              <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? 'var(--c-success-bright)' : '#5F6672' }}>
+              <p className="font-black text-[18px]" style={{ color: v.paiement_effectue ? 'var(--c-success-bright)' : 'var(--c-slate)' }}>
                 {v.paiement_effectue ? '✓ Payé' : 'En attente'}
               </p>
             </div>
@@ -158,10 +158,10 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           {/* ── Contact (si numeros_partages) ── */}
           {!echouee && v.statut === 'confirmee' && v.numeros_partages && contactNumero && (
             <div className="flex items-center gap-3 p-4 rounded-xl border"
-              style={{ background: '#F0FDF4', borderColor: '#BBF7D0' }}>
+              style={{ background: 'var(--c-page-green)', borderColor: '#BBF7D0' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: 'rgba(37,211,102,0.125)' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2} className="w-5 h-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-whatsapp)" strokeWidth={2} className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                 </svg>
               </div>
@@ -180,7 +180,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           )}
           {v.numeros_partages === false && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm"
-              style={{ background: '#F8FAFF', borderColor: '#E8EDFB', color: '#6B7280' }}>
+              style={{ background: 'var(--c-wash)', borderColor: 'var(--c-blue-wash)', color: 'var(--c-grey)' }}>
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="5" y="11" width="14" height="9" rx="2"/>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0v4"/>
@@ -191,13 +191,13 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 
           {/* ── Avis client (si effectuée) ── */}
           {v.statut === 'effectuee' && v.feedback_donne && v.note_client != null && (
-            <div className="rounded-xl p-4 border" style={{ background: '#FFFBEB', borderColor: '#FDE68A' }}>
+            <div className="rounded-xl p-4 border" style={{ background: '#FFFBEB', borderColor: 'var(--c-amber-soft)' }}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-bold text-amber-600">Avis du client</p>
                 <div className="flex gap-0.5">
                   {[1,2,3,4,5].map(n => (
                     <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5"
-                      fill={n <= (v.note_client ?? 0) ? '#B45309' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                      fill={n <= (v.note_client ?? 0) ? '#B45309' : 'none'} stroke="var(--c-amber)" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                     </svg>
                   ))}
@@ -219,26 +219,26 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 
           {/* ── Contre-proposition ── */}
           {cpId === v.id && (
-            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: '#E8EDFB' }}>
+            <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="font-bold text-gray-800 mb-3 text-sm">Proposer un autre créneau</p>
               <div className="space-y-2 mb-3">
                 <input type="date" value={cpDate} onChange={e => setCpDate(e.target.value)}
                   min={new Date().toISOString().slice(0, 10)}
                   max={new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)}
                   className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border text-gray-800"
-                  style={{ borderColor: '#CBD5E1', background: '#F8FAFF' }}
+                  style={{ borderColor: 'var(--c-slate-light)', background: 'var(--c-wash)' }}
                   onFocus={e => (e.target.style.borderColor = BLUE)}
-                  onBlur={e => (e.target.style.borderColor = '#CBD5E1')} />
+                  onBlur={e => (e.target.style.borderColor = 'var(--c-slate-light)')} />
                 <input type="time" value={cpTime} onChange={e => setCpTime(e.target.value)}
                   className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border text-gray-800"
-                  style={{ borderColor: '#CBD5E1', background: '#F8FAFF' }}
+                  style={{ borderColor: 'var(--c-slate-light)', background: 'var(--c-wash)' }}
                   onFocus={e => (e.target.style.borderColor = BLUE)}
-                  onBlur={e => (e.target.style.borderColor = '#CBD5E1')} />
+                  onBlur={e => (e.target.style.borderColor = 'var(--c-slate-light)')} />
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setCpId(null)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold border text-gray-600"
-                  style={{ borderColor: '#E2E8F0', background: '#F8FAFF' }}>Annuler</button>
+                  style={{ borderColor: '#E2E8F0', background: 'var(--c-wash)' }}>Annuler</button>
                 <button onClick={onContrePropose} disabled={!cpDate || !cpTime || submitting}
                   className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))` }}>
@@ -268,7 +268,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
             {v.statut === 'en_attente' && !echouee && !isDatePassee(v) && cpId !== v.id && (
               <button onClick={() => setCpId(v.id)}
                 className="flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all text-gray-700"
-                style={{ borderColor: '#CBD5E1', background: '#F8FAFF' }}>
+                style={{ borderColor: 'var(--c-slate-light)', background: 'var(--c-wash)' }}>
                 Autre créneau
               </button>
             )}
@@ -276,7 +276,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
               confirmEffectuee ? (
                 <div className="flex items-center gap-2 flex-1">
                   <button onClick={() => { onMarquerEffectuee(v.id); setConfirmEffectuee(false) }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
-                  <button onClick={() => setConfirmEffectuee(false)} className="py-2.5 px-4 rounded-xl border text-sm font-semibold" style={{ borderColor: '#CBD5E1', color: '#6B7280' }}>Annuler</button>
+                  <button onClick={() => setConfirmEffectuee(false)} className="py-2.5 px-4 rounded-xl border text-sm font-semibold" style={{ borderColor: 'var(--c-slate-light)', color: 'var(--c-grey)' }}>Annuler</button>
                 </div>
               ) : (
                 <button onClick={() => setConfirmEffectuee(true)}

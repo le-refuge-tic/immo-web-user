@@ -37,15 +37,15 @@ export function StepLocalisation({ form }: { form: NouveauBienForm }) {
             {quartier ? (
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl border"
                 style={{ background: 'rgba(72,199,116,0.09)', borderColor: 'rgba(72,199,116,0.45)' }}>
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ color: '#48C774' }}>
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ color: 'var(--c-green-soft)' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="flex-1 text-sm font-semibold" style={{ color: '#48C774' }}>
+                <span className="flex-1 text-sm font-semibold" style={{ color: 'var(--c-green-soft)' }}>
                   {quartier}{arrondissement ? `, ${arrondissement}` : ''}{ville ? `, ${ville}` : ''}
                 </span>
                 <button type="button" onClick={clearQuartier}
                   className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: 'rgba(72,199,116,0.2)', color: '#48C774' }}>✕</button>
+                  style={{ background: 'rgba(72,199,116,0.2)', color: 'var(--c-green-soft)' }}>✕</button>
               </div>
             ) : (
               <div className="relative">

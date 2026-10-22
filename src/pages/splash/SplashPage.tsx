@@ -42,7 +42,7 @@ export default function SplashPage() {
               style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
               <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} />
             </div>
-            <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
+            <span className="font-bold text-2xl tracking-tight" style={{ color: 'var(--c-cyan)' }}>REFUGE</span>
           </div>
           <button
             onClick={skip}

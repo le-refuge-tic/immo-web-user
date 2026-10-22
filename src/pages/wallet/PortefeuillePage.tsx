@@ -164,7 +164,7 @@ function ClientWalletView() {
         <div className="max-w-2xl mx-auto px-5 py-6 pb-10">
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée — en attente de validation.</p>
             </div>
           )}
@@ -300,7 +300,7 @@ function WalletCommissionsView() {
           {/* Confirmation retrait */}
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée avec succès.</p>
             </div>
           )}
@@ -369,7 +369,7 @@ function WalletCommissionsView() {
             ) : transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: 'rgba(75,107,255,0.1)' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#4160F2" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
                 <p className="text-text-grey text-sm">Vos commissions apparaîtront ici.</p>
@@ -401,7 +401,7 @@ function WalletCommissionsView() {
                       className="px-4 py-2 rounded-full text-xs font-bold transition-colors"
                       style={filter === f
                         ? { background: 'var(--c-brand)', color: 'rgb(255,255,255)', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
-                        : { background: 'rgb(255,255,255)', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
+                        : { background: 'rgb(255,255,255)', color: 'var(--c-grey-warm)', border: '1px solid rgba(0,0,0,0.08)' }}>
                       {f}
                     </button>
                   ))}

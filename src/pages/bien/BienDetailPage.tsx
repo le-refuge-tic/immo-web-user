@@ -51,7 +51,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
   const title = bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
   const prix = Number(bien.prix).toLocaleString('fr-FR')
-  const accentColor = isLocation ? 'var(--c-brand)' : '#C2410C'
+  const accentColor = isLocation ? 'var(--c-brand)' : 'var(--c-orange-dark)'
   const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
   const hasPromo = prixPromoNum != null && prixPromoNum > 0 && prixPromoNum < Number(bien.prix)
   const prixPromo = hasPromo ? prixPromoNum!.toLocaleString('fr-FR') : null

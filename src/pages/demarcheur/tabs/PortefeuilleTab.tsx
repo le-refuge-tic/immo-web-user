@@ -53,7 +53,7 @@ export default function PortefeuilleTab() {
                 <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: isCredit ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? '#15803D' : '#DC2626'} strokeWidth={2.5} className="w-5 h-5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke={isCredit ? 'var(--c-success)' : '#DC2626'} strokeWidth={2.5} className="w-5 h-5">
                       {isCredit
                         ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8l-8-8-8 8"/>
                         : <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m8 8l-8 8-8-8"/>}
