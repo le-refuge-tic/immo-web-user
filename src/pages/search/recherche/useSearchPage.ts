@@ -87,11 +87,32 @@ export function useSearchPage() {
     return () => { el.removeEventListener('scroll', onScroll); if (scrollTimer.current) clearTimeout(scrollTimer.current) }
   }, [])
 
+  // Critères hors localisation, appliqués par le serveur : la liste des biens ne charge pas les pièces,
+  // un comptage local des chambres/salons rejetterait donc tout (résultats vides dès qu'on filtre les pièces)
+  const filterParams = useMemo(() => {
+    const params: BiensListParams = {}
+    if (sousType) params.sous_type = sousType
+    // Nombres normalisés (virgule décimale) ; une valeur illisible est ignorée plutôt que de casser la recherche
+    const num = (v: string) => { const n = Number(v.replace(',', '.')); return Number.isFinite(n) && n >= 0 ? n : null }
+    const chambres = num(chambresMin), salons = num(salonsMin), supMin = num(superficieMin), supMax = num(superficieMax)
+    if (chambresMin && chambres !== null)     params.chambres_min   = Math.floor(chambres)
+    if (salonsMin && salons !== null)         params.salons_min     = Math.floor(salons)
+    if (superficieMin && supMin !== null)     params.superficie_min = supMin
+    if (superficieMax && supMax !== null)     params.superficie_max = supMax
+    return params
+  }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax])
+  const filterParamsKey = JSON.stringify(filterParams)
+
+  // Vivier des suggestions « autres biens » : mêmes critères hors localisation, filtrés par le serveur
   useEffect(() => {
-    biensApi.list({ limit: PAGE_SIZE })
-      .then(data => { setWideBiens(Array.isArray(data) ? data : data.data || []) })
-      .catch(() => {})
-  }, [])
+    let cancelled = false
+    const timer = setTimeout(() => {
+      biensApi.list({ ...JSON.parse(filterParamsKey), limit: PAGE_SIZE })
+        .then(data => { if (!cancelled) setWideBiens(Array.isArray(data) ? data : data.data || []) })
+        .catch(() => {})
+    }, 420)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [filterParamsKey])
 
   useEffect(() => { setShowAllAutres(false) }, [allBiens])
 
@@ -107,25 +128,6 @@ export function useSearchPage() {
       })
       .catch(() => {})
   }, [isLoggedIn])
-
-  const countPiece = (bien: Bien, nom: string) => (bien.pieces || []).filter(p => p.nom === nom).length
-
-  const nonLocationFilters = useCallback((biens: Bien[]) => {
-    let filtered = biens
-    if (sousType) filtered = filtered.filter(b => b.amenites?.sous_type === sousType)
-    if (chambresMin) filtered = filtered.filter(b => countPiece(b, 'Chambre') >= Number(chambresMin))
-    if (salonsMin) filtered = filtered.filter(b => countPiece(b, 'Salon') >= Number(salonsMin))
-    if (superficieMin || superficieMax) {
-      filtered = filtered.filter(b => {
-        const s = b.details_terrain?.superficie || b.details_maison?.superficie
-        if (!s) return false
-        if (superficieMin && s < Number(superficieMin)) return false
-        if (superficieMax && s > Number(superficieMax)) return false
-        return true
-      })
-    }
-    return filtered
-  }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax])
 
   const applySort = useCallback((biens: Bien[], q: string) => {
     if (sortBy === 'prix_asc')  return [...biens].sort((a, b) => Number(a.prix) - Number(b.prix))
@@ -149,8 +151,9 @@ export function useSearchPage() {
   }, [deferredQuery])
 
   const search = useMemo(() => {
-    const base     = nonLocationFilters(allBiens)
-    const wideBase = nonLocationFilters(wideBiens)
+    // Déjà filtrés par le serveur (type de bien, pièces, superficie) : seuls la localisation et le prix restent locaux
+    const base     = allBiens
+    const wideBase = wideBiens
     const inBudget = base.filter(b => inBudgetRange(b, prixMin, prixMax))
 
     let mainResults: Bien[] = [], environs: Bien[] = [], environsLabel = ''
@@ -215,7 +218,7 @@ export function useSearchPage() {
     }
 
     return { mainResults, environs, environsLabel, environsDist, budgetSimilar, autres, distFromQuartier, isProximityFallback, quartierRecherche }
-  }, [allBiens, wideBiens, matchedQuartier, deferredQuery, prixMin, prixMax, nonLocationFilters, applySort])
+  }, [allBiens, wideBiens, matchedQuartier, deferredQuery, prixMin, prixMax, applySort])
 
   const results = search.mainResults
 
@@ -279,25 +282,17 @@ export function useSearchPage() {
   }, [loadingMore, loading])
 
   const buildParams = useCallback(() => {
-    const params: BiensListParams = { limit: PAGE_SIZE }
-    if (transaction) params.transaction = transaction
-    if (type)        params.type        = type
     // Filtrés par le serveur : le total et les pages restent justes (FE-D-005).
     // Le prix reste local : il alimente les suggestions « budget voisin ».
-    if (sousType)      params.sous_type      = sousType
-    // Nombres normalisés (virgule décimale) ; une valeur illisible est ignorée plutôt que de casser la recherche
-    const num = (v: string) => { const n = Number(v.replace(',', '.')); return Number.isFinite(n) && n >= 0 ? n : null }
-    const chambres = num(chambresMin), salons = num(salonsMin), supMin = num(superficieMin), supMax = num(superficieMax)
-    if (chambresMin && chambres !== null)     params.chambres_min   = Math.floor(chambres)
-    if (salonsMin && salons !== null)         params.salons_min     = Math.floor(salons)
-    if (superficieMin && supMin !== null)     params.superficie_min = supMin
-    if (superficieMax && supMax !== null)     params.superficie_max = supMax
+    const params: BiensListParams = { ...filterParams, limit: PAGE_SIZE }
+    if (transaction) params.transaction = transaction
+    if (type)        params.type        = type
     if (sortBy !== 'pertinence') params.tri = sortBy
     const nq = norm(query.trim())
     const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
     if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
     return params
-  }, [query, transaction, type, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy])
+  }, [query, transaction, type, filterParams, sortBy])
 
   // Clé des paramètres réellement envoyés : taper dans la recherche sans changer de ville ne recharge rien
   const paramsKey = JSON.stringify(buildParams())
