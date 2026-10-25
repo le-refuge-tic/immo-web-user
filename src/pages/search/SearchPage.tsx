@@ -233,11 +233,23 @@ export default function SearchPage() {
     return () => { el.removeEventListener('scroll', onScroll); if (scrollTimer.current) clearTimeout(scrollTimer.current) }
   }, [])
 
+  // Chambres / salons : filtrés par le serveur (la liste ne renvoie pas les pièces des biens)
+  const piecesParams = useMemo(() => {
+    const p: Record<string, number> = {}
+    const chambres = Number(chambresMin), salons = Number(salonsMin)
+    if (chambresMin && Number.isFinite(chambres) && chambres > 0) p.chambres_min = Math.floor(chambres)
+    if (salonsMin && Number.isFinite(salons) && salons > 0)       p.salons_min   = Math.floor(salons)
+    return p
+  }, [chambresMin, salonsMin])
+  const piecesKey = JSON.stringify(piecesParams)
+
   useEffect(() => {
-    biensApi.list({ limit: 200 })
-      .then(data => { setWideBiens(Array.isArray(data) ? data : data.data || []) })
+    let stale = false
+    biensApi.list({ limit: 200, ...JSON.parse(piecesKey) })
+      .then(data => { if (!stale) setWideBiens(Array.isArray(data) ? data : data.data || []) })
       .catch(() => {})
-  }, [])
+    return () => { stale = true }
+  }, [piecesKey])
 
   useEffect(() => { setShowAllAutres(false) }, [allBiens])
 
@@ -254,13 +266,9 @@ export default function SearchPage() {
       .catch(() => {})
   }, [isLoggedIn])
 
-  const countPiece = (bien: any, nom: string) => (bien.pieces || []).filter((p: any) => p.nom === nom).length
-
   const nonLocationFilters = useCallback((biens: any[]) => {
     let filtered = biens
     if (sousType) filtered = filtered.filter(b => b.amenites?.sous_type === sousType)
-    if (chambresMin) filtered = filtered.filter(b => countPiece(b, 'Chambre') >= Number(chambresMin))
-    if (salonsMin) filtered = filtered.filter(b => countPiece(b, 'Salon') >= Number(salonsMin))
     if (superficieMin || superficieMax) {
       filtered = filtered.filter(b => {
         const s = b.details_terrain?.superficie || b.details_maison?.superficie
@@ -271,7 +279,7 @@ export default function SearchPage() {
       })
     }
     return filtered
-  }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax])
+  }, [sousType, superficieMin, superficieMax])
 
   const applySort = useCallback((biens: any[], q: string) => {
     if (sortBy === 'prix_asc')  return [...biens].sort((a, b) => Number(a.prix) - Number(b.prix))
@@ -389,7 +397,7 @@ export default function SearchPage() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      const params: any = { limit: 150 }
+      const params: any = { limit: 150, ...JSON.parse(piecesKey) }
       if (transaction) params.transaction = transaction
       if (type)        params.type        = type
       const nq = norm(query.trim())
@@ -398,17 +406,17 @@ export default function SearchPage() {
       fetchBiens(params)
     }, 420)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [query, transaction, type, fetchBiens])
+  }, [query, transaction, type, piecesKey, fetchBiens])
 
   const retryFetch = useCallback(() => {
-    const params: any = { limit: 150 }
+    const params: any = { limit: 150, ...JSON.parse(piecesKey) }
     if (transaction) params.transaction = transaction
     if (type)        params.type        = type
     const nq = norm(query.trim())
     const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
     if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
     fetchBiens(params)
-  }, [query, transaction, type, fetchBiens])
+  }, [query, transaction, type, piecesKey, fetchBiens])
 
   const reset = () => {
     setQuery(''); setTransaction(''); setType(''); setPrixMin(''); setPrixMax('')
