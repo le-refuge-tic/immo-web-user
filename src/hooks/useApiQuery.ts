@@ -78,6 +78,7 @@ export function useApiQuery<T>(
     }
     run()
     return () => {
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- on annule la requête en cours au moment du nettoyage : il faut lire la valeur courante de la ref
       requestIdRef.current++
       controllerRef.current?.abort()
     }

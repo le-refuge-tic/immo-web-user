@@ -43,7 +43,7 @@ export default function SplashPage() {
               style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
               <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 40, height: 40, objectFit: 'contain' }} />
             </div>
-            <span className="font-bold text-2xl tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
+            <span className="font-bold text-2xl tracking-tight" style={{ color: 'var(--c-cyan)' }}>REFUGE</span>
           </div>
           <button
             onClick={skip}
@@ -63,7 +63,7 @@ export default function SplashPage() {
         <div className="px-7 md:px-16 pb-14">
           <p className="text-white/45 text-xs uppercase tracking-[2px] mb-4 anim-fade-up d-100">L'immobilier au Bénin</p>
           <div className="flex items-center gap-2 mb-5 anim-fade-up d-150">
-            <div className="w-8 h-[3px] rounded-full" style={{ background: '#FF6B35' }} />
+            <div className="w-8 h-[3px] rounded-full" style={{ background: 'var(--c-accent)' }} />
             <div className="w-2 h-[3px] rounded-full" style={{ background: 'rgba(255,107,53,0.45)' }} />
           </div>
           <h1 className="text-white font-bold leading-[1.1] tracking-tight mb-3 anim-blur-up d-200" style={{ fontSize: 'clamp(2.2rem, 4.5vw, 4.5rem)' }}>
@@ -77,7 +77,7 @@ export default function SplashPage() {
             <button
               onClick={start}
               className="w-full h-14 rounded-[18px] flex items-center justify-center gap-3 font-bold text-white text-base hover:opacity-90 transition-opacity anim-scale-in d-500 btn-press"
-              style={{ background: '#4B6BFF', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
+              style={{ background: 'var(--c-brand)', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
             >
               <span>Commencer</span>
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.2)' }}>
@@ -88,9 +88,9 @@ export default function SplashPage() {
             </button>
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 anim-fade-in d-700">
-              <TrustBadge icon="verified" label="Annonces modérées" color="#22C55E" />
-              <TrustBadge icon="lock" label="Paiement sécurisé" color="#4B6BFF" />
-              <TrustBadge icon="star" label="Reçus automatiques" color="#FF6B35" />
+              <TrustBadge icon="verified" label="Annonces modérées" color="var(--c-green)" />
+              <TrustBadge icon="lock" label="Paiement sécurisé" color="var(--c-brand)" />
+              <TrustBadge icon="star" label="Reçus automatiques" color="var(--c-accent)" />
             </div>
           </div>
         </div>

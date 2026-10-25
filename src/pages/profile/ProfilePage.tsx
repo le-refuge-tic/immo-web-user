@@ -11,6 +11,9 @@ import ChangePasswordModal from './ChangePasswordModal'
 import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
+import type { User } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
+import { dateEffectiveVisite } from '../../utils/dateVisite'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -99,7 +102,9 @@ type Visite = {
   statut: string
   bienType?: string
   dateVisite?: string
-  creneau?: { debut: string; bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } } }
+  date_souhaitee?: string | null
+  date_contre_proposee?: string | null
+  creneau?: { date_debut?: string | null; bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } } }
   bien?: { id?: number; type?: string; localisation?: { ville?: string; quartier?: string } }
   feedback_donne?: boolean
   note_client?: number | null
@@ -168,33 +173,39 @@ export default function ProfilePage() {
   usePageTitle('Profil')
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [apiUser, setApiUser] = useState<any>(null)
+  const [apiUser, setApiUser] = useState<User | null>(null)
   const [visites, setVisites] = useState<Visite[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  // Échec du chargement des visites : on ne l'affiche pas comme « 0 visite ».
+  const [visitesError, setVisitesError] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
   const [numeroOpen, setNumeroOpen] = useState(false)
   const [confirmAnnulerVisite, setConfirmAnnulerVisite] = useState(false)
 
-  useEffect(() => {
-    const load = async () => {
-      setIsLoading(true)
-      try {
-        const [u, v] = await Promise.allSettled([
-          userApi.me(),
-          visitesApi.mesVisites(),
-        ])
-        if (u.status === 'fulfilled') setApiUser(u.value)
-        if (v.status === 'fulfilled') {
-          const list = Array.isArray(v.value) ? v.value : v.value?.data || []
-          setVisites(list as unknown as Visite[]) // type local divergent de types/api (FE-A-003)
-        }
-      } catch (_) {}
-      setIsLoading(false)
+  const load = async () => {
+    setIsLoading(true)
+    setVisitesError(false)
+    const [u, v] = await Promise.allSettled([
+      userApi.me(),
+      visitesApi.mesVisites(),
+    ])
+    // Le profil reste affiché depuis la session si `me` échoue : seule la liste de visites est bloquante.
+    if (u.status === 'fulfilled') setApiUser(u.value)
+    if (v.status === 'fulfilled') {
+      const list = Array.isArray(v.value) ? v.value : v.value?.data || []
+      setVisites(list as unknown as Visite[]) // type local divergent de types/api (FE-A-003)
+    } else {
+      setVisitesError(true)
     }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
     load()
-    walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {})
+    // Numéro de retrait : information secondaire, le profil s'affiche sans elle (la ligne reste « non défini »).
+    walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ })
   }, [])
 
   if (!user) return null
@@ -205,6 +216,7 @@ export default function ProfilePage() {
   const roleLabel = ROLE_LABELS[role] || role
 
   const visitCount = visites.filter(v => v.statut !== 'annulee').length
+  const visitesIndispo = visitesError && visites.length === 0
   const score = (Number(apiUser?.nb_etoiles) || 0) * 20
 
   const visiteActive = visites.find(v => v.statut === 'en_attente' || v.statut === 'confirmee')
@@ -230,33 +242,33 @@ export default function ProfilePage() {
     // demande (cold start Render) et l'état affiché doit refléter la réalité.
     try {
       await visitesApi.annuler(visiteActive.id)
-    } catch (_) {
+    } catch {
     } finally {
       try {
         const data = await visitesApi.mesVisites()
         setVisites((Array.isArray(data) ? data : data.data || []) as unknown as Visite[])
-      } catch (_) {}
+      } catch {}
     }
   }
 
   const AvatarBlock = ({ size = 88 }: { size?: number }) => (
     <div className="relative inline-block">
       {user.photo_profil ? (
-        <img loading="lazy" src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid #4B6BFF' }} />
+        <img loading="lazy" src={user.photo_profil} alt="" className="rounded-full object-cover" style={{ width: size, height: size, border: '3px solid var(--c-brand)' }} />
       ) : (
-        <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}>
+        <div className="rounded-full flex items-center justify-center" style={{ width: size, height: size, background: 'linear-gradient(135deg, var(--c-brand) 0%, var(--c-violet) 100%)' }}>
           <span className="text-white font-bold" style={{ fontSize: size * 0.36 }}>{initials}</span>
         </div>
       )}
-      <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white" style={{ backgroundColor: '#4CAF50' }} />
+      <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white" style={{ backgroundColor: 'var(--c-green-material)' }} />
     </div>
   )
 
   const StatsRow = () => (
     <div className="flex gap-3">
-      <StatBadge icon={<CalendarStatIcon />} value={String(visitCount)} label="Visites" color="#4B6BFF" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
-      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="#15803D" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
-      <StatBadge icon={<StarMenuIcon />} value={String(mesAvis.length)} label="Avis" color="#B45309" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
+      <StatBadge icon={<CalendarStatIcon />} value={visitesIndispo ? '—' : String(visitCount)} label="Visites" color="var(--c-brand)" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
+      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="var(--c-success)" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
+      <StatBadge icon={<StarMenuIcon />} value={visitesIndispo ? '—' : String(mesAvis.length)} label="Avis" color="var(--c-amber-dark)" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
     </div>
   )
 
@@ -264,7 +276,7 @@ export default function ProfilePage() {
     <>
       <MenuGroup title="Mon compte">
         <MenuItem icon={<PersonMenuIcon />}   label="Modifier le profil" onClick={() => setEditOpen(true)} />
-        <MenuItem icon={<CalendarMenuIcon />} label="Mes visites" value={visiteActive ? '1 en cours' : String(visitCount)} onClick={() => navigate('/mes-visites')} />
+        <MenuItem icon={<CalendarMenuIcon />} label="Mes visites" value={visiteActive ? '1 en cours' : visitesIndispo ? '—' : String(visitCount)} onClick={() => navigate('/mes-visites')} />
         <MenuItem icon={<UsersMenuIcon />}    label="Rôles et espaces" value={roleLabel} onClick={() => navigate('/mes-roles')} />
         <MenuItem icon={<KeyMenuIcon />}      label="Rejoindre un bien (code d'invitation)" onClick={() => navigate('/rejoindre-bien')} showDivider={false} />
       </MenuGroup>
@@ -288,11 +300,11 @@ export default function ProfilePage() {
       <div className="glass-card rounded-[16px] p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-text-dark text-sm">Mes avis</h3>
-          <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">{mesAvis.length}</span>
+          <span className="text-xs font-semibold text-primary dark:text-brand-soft bg-primary/10 px-2.5 py-0.5 rounded-full">{mesAvis.length}</span>
         </div>
         <div className="space-y-3">
           {mesAvis.map(v => (
-            <div key={v.id} className="rounded-[12px] p-3" style={{ background: '#F59E0B0D', border: '1px solid #F59E0B26' }}>
+            <div key={v.id} className="rounded-[12px] p-3" style={{ background: 'rgba(245,158,11,0.051)', border: '1px solid rgba(245,158,11,0.149)' }}>
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-semibold text-text-dark truncate">
                   {v.bien ? bienTypeLabel(v.bien) : 'Bien'}
@@ -300,7 +312,7 @@ export default function ProfilePage() {
                 </p>
                 <div className="flex items-center gap-0.5 flex-shrink-0">
                   {[1, 2, 3, 4, 5].map(n => (
-                    <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= (v.note_client ?? 0) ? '#B45309' : 'none'} stroke="#F59E0B" strokeWidth={1.5}>
+                    <svg key={n} viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={n <= (v.note_client ?? 0) ? '#B45309' : 'none'} stroke="var(--c-amber)" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                     </svg>
                   ))}
@@ -309,7 +321,7 @@ export default function ProfilePage() {
               {v.feedback_tags && v.feedback_tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-1.5">
                   {v.feedback_tags.map(t => (
-                    <span key={t} className="px-2 py-0.5 rounded text-micro font-semibold" style={{ background: '#F59E0B18', color: 'var(--tx-amber)' }}>{t}</span>
+                    <span key={t} className="px-2 py-0.5 rounded text-micro font-semibold" style={{ background: 'rgba(245,158,11,0.094)', color: 'var(--tx-amber)' }}>{t}</span>
                   ))}
                 </div>
               )}
@@ -327,44 +339,48 @@ export default function ProfilePage() {
     const bienId = bien?.id
     const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
     const lieu = bien?.localisation ? (bien.localisation.quartier || bien.localisation.ville) : null
-    const dateStr = visiteActive.creneau?.debut
-      ? new Date(visiteActive.creneau.debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+    // Date retenue : contre-proposition, sinon date souhaitée, sinon début du créneau (ancien flux).
+    const dateRetenue = dateEffectiveVisite(visiteActive)
+    const dateStr = dateRetenue
+      ? new Date(dateRetenue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
       : visiteActive.dateVisite || null
     const goToBien = () => { if (bienId) navigate(`/biens/${bienId}`) }
 
     return (
-      <div
-        onClick={goToBien}
-        role={bienId ? 'button' : undefined}
-        tabIndex={bienId ? 0 : undefined}
-        onKeyDown={e => { if (bienId && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); goToBien() } }}
-        className={`glass-card rounded-[14px] p-3.5 flex items-center gap-3 ${bienId ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
-      >
-        <div className="w-[42px] h-[42px] rounded-[11px] bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <EyeActiveIcon />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-bold text-text-dark">{visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}</p>
-          <p className="text-caption text-text-grey mt-0.5 truncate">
-            {typeStr}
-            {lieu ? ` — ${lieu}` : ''}
-            {dateStr ? ` · ${dateStr}` : ''}
-          </p>
-        </div>
-        {bienId && (
-          <svg className="w-4 h-4 flex-shrink-0 text-text-grey/50" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        )}
+      <div className="glass-card rounded-[14px] p-3.5 flex items-center gap-3">
+        {/* Zone cliquable séparée des boutons d'annulation : pas de contrôle imbriqué dans un contrôle */}
+        <button
+          type="button"
+          onClick={goToBien}
+          disabled={!bienId}
+          className={`flex items-center gap-3 flex-1 min-w-0 text-left ${bienId ? 'cursor-pointer hover:opacity-90 transition-opacity' : 'cursor-default'}`}
+        >
+          <span className="w-[42px] h-[42px] rounded-[11px] bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <EyeActiveIcon />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[13px] font-bold text-text-dark">{visiteActive.statut === 'confirmee' ? 'Visite confirmée' : 'Visite en attente'}</span>
+            <span className="block text-caption text-text-grey mt-0.5 truncate">
+              {typeStr}
+              {lieu ? ` — ${lieu}` : ''}
+              {dateStr ? ` · ${dateStr}` : ''}
+            </span>
+          </span>
+          {bienId && (
+            <svg className="w-4 h-4 flex-shrink-0 text-text-grey/50" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          )}
+        </button>
         {confirmAnnulerVisite ? (
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button onClick={e => { e.stopPropagation(); handleAnnuler() }} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: '#DC2626' }}>Confirmer</button>
-            <button onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(false) }} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: '#6B7280' }}>✕</button>
+            <button onClick={handleAnnuler} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--c-danger)' }}>Confirmer</button>
+            <button onClick={() => setConfirmAnnulerVisite(false)} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--c-grey)' }}>✕</button>
           </div>
         ) : (
           <button
-            onClick={e => { e.stopPropagation(); setConfirmAnnulerVisite(true) }}
-            className="text-caption font-bold text-danger px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
+            onClick={() => setConfirmAnnulerVisite(true)}
+            className="text-caption font-bold text-[color:var(--tx-red)] px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
             style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
             Annuler
           </button>
@@ -387,12 +403,16 @@ export default function ProfilePage() {
               <div>
                 <p className="text-[18px] font-bold text-text-dark">{fullName}</p>
                 {(apiUser?.email || user.email) && <p className="text-[13px] text-text-grey mt-1 break-all">{apiUser?.email || user.email}</p>}
-                <span className="inline-block text-xs font-semibold text-primary bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
+                <span className="inline-block text-xs font-semibold text-primary dark:text-brand-soft bg-primary/10 px-3.5 py-1 rounded-full mt-2">{roleLabel}</span>
               </div>
               <StatsRow />
             </div>
             {isLoading ? (
               <div className="flex justify-center py-4"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            ) : visitesIndispo ? (
+              <div className="glass-card rounded-2xl">
+                <ErrorState title="Impossible de charger vos visites" onRetry={load} className="py-8" />
+              </div>
             ) : <VisiteActiveBlock />}
           </div>
 
@@ -400,7 +420,7 @@ export default function ProfilePage() {
           <div className="space-y-5 min-w-0">
             <MenuBlocks />
             <MesAvisBlock />
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-2xl font-bold text-white" style={{ backgroundColor: '#C2410C' }}>
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-2xl font-bold text-white" style={{ backgroundColor: 'var(--c-orange-dark)' }}>
               <LogoutIcon />
               <span className="text-[15px]">Se déconnecter</span>
             </button>
@@ -414,7 +434,7 @@ export default function ProfilePage() {
         <NumeroRetraitModal
           current={numeroInfo?.masque ?? null}
           onClose={() => setNumeroOpen(false)}
-          onSaved={() => { setNumeroOpen(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => {}) }}
+          onSaved={() => { setNumeroOpen(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }}
         />
       )}
     </div>

@@ -8,6 +8,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
 import type { Bien } from '../../types/api'
+import { apiMessage } from '../../utils/apiMessage'
+import ErrorState from '../../components/ErrorState'
 
 // Les favoris sont parfois renvoyés avec l'identifiant du bien dans `bien_id`.
 type Favori = Bien & { bien_id?: number; bien?: Bien }
@@ -18,7 +20,7 @@ export default function FavoritesPage() {
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
   // Chargement annulable, sans réponse périmée (FE-A-004).
-  const { data, setData, loading } = useApiQuery(
+  const { data, setData, loading, error: loadError, refetch } = useApiQuery(
     signal => favoritesApi.list(signal).then(unwrapList),
     [isLoggedIn],
     { enabled: isLoggedIn },
@@ -26,6 +28,7 @@ export default function FavoritesPage() {
   const biens: Favori[] = data ?? NO_FAVORIS
   const favIds = useMemo(() => new Set<number>(biens.map(f => (f as Favori).bien_id || f.id)), [biens])
   const [confirmClearAll, setConfirmClearAll] = useState(false)
+  const [clearError, setClearError] = useState('')
 
   const handleFavToggle = (id: number, added: boolean) => {
     if (!added) {
@@ -37,7 +40,12 @@ export default function FavoritesPage() {
     const ids = Array.from(favIds)
     setData([])
     setConfirmClearAll(false)
-    try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (_) {}
+    setClearError('')
+    try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (e: unknown) {
+      // La liste affichée doit refléter le serveur : on la recharge et on prévient la personne.
+      setClearError(apiMessage(e) || "Tous les favoris n'ont pas pu être supprimés. Réessayez.")
+      refetch()
+    }
   }
 
   return (
@@ -84,6 +92,7 @@ export default function FavoritesPage() {
           )}
         </div>
 
+        {clearError && <p role="alert" className="text-sm font-semibold mb-4" style={{ color: 'var(--c-danger)' }}>{clearError}</p>}
         {!isLoggedIn ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(75,107,255,0.10)' }}>
@@ -96,10 +105,10 @@ export default function FavoritesPage() {
               Connectez-vous pour retrouver facilement tous les biens qui vous ont plu
             </p>
             <div className="flex flex-col items-center gap-3">
-              <button onClick={() => navigate(PROPRIO_SEUL ? '/login' : '/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#3A5AEE,#6D3FE0)' }}>
+              <button onClick={() => navigate(PROPRIO_SEUL ? '/login' : '/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,var(--c-primary),#6D3FE0)' }}>
                 {PROPRIO_SEUL ? 'Se connecter' : 'Créer mon compte en 1 minute'}
               </button>
-              {!PROPRIO_SEUL && <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-[#9DB0FF]">J’ai déjà un compte</button>}
+              {!PROPRIO_SEUL && <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-brand-soft">J’ai déjà un compte</button>}
             </div>
           </div>
 
@@ -109,6 +118,9 @@ export default function FavoritesPage() {
               <div key={n} className="skeleton rounded-2xl h-52 md:h-64" />
             ))}
           </div>
+
+        ) : loadError && biens.length === 0 ? (
+          <ErrorState title="Impossible de charger vos favoris" onRetry={refetch} />
 
         ) : biens.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -124,7 +136,7 @@ export default function FavoritesPage() {
             <button
               onClick={() => navigate('/')}
               className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #4B6BFF 0%, #7B4BFF 100%)' }}
+              style={{ background: 'linear-gradient(135deg, var(--c-brand) 0%, var(--c-violet) 100%)' }}
             >
               Explorer les annonces
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">

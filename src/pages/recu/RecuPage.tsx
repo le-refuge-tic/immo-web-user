@@ -4,13 +4,16 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { paiementApi } from '../../api/paiementApi'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { bienTypeLabel } from '../../utils/bienType'
-import { generateRecuPdf, type RecuSection } from '../../utils/recuPdf'
+import type { RecuSection } from '../../utils/recuPdf'
+import type { PartieRecu, Recu } from '../../types/recu'
 import { apiMessage } from '../../utils/apiMessage'
+import { dateVisiteRecu } from '../../utils/dateVisite'
+import { withAlpha } from '../../utils/color'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
-const VISITE = { dark: '#1A6B3C', light: '#27AE60' } // vert
-const LOYER = { dark: '#1A3A6B', light: '#2E86C1' } // bleu
-const DEPOT = { dark: '#5B2A8C', light: '#7B4BFF' } // violet
+const VISITE = { dark: '#1A6B3C', light: 'var(--c-green-flat)' } // vert
+const LOYER = { dark: '#1A3A6B', light: 'var(--c-steel)' } // bleu
+const DEPOT = { dark: '#5B2A8C', light: 'var(--c-violet)' } // violet
 
 function fmtDate(raw: string | undefined | null) {
   if (!raw) return '--'
@@ -69,7 +72,7 @@ export default function RecuPage() {
   usePageTitle('Reçu de paiement')
   const { type, refId } = useParams<{ type: string; refId: string }>()
   const navigate = useNavigate()
-  const [recu, setRecu] = useState<any>(null)
+  const [recu, setRecu] = useState<Recu | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
@@ -115,10 +118,10 @@ export default function RecuPage() {
   const client = recu.locataire || recu.client
   const gestionnaire = recu.gestionnaire
   const gestionnaireRoleLabel = gestionnaire?.role === 'demarcheur' ? 'Démarcheur' : 'Propriétaire'
-  const dateVisite = recu.visite?.date_confirmee || recu.visite?.date_souhaitee
+  const dateVisite = dateVisiteRecu(recu.visite)
   const moisLoyerLabel = recu.loyer?.mois ? moisLabel(recu.loyer.mois) : null
   const operateur = operateurLabel(recu.methode_paiement)
-  const nomComplet = (p: any) => `${p?.prenom || ''} ${p?.nom || ''}`.trim()
+  const nomComplet = (p: PartieRecu | null | undefined) => `${p?.prenom || ''} ${p?.nom || ''}`.trim()
 
   const telecharger = async () => {
     setGenerating(true)
@@ -191,6 +194,8 @@ export default function RecuPage() {
       sections.push({ titre: 'INFORMATIONS DE PAIEMENT', lignes: paiement })
 
       const ref8 = String(recu.reference || refId || '').slice(0, 8)
+      // pdf-lib (~400 Ko) n'est téléchargé qu'au clic sur « Télécharger », jamais avec la page
+      const { generateRecuPdf } = await import('../../utils/recuPdf')
       await generateRecuPdf({
         variante: isDepot ? 'depot' : isLoyer ? 'loyer' : 'visite',
         titre: isDepot ? 'REÇU DE RECHARGEMENT' : isIntegration ? "REÇU D'INTÉGRATION" : undefined,
@@ -201,7 +206,7 @@ export default function RecuPage() {
         sections,
         filename: `refuge_${isDepot ? 'rechargement' : isLoyer ? 'loyer' : isIntegration ? 'integration' : 'recu'}_${ref8}.pdf`,
       })
-    } catch (e) {
+    } catch {
       setError('Impossible de générer le PDF. Réessayez.')
     } finally {
       setGenerating(false)
@@ -209,12 +214,12 @@ export default function RecuPage() {
   }
 
   return (
-    <div className="min-h-dvh py-8 px-4" style={{ background: '#F4F6FA' }}>
+    <div className="min-h-dvh py-8 px-4" style={{ background: 'var(--c-page-blue)' }}>
       <div className="max-w-md mx-auto">
 
         {/* Barre d'actions */}
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => navigate(-1)} className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl">
+          <button aria-label="Retour" onClick={() => navigate(-1)} className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl">
             <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -226,7 +231,7 @@ export default function RecuPage() {
         {/* En-tête REFUGE — dégradé + logo + cachet PAYÉ */}
         <div
           className="rounded-[20px] p-5 mb-4"
-          style={{ background: `linear-gradient(135deg, ${theme.dark}, ${theme.light})`, boxShadow: `0 6px 16px ${theme.dark}4D` }}
+          style={{ background: `linear-gradient(135deg, ${theme.dark}, ${theme.light})`, boxShadow: `0 6px 16px ${withAlpha(theme.dark, '4D')}` }}
         >
           <div className="flex items-center justify-between mb-5">
             <img loading="lazy" src={logoUrl} alt="REFUGE" className="h-9 object-contain" />
@@ -331,7 +336,7 @@ export default function RecuPage() {
           onClick={telecharger}
           disabled={generating}
           className="w-full h-[52px] rounded-2xl font-bold text-white flex items-center justify-center gap-2 mt-6 disabled:opacity-60"
-          style={{ background: theme.dark, boxShadow: `0 4px 14px ${theme.dark}4D` }}
+          style={{ background: theme.dark, boxShadow: `0 4px 14px ${withAlpha(theme.dark, '4D')}` }}
         >
           {generating ? (
             <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

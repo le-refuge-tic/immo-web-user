@@ -53,7 +53,7 @@ export function loadAnalytics() {
 /** Événements du parcours. Ne jamais y mettre de nom, téléphone ou identifiant. */
 export type AnalyticsEvent =
   | 'recherche' | 'vue_annonce' | 'favori_ajoute' | 'visite_demandee'
-  | 'visite_payee' | 'inscription' | 'annonce_publiee'
+  | 'visite_payee' | 'inscription' | 'annonce_publiee' | 'web_vital'
 
 export function track(event: AnalyticsEvent, data?: Record<string, string | number | boolean>) {
   if (!readConsent()?.analytics) return

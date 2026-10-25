@@ -20,6 +20,15 @@ export function validateBeninPhone(raw: string): boolean {
   return local.length === BENIN_PHONE_LENGTH && local.startsWith('01')
 }
 
+/**
+ * Numéro à envoyer à l'API : toujours `+<indicatif><numéro>`. Pour le Bénin, les
+ * saisies avec ou sans indicatif donnent le même format (+22901XXXXXXXX), sans doublon.
+ */
+export function toInternationalPhone(countryCode: string, raw: string): string {
+  if (countryCode === BENIN_PREFIX) return normaliseBeninPhone(raw)
+  return `${countryCode}${raw.replace(/\D/g, '')}`
+}
+
 /** Normalise une saisie au format international unique (+22901XXXXXXXX). */
 export function normaliseBeninPhone(raw: string, countryCode = BENIN_PREFIX): string {
   return `${countryCode}${localBeninDigits(raw)}`

@@ -9,6 +9,8 @@ type Props = {
   ville?: 'Cotonou' | 'Abomey-Calavi'
   placeholder?: string
   className?: string
+  /** Identifiant du champ, pour le relier à son <label htmlFor>. */
+  id?: string
 }
 
 /**
@@ -16,7 +18,7 @@ type Props = {
  * La saisie reste libre : si le quartier tapé n'est pas dans la liste,
  * la valeur est quand même acceptée (pas de blocage).
  */
-export default function QuartierPicker({ value, onChange, onSelect, onBlur, ville, placeholder, className }: Props) {
+export default function QuartierPicker({ value, onChange, onSelect, onBlur, ville, placeholder, className, id }: Props) {
   const [open, setOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<Quartier[]>([])
   const boxRef = useRef<HTMLDivElement>(null)
@@ -44,6 +46,7 @@ export default function QuartierPicker({ value, onChange, onSelect, onBlur, vill
   return (
     <div className="relative" ref={boxRef}>
       <input
+        id={id}
         value={value}
         onChange={e => { onChange(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}

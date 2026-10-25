@@ -5,65 +5,91 @@ import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { validateBeninPhone, normaliseBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
+import { readPaymentConflict } from '../../utils/paymentAttempt'
+import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
+import { usePaymentPolling } from '../../hooks/usePaymentPolling'
+import { unwrapList } from '../../utils/unwrapList'
+import type { Bien, Visite } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
 
-const TEAL = '#0EA5E9'
+const TEAL = 'var(--c-sky)'
 
 export default function PaiementIntegrationPage() {
   const { bienId } = useParams<{ bienId: string }>()
   const navigate = useNavigate()
   usePageTitle("Paiement d'intégration")
 
-  const [bien, setBien]         = useState<any>(null)
-  const [visite, setVisite]     = useState<any>(null)
+  const [bien, setBien]         = useState<Bien | null>(null)
+  const [visite, setVisite]     = useState<Visite | null>(null)
   const [visiteId, setVisiteId] = useState<number | null>(null)
   const [tel, setTel]           = useState('')
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [errMsg, setErrMsg]     = useState('')
   const [refId, setRefId]       = useState('')
-  const pollRef                 = useRef<ReturnType<typeof setInterval> | null>(null)
+  const polling                 = usePaymentPolling()
+  const payerEnCoursRef         = useRef(false)
+  const attempt                 = usePaymentAttempt()
+  // Échec du chargement du bien ou des visites : sans lui le montant à payer serait faux (0 FCFA).
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
+  const charger = () => {
     if (!bienId) return
+    setLoadError(false)
     biensApi.byId(Number(bienId))
       .then(d => setBien(d.bien || d))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
     visitesApi.mesVisites()
       .then(data => {
-        const list = Array.isArray(data) ? data : data.data || []
-        const found = list.find((v: any) => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
+        const list = unwrapList(data)
+        const found = list.find(v => v.bien?.id === Number(bienId) && v.client_decision_integration === true)
         if (found) { setVisiteId(found.id); setVisite(found) }
       })
-      .catch(() => {})
-  }, [bienId])
+      .catch(() => setLoadError(true))
+  }
+  useEffect(charger, [bienId])
 
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
+  const suivre = (ref: string) => {
+    setRefId(ref)
+    setState('waiting')
+    polling.start({
+      intervalMs: 3000,
+      maxAttempts: 20,
+      check: async () => {
+        const { statut } = await paiementApi.statutIntegration(ref)
+        if (statut === 'reussi' || statut === 'confirme' || statut === 'success') return 'success'
+        if (statut === 'echoue' || statut === 'failed') return 'failed'
+        return 'waiting'
+      },
+      onSuccess: () => { attempt.reset(); setState('success') },
+      onFailed: () => { attempt.reset(); setState('error'); setErrMsg('Paiement refusé. Vérifiez votre solde MoMo.') },
+      onTimeout: () => { setState('error'); setErrMsg('Délai de confirmation expiré.') },
+    })
+  }
 
   const payer = async () => {
-    if (!validateBeninPhone(tel) || !visiteId) return
+    if (!validateBeninPhone(tel) || !visiteId || payerEnCoursRef.current) return
+    payerEnCoursRef.current = true
     setState('waiting')
     try {
-      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: tel })
-      const ref = res.referenceId || res.reference_id
-      setRefId(ref)
-      let attempts = 0
-      pollRef.current = setInterval(async () => {
-        attempts++
-        try {
-          const status = await paiementApi.statutIntegration(ref)
-          if (status.statut === 'reussi' || status.statut === 'success') {
-            clearInterval(pollRef.current!)
-            setState('success')
-          } else if (status.statut === 'echoue' || status.statut === 'failed') {
-            clearInterval(pollRef.current!)
-            setState('error'); setErrMsg('Paiement refusé. Vérifiez votre solde MoMo.')
-          }
-        } catch (_) {}
-        if (attempts >= 20) { clearInterval(pollRef.current!); setState('error'); setErrMsg('Délai de confirmation expiré.') }
-      }, 3000)
-    } catch (e: any) {
-      setState('error'); setErrMsg(apiMessage(e) || 'Erreur lors du paiement')
+      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: normaliseBeninPhone(tel) }, attempt.key())
+      suivre(res.referenceId)
+    } catch (e: unknown) {
+      const conflit = readPaymentConflict(e)
+      if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
+        // Un paiement est déjà ouvert chez l'opérateur : on reprend son suivi sans débiter à nouveau.
+        suivre(conflit.referenceId)
+      } else if (conflit?.code === 'PAIEMENT_DEJA_CONFIRME') {
+        attempt.reset()
+        if (conflit.referenceId) setRefId(conflit.referenceId)
+        setState('success')
+      } else {
+        attempt.fail(e)
+        setState('error'); setErrMsg(apiMessage(e) || 'Erreur lors du paiement')
+      }
+    } finally {
+      payerEnCoursRef.current = false
     }
   }
 
@@ -78,15 +104,15 @@ export default function PaiementIntegrationPage() {
   const total = avanceTotal + prepayeTotal + cautionEau + cautionElec - remiseVisite
 
   if (state === 'success') return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F0FDF4' }}>
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: '#15803D' }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center" style={{ background: 'var(--c-page-green)' }}>
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--c-success)' }}>
         <svg className="w-10 h-10 text-white" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
       </div>
       <h2 className="text-2xl font-bold text-text-dark mb-2">Paiement confirmé !</h2>
       <p className="text-text-grey text-sm mb-8">Votre intégration a été validée. Bienvenue dans votre nouveau logement.</p>
       <button onClick={() => navigate('/gestion-via-app')}
         className="w-full max-w-xs py-4 rounded-xl font-bold text-white shadow-btn mb-3"
-        style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
+        style={{ background: 'linear-gradient(135deg,var(--c-green),var(--c-success-bright))' }}>
         Continuer
       </button>
       {refId && (
@@ -102,7 +128,7 @@ export default function PaiementIntegrationPage() {
     <div className="min-h-dvh flex flex-col" style={{ background: '#F8FAFC' }}>
       {/* Header */}
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5"
-        style={{ background: `linear-gradient(135deg, #0F3460, ${TEAL})`, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
+        style={{ background: `linear-gradient(135deg, var(--c-navy-deep), ${TEAL})`, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-[11px]"
             style={{ background: 'rgba(255,255,255,0.12)' }}>
@@ -126,8 +152,14 @@ export default function PaiementIntegrationPage() {
             </div>
           )}
 
+          {loadError && (
+            <div className="rounded-2xl" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
+              <ErrorState title="Impossible de charger le paiement" hint="Le montant à payer n'est pas disponible. Vérifiez votre connexion et réessayez." onRetry={charger} className="py-8" />
+            </div>
+          )}
+
           {/* Détail paiement */}
-          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
+          {!loadError && <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
             <p className="font-bold text-text-dark mb-4">Détail du paiement</p>
             <div className="space-y-3">
               {avanceTotal > 0 && (
@@ -171,10 +203,10 @@ export default function PaiementIntegrationPage() {
                 <span className="font-bold text-text-dark text-lg">{total.toLocaleString('fr-FR')} FCFA</span>
               </div>
             </div>
-          </div>
+          </div>}
 
           {/* MTN MoMo input */}
-          {state === 'idle' || state === 'error' ? (
+          {loadError ? null : state === 'idle' || state === 'error' ? (
             <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
               <div className="flex items-center gap-3 mb-4">
                 <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/MTN_Logo.svg/200px-MTN_Logo.svg.png" alt="MTN MoMo" className="h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
@@ -189,7 +221,7 @@ export default function PaiementIntegrationPage() {
               <div className="flex items-center gap-3 rounded-xl px-4 py-3.5 border border-divider bg-surface-g mb-4">
                 <span className="font-bold text-text-dark text-sm">+229</span>
                 <div className="w-px h-4 bg-divider" />
-                <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
+                <input type="tel" value={tel} onChange={e => { setTel(e.target.value.replace(/\D/g, '')); attempt.reset() }}
                   placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
                   className="flex-1 min-w-0 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
               </div>
@@ -199,7 +231,7 @@ export default function PaiementIntegrationPage() {
               </div>
               <button onClick={payer} disabled={!validateBeninPhone(tel) || !visiteId}
                 className="w-full py-4 rounded-xl font-bold text-white disabled:opacity-40"
-                style={{ background: `linear-gradient(135deg, #0F3460, ${TEAL})`, boxShadow: '0 4px 14px rgba(14,165,233,0.35)' }}>
+                style={{ background: `linear-gradient(135deg, var(--c-navy-deep), ${TEAL})`, boxShadow: '0 4px 14px rgba(14,165,233,0.35)' }}>
                 Payer {total.toLocaleString('fr-FR')} FCFA
               </button>
               {!visiteId && (

@@ -42,11 +42,11 @@ function FlagTG() {
   return (
     <Frame>
       <rect width="20" height="14" rx="1.5" fill="#FFCE00" />
-      <rect y="0" width="20" height="2.8" fill="#006A4E" />
-      <rect y="5.6" width="20" height="2.8" fill="#006A4E" />
-      <rect y="11.2" width="20" height="2.8" fill="#006A4E" />
+      <rect y="0" width="20" height="2.8" fill="var(--c-green-flag)" />
+      <rect y="5.6" width="20" height="2.8" fill="var(--c-green-flag)" />
+      <rect y="11.2" width="20" height="2.8" fill="var(--c-green-flag)" />
       <rect width="8" height="8" fill="#D21034" />
-      <path d="M4 1.8l0.62 1.9h2l-1.62 1.18 0.62 1.9L4 5.6 2.38 6.78l0.62-1.9L1.38 3.7h2z" fill="#fff" />
+      <path d="M4 1.8l0.62 1.9h2l-1.62 1.18 0.62 1.9L4 5.6 2.38 6.78l0.62-1.9L1.38 3.7h2z" fill="rgb(255,255,255)" />
     </Frame>
   )
 }
@@ -55,7 +55,7 @@ function FlagTG() {
 function FlagCI() {
   return (
     <Frame>
-      <rect width="20" height="14" rx="1.5" fill="#fff" />
+      <rect width="20" height="14" rx="1.5" fill="rgb(255,255,255)" />
       <rect width="6.67" height="14" fill="#F77F00" />
       <rect x="13.33" width="6.67" height="14" fill="#009E60" />
     </Frame>
@@ -78,7 +78,7 @@ function FlagSN() {
 function FlagFR() {
   return (
     <Frame>
-      <rect width="20" height="14" rx="1.5" fill="#fff" />
+      <rect width="20" height="14" rx="1.5" fill="rgb(255,255,255)" />
       <rect width="6.67" height="14" fill="#002395" />
       <rect x="13.33" width="6.67" height="14" fill="#ED2939" />
     </Frame>

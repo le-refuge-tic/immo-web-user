@@ -24,7 +24,7 @@ export default function AnnulerChangementPage() {
     try {
       await withColdStartRetry(() => authApi.cancelChange(token))
       setState('done')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(isColdStartError(err)
         ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.'
         : apiMessage(err) || 'Ce lien a expiré ou a déjà été utilisé.')

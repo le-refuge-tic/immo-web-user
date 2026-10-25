@@ -4,19 +4,23 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { chatApi } from '../../api/chatApi'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { apiMessage } from '../../utils/apiMessage'
+import { asChatConversations, type ChatConversation, type ChatUser } from '../../types/chat-ui'
+
+type Interlocuteur = ChatUser | null | undefined
 
 const AVATAR_PALETTE = [
-  'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
-  'linear-gradient(135deg,#FF6B35,#FF3B7A)',
+  'linear-gradient(135deg,var(--c-brand),var(--c-violet))',
+  'linear-gradient(135deg,var(--c-accent),#FF3B7A)',
   'linear-gradient(135deg,#00C6A2,#0099CC)',
   'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,#6366F1)',
+  'linear-gradient(135deg,#A855F7,var(--c-indigo))',
   'linear-gradient(135deg,#10B981,#3B82F6)',
 ]
 function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVATAR_PALETTE.length] }
-function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
-function initiale(o: any) { return (displayName(o)[0] || '?').toUpperCase() }
-function roleLabel(o: any) {
+function displayName(o: Interlocuteur) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
+function initiale(o: Interlocuteur) { return (displayName(o)[0] || '?').toUpperCase() }
+function roleLabel(o: Interlocuteur) {
   if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'
@@ -40,23 +44,24 @@ export default function ConversationsPage() {
   const match = useMatch('/conversations/:id')
   const activeId = match?.params?.id ? Number(match.params.id) : null
 
-  const [convs, setConvs] = useState<any[]>([])
+  const [convs, setConvs] = useState<ChatConversation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
   const [search, setSearch] = useState('')
   const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true); setError('')
     chatApi.conversations()
-      .then(d => setConvs(Array.isArray(d) ? d : d.data || []))
-      .catch(e => setError(e?.message || 'Erreur'))
+      .then(d => setConvs(asChatConversations(Array.isArray(d) ? d : d.data || [])))
+      .catch(e => setError(apiMessage(e) || 'Impossible de charger vos conversations.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [reloadKey])
 
-  const getOther = (c: any) => {
+  const getOther = (c: ChatConversation): ChatUser | null => {
     if (!user || !Array.isArray(c.participants)) return null
-    return c.participants.find((p: any) => p.id !== user.id) || c.participants[0] || null
+    return c.participants.find(p => p.id !== user.id) || c.participants[0] || null
   }
 
   const filtered = useMemo(() => {
@@ -71,22 +76,22 @@ export default function ConversationsPage() {
 
   /* ── Design tokens ── */
   // Backgrounds
-  const bgPage     = isDark ? '#0F1117' : '#F3F4F8'
-  const bgSidebar  = isDark ? '#161820' : '#FFFFFF'
+  const bgPage     = isDark ? '#0F1117' : 'var(--c-fog)'
+  const bgSidebar  = isDark ? '#161820' : 'rgb(255,255,255)'
   const bgChatArea = isDark ? '#0F1117' : '#EEF0F7'
   // Text
-  const textPrimary   = isDark ? '#E8E9F0' : '#111827'
+  const textPrimary   = isDark ? 'var(--c-mist)' : 'var(--c-ink-900)'
   const textSecondary = isDark ? 'rgba(232,233,240,0.60)' : '#6B7280'
-  const textMuted     = isDark ? 'rgba(232,233,240,0.38)' : '#9CA3AF'
+  const textMuted     = isDark ? 'rgba(232,233,240,0.60)' : 'var(--c-slate)'
   // Borders & dividers
-  const border    = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  const border    = isDark ? 'rgba(255,255,255,0.07)' : 'var(--c-line)'
   const divider   = isDark ? 'rgba(255,255,255,0.05)' : '#F0F1F4'
   // Interactive
   const activeBg  = isDark ? 'rgba(75,107,255,0.14)' : 'rgba(75,107,255,0.08)'
   const hoverBg   = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)'
   // Search field
-  const searchBg  = isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F8'
-  const searchBdr = isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB'
+  const searchBg  = isDark ? 'rgba(255,255,255,0.06)' : 'var(--c-fog)'
+  const searchBdr = isDark ? 'rgba(255,255,255,0.09)' : 'var(--c-line)'
   // Empty state
   const emptyIconBg = isDark ? 'rgba(75,107,255,0.12)' : 'rgba(75,107,255,0.08)'
 
@@ -106,11 +111,11 @@ export default function ConversationsPage() {
       </div>
     )
     if (error) return (
-      <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
+      <div role="alert" className="flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
         <p className="text-sm font-semibold" style={{ color: textPrimary }}>{error}</p>
-        <button onClick={() => window.location.reload()}
+        <button onClick={() => setReloadKey(k => k + 1)}
           className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+          style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
           Réessayer
         </button>
       </div>
@@ -118,7 +123,7 @@ export default function ConversationsPage() {
     if (filtered.length === 0) return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-3">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: emptyIconBg }}>
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
             <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
         </div>
@@ -149,7 +154,7 @@ export default function ConversationsPage() {
               className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors duration-150 cursor-pointer relative"
               style={{
                 background: active ? activeBg : hoveredConvId === conv.id ? hoverBg : 'transparent',
-                borderLeft: `3px solid ${active ? '#4B6BFF' : 'transparent'}`,
+                borderLeft: `3px solid ${active ? 'var(--c-brand)' : 'transparent'}`,
               }}
               onMouseEnter={() => { if (!active) setHoveredConvId(conv.id) }}
               onMouseLeave={() => setHoveredConvId(null)}>
@@ -162,7 +167,7 @@ export default function ConversationsPage() {
                 </div>
                 {conv.isOnline && (
                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 bg-green-400"
-                    style={{ borderColor: active ? (isDark ? '#1A2030' : '#EBF0FF') : (isDark ? bgSidebar : '#fff') }} />
+                    style={{ borderColor: active ? (isDark ? '#1A2030' : '#EBF0FF') : (isDark ? bgSidebar : 'rgb(255,255,255)') }} />
                 )}
               </div>
 
@@ -172,7 +177,7 @@ export default function ConversationsPage() {
                   <p className="text-[13.5px] truncate" style={{ color: textPrimary, fontWeight: unread ? 700 : 600 }}>
                     {name}
                   </p>
-                  <span className="text-caption flex-shrink-0 tabular-nums" style={{ color: unread ? '#4B6BFF' : textMuted }}>
+                  <span className="text-caption flex-shrink-0 tabular-nums" style={{ color: unread ? 'var(--c-brand)' : textMuted }}>
                     {time}
                   </span>
                 </div>
@@ -186,7 +191,7 @@ export default function ConversationsPage() {
                   </p>
                   {unread > 0 && (
                     <span className="min-w-[20px] h-5 px-1.5 rounded-full text-white text-micro font-bold flex items-center justify-center flex-shrink-0"
-                      style={{ background: '#4B6BFF' }}>
+                      style={{ background: 'var(--c-brand)' }}>
                       {unread > 9 ? '9+' : unread}
                     </span>
                   )}
@@ -221,7 +226,7 @@ export default function ConversationsPage() {
           <h2 className="text-[18px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h2>
           {!loading && convs.length > 0 && (
             <span className="px-2.5 py-0.5 rounded-full text-caption font-bold text-white"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
               {convs.length}
             </span>
           )}
@@ -237,7 +242,7 @@ export default function ConversationsPage() {
             className="flex-1 min-w-0 bg-transparent border-none outline-none text-[13px]"
             style={{ color: textPrimary }} />
           {search && (
-            <button onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
+            <button aria-label="Effacer la recherche" onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
@@ -262,7 +267,7 @@ export default function ConversationsPage() {
               <h1 className="text-[20px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h1>
               {!loading && convs.length > 0 && (
                 <span className="px-2.5 py-0.5 rounded-full text-caption font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                  style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
                   {convs.length}
                 </span>
               )}
@@ -279,7 +284,7 @@ export default function ConversationsPage() {
                   className="flex-1 bg-transparent outline-none text-[13px]"
                   style={{ color: textPrimary }} />
                 {search && (
-                  <button onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
+                  <button aria-label="Effacer la recherche" onClick={() => setSearch('')} className="cursor-pointer" style={{ color: textMuted }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
                       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
@@ -299,7 +304,7 @@ export default function ConversationsPage() {
           {activeId !== null ? <Outlet /> : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-5">
               <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: emptyIconBg }}>
-                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>

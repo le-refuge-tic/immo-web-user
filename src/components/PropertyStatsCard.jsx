@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Home } from "lucide-react";
 
-function Ring({ value, total, color, size = 76, stroke = 7, delay = 0, dark = false, hovered = false }) {
+function Ring({ value, total, color, size = 76, stroke = 7, dark = false }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -41,7 +41,7 @@ function Ring({ value, total, color, size = 76, stroke = 7, delay = 0, dark = fa
   );
 }
 
-function StatItem({ s, i, total, dark }) {
+function StatItem({ s, total, dark }) {
   const [hovered, setHovered] = useState(false);
   const [ringKey, setRingKey] = useState(0);
 
@@ -93,7 +93,7 @@ function StatItem({ s, i, total, dark }) {
       <span
         className="text-[10px] font-bold uppercase tracking-widest"
         style={{
-          color: dark ? "#8A9BB5" : "#9E9E9E",
+          color: dark ? "#8A9BB5" : "#5F6672",
         }}
       >
         {s.label}
@@ -107,7 +107,7 @@ export default function PropertyStatsCard({
   total = 6,
   dark = false,
   stats = [
-    { label: "Total",       value: 6, color: "#4B6BFF" },
+    { label: "Total",       value: 6, color: "#4160F2" },
     { label: "Publiés",     value: 5, color: "#22C55E" },
     { label: "En attente",  value: 1, color: "#F59E0B" },
     { label: "Rejetés",     value: 0, color: "#EF4444" },
@@ -116,7 +116,7 @@ export default function PropertyStatsCard({
   const corner = 20;
   const arm = 28;
   const thickness = 2.5;
-  const glow = '#4B6BFF';
+  const glow = '#4160F2';
 
   const corners = [
     { top: 0, left: 0,     borderTop: thickness, borderLeft: thickness,  borderTopLeftRadius: corner },
@@ -176,7 +176,7 @@ export default function PropertyStatsCard({
       <div className="flex items-center gap-2.5 mb-5">
         <span
           className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0"
-          style={{ background: "#4B6BFF" }}
+          style={{ background: "#4160F2" }}
         >
           <Home size={15} strokeWidth={2.4} color="#fff" />
         </span>
@@ -188,7 +188,7 @@ export default function PropertyStatsCard({
         </span>
         <span
           className="ml-auto text-[24px] font-black leading-none"
-          style={{ color: "#4B6BFF" }}
+          style={{ color: "#4160F2" }}
         >
           {total}
         </span>

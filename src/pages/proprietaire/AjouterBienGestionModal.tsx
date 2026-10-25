@@ -3,8 +3,10 @@ import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
 import { apiMessage } from '../../utils/apiMessage'
+import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { Bien } from '../../types/api'
 
-type Props = { onClose: () => void; onCreated: (bien: any) => void }
+type Props = { onClose: () => void; onCreated: (bien: Bien) => void }
 
 const TYPES_BIEN = [
   { key: 'entree_coucher', label: 'Entrée-Coucher' },
@@ -69,22 +71,16 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
       const saved = created.data || created.bien || created
       setSuccess(true)
       setTimeout(() => onCreated(saved), 900)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || "Erreur lors de l'ajout du bien")
     }
     setSaving(false)
   }
 
   return (
-    <div
-      role="dialog" aria-modal="true" aria-label="Ajouter un bien en gestion"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.4)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Ajouter un bien en gestion" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
       <div
         className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Ajouter un bien en gestion</h2>
@@ -112,15 +108,15 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Type de bien</label>
-            <div className="flex flex-wrap gap-2">
+            <p id="ajout-bien-type" className="text-xs font-semibold text-text-dark mb-1.5 block">Type de bien</p>
+            <div role="group" aria-labelledby="ajout-bien-type" className="flex flex-wrap gap-2">
               {TYPES_BIEN.map(t => (
                 <button
                   key={t.key}
                   type="button"
                   onClick={() => setTypeBien(t.key)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${typeBien === t.key ? 'text-white border-primary' : 'text-text-dark border-divider hover:border-primary'}`}
-                  style={typeBien === t.key ? { background: '#4B6BFF' } : undefined}
+                  style={typeBien === t.key ? { background: 'var(--c-brand)' } : undefined}
                 >
                   {t.label}
                 </button>
@@ -141,15 +137,15 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Loyer mensuel (FCFA)</label>
-            <input type="number" value={loyer} onChange={e => setLoyer(e.target.value)} placeholder="Ex : 50000"
+            <label htmlFor="ajouter-bien-gestion-modal-144" className="text-xs font-semibold text-text-dark mb-1.5 block">Loyer mensuel (FCFA)</label>
+            <input id="ajouter-bien-gestion-modal-144" type="number" value={loyer} onChange={e => setLoyer(e.target.value)} placeholder="Ex : 50000"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide pt-1">Localisation</p>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
-            <QuartierPicker
+            <label htmlFor="ajouter-bien-gestion-modal-151" className="text-xs font-semibold text-text-dark mb-1.5 block">Quartier</label>
+            <QuartierPicker id="ajouter-bien-gestion-modal-151"
               value={quartier}
               onChange={setQuartier}
               onSelect={q => setVille(q.ville)}
@@ -161,19 +157,19 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Ville</label>
-            <input value={ville} onChange={e => setVille(e.target.value)} placeholder="Ex : Cotonou"
+            <label htmlFor="ajouter-bien-gestion-modal-164" className="text-xs font-semibold text-text-dark mb-1.5 block">Ville</label>
+            <input id="ajouter-bien-gestion-modal-164" value={ville} onChange={e => setVille(e.target.value)} placeholder="Ex : Cotonou"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse précise (optionnel)</label>
-            <input value={adresse} onChange={e => setAdresse(e.target.value)} placeholder="Derrière le CEG, 200m du goudron…"
+            <label htmlFor="ajouter-bien-gestion-modal-169" className="text-xs font-semibold text-text-dark mb-1.5 block">Adresse précise (optionnel)</label>
+            <input id="ajouter-bien-gestion-modal-169" value={adresse} onChange={e => setAdresse(e.target.value)} placeholder="Derrière le CEG, 200m du goudron…"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-dark mb-1.5 block">Description (optionnel)</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Détails supplémentaires…"
+            <label htmlFor="ajouter-bien-gestion-modal-175" className="text-xs font-semibold text-text-dark mb-1.5 block">Description (optionnel)</label>
+            <textarea id="ajouter-bien-gestion-modal-175" value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Détails supplémentaires…"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none" />
           </div>
         </div>
@@ -181,11 +177,11 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
         <div className="p-5 pt-0">
           <button onClick={submit} disabled={saving || success}
             className="w-full py-3.5 rounded-xl font-bold text-white disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+            style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
             {success ? 'Ajouté ✓' : saving ? 'Ajout en cours…' : 'Ajouter le bien'}
           </button>
         </div>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

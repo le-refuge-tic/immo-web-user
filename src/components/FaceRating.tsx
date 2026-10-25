@@ -1,8 +1,9 @@
+import { withAlpha } from '../utils/color'
 type FaceCfg = { face: string; light: string; rim: string; feature: string; cheek?: string; label: string }
 
 const CONFIG: Record<number, FaceCfg> = {
   1: { face: '#FF5252', light: '#FFA8A8', rim: '#D32F2F', feature: '#7F0000', label: 'Très\nmécontent' },
-  2: { face: '#B45309', light: '#FFC966', rim: '#E65100', feature: '#5D2800', label: 'Insatisfait' },
+  2: { face: 'var(--c-amber-dark)', light: '#FFC966', rim: '#E65100', feature: '#5D2800', label: 'Insatisfait' },
   3: { face: '#FFCA28', light: '#FFE699', rim: '#F9A825', feature: '#5C4000', label: 'Neutre' },
   4: { face: '#66BB6A', light: '#A5D6A7', rim: '#2E7D32', feature: '#1B3A1C', cheek: '#FF8A80', label: 'Satisfait' },
   5: { face: '#26C6DA', light: '#80DEEA', rim: '#00838F', feature: '#00363A', cheek: '#FF8A80', label: 'Ravi' },
@@ -22,7 +23,7 @@ function FaceSvg({ rating, size }: { rating: number; size: number }) {
       </defs>
       <circle cx="50" cy="50" r="46" fill={`url(#${gid})`} />
       <circle cx="50" cy="50" r="44.5" fill="none" stroke={cfg.rim} strokeOpacity={0.55} strokeWidth={2.2} />
-      <ellipse cx="38" cy="30" rx="10" ry="5" fill="#fff" opacity={0.28} transform="rotate(-18 38 30)" />
+      <ellipse cx="38" cy="30" rx="10" ry="5" fill="rgb(255,255,255)" opacity={0.28} transform="rotate(-18 38 30)" />
 
       {(rating === 4 || rating === 5) && cfg.cheek && (
         <>
@@ -50,16 +51,16 @@ function FaceSvg({ rating, size }: { rating: number; size: number }) {
         <>
           <ellipse cx="38" cy="43" rx="4.2" ry="5.8" fill={cfg.feature} />
           <ellipse cx="62" cy="43" rx="4.2" ry="5.8" fill={cfg.feature} />
-          <circle cx="36.6" cy="41" r="1.4" fill="#fff" opacity={0.55} />
-          <circle cx="60.6" cy="41" r="1.4" fill="#fff" opacity={0.55} />
+          <circle cx="36.6" cy="41" r="1.4" fill="rgb(255,255,255)" opacity={0.55} />
+          <circle cx="60.6" cy="41" r="1.4" fill="rgb(255,255,255)" opacity={0.55} />
         </>
       )}
       {rating === 1 && (
         <>
           <ellipse cx="38" cy="43" rx="4.2" ry="5.4" fill={cfg.feature} transform="rotate(12 38 43)" />
           <ellipse cx="62" cy="43" rx="4.2" ry="5.4" fill={cfg.feature} transform="rotate(-12 62 43)" />
-          <circle cx="36.9" cy="41.3" r="1.3" fill="#fff" opacity={0.5} />
-          <circle cx="60.9" cy="41.3" r="1.3" fill="#fff" opacity={0.5} />
+          <circle cx="36.9" cy="41.3" r="1.3" fill="rgb(255,255,255)" opacity={0.5} />
+          <circle cx="60.9" cy="41.3" r="1.3" fill="rgb(255,255,255)" opacity={0.5} />
         </>
       )}
 
@@ -67,7 +68,7 @@ function FaceSvg({ rating, size }: { rating: number; size: number }) {
       {rating === 5 && (
         <>
           <path d="M20 60 A30 20 0 0 0 80 60" fill={cfg.feature} />
-          <path d="M26.5 60.3 Q50 74 73.5 60.3 A24 10 0 0 1 26.5 60.3" fill="#fff" />
+          <path d="M26.5 60.3 Q50 74 73.5 60.3 A24 10 0 0 1 26.5 60.3" fill="rgb(255,255,255)" />
         </>
       )}
       {rating === 4 && <path d="M31 55 Q50 76 69 55" stroke={cfg.feature} strokeWidth={3.6} fill="none" strokeLinecap="round" />}
@@ -96,7 +97,7 @@ export default function FaceRating({ selected, onSelect, size = 56 }: { selected
               className="rounded-full transition-opacity duration-200"
               style={{
                 opacity: selected !== null && !isSel ? 0.45 : 1,
-                filter: isSel ? `drop-shadow(0 0 10px ${cfg.face}90)` : 'none',
+                filter: isSel ? `drop-shadow(0 0 10px ${withAlpha(cfg.face, '90')})` : 'none',
               }}
             >
               <FaceSvg rating={n} size={size} />
@@ -106,7 +107,7 @@ export default function FaceRating({ selected, onSelect, size = 56 }: { selected
               style={{
                 fontSize: isSel ? 10.5 : 9.5,
                 fontWeight: isSel ? 700 : 500,
-                color: isSel ? cfg.face : '#9E9E9E',
+                color: isSel ? cfg.face : 'var(--c-slate)',
                 maxWidth: size,
               }}
             >

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { userApi } from '../../api/userApi'
 import { apiMessage } from '../../utils/apiMessage'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -59,7 +60,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
       setLoading(true)
       try {
         await changer(sessionToken, code)
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(apiMessage(err) || 'Code incorrect ou expiré.')
       }
       setLoading(false)
@@ -72,25 +73,17 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
       const res = await userApi.sendPasswordOtp(current)
       if (res.requires_otp && res.session_token) setSessionToken(res.session_token)
       else await changer()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || 'Mot de passe actuel incorrect')
     }
     setLoading(false)
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Changer le mot de passe"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Changer le mot de passe" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.35}>
       <div
         className="w-full max-w-md rounded-2xl p-6"
         style={GLASS}
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -126,6 +119,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
               <label htmlFor="cp-code" className="text-sm font-semibold text-text-dark mb-1.5 block">Code reçu par SMS</label>
               <input id="cp-code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
                 value={code} onChange={e => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setError('') }}
+                // oxlint-disable-next-line jsx-a11y/no-autofocus -- le champ du code reçu par SMS est le seul de l'étape : le focus y va à l'affichage
                 placeholder="000000" autoFocus
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all text-center tracking-[0.4em] font-bold" />
               <p className="text-xs text-text-grey mt-1.5">
@@ -162,12 +156,12 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
             </button>
             <button type="submit" disabled={loading}
               className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
               {loading ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Mise à jour…</> : step === 'code' ? 'Valider' : 'Recevoir le code'}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

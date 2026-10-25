@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { rolesApi } from '../../api/rolesApi'
 import { apiMessage } from '../../utils/apiMessage'
+import { withAlpha } from '../../utils/color'
 
 type RoleInfo = {
   key: string
@@ -20,10 +21,10 @@ const IcBriefcase = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="non
 const IcKey = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a4 4 0 11-8.6 2.4L2 14v3h3v-2h2v-2h2l1.6-1.6A4 4 0 0115 7z" /><circle cx="15.5" cy="6.5" r=".6" fill="currentColor" /></svg>
 
 const ROLES: RoleInfo[] = [
-  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: '#3A5AEE', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
-  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: '#2E86C1', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
+  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
+  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: 'var(--c-steel)', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
   { key: 'demarcheur',   label: 'Démarcheur',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: '#15803D', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
 ]
 
 function roleLabel(key: string) {
@@ -53,7 +54,7 @@ export default function ManageRolesPage() {
       setActivating(null); setJustif('')
       setSuccess(`Rôle "${roleLabel(role)}" activé avec succès.`)
       setTimeout(() => setSuccess(''), 3000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || `Impossible d'activer ce rôle.`)
     } finally {
       setLoading(null)
@@ -71,7 +72,7 @@ export default function ManageRolesPage() {
       if (role === activeRole) setActiveRole(rolePrincipal)
       setSuccess(`Rôle "${roleLabel(role)}" désactivé.`)
       setTimeout(() => setSuccess(''), 3000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de désactiver ce rôle.')
       // Ne pas toucher activeRole en cas d'échec API
     } finally {
@@ -100,9 +101,9 @@ export default function ManageRolesPage() {
     <div className="min-h-full flex flex-col bg-[#F4F6FA] dark:bg-[#0F0F14]">
       {/* Header */}
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-8 pb-6 md:pb-8"
-        style={{ background: 'linear-gradient(135deg,#1A1A2E,#4B6BFF)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: 'linear-gradient(135deg,#1A1A2E,var(--c-brand))', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-3xl mx-auto flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+          <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
             style={{ background: 'rgba(255,255,255,0.12)' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
@@ -125,7 +126,7 @@ export default function ManageRolesPage() {
           </div>
           {success && (
             <div className="px-4 py-3 rounded-xl flex items-center gap-2 mb-4" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>{success}</p>
             </div>
           )}
@@ -143,19 +144,19 @@ export default function ManageRolesPage() {
               return (
                 <div key={r.key} className="rounded-2xl overflow-hidden transition-shadow hover:shadow-md"
                   style={{
-                    background: '#fff',
+                    background: 'rgb(255,255,255)',
                     border: isActiveNow ? `1.5px solid ${r.color}` : '1px solid rgba(0,0,0,0.07)',
-                    boxShadow: isActiveNow ? `0 4px 16px ${r.color}25` : '0 1px 3px rgba(0,0,0,0.03)',
+                    boxShadow: isActiveNow ? `0 4px 16px ${withAlpha(r.color, '25')}` : '0 1px 3px rgba(0,0,0,0.03)',
                   }}>
                   <div className="p-4 flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: isDisponible ? 'rgba(0,0,0,0.05)' : r.color, color: isDisponible ? '#8A93A3' : '#fff' }}>
+                    <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: isDisponible ? 'rgba(0,0,0,0.05)' : r.color, color: isDisponible ? '#8A93A3' : 'rgb(255,255,255)' }}>
                       {r.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-bold text-text-dark text-sm">{r.label}</p>
                         {statusLabel && (
-                          <span className="text-micro font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.color : r.bg, color: isActiveNow ? '#fff' : r.color }}>
+                          <span className="text-micro font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.color : r.bg, color: isActiveNow ? 'rgb(255,255,255)' : r.color }}>
                             {statusLabel}
                           </span>
                         )}
@@ -192,10 +193,10 @@ export default function ManageRolesPage() {
                         {!isPrincipal && (
                           confirmDesactiver === r.key ? (
                             <div className="flex items-center gap-1.5">
-                              <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white disabled:opacity-50" style={{ background: '#DC2626' }}>
+                              <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white disabled:opacity-50" style={{ background: 'var(--c-danger)' }}>
                                 {busy ? '…' : 'Confirmer'}
                               </button>
-                              <button onClick={() => setConfirmDesactiver(null)} className="py-2 px-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: '#E5E7EB', color: '#6B7280', background: 'transparent' }}>✕</button>
+                              <button onClick={() => setConfirmDesactiver(null)} className="py-2 px-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: 'var(--c-line)', color: 'var(--c-grey)', background: 'transparent' }}>✕</button>
                             </div>
                           ) : (
                             <button onClick={() => setConfirmDesactiver(r.key)} disabled={busy}

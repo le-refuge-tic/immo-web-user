@@ -3,22 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../api/walletApi'
 import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { Wallet, WalletTransaction } from '../../types/wallet'
+import { withAlpha } from '../../utils/color'
+import { apiMessage } from '../../utils/apiMessage'
+import ErrorState from '../../components/ErrorState'
+import { messageMontantRetrait } from '../../utils/retrait'
 
-const isLoyer = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
-const isVisite = (t: any) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
-const typeLabel = (t: any) => isLoyer(t) ? 'Loyer mensuel' : isVisite(t) ? 'Frais de visite' : String(t.libelle ?? t.description ?? t.type ?? 'Transaction')
-const montantOf = (t: any) => Number(t.montant ?? t.amount ?? 0)
-const statutLabel = (t: any) => {
+const isLoyer = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
+const isVisite = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
+const typeLabel = (t: WalletTransaction) => isLoyer(t) ? 'Loyer mensuel' : isVisite(t) ? 'Frais de visite' : String(t.libelle ?? t.description ?? t.type ?? 'Transaction')
+const montantOf = (t: WalletTransaction) => Number(t.montant ?? t.amount ?? 0)
+const statutLabel = (t: WalletTransaction) => {
   const s = String(t.statut ?? t.status ?? '').toLowerCase()
   if (s.includes('rembours')) return 'Remboursé'
   if (s.includes('fail') || s.includes('echec')) return 'Échoué'
   if (s.includes('pending') || s.includes('attente')) return 'En attente'
   return 'Payé'
 }
-const statutColor = (s: string) => s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#15803D'
-const typeColor = (t: any) => isLoyer(t) ? '#4B6BFF' : isVisite(t) ? '#FF6B35' : '#6E6E73'
+const statutColor = (s: string) => s === 'Échoué' ? 'var(--c-danger)' : (s === 'Remboursé' || s === 'En attente') ? 'var(--c-amber-dark)' : 'var(--c-success)'
+const typeColor = (t: WalletTransaction) => isLoyer(t) ? 'var(--c-brand)' : isVisite(t) ? 'var(--c-accent)' : '#6E6E73'
 const fieldLabel = (k: string) => k.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ')
-const formatDate = (t: any) => {
+const formatDate = (t: WalletTransaction) => {
   const raw = String(t.created_at ?? t.date ?? '')
   if (!raw) return '—'
   const d = new Date(raw)
@@ -26,7 +32,7 @@ const formatDate = (t: any) => {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function TypeIcon({ t, color, className }: { t: any; color: string; className: string }) {
+function TypeIcon({ t, color, className }: { t: WalletTransaction; color: string; className: string }) {
   if (isLoyer(t)) return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" /></svg>
   if (isVisite(t)) return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
   return <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
@@ -45,22 +51,26 @@ export default function PortefeuillePage() {
 // ─── Vue client/locataire : Cotisation / Épargne (mirroir de portefeuille_screen.dart) ─
 type WType = 'cotisation' | 'epargne'
 const W_LABEL: Record<WType, string> = { cotisation: 'Cotisation', epargne: 'Épargne' }
-const W_COLOR: Record<WType, string> = { cotisation: '#4B6BFF', epargne: '#7B4BFF' }
+const W_COLOR: Record<WType, string> = { cotisation: 'var(--c-brand)', epargne: 'var(--c-violet)' }
 
 function ClientWalletView() {
   const navigate = useNavigate()
   usePageTitle('Mon portefeuille')
   const [tab, setTab] = useState<WType>('cotisation')
-  const [wallets, setWallets] = useState<Record<WType, any>>({ cotisation: null, epargne: null })
-  const [txs, setTxs] = useState<Record<WType, any[]>>({ cotisation: [], epargne: [] })
+  const [wallets, setWallets] = useState<Record<WType, Wallet | null>>({ cotisation: null, epargne: null })
+  const [txs, setTxs] = useState<Record<WType, WalletTransaction[]>>({ cotisation: [], epargne: [] })
   const [loading, setLoading] = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
   const [montant, setMontant] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [retraitOk, setRetraitOk] = useState(false)
+  const [retraitError, setRetraitError] = useState('')
+  // Échec du chargement : n'écrase jamais des soldes déjà affichés (rafraîchissement après un retrait).
+  const [loadError, setLoadError] = useState(false)
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [wc, we, tc, te] = await Promise.all([
         walletApi.me('cotisation'), walletApi.me('epargne'),
@@ -71,26 +81,37 @@ function ClientWalletView() {
         cotisation: Array.isArray(tc) ? tc : tc?.data || [],
         epargne: Array.isArray(te) ? te : te?.data || [],
       })
-    } catch (_) {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
 
+  const noData = loadError && !wallets.cotisation && !wallets.epargne
   const solde = Number(wallets[tab]?.balance || 0)
   const color = W_COLOR[tab]
   const transactions = txs[tab]
 
+  // Le minimum (500 FCFA) et le plafond (solde) sont vérifiés dès la saisie, comme côté serveur (FE-B-015).
+  const soldeEpargne = Number(wallets.epargne?.balance || 0)
+  const montantMessage = messageMontantRetrait(montant, soldeEpargne)
+
   const demanderRetrait = async () => {
-    if (!montant || Number(montant) <= 0) return
+    if (!montant || montantMessage) return
     setSubmitting(true)
+    setRetraitError('')
     try {
       await walletApi.demandeRetrait(Number(montant), 'epargne')
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
-    } catch (_) {}
+    } catch (e: unknown) {
+      // Le bouton « Confirmer » redevient actif : la personne peut simplement renvoyer sa demande.
+      setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
+    }
     setSubmitting(false)
   }
 
-  const typeLabel = (t: any) => {
+  const typeLabel = (t: WalletTransaction) => {
     switch (t.type) {
       case 'depot': return 'Dépôt'
       case 'retrait': return 'Retrait'
@@ -99,19 +120,19 @@ function ClientWalletView() {
       default: return t.description || t.type
     }
   }
-  const isDebit = (t: any) => t.type === 'retrait' || t.type === 'paiement_loyer'
-  const formatDate = (raw: any) => {
-    const d = new Date(raw)
+  const isDebit = (t: WalletTransaction) => t.type === 'retrait' || t.type === 'paiement_loyer'
+  const formatDate = (raw?: string) => {
+    const d = new Date(raw ?? NaN)
     return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
   }
 
   return (
     <div className="min-h-full flex flex-col">
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
-        style={{ background: `linear-gradient(135deg, ${color}CC, ${color})`, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: `linear-gradient(135deg, ${withAlpha(color, 'CC')}, ${color})`, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-5">
-            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.15)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
@@ -128,7 +149,7 @@ function ClientWalletView() {
           </div>
           <div className="rounded-2xl p-5 text-white" style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.18)' }}>
             <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Solde {W_LABEL[tab].toLowerCase()}</p>
-            <p className="text-3xl font-bold mb-1">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-3xl font-bold mb-1">{loading ? '…' : noData ? '—' : `${solde.toLocaleString('fr-FR')} FCFA`}</p>
             <p className="text-white/50 text-caption mb-4">Mis à jour : {wallets[tab]?.updated_at ? formatDate(wallets[tab].updated_at) : '—'}</p>
             {tab === 'cotisation' ? (
               <div className="space-y-2.5">
@@ -161,49 +182,51 @@ function ClientWalletView() {
         <div className="max-w-2xl mx-auto px-5 py-6 pb-10">
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée — en attente de validation.</p>
             </div>
           )}
 
           {showRetrait && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-              onClick={() => setShowRetrait(false)}>
-              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}
-                onClick={e => e.stopPropagation()}>
+            <ModalSheet open onClose={() => setShowRetrait(false)} label="Demander un retrait — Épargne" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}>
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demander un retrait — Épargne</h3>
                 <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{Number(wallets.epargne?.balance || 0).toLocaleString('fr-FR')} FCFA</strong></p>
                 <p className="text-xs text-text-grey mb-3">Minimum 500 FCFA · Max 3 retraits / 24h</p>
-                <label className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={Number(wallets.epargne?.balance || 0)}
+                <label htmlFor="portefeuille-page-178" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
+                <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={soldeEpargne}
+                  aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 5000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
+                <p id="retrait-montant-message" aria-live="polite" className={montantMessage ? '-mt-2 mb-3 text-sm font-semibold' : 'sr-only'} style={montantMessage ? { color: 'var(--c-danger)' } : undefined}>{montantMessage}</p>
+                {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={demanderRetrait} disabled={submitting || !montant || Number(montant) > Number(wallets.epargne?.balance || 0)}
+                  <button onClick={demanderRetrait} disabled={submitting || !montant || !!montantMessage}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
                     style={{ background: W_COLOR.epargne }}>
                     {submitting ? 'Envoi…' : 'Confirmer'}
                   </button>
                 </div>
               </div>
-            </div>
+            </ModalSheet>
           )}
 
           <p className="font-bold text-text-dark mb-4">Historique</p>
           {loading ? (
             [1, 2, 3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
+          ) : noData ? (
+            <ErrorState title="Impossible de charger votre portefeuille" onRetry={load} className="py-10" />
           ) : transactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} className="w-14 h-14 mb-3" style={{ opacity: 0.25 }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
               <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
               <p className="text-text-grey text-sm">Vos opérations {W_LABEL[tab].toLowerCase()} apparaîtront ici.</p>
             </div>
-          ) : transactions.map((t: any, i: number) => (
+          ) : transactions.map((t, i) => (
             <div key={i} className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A` }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${withAlpha(color, '1A')}` }}>
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
                   {isDebit(t) ? <path strokeLinecap="round" strokeLinejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12" /> : <path strokeLinecap="round" strokeLinejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" />}
                 </svg>
@@ -212,7 +235,7 @@ function ClientWalletView() {
                 <p className="font-semibold text-text-dark text-sm truncate">{t.description || typeLabel(t)}</p>
                 <p className="text-caption text-text-grey mt-0.5">Solde après : {Number(t.balance_after ?? 0).toLocaleString('fr-FR')} F · {formatDate(t.created_at)}</p>
               </div>
-              <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? '#DC2626' : '#15803D' }}>
+              <p className="font-bold text-sm flex-shrink-0" style={{ color: isDebit(t) ? 'var(--c-danger)' : 'var(--c-success)' }}>
                 {isDebit(t) ? '-' : '+'}{Number(t.amount ?? 0).toLocaleString('fr-FR')} F
               </p>
             </div>
@@ -227,38 +250,51 @@ function ClientWalletView() {
 function WalletCommissionsView() {
   const navigate = useNavigate()
   usePageTitle('Mon portefeuille')
-  const [wallet, setWallet]         = useState<any>(null)
-  const [transactions, setTrans]    = useState<any[]>([])
+  const [wallet, setWallet]         = useState<Wallet | null>(null)
+  const [transactions, setTrans]    = useState<WalletTransaction[]>([])
   const [loading, setLoading]       = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
   const [montant, setMontant]       = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [retraitOk, setRetraitOk]  = useState(false)
   const [filter, setFilter]         = useState<'Tous' | 'Loyers' | 'Visites'>('Tous')
-  const [detailTx, setDetailTx]     = useState<any>(null)
+  const [detailTx, setDetailTx]     = useState<WalletTransaction | null>(null)
+  const [retraitError, setRetraitError] = useState('')
+  // Échec du chargement : n'écrase jamais un solde déjà affiché (rafraîchissement après un retrait).
+  const [loadError, setLoadError]   = useState(false)
 
   const load = async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
       setWallet(w)
       setTrans(Array.isArray(t) ? t : t.data || [])
-    } catch (_) {}
+    } catch {
+      setLoadError(true)
+    }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
 
+  const noData = loadError && !wallet
+
   const demanderRetrait = async () => {
-    if (!montant || Number(montant) <= 0) return
+    if (!montant || montantMessage) return
     setSubmitting(true)
+    setRetraitError('')
     try {
       await walletApi.demandeRetrait(Number(montant))
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
-    } catch (_) {}
+    } catch (e: unknown) {
+      // Le bouton « Envoyer » redevient actif : la personne peut simplement renvoyer sa demande.
+      setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
+    }
     setSubmitting(false)
   }
 
   const solde = Number(wallet?.balance || 0)
+  const montantMessage = messageMontantRetrait(montant, solde)
   const loyerCount = transactions.filter(isLoyer).length
   const visiteCount = transactions.filter(isVisite).length
   const filteredTx = filter === 'Loyers' ? transactions.filter(isLoyer) : filter === 'Visites' ? transactions.filter(isVisite) : transactions
@@ -268,10 +304,10 @@ function WalletCommissionsView() {
     <div className="min-h-full flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
-        style={{ background: 'linear-gradient(135deg,#1A1A2E,#4B6BFF)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: 'linear-gradient(135deg,#1A1A2E,var(--c-brand))', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
+            <button aria-label="Retour" onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)' }}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </button>
@@ -283,7 +319,7 @@ function WalletCommissionsView() {
           {/* Balance card */}
           <div className="rounded-2xl p-5 text-white" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }}>
             <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Solde disponible</p>
-            <p className="text-3xl font-bold mb-4">{loading ? '…' : solde.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-3xl font-bold mb-4">{loading ? '…' : noData ? '—' : `${solde.toLocaleString('fr-FR')} FCFA`}</p>
             <button onClick={() => setShowRetrait(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm"
               style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)' }}>
@@ -300,46 +336,43 @@ function WalletCommissionsView() {
           {/* Confirmation retrait */}
           {retraitOk && (
             <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée avec succès.</p>
             </div>
           )}
 
           {/* Modal retrait */}
           {showRetrait && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-              onClick={() => setShowRetrait(false)}>
-              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}
-                onClick={e => e.stopPropagation()}>
+            <ModalSheet open onClose={() => setShowRetrait(false)} label="Demande de retrait" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+              <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}>
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demande de retrait</h3>
                 <p className="text-sm text-text-grey mb-3">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
-                <label className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input type="number" value={montant} onChange={e => setMontant(e.target.value)} min={1} max={solde}
+                <label htmlFor="portefeuille-page-317" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
+                <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={solde}
+                  aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 50000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
+                <p id="retrait-montant-message" aria-live="polite" className={montantMessage ? '-mt-2 mb-3 text-sm font-semibold' : 'text-xs text-text-grey -mt-2 mb-3'} style={montantMessage ? { color: 'var(--c-danger)' } : undefined}>{montantMessage || 'Minimum 500 FCFA.'}</p>
+                {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={demanderRetrait} disabled={submitting || !montant || Number(montant) > solde}
+                  <button onClick={demanderRetrait} disabled={submitting || !montant || !!montantMessage}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
-                    style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                    style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
                     {submitting ? 'Envoi…' : 'Envoyer'}
                   </button>
                 </div>
               </div>
-            </div>
+            </ModalSheet>
           )}
 
           {/* Modal détail transaction */}
           {detailTx && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-              onClick={() => setDetailTx(null)}>
-              <div className="w-full max-w-md rounded-2xl p-6 max-h-[80vh] overflow-y-auto" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(40px)' }}
-                onClick={e => e.stopPropagation()}>
+            <ModalSheet open onClose={() => setDetailTx(null)} label="Détail de la transaction" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+              <div className="w-full max-w-md rounded-2xl p-6 max-h-[80vh] overflow-y-auto" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(40px)' }}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${typeColor(detailTx)}1A` }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${withAlpha(typeColor(detailTx), '1A')}` }}>
                     <TypeIcon t={detailTx} color={typeColor(detailTx)} className="w-6 h-6" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -348,7 +381,7 @@ function WalletCommissionsView() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="font-bold text-text-dark">{montantOf(detailTx).toLocaleString('fr-FR')} FCFA</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statutLabel(detailTx))}1F`, color: statutColor(statutLabel(detailTx)) }}>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${withAlpha(statutColor(statutLabel(detailTx)), '1F')}`, color: statutColor(statutLabel(detailTx)) }}>
                       {statutLabel(detailTx)}
                     </span>
                   </div>
@@ -364,7 +397,7 @@ function WalletCommissionsView() {
                     ))}
                 </div>
               </div>
-            </div>
+            </ModalSheet>
           )}
 
           {/* Transactions */}
@@ -372,10 +405,12 @@ function WalletCommissionsView() {
             <p className="font-bold text-text-dark mb-4">Historique des transactions</p>
             {loading ? (
               [1,2,3].map(n => <div key={n} className="h-16 skeleton rounded-2xl mb-3" />)
+            ) : noData ? (
+              <ErrorState title="Impossible de charger votre portefeuille" onRetry={load} className="py-10" />
             ) : transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: 'rgba(75,107,255,0.1)' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <p className="font-bold text-text-dark mb-1">Aucune transaction</p>
                 <p className="text-text-grey text-sm">Vos commissions apparaîtront ici.</p>
@@ -384,7 +419,7 @@ function WalletCommissionsView() {
               <>
                 {/* Résumé */}
                 <div className="rounded-2xl p-4 mb-4 text-white flex items-center justify-between"
-                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
+                  style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
                   <div>
                     <p className="text-white/70 text-xs">Total{filter !== 'Tous' ? ` (${filter})` : ''}</p>
                     <p className="text-xl font-bold mt-0.5">{totalFiltre.toLocaleString('fr-FR')} FCFA</p>
@@ -406,8 +441,8 @@ function WalletCommissionsView() {
                     <button key={f} onClick={() => setFilter(f)}
                       className="px-4 py-2 rounded-full text-xs font-bold transition-colors"
                       style={filter === f
-                        ? { background: '#4B6BFF', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
-                        : { background: '#fff', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
+                        ? { background: 'var(--c-brand)', color: 'rgb(255,255,255)', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
+                        : { background: 'rgb(255,255,255)', color: 'var(--c-grey-warm)', border: '1px solid rgba(0,0,0,0.08)' }}>
                       {f}
                     </button>
                   ))}
@@ -415,7 +450,7 @@ function WalletCommissionsView() {
 
                 {filteredTx.length === 0 ? (
                   <p className="text-text-grey text-sm text-center py-8">Aucune transaction dans cette catégorie.</p>
-                ) : filteredTx.map((t: any, i: number) => {
+                ) : filteredTx.map((t, i) => {
                   const statut = statutLabel(t)
                   const sColor = statutColor(statut)
                   const tColor = typeColor(t)
@@ -426,8 +461,8 @@ function WalletCommissionsView() {
                       onClick={() => setDetailTx(t)}
                       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailTx(t) } }}
                       aria-label={`${typeLabel(t)} — ${String(t.bien ?? t.reference ?? t.libelle ?? '')} — ${montantOf(t).toLocaleString('fr-FR')} FCFA`}
-                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tColor}1A` }}>
+                      className="flex items-center gap-3 p-4 card-soft rounded-2xl mb-3 cursor-pointer transition-shadow focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${withAlpha(tColor, '1A')}` }}>
                         <TypeIcon t={t} color={tColor} className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -437,7 +472,7 @@ function WalletCommissionsView() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-sm text-text-dark">{montantOf(t).toLocaleString('fr-FR')} FCFA</p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${sColor}1F`, color: sColor }}>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${withAlpha(sColor, '1F')}`, color: sColor }}>
                           {statut}
                         </span>
                       </div>

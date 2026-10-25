@@ -36,9 +36,9 @@ const ESPACES_FILTRES = new Set(['proprietaire', 'demarcheur', 'commercial', 'lo
 const TITRE_BADGE = /^\(\d+\+?\) /
 
 const AVATAR_PALETTE = [
-  'linear-gradient(135deg,#4B6BFF,#7B4BFF)', 'linear-gradient(135deg,#FF6B35,#FF3B7A)',
+  'linear-gradient(135deg,var(--c-brand),var(--c-violet))', 'linear-gradient(135deg,var(--c-accent),#FF3B7A)',
   'linear-gradient(135deg,#00C6A2,#0099CC)', 'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,#6366F1)', 'linear-gradient(135deg,#10B981,#3B82F6)',
+  'linear-gradient(135deg,#A855F7,var(--c-indigo))', 'linear-gradient(135deg,#10B981,#3B82F6)',
 ]
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
@@ -57,6 +57,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const espaceRole = ESPACES_FILTRES.has(activeRole) ? activeRole : ''
 
   const refreshAlertes = useCallback(() => {
+    // Pastilles de comptage : mise à jour de fond, la valeur précédente reste affichée en cas d'échec
     notificationsApi.count().then(d => setUnreadAlertes(d?.count ?? 0)).catch(() => {})
     if (espaceRole) {
       notificationsApi.count(espaceRole).then(d => setUnreadAlertesEspace(d?.count ?? 0)).catch(() => {})
@@ -66,7 +67,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const refreshMessages = useCallback(() => {
     chatApi.conversations().then(list => {
       const arr = Array.isArray(list) ? list : list.data || []
-      setUnreadMessages(arr.reduce((sum: number, c: any) => sum + (c.nonLus || 0), 0))
+      setUnreadMessages(arr.reduce((sum, c) => sum + (c.nonLus || 0), 0))
 
       // Détection nouveaux messages → bannière in-app
       const prev = unreadByConvRef.current
@@ -81,7 +82,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         const isActiveConv = path === `/conversations/${c.id}`
         if (gained > 0 && !isActiveConv) {
           const other = Array.isArray(c.participants)
-            ? c.participants.find((p: any) => p.id !== user?.id) || c.participants[0]
+            ? c.participants.find(p => p.id !== user?.id) || c.participants[0]
             : null
           const name = other?.prenom || other?.pseudonyme || other?.nom || 'Nouveau message'
           const preview = c.dernierMessage?.contenu === '__supprime__' ? 'Message supprimé' : (c.dernierMessage?.contenu || 'Vous avez reçu un message')
@@ -99,7 +100,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
       unreadByConvRef.current = next
       firstLoadRef.current = false
-    }).catch(() => {})
+    }).catch(() => { /* sondage de fond des messages : on retentera au prochain cycle */ })
     // showBanner et user?.id sont stables pendant la session
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])

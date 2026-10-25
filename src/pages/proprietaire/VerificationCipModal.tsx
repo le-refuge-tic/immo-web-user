@@ -1,19 +1,27 @@
 import { useState, useEffect } from 'react'
 import { userApi } from '../../api/userApi'
+import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { ProprioProfil } from '../../types/proprietaire'
+import { apiMessage } from '../../utils/apiMessage'
 
-type Props = { user: any; onClose: () => void }
+type Props = { user: ProprioProfil | null | undefined; onClose: () => void }
 
 const IcUpload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-7 h-7"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
 
-function DocUploader({ label, existingUrl, onUpload }: { label: string; existingUrl?: string | null; onUpload: (f: File) => Promise<void> }) {
+function DocUploader({ label, existingUrl, onUpload }: { label: string; existingUrl?: string | null; onUpload: (f: File) => Promise<unknown> }) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
 
   const submit = async () => {
     if (!file) return
     setUploading(true)
-    try { await onUpload(file); setDone(true); setFile(null) } catch (_) {}
+    setError('')
+    try { await onUpload(file); setDone(true); setFile(null) } catch (e: unknown) {
+      // Le fichier reste sélectionné et le bouton « Envoyer » redevient actif.
+      setError(apiMessage(e) || "L'envoi du document a échoué. Réessayez.")
+    }
     setUploading(false)
   }
 
@@ -22,7 +30,7 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{label}</p>
         {(existingUrl || done) && (
-          <span className="text-caption font-bold px-2 py-0.5 rounded-full" style={{ background: '#16A34A18', color: '#16A34A' }}>Envoyé</span>
+          <span className="text-caption font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(22,163,74,0.094)', color: 'var(--tx-green)' }}>Envoyé</span>
         )}
       </div>
       <label className="block border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors" style={{ borderColor: 'var(--p-border)' }}>
@@ -32,9 +40,10 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
         </div>
         <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} />
       </label>
+      {error && <p role="alert" className="text-xs font-semibold mt-2" style={{ color: 'var(--c-danger)' }}>{error}</p>}
       {file && (
         <button onClick={submit} disabled={uploading}
-          className="w-full mt-2 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4B6BFF' }}>
+          className="w-full mt-2 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: 'var(--c-brand)' }}>
           {uploading ? 'Envoi…' : 'Envoyer'}
         </button>
       )}
@@ -50,16 +59,10 @@ export default function VerificationCipModal({ user, onClose }: Props) {
   }, [onClose])
 
   return (
-    <div
-      role="dialog" aria-modal="true" aria-label="Vérification d'identité"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.4)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Vérification d'identité" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
       <div
         className="rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
         style={{ background: 'var(--p-card)' }}
-        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0" style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
           <h2 className="font-bold" style={{ color: 'var(--p-text)' }}>Vérification d'identité</h2>
@@ -75,6 +78,6 @@ export default function VerificationCipModal({ user, onClose }: Props) {
           <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={f => userApi.uploadIfu(f)} />
         </div>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

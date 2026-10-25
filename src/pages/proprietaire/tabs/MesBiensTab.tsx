@@ -1,50 +1,43 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
 import { IcPlus, IcPin, IcTrash, IcEdit, BLUE, bienLabel, bienComposition, fmtPrix, statutBien } from './shared'
-import type { Tab } from './shared'
+
 import type { Bien } from '../../../types/api'
+import CarouselPauseToggle from '../../../components/CarouselPauseToggle'
+import { useCarouselAutoplay } from '../../../hooks/useCarouselAutoplay'
+import { onActivateKey } from '../../../utils/keyboard'
+import { withAlpha } from '../../../utils/color'
+import { apiMessage } from '../../../utils/apiMessage'
+import ErrorState from '../../../components/ErrorState'
+import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
 
 // ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
 export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
   const [biens, setBiens] = useState<Bien[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [filter, setFilter] = useState('Tous')
   const [search, setSearch] = useState('')
   const [sortByVues, setSortByVues] = useState(false)
-  const [editingBien, setEditingBien] = useState<any>(null)
+  const [editingBien, setEditingBien] = useState<Bien | null>(null)
   const [confirmDeleteBienId, setConfirmDeleteBienId] = useState<number | null>(null)
   const [hoveredEl, setHoveredEl] = useState<string | null>(null)
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const [carouselPaused, setCarouselPaused] = useState(false)
-  const [carouselIdx, setCarouselIdx] = useState(0)
+  const { ref: carouselRef, index: carouselIdx, setIndex: setCarouselIdx, paused: carouselPaused, togglePause: toggleCarousel, autoplayAvailable, containerProps: carouselProps } =
+    useCarouselAutoplay(Math.min(5, biens.length))
   const navigate = useNavigate()
 
   const load = async () => {
     setLoading(true)
-    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch (_) {}
+    setLoadError(false)
+    try { const d = await biensApi.mesBiens(); setBiens(Array.isArray(d) ? d : d.data || []) } catch { setLoadError(true) }
     setLoading(false)
   }
   useEffect(() => { load() }, [])
-
-  useEffect(() => {
-    if (carouselPaused || biens.length === 0) return
-    const id = setInterval(() => {
-      const el = carouselRef.current
-      if (!el || carouselPaused) return
-      const count = Math.min(5, biens.length)
-      const cardW = el.scrollWidth / count
-      const maxScroll = el.scrollWidth - el.clientWidth
-      const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
-      const next = isAtEnd ? 0 : el.scrollLeft + cardW
-      el.scrollTo({ left: next, behavior: 'smooth' })
-      setCarouselIdx(isAtEnd ? 0 : Math.round(next / cardW))
-    }, 3500)
-    return () => clearInterval(id)
-  }, [carouselPaused, biens.length])
 
   const FILTERS = ['Tous', 'Location', 'Vente', 'Publié', 'En attente', 'Rejeté', 'Occupé']
   const byFilter = filter === 'Tous' ? biens
@@ -65,7 +58,10 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
   })()
 
   const del = async (id: number) => {
-    try { await biensApi.delete(id); load() } catch (_) {}
+    setDeleteError('')
+    try { await biensApi.delete(id); load() } catch (e: unknown) {
+      setDeleteError(apiMessage(e) || 'La suppression du bien a échoué. Réessayez.')
+    }
     setConfirmDeleteBienId(null)
   }
 
@@ -91,33 +87,35 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'var(--p-muted)' }}>Biens récents</p>
               <div
                 ref={carouselRef}
+                role="region" aria-label="Biens récents" tabIndex={0}
                 className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-                onMouseEnter={() => setCarouselPaused(true)}
-                onMouseLeave={() => setCarouselPaused(false)}
+                {...carouselProps}
               >
                 {recentBiens.map(b => {
                   const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
                   const loc = b.localisation
                   const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                  const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
                   const compo = bienComposition(b)
                   return (
                     <div
                       key={b.id}
                       className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.14)] w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
                       style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+                      role="button" tabIndex={0}
+                      onKeyDown={onActivateKey(() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } }))}
                       onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
                     >
                       <div className="relative overflow-hidden" style={{ height: 160 }}>
                         {cover?.url
                           ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                          : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
+                          : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${withAlpha(BLUE, '30')})` }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             </div>
                         }
                         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
                         <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sColor }}>{sLabel}</span>
-                        <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: '#fff' }}>
+                        <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: 'rgb(255,255,255)' }}>
                           {b.transaction === 'location' ? 'À louer' : 'À vendre'}
                         </span>
                         <div className="absolute bottom-3 left-3 right-3">
@@ -141,10 +139,13 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                 })}
               </div>
               {recentBiens.length > 3 && (
-                <div className="flex justify-center gap-2 mt-4">
+                <div className="flex justify-center items-center gap-2 mt-4">
+                  {autoplayAvailable && <CarouselPauseToggle paused={carouselPaused} onToggle={toggleCarousel} subject="biens récents" />}
                   {recentBiens.map((_, i) => (
                     <button
                       key={i}
+                      aria-label={`Afficher le bien ${i + 1} sur ${recentBiens.length}`}
+                      aria-current={carouselIdx === i}
                       onClick={() => {
                         const el = carouselRef.current
                         if (!el) return
@@ -152,7 +153,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         el.scrollTo({ left: cardW * i, behavior: 'smooth' })
                         setCarouselIdx(i)
                       }}
-                      style={{ width: carouselIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: carouselIdx === i ? '#4B6BFF' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                      style={{ width: carouselIdx === i ? 20 : 8, height: 8, borderRadius: 4, background: carouselIdx === i ? 'var(--c-brand)' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
                     />
                   ))}
                 </div>
@@ -180,7 +181,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               </button>
               <button onClick={() => navigate('/nouveau-bien')}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all"
-                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)`, color: '#fff', boxShadow: `0 4px 14px ${BLUE}40` }}>
+                style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))`, color: 'rgb(255,255,255)', boxShadow: `0 4px 14px ${withAlpha(BLUE, '40')}` }}>
                 <IcPlus /> Nouveau bien
               </button>
             </div>
@@ -200,7 +201,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
             <button onClick={() => setSortByVues(s => !s)}
               className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all"
               style={sortByVues
-                ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                ? { background: BLUE, color: 'rgb(255,255,255)', borderColor: BLUE, boxShadow: `0 4px 12px ${withAlpha(BLUE, '35')}` }
                 : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
               <IcEye /> Vues
             </button>
@@ -212,7 +213,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               <button key={f} onClick={() => setFilter(f)}
                 className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all"
                 style={filter === f
-                  ? { background: BLUE, color: '#fff', borderColor: BLUE, boxShadow: `0 4px 12px ${BLUE}35` }
+                  ? { background: BLUE, color: 'rgb(255,255,255)', borderColor: BLUE, boxShadow: `0 4px 12px ${withAlpha(BLUE, '35')}` }
                   : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
                 {f}
               </button>
@@ -222,6 +223,8 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
 
         {/* ── Contenu ── */}
         <div className="px-5 md:px-8 xl:px-10 pb-24">
+          {deleteError && <RefreshFailedNotice palette="proprietaire" message={deleteError} />}
+          {loadError && !loading && biens.length > 0 && <RefreshFailedNotice palette="proprietaire" onRetry={load} />}
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1,2,3,4,5,6].map(n => (
@@ -234,9 +237,11 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                 </div>
               ))}
             </div>
+          ) : loadError && biens.length === 0 ? (
+            <ErrorState palette="proprietaire" title="Impossible de charger vos biens" onRetry={load} />
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24">
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: BLUE + '12', border: `1.5px solid ${BLUE}25` }}>
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: withAlpha(BLUE, '12'), border: `1.5px solid ${withAlpha(BLUE, '25')}` }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.4} className="w-10 h-10"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
               </div>
               <p className="font-bold text-lg mb-1" style={{ color: 'var(--p-text)' }}>Aucun bien trouvé</p>
@@ -245,7 +250,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               </p>
               <button onClick={() => navigate('/nouveau-bien')}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
-                style={{ background: `linear-gradient(135deg, ${BLUE}, #3A5AEE)`, color: '#fff', boxShadow: `0 4px 16px ${BLUE}40` }}>
+                style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))`, color: 'rgb(255,255,255)', boxShadow: `0 4px 16px ${withAlpha(BLUE, '40')}` }}>
                 <IcPlus /> {search ? 'Ajouter un bien' : 'Publier mon premier bien'}
               </button>
             </div>
@@ -256,13 +261,14 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                   const { label, color } = statutBien(b.statut_moderation || 'en_attente')
                   const loc = b.localisation
                   const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                  const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                  const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
                   const nbPieces = Array.isArray(b.pieces) ? b.pieces.length : 0
                   const superficie = b.details_maison?.superficie ?? b.details_terrain?.superficie ?? null
                   const compo = bienComposition(b)
                   return (
                     <div key={b.id}
                       onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
+                      onKeyDown={onActivateKey(() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } }))}
                       role="button" tabIndex={0}
                       className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.12),_0_2px_8px_rgba(15,23,42,0.08)]"
                       style={{
@@ -277,7 +283,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                           ? <img loading="lazy" src={cover.url} alt={bienLabel(b)}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           : <div className="w-full h-full flex items-center justify-center"
-                              style={{ background: `linear-gradient(135deg, #EEF1FB, ${BLUE}18)` }}>
+                              style={{ background: `linear-gradient(135deg, #EEF1FB, ${withAlpha(BLUE, '18')})` }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-12 h-12 opacity-30"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             </div>
                         }
@@ -285,12 +291,12 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)' }} />
                         {/* Badge statut */}
                         <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-                          style={{ background: color, boxShadow: `0 2px 8px ${color}55` }}>
+                          style={{ background: color, boxShadow: `0 2px 8px ${withAlpha(color, '55')}` }}>
                           {label}
                         </span>
                         {/* Badge transaction */}
                         <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold"
-                          style={{ background: 'rgba(0,0,0,0.45)', color: '#fff', backdropFilter: 'blur(6px)' }}>
+                          style={{ background: 'rgba(0,0,0,0.45)', color: 'rgb(255,255,255)', backdropFilter: 'blur(6px)' }}>
                           {b.transaction === 'location' ? 'À louer' : 'À vendre'}
                         </span>
                         {/* Prix en bas de la photo */}
@@ -312,7 +318,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <p className="font-bold text-[15px] leading-tight" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
                           {b.statut === 'occupe' && (
-                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#22C55E15', color: 'var(--tx-green)' }}>● Occupé</span>
+                            <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.082)', color: 'var(--tx-green)' }}>● Occupé</span>
                           )}
                         </div>
 
@@ -325,7 +331,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         {(nbPieces > 0 || superficie || compo) && (
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             {nbPieces > 0 && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: BLUE + '10', color: BLUE }}>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: withAlpha(BLUE, '10'), color: BLUE }}>
                                 {nbPieces} pièce{nbPieces > 1 ? 's' : ''}
                               </span>
                             )}
@@ -347,24 +353,25 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         )}
 
                         {/* Actions */}
+                        {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- arrête la propagation vers la carte cliquable ; les boutons à l'intérieur sont focalisables */}
                         <div className="flex gap-2 pt-3" style={{ borderTop: '1px solid var(--p-border)' }}
                           onClick={e => e.stopPropagation()}>
                           <button onClick={() => setEditingBien(b)}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
-                            style={{ background: hoveredEl === `modifier-${b.id}` ? BLUE + '20' : BLUE + '10', color: BLUE, border: `1px solid ${BLUE}20` }}
+                            style={{ background: hoveredEl === `modifier-${b.id}` ? withAlpha(BLUE, '20') : withAlpha(BLUE, '10'), color: BLUE, border: `1px solid ${withAlpha(BLUE, '20')}` }}
                             onMouseEnter={() => setHoveredEl(`modifier-${b.id}`)}
                             onMouseLeave={() => setHoveredEl(null)}>
                             <IcEdit /> Modifier
                           </button>
                           {confirmDeleteBienId === b.id ? (
                             <div className="flex items-center gap-1">
-                              <button onClick={() => del(b.id)} className="px-2 py-1 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ background: '#DC2626', border: 'none' }}>Supprimer</button>
+                              <button onClick={() => del(b.id)} className="px-2 py-1 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ background: 'var(--c-danger)', border: 'none' }}>Supprimer</button>
                               <button onClick={() => setConfirmDeleteBienId(null)} className="px-2 py-1 rounded-lg text-xs flex-shrink-0" style={{ background: '#F3F4F6', border: 'none' }}>✕</button>
                             </div>
                           ) : (
                             <button onClick={() => setConfirmDeleteBienId(b.id)}
                               className="flex items-center justify-center w-9 h-9 rounded-xl text-xs transition-all flex-shrink-0"
-                              style={{ background: '#EF444410', color: 'var(--tx-red)', border: '1px solid #EF444420' }}>
+                              style={{ background: 'rgba(239,68,68,0.063)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.125)' }}>
                               <IcTrash />
                             </button>
                           )}

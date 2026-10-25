@@ -4,7 +4,10 @@ import { chatApi } from '../../../api/chatApi'
 import ChatThread from '../../conversations/ChatThread'
 import { IcMessagesNav } from './icons'
 import { BLUE, MSG_AVATAR_COLORS, formatConvTime } from './shared'
-import type { Conversation } from '../../../types/api'
+import type { Conversation, User } from '../../../types/api'
+import type { MessageHit } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
+import ErrorState from '../../../components/ErrorState'
 
 // ─── Tab: Messages ────────────────────────────────────────────────────────────
 // Reprend chatApi + ChatThread directement (au lieu de naviguer vers la page
@@ -14,39 +17,48 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
   const { user } = useAuth()
   const [convs, setConvs] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [searchError, setSearchError] = useState(false)
   const [search, setSearch] = useState('')
   const [activeConvId, setActiveConvId] = useState<number | null>(initialConvId ?? null)
   // Résultats de recherche dans le CONTENU des messages (endpoint /chat/search,
   // équivalent de ConversationsScreen._doSearch côté mobile — jusqu'ici jamais
   // appelé côté web, qui ne filtrait que le nom du contact localement).
-  const [messageHits, setMessageHits] = useState<any[]>([])
+  const [messageHits, setMessageHits] = useState<MessageHit[]>([])
   const [searchingMsgs, setSearchingMsgs] = useState(false)
   const [hoveredConvId, setHoveredConvId] = useState<number | null>(null)
 
-  useEffect(() => {
+  const charger = () => {
     setLoading(true)
+    setLoadError(false)
     chatApi.conversations()
       .then(d => setConvs(Array.isArray(d) ? d : d.data || []))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { charger() }, [])
+
+  const rechercherMessages = (q: string) => {
+    setSearchingMsgs(true)
+    setSearchError(false)
+    chatApi.search(q)
+      .then(d => setMessageHits(Array.isArray(d?.messages) ? d.messages as MessageHit[] : []))
+      .catch(() => { setMessageHits([]); setSearchError(true) })
+      .finally(() => setSearchingMsgs(false))
+  }
 
   useEffect(() => {
     const q = search.trim()
+    setSearchError(false)
     if (q.length < 2) { setMessageHits([]); return }
     setSearchingMsgs(true)
-    const t = setTimeout(() => {
-      chatApi.search(q)
-        .then(d => setMessageHits(Array.isArray(d?.messages) ? d.messages : []))
-        .catch(() => setMessageHits([]))
-        .finally(() => setSearchingMsgs(false))
-    }, 350)
+    const t = setTimeout(() => rechercherMessages(q), 350)
     return () => clearTimeout(t)
   }, [search])
 
-  const getOther = (conv: any) => {
+  const getOther = (conv: Conversation): User | null => {
     if (!user || !Array.isArray(conv.participants)) return null
-    return conv.participants.find((p: any) => p.id !== user.id) || conv.participants[0] || null
+    return conv.participants.find(p => p.id !== user.id) || conv.participants[0] || null
   }
 
   const filtered = (() => {
@@ -83,9 +95,11 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-4 space-y-2">{[1, 2, 3].map(n => <div key={n} className="h-[64px] rounded-xl animate-pulse" style={{ background: 'var(--p-border)' }} />)}</div>
-          ) : filtered.length === 0 && messageHits.length === 0 && !searchingMsgs ? (
+          ) : loadError && convs.length === 0 ? (
+            <ErrorState palette="proprietaire" title="Impossible de charger vos conversations" onRetry={charger} className="py-10" />
+          ) : filtered.length === 0 && messageHits.length === 0 && !searchingMsgs && !searchError ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: BLUE + '14' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: withAlpha(BLUE, '14') }}>
                 <span style={{ color: BLUE }}><IcMessagesNav /></span>
               </div>
               <p className="text-sm font-bold mb-1" style={{ color: 'var(--p-text)' }}>{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
@@ -106,9 +120,10 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
             const timeStr = formatConvTime(lastMsg?.created_at)
             const isActive = conv.id === activeConvId
             return (
+              // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- faux positif : le bouton contient le nom de l'interlocuteur (texte dynamique)
               <button key={conv.id} onClick={() => setActiveConvId(conv.id)}
                 className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
-                style={{ background: isActive ? BLUE + '0C' : 'transparent', borderLeft: isActive ? `3px solid ${BLUE}` : '3px solid transparent' }}>
+                style={{ background: isActive ? withAlpha(BLUE, '0C') : 'transparent', borderLeft: isActive ? `3px solid ${BLUE}` : '3px solid transparent' }}>
                 <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ background: MSG_AVATAR_COLORS[Math.abs(other?.id ?? conv.id) % MSG_AVATAR_COLORS.length] }}>
                   <span className="text-white font-bold text-xs">{initiale}</span>
@@ -130,16 +145,23 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
               </button>
             )
           })}
+          {search.trim().length >= 2 && searchError && !searchingMsgs && (
+            <p role="alert" className="px-4 py-3 text-xs" style={{ color: 'var(--c-danger)' }}>
+              La recherche dans les messages a échoué.{' '}
+              <button type="button" onClick={() => rechercherMessages(search.trim())} className="font-bold underline">Réessayer</button>
+            </p>
+          )}
           {search.trim().length >= 2 && (searchingMsgs || messageHits.length > 0) && (
             <>
               <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--p-muted)' }}>Messages</p>
               {searchingMsgs ? (
                 <p className="px-4 py-2 text-xs" style={{ color: 'var(--p-muted)' }}>Recherche…</p>
               ) : messageHits.map(hit => {
-                const other = hit.conversation?.participants?.find((p: any) => p.id !== user?.id) || hit.conversation?.participants?.[0]
+                const other = hit.conversation?.participants?.find(p => p.id !== user?.id) || hit.conversation?.participants?.[0]
                 const name = other?.prenom || other?.pseudonyme || other?.nom || 'Contact'
                 const initiale = (name[0] || '?').toUpperCase()
                 return (
+                  // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- faux positif : le bouton contient le texte du résultat (texte dynamique)
                   <button key={hit.id} onClick={() => setActiveConvId(hit.conversationId)}
                     className="w-full flex items-center gap-2.5 px-4 py-3 transition-colors text-left"
                     style={{ background: hoveredConvId === hit.id ? 'var(--p-border)' : 'transparent' }}
@@ -171,7 +193,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
           <ChatThread convId={activeConvId} onBack={() => setActiveConvId(null)} initialDraft={initialDraft ?? undefined} />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-8" style={{ background: 'var(--p-deep)' }}>
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: BLUE + '12' }}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(BLUE, '12') }}>
               <span style={{ color: BLUE }}><IcMessagesNav /></span>
             </div>
             <p className="text-[15px] font-bold mb-1.5" style={{ color: 'var(--p-text)' }}>Sélectionnez une conversation</p>

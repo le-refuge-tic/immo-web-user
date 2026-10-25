@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react'
 import { API_ORIGIN } from '../../api/apiBase'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
@@ -8,77 +8,19 @@ import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
 import { io, Socket } from 'socket.io-client'
 import { apiMessage } from '../../utils/apiMessage'
+import { suggestPush } from '../../lib/push'
+import { ModalSheet } from '../../components/ui/ModalSheet'
+import { MenuPopover, MenuItem } from '../../components/ui/MenuPopover'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { asChatConversations, asChatMessage, asChatMessages, type ChatConversation, type ChatMessage } from '../../types/chat-ui'
 
+import { SlotModal, type SlotColors } from './chat/SlotModal'
+import { ProfilePanel } from './chat/ProfilePanel'
+import { ComplaintModal } from './chat/ComplaintModal'
+import { MessageList } from './chat/MessageList'
+import { BackIcon, DotsV, SendIcon, CalIcon, XIcon, PinFill, ChevDown } from './chat/icons'
+import { BIEN_TYPE_LABELS, SOUS_TYPE_LABELS, avatarGrad, initial, fmtSlot, displayName, roleLabel, getChatColors } from './chat/helpers'
 const WS_URL = API_ORIGIN
-
-const BIEN_TYPE_LABELS: Record<string, string> = {
-  maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appt. meublé',
-  guesthouse: 'Guesthouse', terrain: 'Terrain',
-}
-const SOUS_TYPE_LABELS: Record<string, string> = {
-  villa: 'Villa', maison_individuelle: 'Maison indiv.', appartement: 'Appartement',
-  chambre_salon: 'Chambre-Salon', entree_coucher: 'Entrée-Coucher', boutique: 'Boutique', terrain: 'Terrain',
-}
-const AVATAR_PALETTE = [
-  'linear-gradient(135deg,#4B6BFF,#7B4BFF)',
-  'linear-gradient(135deg,#FF6B35,#FF3B7A)',
-  'linear-gradient(135deg,#00C6A2,#0099CC)',
-  'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,#6366F1)',
-  'linear-gradient(135deg,#10B981,#3B82F6)',
-]
-function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVATAR_PALETTE.length] }
-function initial(name: string) { return name?.[0]?.toUpperCase() || '?' }
-function timeLabel(s: string) { return new Date(s).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
-function sameDay(a: string, b: string) {
-  const da = new Date(a), db = new Date(b)
-  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate()
-}
-function dateSep(s: string) {
-  const d = new Date(s), now = new Date(), yest = new Date(now); yest.setDate(now.getDate() - 1)
-  if (sameDay(s, now.toISOString())) return "Aujourd'hui"
-  if (sameDay(s, yest.toISOString())) return 'Hier'
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
-}
-function fmtSlot(dt: Date) {
-  const J = ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.']
-  const M = ['janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc']
-  return `${J[dt.getDay()]} ${dt.getDate()} ${M[dt.getMonth()]} à ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
-}
-function displayName(o: any) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
-function roleLabel(o: any) {
-  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
-  if (o?.role === 'proprietaire') return 'Propriétaire'
-  if (o?.role === 'locataire') return 'Locataire'
-  if (o?.role === 'prospect') return 'Client'
-  return ''
-}
-
-/* ── Statut lecture ── */
-function MsgStatus({ status, isMe }: { status?: string; isMe: boolean }) {
-  if (!isMe) return null
-  const color = status === 'read' ? '#4B6BFF' : 'rgba(255,255,255,0.55)'
-  if (status === 'sent') return (
-    <svg width="11" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  )
-  return (
-    <svg width="15" height="10" viewBox="0 0 30 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="24 6 11 17 6 12" />
-      <polyline points="30 6 17 17 15 15" />
-    </svg>
-  )
-}
-
-/* ── Icônes ── */
-const BackIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-const DotsV = () => <svg width="4" height="18" viewBox="0 0 4 18" fill="currentColor"><circle cx="2" cy="2" r="1.8"/><circle cx="2" cy="9" r="1.8"/><circle cx="2" cy="16" r="1.8"/></svg>
-const SendIcon = () => <svg className="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-const CalIcon = () => <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-const XIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-const PinFill = () => <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
-const ChevDown = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
 
 export default function ChatThread({ convId, onBack, initialDraft }: { convId: number; onBack: () => void; initialDraft?: string }) {
   const { user, token } = useAuth()
@@ -88,26 +30,24 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const location = useLocation()
 
   /* ── state ── */
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
-  const [conv, setConv] = useState<any>(null)
+  const [loadError, setLoadError] = useState(false)
+  const [conv, setConv] = useState<ChatConversation | null>(null)
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
-  const [replyingTo, setReplyingTo] = useState<any>(null)
-  const [editingMsg, setEditingMsg] = useState<any>(null)
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null)
+  const [editingMsg, setEditingMsg] = useState<ChatMessage | null>(null)
   const [hidden, setHidden] = useState<Set<number>>(new Set())
   const [menuId, setMenuId] = useState<number | null>(null)
   const [showSlot, setShowSlot] = useState(false)
-  const [counterFor, setCounterFor] = useState<any>(null)
+  const [counterFor, setCounterFor] = useState<ChatMessage | null>(null)
   const [proposing, setProposing] = useState(false)
   const [paying, setPaying] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const [confirmDeleteForAllId, setConfirmDeleteForAllId] = useState<number | null>(null)
-  const [complainMsg, setComplainMsg] = useState<any>(null)
-  const [complainText, setComplainText] = useState('')
-  const [complainSending, setComplainSending] = useState(false)
-  const [complainSent, setComplainSent] = useState(false)
+  const [complainMsg, setComplainMsg] = useState<ChatMessage | null>(null)
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
   const [headerMenuPos, setHeaderMenuPos] = useState<{ top: number; right: number } | null>(null)
   const [showProfile, setShowProfile] = useState(false)
@@ -121,56 +61,41 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   /* ── Design tokens (light par défaut, dark optionnel) ── */
-  // Text
-  const tp  = isDark ? '#E8E9F0' : '#111827'          // primary — lisible 7:1+
-  const ts  = isDark ? 'rgba(232,233,240,0.62)' : '#4B5563'  // secondary — 4.5:1+
-  const tm  = isDark ? 'rgba(232,233,240,0.40)' : '#9CA3AF'  // muted
-  // Surfaces
-  const chatBg     = isDark ? '#0F1117' : '#EEF0F7'
-  const hdrBg      = isDark ? '#161820' : '#FFFFFF'
-  const hdrBdr     = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
-  const inpBg      = isDark ? '#161820' : '#FFFFFF'
-  const inpFieldBg = isDark ? 'rgba(255,255,255,0.07)' : '#F3F4F8'
-  const inpFieldBdr= isDark ? 'rgba(255,255,255,0.10)' : '#E5E7EB'
-  const profileBg  = isDark ? '#161820' : '#FFFFFF'
-  const profileBdr = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
-  // Bubbles
-  const bubbleMeBg      = isDark ? 'linear-gradient(135deg,#3B55D4,#5B30C4)' : 'linear-gradient(135deg,#4B6BFF,#7B4BFF)'
-  const bubbleOtherBg   = isDark ? '#1E2130' : '#FFFFFF'
-  const bubbleOtherBdr  = isDark ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
-  // Menus & overlays
-  const menuBg  = isDark ? '#1E2130' : '#FFFFFF'
-  const menuBdr = isDark ? 'rgba(255,255,255,0.09)' : '#E5E7EB'
-  const menuHov = isDark ? 'rgba(255,255,255,0.06)' : '#F9FAFB'
-  // Misc
-  const divider = isDark ? 'rgba(255,255,255,0.06)' : '#F0F1F4'
-  const pinBg   = isDark ? '#1E2130' : '#FFFFFF'
-  const sepBg   = isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB'
-  const iconBtn = isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F8'
+  const colors = getChatColors(isDark)
+  const { tp, ts, tm, chatBg, hdrBg, hdrBdr, inpBg, inpFieldBg, inpFieldBdr, menuBg, menuBdr, menuHov, divider, pinBg, iconBtn } = colors
+  const slotColors: SlotColors = { menuBg, menuBdr, tp, tm, inpFieldBg, inpFieldBdr }
+  const isMobileViewport = useMediaQuery('(max-width: 767px)')
 
   /* ── load ── */
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      try {
-        const [md, cd] = await Promise.all([chatApi.messages(convId), chatApi.conversations()])
-        const msgs = Array.isArray(md) ? md : md.data || []
-        setMessages(msgs.filter((m: any) => m.sender_id !== null))
-        const list = Array.isArray(cd) ? cd : cd.data || []
-        setConv(list.find((c: any) => c.id === convId) || null)
-      } catch (_) {}
-      setLoading(false)
+  const loadThread = useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const [md, cd] = await Promise.all([chatApi.messages(convId), chatApi.conversations()])
+      const msgs = asChatMessages(Array.isArray(md) ? md : md.data || [])
+      setMessages(msgs.filter(m => m.sender_id !== null))
+      const list = asChatConversations(Array.isArray(cd) ? cd : cd.data || [])
+      setConv(list.find(c => c.id === convId) || null)
+    } catch {
+      setLoadError(true)
     }
-    setConv(null); setMessages([]); setShowProfile(false)
-    load(); setHidden(new Set()); setReplyingTo(null); setEditingMsg(null)
+    setLoading(false)
   }, [convId])
 
   useEffect(() => {
-    const draft = (location.state as any)?.draftMessage || initialDraft
+    setConv(null); setMessages([]); setShowProfile(false)
+    loadThread(); setHidden(new Set()); setReplyingTo(null); setEditingMsg(null)
+  }, [convId, loadThread])
+
+  useEffect(() => {
+    // État de navigation : seule la clé draftMessage nous concerne (frontière non typable de react-router)
+    const navState = location.state as { draftMessage?: string } | null
+    const draft = navState?.draftMessage || initialDraft
     if (draft) {
       setInput(draft)
-      if ((location.state as any)?.draftMessage) navigate(location.pathname, { replace: true, state: {} })
+      if (navState?.draftMessage) navigate(location.pathname, { replace: true, state: {} })
     }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate et le chemin courant ne servent qu'à effacer l'état de navigation une fois le brouillon consommé
   }, [location.state, initialDraft])
 
   useEffect(() => {
@@ -178,7 +103,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     const s = io(`${WS_URL}/chat`, { auth: { token }, transports: ['websocket'] })
     socketRef.current = s
     s.on('connect', () => s.emit('rejoindre', { conversation_id: convId }))
-    s.on('message', (msg: any) => {
+    s.on('message', (msg: ChatMessage) => {
       if (msg.sender_id === null) return
       setMessages(prev => {
         const idx = prev.findIndex(m => m.id === msg.id)
@@ -213,7 +138,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     return () => document.removeEventListener('mousedown', fn)
   }, [showHeaderMenu])
 
-  const other = conv?.participants?.find((p: any) => p.id !== user?.id) || conv?.participants?.[0] || null
+  const other = conv?.participants?.find(p => p.id !== user?.id) || conv?.participants?.[0] || null
   const otherName = displayName(other)
   usePageTitle(otherName !== 'Contact' ? `Conversation – ${otherName}` : 'Conversation')
   const role = roleLabel(other)
@@ -222,33 +147,35 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const bienLoc = conv?.bien?.localisation ? (conv.bien.localisation.quartier || conv.bien.localisation.ville) : null
   const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
   const isOnline = !!(other?.isOnline ?? conv?.isOnline)
+  const convBienId = conv?.bien?.id
 
-  const showError = (e: any) => { setError(apiMessage(e) || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
+  const showError = (e: unknown) => { setError(apiMessage(e) || "Erreur d'envoi."); setTimeout(() => setError(''), 5000) }
   const scrollBot = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
 
   const send = async () => {
     const text = input.trim(); if (!text || sending) return
     if (editingMsg) {
       setInput(''); const ed = editingMsg; setEditingMsg(null)
-      try { const u = await chatApi.modifierMessage(ed.id, text); setMessages(p => p.map(m => m.id === ed.id ? u : m)) } catch (e) { showError(e) }
+      try { const u = await chatApi.modifierMessage(ed.id, text); setMessages(p => p.map(m => m.id === ed.id ? asChatMessage(u) : m)) } catch (e) { showError(e) }
       return
     }
     setInput(''); setSending(true)
     try {
       const rid = replyingTo?.id, rc = replyingTo?.contenu; setReplyingTo(null)
       const sent = await chatApi.envoyer(convId, text, rid, rc)
-      setMessages(p => p.some(m => m.id === sent.id) ? p : [...p, sent])
+      setMessages(p => p.some(m => m.id === sent.id) ? p : [...p, asChatMessage(sent)])
+      suggestPush()
     } catch (e) { showError(e) }
     setSending(false)
   }
 
   const handleKey = (e: React.KeyboardEvent) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
-  const startReply = (m: any) => { if (m.type === 'slot_proposal') return; setReplyingTo(m); setEditingMsg(null); setMenuId(null); inputRef.current?.focus() }
-  const startEdit  = (m: any) => { setEditingMsg(m); setReplyingTo(null); setInput(m.contenu); setMenuId(null); inputRef.current?.focus() }
+  const startReply = (m: ChatMessage) => { if (m.type === 'slot_proposal') return; setReplyingTo(m); setEditingMsg(null); setMenuId(null); inputRef.current?.focus() }
+  const startEdit  = (m: ChatMessage) => { setEditingMsg(m); setReplyingTo(null); setInput(m.contenu); setMenuId(null); inputRef.current?.focus() }
   const cancelCtx  = () => { const wasEdit = !!editingMsg; setReplyingTo(null); setEditingMsg(null); if (wasEdit) setInput('') }
-  const deleteForMe = (m: any) => { setHidden(p => new Set(p).add(m.id)); setMenuId(null) }
+  const deleteForMe = (m: ChatMessage) => { setHidden(p => new Set(p).add(m.id)); setMenuId(null) }
 
-  const deleteForAll = async (m: any) => {
+  const deleteForAll = async (m: ChatMessage) => {
     setConfirmDeleteForAllId(null)
     setMenuId(null)
     try {
@@ -257,7 +184,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     } catch (e) { showError(e) }
   }
 
-  const togglePin = async (m: any) => {
+  const togglePin = async (m: ChatMessage) => {
     setMenuId(null)
     const newId = m.epingle ? null : m.id
     try { await chatApi.togglePin(convId, newId); setMessages(p => p.map(x => ({ ...x, epingle: x.id === newId }))) } catch (e) { showError(e) }
@@ -266,16 +193,12 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const pinnedMsg = messages.filter(m => m.epingle && !m.supprime_pour_tous).slice(-1)[0]
   const lastSlot  = messages.filter(m => m.type === 'slot_proposal' && !m.supprime_pour_tous).slice(-1)[0]
 
-  const findVisite = async () => {
-    if (!conv?.bien?.id) return null
-    try { const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []; return l.find((v: any) => v.bien?.id === conv.bien.id) || null } catch { return null }
-  }
   const proposerSlot = async (iso: string) => {
     setShowSlot(false); setProposing(true)
     try { const m = await chatApi.proposerCreneau(convId, iso); setMessages(p => [...p, m]); scrollBot() } catch (e) { showError(e) }
     setProposing(false)
   }
-  const repondre = async (m: any, r: 'accepted'|'declined'|'countered') => {
+  const repondre = async (m: ChatMessage, r: 'accepted'|'declined'|'countered') => {
     if (r === 'countered') { setCounterFor(m); return }
     try { const u = await chatApi.repondreProposition(m.id, r); setMessages(p => p.map(x => x.id === m.id ? u : x)) } catch (e) { showError(e) }
   }
@@ -289,9 +212,10 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const copyCode = () => { if (!conv?.code_visite) return; navigator.clipboard?.writeText(conv.code_visite); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000) }
   const payer = async () => {
     if (!conv?.bien?.id) return; setPaying(true)
+    const bienId = conv.bien.id
     try {
       const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
-      const v = l.find((x: any) => x.bien?.id === conv.bien.id)
+      const v = l.find(x => x.bien?.id === bienId)
       if (!v) { showError({ response: { data: { message: 'Aucune visite trouvée.' } } }); setPaying(false); return }
       if (v.paiement_effectue) { showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
       if (!(Number(v.frais_visite) > 0)) { showError({ response: { data: { message: 'Cette visite est gratuite.' } } }); setPaying(false); return }
@@ -300,200 +224,17 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     setPaying(false)
   }
 
-  const canEdit = (m: any) => m.sender_id === user?.id && !m.supprime_pour_tous && Date.now() - new Date(m.created_at).getTime() <= 15 * 60_000
+  const canEdit = (m: ChatMessage) => m.sender_id === user?.id && !m.supprime_pour_tous && Date.now() - new Date(m.created_at).getTime() <= 15 * 60_000
   const visible = messages.filter(m => !hidden.has(m.id))
 
-  /* ── Menu item ── */
-  const MI = ({ label, onClick, danger = false }: { label: string; onClick: () => void; danger?: boolean }) => {
-    const [hov, setHov] = useState(false)
-    return (
-      <button onClick={onClick} className="w-full text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer rounded-lg mx-1"
-        style={{ color: danger ? '#DC2626' : tp, width: 'calc(100% - 8px)', background: hov ? menuHov : 'transparent' }}
-        onMouseEnter={() => setHov(true)}
-        onMouseLeave={() => setHov(false)}>
-        {label}
-      </button>
-    )
-  }
-
-  /* ── Bulle slot ── */
-  const SlotBubble = ({ m }: { m: any }) => {
-    const isMe = m.sender_id === user?.id
-    const status = m.metadata?.status || 'pending'
-    const dt = m.metadata?.proposed_at ? new Date(m.metadata.proposed_at) : null
-    const p: Record<string, { bg: string; accent: string; label: string }> = {
-      accepted: { bg: 'rgba(34,197,94,0.10)', accent: '#15803D', label: 'Confirmé ✓' },
-      declined:  { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', accent: '#94A3B8', label: 'Refusé' },
-      countered: { bg: 'rgba(251,146,60,0.10)', accent: '#FB923C', label: 'Contre-proposé' },
-      pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: '#4B6BFF', label: isMe ? 'En attente…' : 'Créneau proposé' },
-    }
-    const pal = p[status] || p.pending
-    return (
-      <div className={`flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-        <div className="rounded-2xl overflow-hidden max-w-[270px]" style={{ background: pal.bg, border: `1.5px solid ${pal.accent}44` }}>
-          <div className="px-3 pt-2.5 pb-0.5">
-            <p className="text-micro font-bold uppercase tracking-widest mb-1.5" style={{ color: pal.accent }}>Créneau de visite</p>
-            <p className="text-[13.5px] font-bold leading-snug" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
-            <p className="text-caption mt-1 font-medium" style={{ color: pal.accent }}>{pal.label}</p>
-          </div>
-          {!isMe && status === 'pending' && (
-            <div className="px-3 pb-2.5 pt-2 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${pal.accent}22` }}>
-              <div className="flex gap-1.5">
-                <button onClick={() => repondre(m, 'accepted')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(34,197,94,0.14)', color: 'var(--tx-green)' }}>Confirmer</button>
-                <button onClick={() => repondre(m, 'declined')} className="flex-1 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(239,68,68,0.10)', color: 'var(--tx-red)' }}>Rejeter</button>
-              </div>
-              <button onClick={() => repondre(m, 'countered')} className="w-full py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer" style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)' }}>Autre date</button>
-            </div>
-          )}
-          {status === 'accepted' && conv?.bien?.id && isClientRole && (
-            <div className="px-3 pb-2.5 pt-2" style={{ borderTop: `1px solid ${pal.accent}22` }}>
-              <button onClick={payer} disabled={paying} className="w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.14)', color: 'var(--tx-green)' }}>
-                {paying ? '…' : 'Payer maintenant'}
-              </button>
-            </div>
-          )}
-          <div className="px-3 pb-2">
-            <p className="text-micro text-right" style={{ color: tm }}>{timeLabel(m.created_at)}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   /* ── Panneau profil (desktop droit / mobile drawer) ── */
-  const ProfilePanel = ({ onClose }: { onClose: () => void }) => (
-    <div className="h-full flex flex-col" style={{ background: profileBg, borderLeft: `1px solid ${profileBdr}` }}>
-      {/* Header profil */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${divider}` }}>
-        <p className="text-[13px] font-bold uppercase tracking-widest" style={{ color: tm }}>Infos du contact</p>
-        <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer transition-colors hover:opacity-80" style={{ background: iconBtn, color: ts }}>
-          <XIcon />
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto scrollbar-auto px-5 py-5 space-y-5">
-        {/* Avatar grand */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-lg" style={{ background: avatarGrad(other?.id ?? 0) }}>
-            <span className="text-white font-extrabold text-2xl">{initial(otherName)}</span>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1.5">
-              <p className="text-[16px] font-bold" style={{ color: tp }}>{otherName}</p>
-              {isVerified && (
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
-                  <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
-                  <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
-                </svg>
-              )}
-            </div>
-            {role && (
-              <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-caption font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: 'var(--tx-blue)' }}>
-                {role}
-              </span>
-            )}
-          </div>
-          {/* Présence — affichée seulement si connue */}
-          {isOnline && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-[12px] font-medium" style={{ color: ts }}>En ligne</span>
-            </div>
-          )}
-        </div>
-
-        {/* Rôle + Bien concerné */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
-          {/* Rôle */}
-          <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${divider}` }}>
-            <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--tx-blue)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <div className="min-w-0">
-              <p className="text-micro font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Rôle</p>
-              <p className="text-[13px] font-semibold" style={{ color: role ? tp : ts }}>{role || 'Non renseigné'}</p>
-            </div>
-          </div>
-          {/* Bien concerné */}
-          <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: conv?.bien?.id ? `1px solid ${divider}` : undefined }}>
-            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--tx-blue)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-            <div className="min-w-0 flex-1">
-              <p className="text-micro font-bold uppercase tracking-widest mb-0.5" style={{ color: ts }}>Bien concerné</p>
-              {conv?.bien?.id ? (
-                <>
-                  <p className="text-[13px] font-semibold" style={{ color: tp }}>{bienTypeLabel || 'Bien'}</p>
-                  {bienLoc && <p className="text-caption mt-0.5" style={{ color: ts }}>{bienLoc}</p>}
-                </>
-              ) : (
-                <p className="text-[13px] font-semibold" style={{ color: ts }}>Non renseigné</p>
-              )}
-            </div>
-          </div>
-          {/* Lien vers le bien */}
-          {conv?.bien?.id && (
-            <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
-              className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer transition-opacity hover:opacity-80"
-              style={{ color: 'var(--tx-blue)' }}>
-              <span className="text-[12px] font-bold">Voir le bien</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </button>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${divider}` }}>
-          {[
-            { label: 'Mode silencieux', action: () => {}, danger: false },
-            { label: 'Bloquer ce contact', action: () => {}, danger: true },
-            { label: 'Signaler', action: () => {}, danger: true },
-          ].map(({ label, action, danger }, i, arr) => (
-            <button key={label} onClick={action}
-              className="w-full text-left px-4 py-3.5 text-[13.5px] font-medium transition-colors cursor-pointer flex items-center justify-between"
-              style={{ color: danger ? '#DC2626' : tp, borderBottom: i < arr.length - 1 ? `1px solid ${divider}` : 'none', background: hoveredSettingsIdx === i ? menuHov : 'transparent' }}
-              onMouseEnter={() => setHoveredSettingsIdx(i)}
-              onMouseLeave={() => setHoveredSettingsIdx(null)}>
-              {label}
-              {!danger && <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
+  // Fonction de rendu (et non composant) : le panneau n'est pas remonté à chaque message reçu
+  const renderProfilePanel = ({ onClose }: { onClose: () => void }) => (
+    <ProfilePanel onClose={onClose} colors={colors} other={other} otherName={otherName} role={role} isVerified={isVerified}
+      isOnline={isOnline} conv={conv} bienTypeLabel={bienTypeLabel} bienLoc={bienLoc}
+      hoveredSettingsIdx={hoveredSettingsIdx} onHoverSettings={setHoveredSettingsIdx} onOpenBien={id => navigate(`/biens/${id}`)} />
   )
-
-  /* ── Modal slot picker ── */
-  const SlotModal = ({ onConfirm, onCancel }: { onConfirm: (iso: string) => void; onCancel: () => void }) => {
-    const tom = new Date(Date.now() + 86400000)
-    const [date, setDate] = useState(tom.toISOString().slice(0, 10))
-    const [time, setTime] = useState('09:00')
-    return (
-      <div aria-hidden="true" className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }} onClick={onCancel}>
-        <div role="dialog" aria-modal="true" aria-label="Proposer un créneau" className="rounded-3xl p-5 w-full max-w-xs anim-scale-in" onClick={e => e.stopPropagation()}
-          style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
-          <p className="font-bold text-[15px] mb-4" style={{ color: tp }}>Proposer un créneau</p>
-          <div className="space-y-3">
-            <div>
-              <label htmlFor="slot-date" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Date</label>
-              <input id="slot-date" type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={e => setDate(e.target.value)}
-                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
-            </div>
-            <div>
-              <label htmlFor="slot-time" className="text-caption font-bold uppercase tracking-wider mb-1.5 block" style={{ color: tm }}>Heure</label>
-              <input id="slot-time" type="time" value={time} onChange={e => setTime(e.target.value)}
-                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
-            </div>
-          </div>
-          <div className="flex gap-2 mt-5">
-            <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
-            <button onClick={() => onConfirm(new Date(`${date}T${time}`).toISOString())} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>Confirmer</button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col md:flex-row fixed inset-0 z-40 md:static md:z-auto md:h-full" style={{ background: chatBg, minHeight: 0 }}>
@@ -523,9 +264,9 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 <div className="flex items-center gap-1">
                   <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
                   {isVerified && (
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#4B6BFF" aria-label="Vérifié">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="var(--c-brand)" aria-label="Vérifié">
                       <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
-                      <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="#fff"/>
+                      <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="rgb(255,255,255)"/>
                     </svg>
                   )}
                 </div>
@@ -536,7 +277,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
             {/* Bien lié — compact */}
             {bienTypeLabel && conv?.bien && (
-              <button onClick={() => navigate(`/biens/${conv.bien.id}`)}
+              <button onClick={() => navigate(`/biens/${convBienId}`)}
                 className="hidden sm:flex flex-col text-left px-3 py-2 rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                 style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, maxWidth: 120 }}>
                 <p className="text-[11.5px] font-semibold truncate" style={{ color: tp }}>{bienTypeLabel}</p>
@@ -552,8 +293,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                   else { setShowHeaderMenu(true); setHeaderMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right }) }
                 }}
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer transition-colors"
-                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? '#4B6BFF' : ts }}
-                aria-label="Options">
+                style={{ background: showHeaderMenu ? 'rgba(75,107,255,0.12)' : iconBtn, color: showHeaderMenu ? 'var(--c-brand)' : ts }}
+                aria-label="Options" aria-haspopup="menu" aria-expanded={showHeaderMenu}>
                 <DotsV />
               </button>
             </div>
@@ -575,7 +316,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         {/* Erreur */}
         <div role="alert" aria-live="assertive" aria-atomic="true">
           {error && (
-            <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: '#DC2626' }}>
+            <div className="mx-4 mt-2 flex-shrink-0 text-white text-xs rounded-xl px-4 py-2.5 flex items-center gap-2 anim-fade-down" style={{ background: 'var(--c-danger)' }}>
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               {error}
             </div>
@@ -589,7 +330,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {pinnedMsg && (
               <button onClick={() => document.getElementById(`msg-${pinnedMsg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                 className="flex items-center gap-2 w-full rounded-xl px-3 py-2 border-l-4 text-left cursor-pointer anim-fade-in"
-                style={{ background: pinBg, borderLeftColor: '#4B6BFF', border: `1px solid ${divider}`, borderLeft: '4px solid #4B6BFF' }}>
+                style={{ background: pinBg, borderLeftColor: 'var(--c-brand)', border: `1px solid ${divider}`, borderLeft: '4px solid var(--c-brand)' }}>
                 <span style={{ color: 'var(--tx-blue)' }}><PinFill /></span>
                 <div className="min-w-0 flex-1">
                   <p className="text-micro font-bold uppercase tracking-wider" style={{ color: 'var(--tx-blue)' }}>Épinglé</p>
@@ -603,10 +344,10 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               const status = lastSlot.metadata?.status || 'pending'
               const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
               const cfg: Record<string, { accent: string; label: string }> = {
-                accepted: { accent: '#15803D', label: 'Créneau confirmé' },
-                declined: { accent: '#DC2626', label: 'Créneau refusé' },
+                accepted: { accent: 'var(--c-success)', label: 'Créneau confirmé' },
+                declined: { accent: 'var(--c-danger)', label: 'Créneau refusé' },
                 countered: { accent: '#FB923C', label: 'Contre-proposition' },
-                pending: { accent: '#4B6BFF', label: 'Créneau en discussion' },
+                pending: { accent: 'var(--c-brand)', label: 'Créneau en discussion' },
               }
               const c = cfg[status] || cfg.pending
               return (
@@ -627,102 +368,12 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           </div>
         )}
 
-        {/* ── Messages ── */}
-        <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 scrollbar-auto relative"
-          onClick={() => { setMenuId(null); setMenuPos(null); setShowHeaderMenu(false) }}>
-
-          {/* Liste messages */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-40 gap-3">
-              <div className="w-7 h-7 rounded-full border-[3px] border-t-transparent animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} />
-            </div>
-          ) : visible.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(75,107,255,0.10)' }}>
-                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-              </div>
-              <p className="text-[13px] font-semibold" style={{ color: tm }}>Démarrez la conversation</p>
-            </div>
-          ) : visible.map((msg, i) => {
-            const isMe = msg.sender_id === user?.id
-            const sep = i === 0 || !sameDay(visible[i - 1].created_at, msg.created_at)
-            const prevIsMe = i > 0 && visible[i - 1].sender_id === user?.id && visible[i - 1].type !== 'slot_proposal'
-            const grouped = !sep && isMe === prevIsMe
-
-            if (msg.type === 'slot_proposal') {
-              return (
-                <div key={msg.id} id={`msg-${msg.id}`}>
-                  {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
-                  <SlotBubble m={msg} />
-                </div>
-              )
-            }
-
-            const isSupprime = msg.supprime_pour_tous
-            return (
-              <div key={msg.id} id={`msg-${msg.id}`}>
-                {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
-
-                <div className={`flex group items-end gap-1 ${isMe ? 'justify-end' : 'justify-start'} ${grouped ? 'mb-[3px]' : 'mb-1'}`}>
-                  <div className="relative max-w-[78%] sm:max-w-[62%] md:max-w-[54%]">
-
-                    {isSupprime ? (
-                      <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
-                        <p className="text-[12.5px] italic" style={{ color: tm }}>Message supprimé</p>
-                        <button onClick={e => { e.stopPropagation(); setComplainMsg(msg); setComplainText(''); setComplainSent(false) }}
-                          className="text-caption underline mt-0.5 cursor-pointer" style={{ color: 'var(--tx-blue)' }}>En savoir plus</button>
-                        <p className="text-micro mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>
-                      </div>
-                    ) : (
-                      <div className={`${isMe ? 'rounded-xl rounded-br-[4px]' : 'rounded-xl rounded-bl-[4px]'} ${grouped && isMe ? 'rounded-tr-[6px]' : ''} ${grouped && !isMe ? 'rounded-tl-[6px]' : ''}`}
-                        style={isMe
-                          ? { background: bubbleMeBg, padding: '6px 10px' }
-                          : { background: bubbleOtherBg, border: `1px solid ${bubbleOtherBdr}`, padding: '6px 10px', color: tp }
-                        }>
-                        {/* Citation */}
-                        {msg.reply_to_contenu && (
-                          <div className="text-[11.5px] px-2 py-1 rounded-lg mb-1 border-l-2 line-clamp-2"
-                            style={isMe
-                              ? { borderLeftColor: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)' }
-                              : { borderLeftColor: '#4B6BFF', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(75,107,255,0.06)', color: ts }
-                            }>
-                            {msg.reply_to_contenu}
-                          </div>
-                        )}
-                        {/* Texte */}
-                        <p className="text-[14px] leading-[1.4] break-words" style={{ color: isMe ? '#fff' : tp }}>{msg.contenu}</p>
-                        {/* Footer */}
-                        <div className="flex items-center gap-1 -mt-0.5 justify-end">
-                          {msg.modifie && <span className="text-[9.5px] italic" style={{ color: isMe ? 'rgba(255,255,255,0.50)' : tm }}>modifié ·</span>}
-                          <span className="text-[9.5px]" style={{ color: isMe ? 'rgba(255,255,255,0.55)' : tm }}>{timeLabel(msg.created_at)}</span>
-                          <MsgStatus status={msg.status} isMe={isMe} />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Bouton ⋯ visible au hover */}
-                    {!isSupprime && (
-                      <button onClick={e => {
-                          e.stopPropagation()
-                          const rect = e.currentTarget.getBoundingClientRect()
-                          if (menuId === msg.id) { setMenuId(null); setMenuPos(null) }
-                          else { setMenuId(msg.id); setMenuPos({ top: rect.top, right: window.innerWidth - rect.right }) }
-                        }}
-                        className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full flex items-center justify-center cursor-pointer"
-                        style={{ background: isMe ? 'rgba(255,255,255,0.22)' : (isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.10)'), color: isMe ? '#fff' : ts, backdropFilter: 'blur(4px)' }}
-                        aria-label="Options">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-          <div ref={bottomRef} className="h-1" />
-        </div>
+        <MessageList scrollRef={scrollRef} bottomRef={bottomRef} onScroll={onScroll}
+          onBackgroundClick={() => { setMenuId(null); setMenuPos(null); setShowHeaderMenu(false) }}
+          loading={loading} loadError={loadError} onRetry={loadThread} visible={visible} userId={user?.id} isDark={isDark} colors={colors}
+          menuId={menuId} onToggleMenu={(id, pos) => { setMenuId(id); setMenuPos(pos) }}
+          onComplain={setComplainMsg}
+          slot={{ bienId: conv?.bien?.id, isClientRole, paying, onRepondre: repondre, onPayer: payer }} />
 
         {/* Bouton scroll bas */}
         {!atBottom && (
@@ -738,7 +389,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           {/* Contexte réponse / modification */}
           {(replyingTo || editingMsg) && (
             <div className="px-4 pt-3 pb-1 flex items-center gap-2.5">
-              <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: '#4B6BFF' }} />
+              <div className="w-[3px] h-9 rounded-full flex-shrink-0" style={{ background: 'var(--c-brand)' }} />
               <div className="flex-1 min-w-0">
                 <p className="text-[11.5px] font-semibold" style={{ color: 'var(--tx-blue)' }}>{editingMsg ? 'Modifier' : `Répondre à ${otherName.split(' ')[0]}`}</p>
                 <p className="text-[12px] truncate mt-0.5" style={{ color: ts }}>{editingMsg?.contenu ?? replyingTo?.contenu}</p>
@@ -751,7 +402,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             <button onClick={() => setShowSlot(true)} disabled={proposing}
               className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-50 cursor-pointer transition-opacity hover:opacity-80"
               style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)', border: '1px solid rgba(75,107,255,0.18)' }}>
-              {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /> : <CalIcon />}
+              {proposing ? <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} /> : <CalIcon />}
             </button>
             {/* Textarea */}
             <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
@@ -761,7 +412,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             {/* Envoyer */}
             <button onClick={send} disabled={!input.trim() || sending}
               className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 cursor-pointer transition-transform hover:scale-105 active:scale-95"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: input.trim() ? '0 4px 16px rgba(75,107,255,0.35)' : 'none' }}>
               {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <SendIcon />}
             </button>
           </div>
@@ -771,31 +422,30 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       {/* ═══ PANNEAU PROFIL — desktop côté droit ═══ */}
       {showProfile && (
         <div className="hidden md:block w-[280px] xl:w-[300px] flex-shrink-0 h-full anim-slide-left">
-          <ProfilePanel onClose={() => setShowProfile(false)} />
+          {renderProfilePanel({ onClose: () => setShowProfile(false) })}
         </div>
       )}
 
-      {/* ═══ PANNEAU PROFIL — mobile drawer ═══ */}
-      {showProfile && (
-        <div aria-hidden="true" className="md:hidden fixed inset-0 z-50 flex" onClick={() => setShowProfile(false)}>
-          <div className="flex-1 bg-black/40" />
-          <div className="w-[85%] max-w-sm h-full anim-slide-left" onClick={e => e.stopPropagation()} aria-hidden="false">
-            <ProfilePanel onClose={() => setShowProfile(false)} />
-          </div>
-        </div>
+      {/* ═══ PANNEAU PROFIL — mobile drawer (modale : focus piégé, Échap) ═══ */}
+      {isMobileViewport && (
+        <ModalSheet open={showProfile} onClose={() => setShowProfile(false)} label="Profil" placement="right" panelClassName="w-[85%] max-w-sm h-full anim-slide-left" backdropOpacity={0.4}>
+          {renderProfilePanel({ onClose: () => setShowProfile(false) })}
+        </ModalSheet>
       )}
 
       {/* Menu header (3 points) — fixed au-dessus de tout */}
       {showHeaderMenu && headerMenuPos && (
-        <div data-headermenu className="fixed z-[130] rounded-2xl overflow-hidden py-1 min-w-[200px] anim-fade-down"
-          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}>
-          <MI label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
-          {conv?.bien?.id && <MI label="Voir le bien" onClick={() => { navigate(`/biens/${conv.bien.id}`); setShowHeaderMenu(false) }} />}
+        <MenuPopover label="Options de la conversation" onClose={() => { setShowHeaderMenu(false); setHeaderMenuPos(null) }}
+          className="fixed z-[130] rounded-2xl overflow-hidden py-1 min-w-[200px] anim-fade-down"
+          style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)', '--menu-hover': menuHov } as CSSProperties}
+          data-headermenu>
+          <MenuItem color={tp} label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
+          {convBienId && <MenuItem color={tp} label="Voir le bien" onClick={() => { navigate(`/biens/${convBienId}`); setShowHeaderMenu(false) }} />}
           <div className="h-px mx-2 my-1" style={{ background: divider }} />
-          <MI label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
-          <MI label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
-          <MI label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
-        </div>
+          <MenuItem color={tp} label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
+          <MenuItem color={tp} label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
+          <MenuItem color={tp} label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
+        </MenuPopover>
       )}
 
       {/* Menu contextuel message — fixed pour éviter le clip du scroll container */}
@@ -803,74 +453,36 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
         const m = visible.find(x => x.id === menuId)
         if (!m) return null
         return (
-          <div className="fixed z-[120] rounded-2xl overflow-hidden py-1 min-w-[190px] anim-fade-down"
-            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)' }}
-            onClick={e => e.stopPropagation()}>
-            <MI label="Répondre" onClick={() => startReply(m)} />
-            {canEdit(m) && <MI label="Modifier" onClick={() => startEdit(m)} />}
-            <MI label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
+          <MenuPopover key={menuId} label="Actions sur le message" onClose={() => { setMenuId(null); setMenuPos(null); setConfirmDeleteForAllId(null) }}
+            className="fixed z-[120] rounded-2xl overflow-hidden py-1 min-w-[190px] anim-fade-down"
+            style={{ top: menuPos.top, right: menuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)', '--menu-hover': menuHov } as CSSProperties}>
+            <MenuItem color={tp} label="Répondre" onClick={() => startReply(m)} />
+            {canEdit(m) && <MenuItem color={tp} label="Modifier" onClick={() => startEdit(m)} />}
+            <MenuItem color={tp} label={m.epingle ? 'Désépingler' : 'Épingler'} onClick={() => togglePin(m)} />
             <div className="h-px mx-2 my-1" style={{ background: divider }} />
-            {!m.supprime_pour_tous && <MI label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
+            {!m.supprime_pour_tous && <MenuItem color={tp} label="Supprimer pour moi" onClick={() => deleteForMe(m)} danger />}
             {m.sender_id === user?.id && !m.supprime_pour_tous && (
               confirmDeleteForAllId === m.id ? (
                 <div style={{ display: 'flex', gap: 4, padding: '6px 8px' }}>
-                  <button onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#DC2626', color: '#fff', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
-                  <button onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? '#D1D5DB' : '#6B7280', fontSize: 12 }}>Annuler</button>
+                  {/* oxlint-disable-next-line jsx-a11y/no-autofocus -- confirmation de suppression : le focus reprend sur le bouton qui remplace l'entrée du menu */}
+                  <button type="button" role="menuitem" autoFocus onClick={() => deleteForAll(m)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--c-danger)', color: 'rgb(255,255,255)', fontSize: 12, fontWeight: 700 }}>Confirmer</button>
+                  <button type="button" role="menuitem" onClick={() => setConfirmDeleteForAllId(null)} style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', cursor: 'pointer', background: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6', color: isDark ? 'var(--c-gray-300)' : '#6B7280', fontSize: 12 }}>Annuler</button>
                 </div>
               ) : (
-                <MI label="Supprimer pour tous" onClick={() => setConfirmDeleteForAllId(m.id)} danger />
+                // oxlint-disable-next-line jsx-a11y/no-autofocus -- annulation de la confirmation : le focus revient sur l'entrée du menu
+                <MenuItem color={tp} autoFocus label="Supprimer pour tous" onClick={() => setConfirmDeleteForAllId(m.id)} danger />
               )
             )}
-          </div>
+          </MenuPopover>
         )
       })()}
 
       {/* Modals */}
-      {showSlot && <SlotModal onConfirm={proposerSlot} onCancel={() => setShowSlot(false)} />}
-      {counterFor && <SlotModal onConfirm={confirmCounter} onCancel={() => setCounterFor(null)} />}
+      {showSlot && <SlotModal c={slotColors} onConfirm={proposerSlot} onCancel={() => setShowSlot(false)} />}
+      {counterFor && <SlotModal c={slotColors} onConfirm={confirmCounter} onCancel={() => setCounterFor(null)} />}
 
       {/* Modal plainte */}
-      {complainMsg && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)' }}
-          onClick={e => { if (e.target === e.currentTarget) setComplainMsg(null) }}>
-          <div role="dialog" aria-modal="true" aria-label="Message supprimé" className="rounded-3xl p-5 w-full max-w-sm anim-scale-in" onClick={e => e.stopPropagation()}
-            style={{ background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div><p className="font-bold text-[15px]" style={{ color: tp }}>Message supprimé</p>
-                <p className="text-[12px] mt-0.5" style={{ color: tm }}>Supprimé par un administrateur.</p></div>
-              <button onClick={() => setComplainMsg(null)} className="w-7 h-7 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0" style={{ color: tm, background: iconBtn }}><XIcon /></button>
-            </div>
-            {complainSent ? (
-              <div className="text-center py-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(34,197,94,0.12)' }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                <p className="font-bold text-[14px] mb-1" style={{ color: tp }}>Plainte envoyée</p>
-                <p className="text-[12px]" style={{ color: tm }}>Notre équipe examinera votre signalement.</p>
-                <button onClick={() => setComplainMsg(null)} className="mt-4 w-full py-2.5 rounded-xl text-white text-sm font-bold cursor-pointer" style={{ background: '#4B6BFF' }}>Fermer</button>
-              </div>
-            ) : (
-              <>
-                <textarea value={complainText} onChange={e => setComplainText(e.target.value)}
-                  placeholder="Expliquez pourquoi cette suppression est injustifiée…" rows={4}
-                  className="w-full rounded-xl px-3 py-2.5 text-[13px] outline-none resize-none mb-3"
-                  style={{ background: inpFieldBg, border: `1px solid ${inpFieldBdr}`, color: tp }} />
-                <div className="flex gap-2">
-                  <button onClick={() => setComplainMsg(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-pointer" style={{ border: `1px solid ${menuBdr}`, color: tp }}>Annuler</button>
-                  <button disabled={!complainText.trim() || complainSending} onClick={async () => {
-                    if (!complainText.trim()) return; setComplainSending(true)
-                    try { await chatApi.creerPlainte({ message_id: complainMsg.id, conversation_id: convId, contenu: complainText.trim() }); setComplainSent(true) }
-                    catch (err) { showError(err) }
-                    setComplainSending(false)
-                  }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center cursor-pointer" style={{ background: '#4B6BFF' }}>
-                    {complainSending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Envoyer'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {complainMsg && <ComplaintModal msg={complainMsg} convId={convId} colors={colors} onClose={() => setComplainMsg(null)} onError={showError} />}
     </div>
   )
 }

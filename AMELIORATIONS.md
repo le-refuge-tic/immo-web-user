@@ -1,5 +1,7 @@
 # Améliorations recommandées — immo-web (REFUGE)
 
+> **Document historique (2 septembre 2026).** Il décrit l'état du code à cette date : la plupart des points ont depuis été corrigés (le contournement OTP côté client et le fichier `src/utils/otpBypass.ts` n'existent plus ; build, `refresh`, déconnexion serveur, accessibilité, tests et CI ont été traités). Ne pas s'y fier pour l'état actuel ; le suivi à jour est tenu dans le bilan d'audit de l'équipe.
+
 **Date :** 2026-09-02
 Document complémentaire à [AUDIT.md](AUDIT.md). Priorisé : 🔴 avant prod · 🟠 court terme · 🟡 confort.
 
