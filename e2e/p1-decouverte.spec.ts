@@ -93,4 +93,19 @@ test.describe('P1 découverte', () => {
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
   })
+
+  test('la fiche affiche la date de disponibilité seulement quand elle est définie', async ({ page }) => {
+    await mockApp(page, { mocks: { bienDetail: { status: 200, body: { ...BIEN, disponible_a: '2030-03-15' } } } })
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/biens/1')
+    await expect(page.locator('text=Disponible à partir du 15 mars 2030 >> visible=true')).toBeVisible()
+  })
+
+  test("sans date de disponibilité, la fiche n'en parle pas", async ({ page }) => {
+    await mockApp(page, { mocks: { bienDetail: { status: 200, body: { ...BIEN, disponible_a: null } } } })
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/biens/1')
+    await expect(page.locator('text=Cotonou >> visible=true').first()).toBeVisible()
+    await expect(page.getByText(/Disponible à partir du/)).toHaveCount(0)
+  })
 })

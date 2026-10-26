@@ -4,7 +4,7 @@ import type { InfoRow } from '../../../utils/amenites'
 import logoSbee from '../../../assets/logo-SBEE.png'
 import logoSoneb from '../../../assets/logo-SONEB.webp'
 import { Icon, type IconType } from './Icon'
-import { fmtSlot, fcfa, INFO_ROW_META } from './helpers'
+import { fmtSlot, fmtDateLongue, fcfa, INFO_ROW_META } from './helpers'
 
 // ─── Contenu partagé (mobile & desktop) — sections empilées, sans onglets ────
 export function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows, terrainRows, voisinageLabels, visitesPlanifiees, visitesConfirmees }: {
@@ -19,6 +19,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
     ((bien.details_terrain?.superficie ?? 0) > 0) || bien.details_appart?.entree_personnelle ||
     bien.details_maison?.cloture || bien.details_terrain?.cloture ||
     am?.parking || am?.cour || am?.boyerie || am?.sanitaire != null
+  const disponibleLe = fmtDateLongue(bien.disponible_a)
 
   return (
     <div className="space-y-6">
@@ -50,6 +51,14 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
           </div>
         )
       })()}
+
+      {/* Date de disponibilité — seulement si le propriétaire en a indiqué une */}
+      {disponibleLe && (
+        <div className="flex items-center gap-2 p-3.5 rounded-xl border" style={{ background: 'rgba(255,152,0,0.07)', borderColor: 'rgba(255,152,0,0.25)' }}>
+          <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: 'var(--c-amber-dark)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          <p className="text-sm font-bold" style={{ color: 'var(--c-amber-dark)' }}>Disponible à partir du {disponibleLe}</p>
+        </div>
+      )}
 
       {/* Visites confirmées */}
       {isOwnBien

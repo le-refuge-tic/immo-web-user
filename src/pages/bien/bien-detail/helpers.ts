@@ -29,6 +29,16 @@ export function fmtVisiteDate(iso: string | null | undefined) {
   } catch { return iso }
 }
 
+const MONTHS_LONG = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+
+/** « 15 mars 2030 » depuis une date YYYY-MM-DD (lue telle quelle, sans décalage de fuseau) ; null si absente ou illisible. */
+export function fmtDateLongue(iso: string | null | undefined): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '')
+  if (!m) return null
+  const mois = MONTHS_LONG[Number(m[2]) - 1]
+  return mois ? `${Number(m[3])} ${mois} ${m[1]}` : null
+}
+
 export function fcfa(v: number) {
   return `${Math.round(v).toLocaleString('fr-FR').replace(/,/g, ' ')} FCFA`
 }
