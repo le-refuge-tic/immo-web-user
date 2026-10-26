@@ -131,6 +131,8 @@ export function useNouveauBienForm() {
   const peutEtreMeuble = typeBien === 'appartement' || typeBien === 'villa' || typeBien === 'maison'
   const isMeuble = peutEtreMeuble && estMeuble
   const showPieces = ['appartement', 'villa', 'maison', 'chambre_salon'].includes(typeBien)
+  // Nombre de pièces = chambres + salons (cuisines et douches non comptées) ; une entrée-coucher compte 1 pièce
+  const nbPieces = showPieces ? chambres + salons : typeBien === 'entree_coucher' ? 1 : 0
   const hasAtLeastOneTarif = !!(parsePrix(prixLongSejour) || parsePrix(prixSejourRestreint) || parsePrix(prixHeure) || tarifsAutres.some(t => parsePrix(t.prix)))
 
   const superficieM2 = (() => {
@@ -562,6 +564,7 @@ export function useNouveauBienForm() {
     peutEtreMeuble,
     isMeuble,
     showPieces,
+    nbPieces,
     hasAtLeastOneTarif,
     superficieM2,
     typeBackend,

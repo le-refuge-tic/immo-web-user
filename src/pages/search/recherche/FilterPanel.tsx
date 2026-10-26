@@ -1,5 +1,6 @@
 import { TRANSACTIONS, TYPES, SOUS_TYPES, BUDGET_PRESETS } from './options'
 import type { Tokens } from './tokens'
+import { PIECES_MAX } from '../../../utils/searchFilters'
 
 /* ══════════════════════════════════════════════════════════════
    FilterPanel
@@ -11,15 +12,14 @@ type FilterPanelProps = {
   prixMin: string; setPrixMin: (v: string) => void
   prixMax: string; setPrixMax: (v: string) => void
   sousType: string; setSousType: (v: string) => void
-  chambresMin: string; setChambresMin: (v: string) => void
-  salonsMin: string; setSalonsMin: (v: string) => void
+  pieces: string; setPieces: (v: string) => void
   superficieMin: string; setSuperficieMin: (v: string) => void
   superficieMax: string; setSuperficieMax: (v: string) => void
 }
 
 export default function FilterPanel({
   isDark: _isDark, tk, transaction, setTransaction, type, setType, prixMin, setPrixMin, prixMax, setPrixMax,
-  sousType, setSousType, chambresMin, setChambresMin, salonsMin, setSalonsMin,
+  sousType, setSousType, pieces, setPieces,
   superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
 }: FilterPanelProps) {
   const showSuperficie = type === 'terrain' || sousType === 'terrain'
@@ -81,11 +81,11 @@ export default function FilterPanel({
       {/* Pièces */}
       <div>
         <p id="filtre-pieces" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
-          Pièces minimum
+          Nombre de pièces
         </p>
-        <div role="group" aria-labelledby="filtre-pieces" className="grid grid-cols-2 gap-2">
-          <Stepper label="Chambres" value={chambresMin} onChange={setChambresMin} tk={tk} />
-          <Stepper label="Salons"   value={salonsMin}   onChange={setSalonsMin}   tk={tk} />
+        <div role="group" aria-labelledby="filtre-pieces">
+          <Stepper value={pieces} onChange={setPieces} max={PIECES_MAX} tk={tk} />
+          <p className="text-micro mt-1" style={{ color: tk.labelClr }}>Chambres + salons</p>
         </div>
       </div>
 
@@ -171,29 +171,29 @@ export default function FilterPanel({
 }
 
 /* ── Stepper ── */
-function Stepper({ label, value, onChange, tk }: {
-  label: string; value: string; onChange: (v: string) => void; tk: Tokens
+/** Compteur du nombre de pièces : vide (« — ») = indifférent, le dernier cran affiche « 5+ ». */
+function Stepper({ value, onChange, max, tk }: {
+  value: string; onChange: (v: string) => void; max: number; tk: Tokens
 }) {
-  const n = Number(value) || 0
+  const n = Math.min(Number(value) || 0, max)
   return (
-    <div>
-      <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{label}</p>
-      <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 rounded-xl"
-        style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
-        <button type="button" onClick={() => onChange(n > 0 ? String(n - 1) : '')}
-          className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold"
-          style={{ background: tk.pillIdle.background as string, color: tk.textClr }}>
-          −
-        </button>
-        <span className="text-sm font-semibold min-w-[1.5rem] text-center" style={{ color: tk.textClr }}>
-          {n || '—'}
-        </span>
-        <button type="button" onClick={() => onChange(String(n + 1))}
-          className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold"
-          style={{ background: 'rgba(75,107,255,0.14)', color: 'var(--tx-blue)' }}>
-          +
-        </button>
-      </div>
+    <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 rounded-xl"
+      style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
+      <button type="button" aria-label="Une pièce de moins" disabled={n === 0}
+        onClick={() => onChange(n > 1 ? String(n - 1) : '')}
+        className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold disabled:opacity-40"
+        style={{ background: tk.pillIdle.background as string, color: tk.textClr }}>
+        −
+      </button>
+      <span className="text-sm font-semibold min-w-[1.5rem] text-center" style={{ color: tk.textClr }} aria-live="polite">
+        {n === 0 ? '—' : n >= max ? `${max}+` : n}
+      </span>
+      <button type="button" aria-label="Une pièce de plus" disabled={n >= max}
+        onClick={() => onChange(String(n + 1))}
+        className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold disabled:opacity-40"
+        style={{ background: 'rgba(75,107,255,0.14)', color: 'var(--tx-blue)' }}>
+        +
+      </button>
     </div>
   )
 }

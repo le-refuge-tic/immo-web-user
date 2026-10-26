@@ -9,7 +9,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { rechercherQuartiers, trouverQuartierExact, type Quartier, VILLES_AVEC_QUARTIERS } from '../../../data/quartiers'
 import { getQuartierCoords, haversineKm, distanceEntreQuartiers } from '../../../data/quartierProximite'
 import { useScrollRestoration } from '../../../hooks/useScrollRestoration'
-import { readSearchFilters, writeSearchFilters, type SortKey } from '../../../utils/searchFilters'
+import { readSearchFilters, writeSearchFilters, piecesQuery, piecesLabel, type SortKey } from '../../../utils/searchFilters'
 import { norm, matchLoc, inBudgetRange, isBudgetVoisin, fmtFcfa } from './helpers'
 import { TRANSACTIONS, TYPES, SOUS_TYPES, PAGE_SIZE, PROXIMITY_MAX_KM } from './options'
 import { useTokens } from './tokens'
@@ -30,27 +30,26 @@ export function useSearchPage() {
   const [prixMin,       setPrixMin]       = useState(initial.prixMin)
   const [prixMax,       setPrixMax]       = useState(initial.prixMax)
   const [sousType,      setSousType]      = useState(initial.sousType)
-  const [chambresMin,   setChambresMin]   = useState(initial.chambresMin)
-  const [salonsMin,     setSalonsMin]     = useState(initial.salonsMin)
+  const [pieces,        setPieces]        = useState(initial.pieces)
   const [superficieMin, setSuperficieMin] = useState(initial.superficieMin)
   const [superficieMax, setSuperficieMax] = useState(initial.superficieMax)
   const [sortBy,        setSortBy]        = useState<SortKey>(initial.sortBy)
 
   useEffect(() => {
     setSearchParams(
-      writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy }),
+      writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy }),
       { replace: true },
     )
-  }, [query, transaction, type, prixMin, prixMax, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy, setSearchParams])
+  }, [query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy, setSearchParams])
 
   // Sens inverse : Précédent / Suivant ou un lien interne vers une autre recherche mettent l'état à jour
-  const filtersKey = JSON.stringify(writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, chambresMin, salonsMin, superficieMin, superficieMax, sortBy }))
+  const filtersKey = JSON.stringify(writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy }))
   useEffect(() => {
     const fromUrl = readSearchFilters(searchParams)
     if (JSON.stringify(writeSearchFilters(fromUrl)) === filtersKey) return
     setQuery(fromUrl.q); setTransaction(fromUrl.transaction); setType(fromUrl.type)
     setPrixMin(fromUrl.prixMin); setPrixMax(fromUrl.prixMax); setSousType(fromUrl.sousType)
-    setChambresMin(fromUrl.chambresMin); setSalonsMin(fromUrl.salonsMin)
+    setPieces(fromUrl.pieces)
     setSuperficieMin(fromUrl.superficieMin); setSuperficieMax(fromUrl.superficieMax); setSortBy(fromUrl.sortBy)
     // Déclenché par l'URL seulement : filtersKey reflète l'état courant au moment du changement d'URL
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,13 +93,12 @@ export function useSearchPage() {
     if (sousType) params.sous_type = sousType
     // Nombres normalisés (virgule décimale) ; une valeur illisible est ignorée plutôt que de casser la recherche
     const num = (v: string) => { const n = Number(v.replace(',', '.')); return Number.isFinite(n) && n >= 0 ? n : null }
-    const chambres = num(chambresMin), salons = num(salonsMin), supMin = num(superficieMin), supMax = num(superficieMax)
-    if (chambresMin && chambres !== null)     params.chambres_min   = Math.floor(chambres)
-    if (salonsMin && salons !== null)         params.salons_min     = Math.floor(salons)
+    const supMin = num(superficieMin), supMax = num(superficieMax)
+    Object.assign(params, piecesQuery(pieces))
     if (superficieMin && supMin !== null)     params.superficie_min = supMin
     if (superficieMax && supMax !== null)     params.superficie_max = supMax
     return params
-  }, [sousType, chambresMin, salonsMin, superficieMin, superficieMax])
+  }, [sousType, pieces, superficieMin, superficieMax])
   const filterParamsKey = JSON.stringify(filterParams)
 
   // Vivier des suggestions « autres biens » : mêmes critères hors localisation, filtrés par le serveur
@@ -307,7 +305,7 @@ export function useSearchPage() {
 
   const reset = () => {
     setQuery(''); setTransaction(''); setType(''); setPrixMin(''); setPrixMax('')
-    setSousType(''); setChambresMin(''); setSalonsMin(''); setSuperficieMin(''); setSuperficieMax(''); setSortBy('pertinence')
+    setSousType(''); setPieces(''); setSuperficieMin(''); setSuperficieMax(''); setSortBy('pertinence')
   }
 
   type Chip = { label: string; onRemove: () => void }
@@ -318,8 +316,7 @@ export function useSearchPage() {
   if (prixMin)       chips.push({ label: `≥ ${fmtFcfa(prixMin)} FCFA`,                               onRemove: () => setPrixMin('') })
   if (prixMax)       chips.push({ label: `≤ ${fmtFcfa(prixMax)} FCFA`,                               onRemove: () => setPrixMax('') })
   if (sousType)      chips.push({ label: SOUS_TYPES.find(t => t.key === sousType)?.label ?? sousType, onRemove: () => setSousType('') })
-  if (chambresMin)   chips.push({ label: `≥ ${chambresMin} chambre${Number(chambresMin) > 1 ? 's' : ''}`, onRemove: () => setChambresMin('') })
-  if (salonsMin)     chips.push({ label: `≥ ${salonsMin} salon${Number(salonsMin) > 1 ? 's' : ''}`,       onRemove: () => setSalonsMin('') })
+  if (pieces)        chips.push({ label: piecesLabel(pieces), onRemove: () => setPieces('') })
   if (superficieMin) chips.push({ label: `≥ ${superficieMin} m²`, onRemove: () => setSuperficieMin('') })
   if (superficieMax) chips.push({ label: `≤ ${superficieMax} m²`, onRemove: () => setSuperficieMax('') })
   const hasFilters = chips.length > 0
@@ -327,8 +324,7 @@ export function useSearchPage() {
   const fp = {
     isDark, tk, transaction, setTransaction, type, setType,
     prixMin, setPrixMin, prixMax, setPrixMax,
-    sousType, setSousType, chambresMin, setChambresMin,
-    salonsMin, setSalonsMin, superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
+    sousType, setSousType, pieces, setPieces, superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
   }
 
   useScrollRestoration(!loading && allBiens.length > 0)

@@ -39,6 +39,10 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     description,
     autresFrais,
     isTerrain,
+    nbPieces,
+    showPieces,
+    chambres,
+    salons,
     isBoutique,
     isMeuble,
     montantBrut,
@@ -69,6 +73,14 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
             ...(ville ? [`Ville : ${ville}`] : []),
             ...(indicationAdresse.trim() ? [`Adresse : ${indicationAdresse.trim()}`] : []),
           ]} />
+
+          {nbPieces > 0 && (
+            <RecapSection title="Pièces" items={[
+              showPieces
+                ? `${nbPieces} pièce${nbPieces > 1 ? 's' : ''} : ${chambres} chambre${chambres > 1 ? 's' : ''} + ${salons} salon${salons > 1 ? 's' : ''}`
+                : '1 pièce',
+            ]} />
+          )}
 
           {!isTerrain && (parsePrix(prix) ?? 0) > 0 && (
             <RecapSection title="Prix" items={[

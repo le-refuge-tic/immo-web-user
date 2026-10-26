@@ -81,6 +81,7 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
     onSelectFinition,
     isSmallUnit,
     showPieces,
+    nbPieces,
   } = form
   return (
       <div className="space-y-4">
@@ -88,15 +89,18 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
           <Card>
             <Section title="Nombre de pièces" />
             <div className="divide-y" style={{ borderColor: 'var(--p-border)' }}>
-              <Counter label="Chambres" value={chambres} onChange={setChambres} min={1} />
-              <Counter label="Salons" value={salons} onChange={setSalons} />
+              <Counter label="Chambres" item="Une chambre" value={chambres} onChange={setChambres} min={1} />
+              <Counter label="Salons" item="Un salon" value={salons} onChange={setSalons} />
               {typeBien !== 'chambre_salon' && (
                 <>
-                  <Counter label="Cuisines" value={cuisines} onChange={setCuisines} />
-                  <Counter label="Douches" value={douches} onChange={setDouches} />
+                  <Counter label="Cuisines" item="Une cuisine" value={cuisines} onChange={setCuisines} />
+                  <Counter label="Douches" item="Une douche" value={douches} onChange={setDouches} />
                 </>
               )}
             </div>
+            <p className="mt-2 text-sm font-bold" style={{ color: BLUE }} aria-live="polite">
+              Total : {nbPieces} pièce{nbPieces > 1 ? 's' : ''} <span className="font-normal" style={{ color: 'var(--p-muted)' }}>(chambres + salons)</span>
+            </p>
           </Card>
         )}
 
@@ -152,7 +156,7 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
             <div className="mt-4 space-y-4">
               <div>
                 <p className="text-xs font-semibold mb-2" style={{ color: 'var(--p-muted)' }}>Nombre de voisins dans la cour</p>
-                <Counter label="Voisins" value={nbVoisins} onChange={setNbVoisins} />
+                <Counter label="Voisins" item="Un voisin" value={nbVoisins} onChange={setNbVoisins} />
               </div>
               <div>
                 <p className="text-xs font-semibold mb-2" style={{ color: 'var(--p-muted)' }}>Accès véhicule</p>

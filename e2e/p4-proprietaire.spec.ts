@@ -76,6 +76,41 @@ test.describe("P4 publication d'annonce", () => {
     expect(body.amenites?.disponibilite).toBe('en_finition')
   })
 
+  test('les compteurs chambres et salons donnent le total de pièces, au récapitulatif et à la publication', async ({ page }) => {
+    const calls = await mockApp(page, { role: 'demarcheur' })
+    await page.goto('/nouveau-bien')
+    const continuer = page.getByRole('button', { name: /Continuer/ })
+
+    await page.getByRole('button', { name: 'Appartement', exact: true }).click()
+    await page.locator('input[type="number"]').first().fill('120000')
+    await continuer.click()
+    await page.getByPlaceholder('Rechercher un quartier…').fill('Akpakpa')
+    await page.getByRole('button', { name: /Akpakpa/ }).first().click()
+    await continuer.click()
+
+    // Étape 3 — 1 chambre + 1 salon au départ ; la chambre ne descend pas sous 1
+    await expect(page.getByText('Total : 2 pièces')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Une chambre de moins' })).toBeDisabled()
+    await page.getByRole('button', { name: 'Une chambre de plus' }).click()
+    await page.getByRole('button', { name: 'Une chambre de plus' }).click()
+    await page.getByRole('button', { name: 'Un salon de plus' }).click()
+    await expect(page.getByText('Total : 5 pièces')).toBeVisible()
+    await page.getByRole('button', { name: 'Une cuisine de plus' }).click()
+    await expect(page.getByText('Total : 5 pièces')).toBeVisible()
+    await continuer.click()
+    await continuer.click()
+
+    await expect(page.getByText('5 pièces : 3 chambres + 2 salons')).toBeVisible()
+    await page.getByRole('button', { name: 'Publier le bien' }).click()
+    await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
+
+    const creation = calls.find(c => c.method === 'POST' && c.path === '/biens')
+    const pieces = (JSON.parse(creation?.body ?? '{}') as { pieces?: { nom: string }[] }).pieces ?? []
+    expect(pieces.filter(p => p.nom === 'Chambre')).toHaveLength(3)
+    expect(pieces.filter(p => p.nom === 'Salon')).toHaveLength(2)
+    expect(pieces.filter(p => p.nom === 'Cuisine')).toHaveLength(2)
+  })
+
   test("un prix manquant bloque l'étape 1 avec un message", async ({ page }) => {
     await mockApp(page, { role: 'demarcheur' })
     await page.goto('/nouveau-bien')

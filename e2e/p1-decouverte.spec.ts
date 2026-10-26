@@ -27,20 +27,50 @@ test.describe('P1 découverte', () => {
         },
       },
     })
-    await page.goto('/search?chambres_min=2&salons_min=1&superficie_min=50&tri=prix_asc&type=maison')
+    await page.goto('/search?pieces=3&superficie_min=50&tri=prix_asc&type=maison')
 
     await expect(page.locator('text=100 annonces affichées sur 130 >> visible=true')).toBeVisible()
     const url = new URL(page.url()).searchParams
-    expect(url.get('chambres_min')).toBe('2')
+    expect(url.get('pieces')).toBe('3')
     expect(url.get('tri')).toBe('prix_asc')
     const query = firstQuery as URLSearchParams | null
-    expect(query?.get('chambres_min')).toBe('2')
+    expect(query?.get('pieces')).toBe('3')
+    expect(query?.has('chambres_min')).toBe(false)
     expect(query?.get('superficie_min')).toBe('50')
     expect(query?.has('prix_min')).toBe(false)
 
     await page.locator('button:has-text("Afficher plus"):visible').click()
     await expect(page.locator('text=130 annonces au total >> visible=true')).toBeVisible()
     expect(pages).toContain(2)
+  })
+
+  test('le compteur « Nombre de pièces » cherche le nombre exact, puis « 5+ » au maximum', async ({ page }) => {
+    const queries: URLSearchParams[] = []
+    await mockApp(page, {
+      mocks: { biens: req => { queries.push(new URL(req.url()).searchParams); return { status: 200, body: { data: biensList(3), total: 3, page: 1, limit: 100 } } } },
+    })
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/search')
+    const panneau = page.getByRole('complementary')
+    const plus = panneau.getByRole('button', { name: 'Une pièce de plus' })
+    const moins = panneau.getByRole('button', { name: 'Une pièce de moins' })
+    await expect(panneau.getByText('Pièces minimum')).toHaveCount(0)
+    await expect(panneau.getByText('Nombre de pièces')).toBeVisible()
+
+    for (let i = 0; i < 3; i++) await plus.click()
+    await expect.poll(() => queries.at(-1)?.get('pieces')).toBe('3')
+    expect(queries.at(-1)?.has('pieces_min')).toBe(false)
+    await expect(page).toHaveURL(/pieces=3/)
+
+    await plus.click(); await plus.click()
+    await expect(panneau.getByText('5+', { exact: true })).toBeVisible()
+    await expect(plus).toBeDisabled()
+    await expect.poll(() => queries.at(-1)?.get('pieces_min')).toBe('5')
+    expect(queries.at(-1)?.has('pieces')).toBe(false)
+
+    for (let i = 0; i < 5; i++) await moins.click()
+    await expect.poll(() => queries.at(-1)?.has('pieces') || queries.at(-1)?.has('pieces_min')).toBe(false)
+    await expect(moins).toBeDisabled()
   })
 
   test('un échec de la page 2 garde la liste déjà chargée et « Réessayer » recharge la même page', async ({ page }) => {

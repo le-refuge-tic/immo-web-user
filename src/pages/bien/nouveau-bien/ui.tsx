@@ -73,19 +73,24 @@ export function Chip({ label, active, onClick }: { label: string; active: boolea
   )
 }
 
-export function Counter({ label, value, onChange, min = 0 }: {
-  label: string; value: number; onChange: (v: number) => void; min?: number
+/** Plafond des compteurs du formulaire (pièces, voisins…). */
+export const COUNTER_MAX = 20
+
+/** Compteur ; `item` (« Une chambre ») nomme les boutons pour les lecteurs d'écran : « Une chambre de plus ». */
+export function Counter({ label, value, onChange, min = 0, max = COUNTER_MAX, item }: {
+  label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; item?: string
 }) {
+  const nom = item ?? label
   return (
     <div className="flex items-center justify-between py-2.5">
       <span className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{label}</span>
       <div className="flex items-center gap-3">
-        <button type="button" disabled={value <= min} onClick={() => onChange(value - 1)}
+        <button type="button" aria-label={`${nom} de moins`} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}
           className="w-8 h-8 rounded-lg flex items-center justify-center font-bold border disabled:opacity-40 transition-colors"
           style={{ background: 'var(--p-deep)', borderColor: 'var(--p-border)', color: 'var(--p-text)' }}>−</button>
         <span className="w-6 text-center font-bold" style={{ color: 'var(--p-text)' }}>{value}</span>
-        <button type="button" onClick={() => onChange(value + 1)}
-          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-colors"
+        <button type="button" aria-label={`${nom} de plus`} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}
+          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-colors disabled:opacity-40"
           style={{ background: withAlpha(BLUE, '20'), color: BLUE }}>+</button>
       </div>
     </div>
