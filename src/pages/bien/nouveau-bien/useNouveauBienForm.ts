@@ -96,6 +96,7 @@ export function useNouveauBienForm() {
   const [equipementsBonus, setEquipementsBonus] = useDraftState<string[]>(draft, 'equipementsBonus', [])
   const [alentours, setAlentours] = useDraftState<string[]>(draft, 'alentours', [])
   const [disponibilite, setDisponibilite] = useDraftState<'immediate' | 'en_finition'>(draft, 'disponibilite', 'immediate')
+  const [disponibleA, setDisponibleA] = useDraftState(draft, 'disponibleA', '')
   const [showMoreOptions, setShowMoreOptions] = useDraftState(draft, 'showMoreOptions', false)
 
   // Terrain
@@ -339,6 +340,8 @@ export function useNouveauBienForm() {
         body.details_appart = { entree_personnelle: typeCour === 'entree_personnelle' }
       }
 
+      if (!isTerrain && disponibilite === 'en_finition' && disponibleA) body.disponible_a = disponibleA
+
       const pieces = buildPieces()
       if (pieces.length) body.pieces = pieces
 
@@ -506,6 +509,8 @@ export function useNouveauBienForm() {
     setAlentours,
     disponibilite,
     setDisponibilite,
+    disponibleA,
+    setDisponibleA,
     showMoreOptions,
     setShowMoreOptions,
     titreTerrain,

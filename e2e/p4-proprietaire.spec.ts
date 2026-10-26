@@ -47,6 +47,35 @@ test.describe("P4 publication d'annonce", () => {
     await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
   })
 
+  test('« En finition / Bientôt » propose une date de disponibilité, envoyée à la publication', async ({ page }) => {
+    const calls = await mockApp(page, { role: 'demarcheur' })
+    await page.goto('/nouveau-bien')
+    const continuer = page.getByRole('button', { name: /Continuer/ })
+
+    await page.locator('input[type="number"]').first().fill('45000')
+    await continuer.click()
+    await page.getByPlaceholder('Rechercher un quartier…').fill('Akpakpa')
+    await page.getByRole('button', { name: /Akpakpa/ }).first().click()
+    await continuer.click()
+
+    // Étape 3 — le champ date n'apparaît qu'avec « En finition / Bientôt »
+    const date = page.getByLabel(/Disponible à partir du/)
+    await expect(date).toHaveCount(0)
+    await page.getByRole('button', { name: 'En finition / Bientôt' }).click()
+    await date.fill('2030-03-15')
+    await continuer.click()
+    await continuer.click()
+
+    await expect(page.getByText('Disponible à partir du 15/03/2030')).toBeVisible()
+    await page.getByRole('button', { name: 'Publier le bien' }).click()
+    await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
+
+    const creation = calls.find(c => c.method === 'POST' && c.path === '/biens')
+    const body = JSON.parse(creation?.body ?? '{}') as { disponible_a?: string; amenites?: { disponibilite?: string } }
+    expect(body.disponible_a).toBe('2030-03-15')
+    expect(body.amenites?.disponibilite).toBe('en_finition')
+  })
+
   test("un prix manquant bloque l'étape 1 avec un message", async ({ page }) => {
     await mockApp(page, { role: 'demarcheur' })
     await page.goto('/nouveau-bien')

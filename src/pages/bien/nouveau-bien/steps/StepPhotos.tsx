@@ -35,6 +35,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     equipementsBonus,
     alentours,
     disponibilite,
+    disponibleA,
     description,
     autresFrais,
     isTerrain,
@@ -113,7 +114,9 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
           )}
           {!isTerrain && (
             <RecapSection title="Disponibilité" items={[
-              disponibilite === 'immediate' ? 'Disponible immédiatement' : 'En finition — Bientôt disponible'
+              disponibilite === 'immediate' ? 'Disponible immédiatement'
+                : disponibleA ? `Disponible à partir du ${disponibleA.split('-').reverse().join('/')}`
+                : 'En finition — Bientôt disponible'
             ]} />
           )}
           {autresFrais.filter(f => parsePrix(f.prix) !== undefined).length > 0 && (

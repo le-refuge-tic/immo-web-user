@@ -3,6 +3,7 @@
 import { BLUE, SANITAIRE_OPTS, FINITION_OPTS, CUISINE_OPTS, COUR_OPTS, COUR_DESC, EQUIPEMENTS_RESIDENTIEL, ALENTOURS_OPTS, parsePrix, formatFcfa, baseInputStyle } from '../options'
 import { Card, Section, ChoiceList, Chip, Counter, NumberPicker, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
+import { DisponibiliteCard } from './DisponibiliteCard'
 
 export function StepConfort({ form }: { form: NouveauBienForm }) {
   const {
@@ -74,8 +75,6 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
     setEquipementsBonus,
     alentours,
     setAlentours,
-    disponibilite,
-    setDisponibilite,
     showMoreOptions,
     setShowMoreOptions,
     onSelectSanitaire,
@@ -330,13 +329,7 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
           </>
         )}
 
-        <Card>
-          <Section title="Disponibilité" />
-          <div className="grid grid-cols-2 gap-2.5">
-            <Chip label="Immédiate" active={disponibilite === 'immediate'} onClick={() => setDisponibilite('immediate')} />
-            <Chip label="En finition / Bientôt" active={disponibilite === 'en_finition'} onClick={() => setDisponibilite('en_finition')} />
-          </div>
-        </Card>
+        <DisponibiliteCard form={form} />
       </div>
   )
 }
