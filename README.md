@@ -25,7 +25,7 @@ Modèle complet dans `.env.example`. Les variables `VITE_*` sont embarquées dan
 | `VITE_ALLOW_INDEXING` | non | `true` **uniquement en production**. Sinon `robots.txt` interdit tout et chaque page porte `noindex` (staging, aperçus). |
 | `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT` | non | `true` par défaut : l'inscription web ne crée que des comptes propriétaires. `false` rouvre le choix du rôle. Restriction d'interface : l'API accepte toujours les inscriptions de l'application mobile. |
 | `VITE_SENTRY_DSN` | non | Active le suivi d'erreurs Sentry (chargé à la demande). Vide = aucun envoi. |
-| `VITE_RELEASE` | non | Identifiant de version associé aux erreurs Sentry. |
+| `VITE_RELEASE` | non | Identifiant de version associé aux erreurs Sentry. Par défaut `immo-web-user@<version de package.json>`, suivi du commit sur Vercel. |
 | `VITE_UMAMI_WEBSITE_ID` | non | Mesure d'audience Umami sans cookie. Vide = aucun script chargé. |
 | `VITE_UMAMI_SRC` | non | Script Umami (Umami Cloud par défaut) ; s'il est auto-hébergé, l'ajouter à la CSP de `vercel.json`. |
 | `VITE_APK_URL` | non | Lien de téléchargement de l'application Android. |
@@ -40,13 +40,14 @@ Modèle complet dans `.env.example`. Les variables `VITE_*` sont embarquées dan
 | `npm run lint` | oxlint ; les règles jsx-a11y sont bloquantes, le nombre d'avertissements ne peut pas dépasser la limite de `package.json` |
 | `npm test` | tests unitaires (Vitest) |
 | `npm run test:e2e` | tests de bout en bout (Playwright), voir plus bas |
-| `npm run check` | types, lint, `any`, couleurs et liens : ce que le hook de pré-commit exécute |
+| `npm run check` | types, lint, `any`, couleurs, liens et journal des modifications : ce que le hook de pré-commit exécute |
 | `npm run check:size` | budget de taille du paquet initial (après `build`) |
 | `npm run check:colors` | échoue si le nombre de couleurs hexadécimales écrites en dur augmente |
 | `npm run check:any` | échoue si un type `any` explicite est ajouté |
 | `npm run check:links` | vérifie que chaque lien interne correspond à une route de `src/App.tsx` |
+| `npm run check:changelog` | vérifie que `CHANGELOG.md` décrit la version de `package.json` |
 
-La CI (`.github/workflows/ci.yml`) exécute typage, lint, tests, vérification des liens, build, budget de taille, contrôles couleurs et `any`, puis, dans un job séparé, les tests de bout en bout.
+La CI (`.github/workflows/ci.yml`) exécute typage, lint, tests, vérification des liens, build, budget de taille, contrôles couleurs, `any` et journal des modifications, puis, dans un job séparé, les tests de bout en bout.
 
 ## Contrôles avant commit
 
@@ -78,6 +79,17 @@ Pas de couleur hexadécimale nouvelle dans les composants : utiliser les classes
 ## Retour arrière
 
 Vercel conserve chaque déploiement : Dashboard > Deployments > déploiement sain précédent > "Promote to Production" (ou `vercel rollback`). `index.html` n'est pas mis en cache et les fichiers `/assets/*` sont immuables par empreinte : le retour arrière est immédiat. Sinon, `git revert` du commit fautif puis push.
+
+## Publier une version
+
+Les modifications notables sont notées au fil de l'eau dans la section `## [Non publié]` de `CHANGELOG.md` (Ajouté, Modifié, Corrigé, Supprimé, Sécurité), avec l'identifiant d'audit ou de ticket quand il existe. Pour publier, sur `main` à jour :
+
+1. Choisir le numéro ([SemVer](https://semver.org/lang/fr/)) : correctifs seuls → `patch`, nouvelle fonction → `minor`.
+2. Dans `CHANGELOG.md`, renommer `## [Non publié]` en `## [X.Y.Z] - AAAA-MM-JJ`, rouvrir une section `## [Non publié]` vide au-dessus, et mettre à jour les liens de comparaison en bas du fichier.
+3. `npm version X.Y.Z --no-git-tag-version`, puis commit `chore: version X.Y.Z`.
+4. `git tag -a vX.Y.Z -m "vX.Y.Z"` puis `git push origin main --follow-tags`.
+
+`npm run check:changelog` (pré-commit et CI) échoue si la version de `package.json` n'a pas sa section. La version part dans les erreurs Sentry (`VITE_RELEASE`), ce qui relie une erreur au déploiement qui l'a produite.
 
 ## Sécurité
 

@@ -1,6 +1,18 @@
 /// <reference types="vitest/config" />
+import { readFileSync } from 'node:fs'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+
+/**
+ * Version rattachée aux erreurs Sentry (FE-F-007) : VITE_RELEASE si renseignée, sinon
+ * `immo-web-user@<version de package.json>`, suivie du commit quand Vercel le fournit.
+ */
+function release(explicite: string | undefined): string {
+  if (explicite) return explicite
+  const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7)
+  return `immo-web-user@${version}${sha ? `+${sha}` : ''}`
+}
 
 /** Pages publiques déclarées dans le sitemap (les annonces sont rendues côté client). */
 const PAGES_PUBLIQUES = ['/', '/search', '/login', '/register', '/mentions-legales', '/confidentialite']
@@ -50,6 +62,8 @@ export default defineConfig(({ mode }) => {
   }
   return {
     plugins: [react(), seo(env.VITE_SITE_URL ?? '', env.VITE_ALLOW_INDEXING === 'true')],
+    // Constante dédiée : Vite remplace `import.meta.env` avant `define`, qui ne peut donc pas la compléter.
+    define: { __APP_RELEASE__: JSON.stringify(release(env.VITE_RELEASE)) },
     // Les specs Playwright (e2e/) ont leur propre lanceur : Vitest ne doit pas les charger.
     test: { exclude: ['node_modules/**', 'dist/**', 'e2e/**'] },
   }

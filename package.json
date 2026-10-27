@@ -1,7 +1,7 @@
 {
   "name": "immo-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.5.0",
   "type": "module",
   "engines": {
     "node": ">=22",
@@ -18,7 +18,8 @@
     "check:size": "node scripts/check-bundle-size.mjs",
     "check:colors": "node scripts/check-inline-colors.mjs",
     "check:any": "node scripts/check-explicit-any.mjs",
-    "check": "tsc -b && npm run lint && npm run check:any && npm run check:colors && npm run check:links",
+    "check:changelog": "node scripts/check-changelog.mjs",
+    "check": "tsc -b && npm run lint && npm run check:any && npm run check:colors && npm run check:links && npm run check:changelog",
     "test:e2e": "playwright test",
     "check:e2e-types": "tsc -p e2e"
   },

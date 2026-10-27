@@ -21,7 +21,7 @@ function loadSentry(): Promise<SentryModule | null> {
       sentry.init({
         dsn,
         environment: import.meta.env.MODE,
-        release: import.meta.env.VITE_RELEASE || undefined,
+        release: __APP_RELEASE__,
         tracesSampleRate: 0,
         // Les gestionnaires globaux de Sentry captent déjà onerror et unhandledrejection
       })
