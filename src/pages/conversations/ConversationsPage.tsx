@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { avatarGradient } from '../../theme/illustrations'
 import { Outlet, useNavigate, useMatch } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -9,15 +10,6 @@ import { asChatConversations, type ChatConversation, type ChatUser } from '../..
 
 type Interlocuteur = ChatUser | null | undefined
 
-const AVATAR_PALETTE = [
-  'linear-gradient(135deg,var(--c-brand),var(--c-violet))',
-  'linear-gradient(135deg,var(--c-accent),#FF3B7A)',
-  'linear-gradient(135deg,#00C6A2,#0099CC)',
-  'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,var(--c-indigo))',
-  'linear-gradient(135deg,#10B981,#3B82F6)',
-]
-function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVATAR_PALETTE.length] }
 function displayName(o: Interlocuteur) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 function initiale(o: Interlocuteur) { return (displayName(o)[0] || '?').toUpperCase() }
 function roleLabel(o: Interlocuteur) {
@@ -162,7 +154,7 @@ export default function ConversationsPage() {
               {/* Avatar + présence */}
               <div className="relative flex-shrink-0">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center"
-                  style={{ background: avatarGrad(other?.id ?? conv.id) }}>
+                  style={{ background: avatarGradient(other?.id ?? conv.id) }}>
                   <span className="text-white font-bold text-[15px]">{initiale(other)}</span>
                 </div>
                 {conv.isOnline && (

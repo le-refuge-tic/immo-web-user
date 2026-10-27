@@ -37,6 +37,10 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   4,5:1 sur le pire fond mesuré : violet, vert locataire, ambre, bleu de marque, gris secondaire,
   acier ; pastilles « Publié », « Payé », « Rejeté », « En retard » sur des verts et rouges plus
   soutenus ; statuts écrits avec les jetons de texte.
+- Couleurs en dur (FE-B-017) : le contrôle ne compte plus les commentaires et met à part les
+  illustrations justifiées (drapeaux, visages de notation, couleur de marque, animations) ;
+  dégradés d'avatars regroupés dans `src/theme/illustrations.ts` (deux copies supprimées).
+  Base : 149 couleurs d'interface en dur, 44 d'illustration.
 
 ## [0.5.0] - 2026-10-27
 

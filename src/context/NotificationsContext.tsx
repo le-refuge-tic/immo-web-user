@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { avatarGradient } from '../theme/illustrations'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import type { Socket } from 'socket.io-client'
@@ -34,12 +35,6 @@ const POLL_MS = 30000
 /** Espaces dont la liste d'alertes est filtrée par rôle. */
 const ESPACES_FILTRES = new Set(['proprietaire', 'demarcheur', 'commercial', 'locataire'])
 const TITRE_BADGE = /^\(\d+\+?\) /
-
-const AVATAR_PALETTE = [
-  'linear-gradient(135deg,var(--c-brand),var(--c-violet))', 'linear-gradient(135deg,var(--c-accent),#FF3B7A)',
-  'linear-gradient(135deg,#00C6A2,#0099CC)', 'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,var(--c-indigo))', 'linear-gradient(135deg,#10B981,#3B82F6)',
-]
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { isLoggedIn, user, activeRole } = useAuth()
@@ -94,7 +89,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             to: inProprietaireDashboard ? '/proprietaire' : `/conversations/${c.id}`,
             toState: inProprietaireDashboard ? { tab: 'messages', convId: c.id } : undefined,
             initial: (name[0] || '?').toUpperCase(),
-            gradient: AVATAR_PALETTE[Math.abs(other?.id || c.id) % AVATAR_PALETTE.length],
+            gradient: avatarGradient(other?.id || c.id),
           })
         }
       }

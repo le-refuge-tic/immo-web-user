@@ -50,6 +50,7 @@ function BrandSlide() {
     <div
       className="w-full h-full flex flex-col items-center justify-center"
       style={{
+        // couleur-libre : dégradé d'illustration du panneau de connexion, identique dans les deux thèmes
         background: 'linear-gradient(160deg, #0A0E1A 0%, #14192B 45%, #1E1533 100%)',
       }}
     >
@@ -386,6 +387,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
               <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                 onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                 inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
+                // couleur-libre : framer-motion interpole entre deux couleurs réelles, pas entre des variables CSS
                 animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                 transition={{ duration: 0.15 }}
                 className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
@@ -684,6 +686,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                   onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                   inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
+                  // couleur-libre : framer-motion interpole entre deux couleurs réelles, pas entre des variables CSS
                   animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                   transition={{ duration: 0.15 }}
                   className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"

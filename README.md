@@ -72,6 +72,8 @@ Pas de couleur hexadécimale nouvelle dans les composants : utiliser les classes
 
 Texte ou fond : une couleur de texte s'éclaircit en sombre (`--tx-*`, et dans les espaces `GREEN_TX`, `TEAL_TX`, `PURPLE_TX`, `BLUE_TX`), une couleur de fond plein sous un texte blanc ne change pas (`--c-fill-*`, `--c-primary`, `--c-amber-dark`, constantes `GREEN`, `TEAL`, `PURPLE`, `BLUE`). Utiliser un jeton de texte comme fond rend le texte blanc illisible en sombre ; les statuts exposent pour cela `color` (texte) et `fill` (fond). `e2e/contraste-sombre.spec.ts` vérifie avec axe-core qu'aucun contraste insuffisant n'apparaît en sombre.
 
+Illustrations : les couleurs qui ne sont pas des couleurs d'interface (drapeaux, visages de notation, dégradés d'avatars dans `src/theme/illustrations.ts`, couleurs de marque comme Facebook, couleurs animées par framer-motion, qui n'interpole pas des variables CSS) ne passent pas par les jetons. `check:colors` les compte à part : fichiers listés dans `scripts/couleurs-en-dur.mjs`, ou ligne précédée d'un commentaire `// couleur-libre : <raison>`. Les commentaires ne comptent pas.
+
 ## Déploiement (Vercel)
 
 1. Définir `VITE_API_URL` dans Project Settings > Environment Variables (Production et Preview).
