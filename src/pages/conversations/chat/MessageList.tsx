@@ -29,6 +29,7 @@ interface MessageListProps {
     paying: boolean
     onRepondre: (m: ChatMessage, r: 'accepted' | 'declined' | 'countered') => void
     onPayer: () => void
+    onProposerNouveau: () => void
   }
 }
 
@@ -37,6 +38,8 @@ export function MessageList({
   menuId, onToggleMenu, onComplain, slot,
 }: MessageListProps) {
   const { tp, ts, tm, sepBg, bubbleMeBg, bubbleOtherBg, bubbleOtherBdr } = colors
+  // Seule la dernière proposition expirée invite à proposer un nouvel horaire.
+  const dernierSlotId = visible.filter(m => m.type === 'slot_proposal').slice(-1)[0]?.id
   return (
     <>
       {/* ── Messages ── */}
@@ -71,7 +74,7 @@ export function MessageList({
               <div key={msg.id} id={`msg-${msg.id}`}>
                 {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
                 <SlotBubble m={msg} userId={userId} isDark={isDark} tp={tp} tm={tm} bienId={slot.bienId} isClientRole={slot.isClientRole}
-                  paying={slot.paying} onRepondre={slot.onRepondre} onPayer={slot.onPayer} />
+                  paying={slot.paying} onRepondre={slot.onRepondre} onPayer={slot.onPayer} onProposerNouveau={msg.id === dernierSlotId ? slot.onProposerNouveau : undefined} />
               </div>
             )
           }

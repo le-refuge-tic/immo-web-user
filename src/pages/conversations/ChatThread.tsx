@@ -19,7 +19,7 @@ import { ProfilePanel } from './chat/ProfilePanel'
 import { ComplaintModal } from './chat/ComplaintModal'
 import { MessageList } from './chat/MessageList'
 import { BackIcon, DotsV, SendIcon, CalIcon, XIcon, PinFill, ChevDown } from './chat/icons'
-import { BIEN_TYPE_LABELS, SOUS_TYPE_LABELS, avatarGrad, initial, fmtSlot, displayName, roleLabel, getChatColors } from './chat/helpers'
+import { BIEN_TYPE_LABELS, SOUS_TYPE_LABELS, avatarGrad, initial, fmtSlot, statutCreneau, displayName, roleLabel, getChatColors } from './chat/helpers'
 const WS_URL = API_ORIGIN
 
 export default function ChatThread({ convId, onBack, initialDraft }: { convId: number; onBack: () => void; initialDraft?: string }) {
@@ -341,12 +341,13 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
             {/* Dernier créneau — bandeau */}
             {lastSlot && (() => {
-              const status = lastSlot.metadata?.status || 'pending'
+              const status = statutCreneau(lastSlot.metadata)
               const dt = lastSlot.metadata?.proposed_at ? new Date(lastSlot.metadata.proposed_at) : null
               const cfg: Record<string, { accent: string; label: string }> = {
                 accepted: { accent: 'var(--c-success)', label: 'Créneau confirmé' },
                 declined: { accent: 'var(--c-danger)', label: 'Créneau refusé' },
                 countered: { accent: '#FB923C', label: 'Contre-proposition' },
+                expired: { accent: 'var(--tx-amber)', label: 'Créneau expiré — proposez un nouvel horaire' },
                 pending: { accent: 'var(--tx-brand)', label: 'Créneau en discussion' },
               }
               const c = cfg[status] || cfg.pending
@@ -373,7 +374,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           loading={loading} loadError={loadError} onRetry={loadThread} visible={visible} userId={user?.id} isDark={isDark} colors={colors}
           menuId={menuId} onToggleMenu={(id, pos) => { setMenuId(id); setMenuPos(pos) }}
           onComplain={setComplainMsg}
-          slot={{ bienId: conv?.bien?.id, isClientRole, paying, onRepondre: repondre, onPayer: payer }} />
+          slot={{ bienId: conv?.bien?.id, isClientRole, paying, onRepondre: repondre, onPayer: payer, onProposerNouveau: () => setShowSlot(true) }} />
 
         {/* Bouton scroll bas */}
         {!atBottom && (

@@ -10,7 +10,7 @@ import type { Bien, Conversation, Message, User } from './api'
 
 /** Métadonnées d'un message `slot_proposal` (créneau de visite proposé). */
 export interface CreneauMetadata {
-  /** `pending` | `accepted` | `declined` | `countered` (absent = en attente). */
+  /** `pending` | `accepted` | `declined` | `countered` | `expired` (absent = en attente). */
   status?: string
   /** Date ISO du créneau proposé. */
   proposed_at?: string

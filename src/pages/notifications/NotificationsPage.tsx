@@ -94,7 +94,7 @@ const TYPE_ALIAS: Record<string, string> = {
   visite_confirmee: 'confirmation', visite_contre_proposee: 'proposition',
   visite_client_recontrepropose: 'proposition', visite_proposition_envoyee: 'proposition',
   visite_annulee: 'annulation', visite_echouee: 'annulation',
-  paiement_visite: 'paiement', nouveau_message: 'message',
+  paiement_visite: 'paiement', nouveau_message: 'message', creneau_expire: 'proposition',
   bien_occupe: 'bien_rejete', bien_disponible: 'bien_approuve',
 }
 
@@ -143,6 +143,7 @@ function chipLabel(n: Notification): string | null {
   if (VISITE_TYPES.has(n.type)) return 'Voir la visite'
   if (meta.action === 'feedback') return 'Donner mon avis'
   if (n.type === 'nouveau_message') return 'Voir le message'
+  if (n.type === 'creneau_expire') return 'Proposer un horaire'
   return null
 }
 
@@ -207,7 +208,7 @@ export default function NotificationsPage() {
   const openNotif = async (n: Notification) => {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
-    if (n.type === 'nouveau_message' && meta.conversation_id) {
+    if ((n.type === 'nouveau_message' || n.type === 'creneau_expire') && meta.conversation_id) {
       navigate(`/conversations/${meta.conversation_id}`)
       return
     }

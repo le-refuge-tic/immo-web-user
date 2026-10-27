@@ -1,5 +1,6 @@
 /* Constantes et fonctions pures de la messagerie (formatage, libellés, couleurs du thème). */
-import type { ChatUser } from '../../../types/chat-ui'
+import { avatarGradient } from '../../../theme/illustrations'
+import type { ChatUser, CreneauMetadata } from '../../../types/chat-ui'
 
 type Interlocuteur = Pick<ChatUser, 'prenom' | 'pseudonyme' | 'nom' | 'role'> | null | undefined
 
@@ -11,15 +12,8 @@ export const SOUS_TYPE_LABELS: Record<string, string> = {
   villa: 'Villa', maison_individuelle: 'Maison indiv.', appartement: 'Appartement',
   chambre_salon: 'Chambre-Salon', entree_coucher: 'Entrée-Coucher', boutique: 'Boutique', terrain: 'Terrain',
 }
-const AVATAR_PALETTE = [
-  'linear-gradient(135deg,#4160F2,#7B4BFF)',
-  'linear-gradient(135deg,#FF6B35,#FF3B7A)',
-  'linear-gradient(135deg,#00C6A2,#0099CC)',
-  'linear-gradient(135deg,#F7B731,#F55252)',
-  'linear-gradient(135deg,#A855F7,#6366F1)',
-  'linear-gradient(135deg,#10B981,#3B82F6)',
-]
-export function avatarGrad(id: number) { return AVATAR_PALETTE[Math.abs(id || 0) % AVATAR_PALETTE.length] }
+/** Dégradé d'avatar : palette partagée (src/theme/illustrations.ts), mêmes teintes. */
+export const avatarGrad = avatarGradient
 export function initial(name: string) { return name?.[0]?.toUpperCase() || '?' }
 export function timeLabel(s: string) { return new Date(s).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
 export function sameDay(a: string, b: string) {
@@ -36,6 +30,16 @@ export function fmtSlot(dt: Date) {
   const J = ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.']
   const M = ['janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc']
   return `${J[dt.getDay()]} ${dt.getDate()} ${M[dt.getMonth()]} à ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
+}
+/**
+ * Statut affiché d'une proposition de créneau : un créneau en attente dont
+ * l'heure est passée est « expiré » sans attendre le job serveur.
+ */
+export function statutCreneau(meta: CreneauMetadata | null | undefined, maintenant: Date = new Date()): string {
+  const status = meta?.status || 'pending'
+  if (status !== 'pending' || !meta?.proposed_at) return status
+  const t = new Date(meta.proposed_at).getTime()
+  return !isNaN(t) && t <= maintenant.getTime() ? 'expired' : status
 }
 export function displayName(o: Interlocuteur) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 export function roleLabel(o: Interlocuteur) {

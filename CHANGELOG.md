@@ -12,6 +12,9 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 ## [Non publié]
 
 ### Ajouté
+- Créneau de visite expiré : une proposition restée sans réponse après son heure s'affiche
+  « Expiré » et invite à proposer un nouvel horaire ; la notification « Créneau expiré » ouvre la
+  conversation (tâche serveur associée côté backend).
 - Brouillon d'annonce : les photos et la vidéo choisies sont conservées dans le navigateur
   (IndexedDB, 7 jours) et retrouvées après une session expirée ou un rechargement ; elles sont
   effacées à la publication, par « Tout effacer » et à la déconnexion (FE-B-002).
