@@ -11,6 +11,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté
+- Brouillon d'annonce : les photos et la vidéo choisies sont conservées dans le navigateur
+  (IndexedDB, 7 jours) et retrouvées après une session expirée ou un rechargement ; elles sont
+  effacées à la publication, par « Tout effacer » et à la déconnexion (FE-B-002).
+
 ## [0.5.0] - 2026-10-27
 
 Fusion de `staging` dans `main` (25/10) : `main` contient désormais tout le travail de l'audit.

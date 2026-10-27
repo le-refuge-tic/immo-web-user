@@ -9,6 +9,7 @@ import { QUARTIERS } from '../../../data/quartiers'
 import { track } from '../../../lib/analytics'
 import { apiMessage } from '../../../utils/apiMessage'
 import { useFormDraft, useDraftState } from '../../../hooks/useFormDraft'
+import { useMediaDraft } from '../../../hooks/useMediaDraft'
 import { suggestPush } from '../../../lib/push'
 
 import { normalizeStr, parsePrix } from './options'
@@ -20,7 +21,8 @@ export function useNouveauBienForm() {
   const isDemarcheur = (user?.roles_actifs ?? (user?.role_principal ? [user.role_principal] : [])).includes('demarcheur')
 
   // Brouillon par compte : une session expirée ne fait plus perdre la saisie (FE-B-002)
-  const draft = useFormDraft(`rg_draft_nouveau_bien_${user?.id ?? 'anon'}`)
+  const draftKey = `rg_draft_nouveau_bien_${user?.id ?? 'anon'}`
+  const draft = useFormDraft(draftKey)
   const [isScrolled, setIsScrolled] = useState(false)
   const [step, setStep] = useState(0)
   const [draftBannerDismissed, setDraftBannerDismissed] = useState(false)
@@ -30,6 +32,8 @@ export function useNouveauBienForm() {
   const [created, setCreated] = useState(false)
   const [photos, setPhotos] = useState<File[]>([])
   const [video, setVideo] = useState<File | null>(null)
+  // Photos et vidéo du brouillon, gardées à part dans IndexedDB (FE-B-002)
+  const medias = useMediaDraft(draftKey, photos, video, setPhotos, setVideo)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [hoveredDropzone, setHoveredDropzone] = useState<string | null>(null)
   const [hoveredQuartierIdx, setHoveredQuartierIdx] = useState<number | null>(null)
@@ -365,6 +369,8 @@ export function useNouveauBienForm() {
       }
 
       draft.clear()
+      // Sans attendre : le bien est créé, un stockage lent ne doit pas retarder la confirmation.
+      void medias.clear()
       suggestPush()
       setCreated(true)
     } catch (err: unknown) {
@@ -556,6 +562,7 @@ export function useNouveauBienForm() {
     navigate,
     isDemarcheur,
     draft,
+    medias,
     onSelectSanitaire,
     onSelectFinition,
     isTerrain,

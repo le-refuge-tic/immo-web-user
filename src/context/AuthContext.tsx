@@ -6,6 +6,7 @@ import { revokeSession } from '../api/authApi'
 import { unsubscribeFromPush } from '../lib/push'
 import { userApi } from '../api/userApi'
 import { clearFormDrafts } from '../utils/formDraft'
+import { clearMediaDrafts } from '../utils/mediaDraft'
 import type { LoginPayload, SessionUser } from '../types/session'
 
 type AuthUser = SessionUser
@@ -77,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('rg_user')
     tokenStore.clearTokens()
     clearFormDrafts()
+    void clearMediaDrafts()
   }
 
   const updateUser = (partial: Partial<AuthUser>) => {

@@ -3,8 +3,8 @@
  *
  * Une session expirée renvoie à la connexion par un rechargement complet de
  * page : sans brouillon, toute la saisie était perdue. Seules les valeurs
- * sérialisables sont gardées (pas les fichiers : photos et vidéo sont à
- * ajouter de nouveau).
+ * sérialisables sont gardées ici ; les photos et la vidéo vont dans IndexedDB
+ * (mediaDraft.ts).
  */
 export const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
 const VERSION = 1

@@ -12,6 +12,7 @@ import { StepConfort } from './nouveau-bien/steps/StepConfort'
 import { StepHonoraires } from './nouveau-bien/steps/StepHonoraires'
 import { StepPhotos } from './nouveau-bien/steps/StepPhotos'
 import { withAlpha } from '../../utils/color'
+import { resumeMedias } from '../../hooks/useMediaDraft'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
@@ -28,6 +29,7 @@ export default function NouveauBienPage() {
     created,
     navigate,
     draft,
+    medias,
     isTerrain,
     isBoutique,
     STEP_LABELS,
@@ -119,14 +121,14 @@ export default function NouveauBienPage() {
             )}
           </div>
 
-          {draft.restored && !draftBannerDismissed && (
+          {(draft.restored || medias.restored) && !draftBannerDismissed && (
             <div role="status" className="rounded-xl px-4 py-3 border mb-4 flex items-start justify-between gap-3"
               style={{ background: 'rgba(75,107,255,0.08)', borderColor: 'rgba(75,107,255,0.25)' }}>
               <p className="text-sm" style={{ color: 'var(--p-text)' }}>
-                Votre saisie précédente a été retrouvée. Les photos et la vidéo sont à ajouter de nouveau.
+                Votre saisie précédente a été retrouvée{medias.restored ? `, avec ${resumeMedias(medias.restored)}.` : '.'}
               </p>
               <div className="flex gap-3 flex-shrink-0">
-                <button type="button" onClick={() => { draft.clear(); window.location.reload() }} className="text-xs font-bold" style={{ color: 'var(--tx-red)' }}>
+                <button type="button" onClick={async () => { draft.clear(); await medias.clear(); window.location.reload() }} className="text-xs font-bold" style={{ color: 'var(--tx-red)' }}>
                   Tout effacer
                 </button>
                 <button type="button" onClick={() => setDraftBannerDismissed(true)} className="text-xs font-bold" style={{ color: BLUE }}>OK</button>
