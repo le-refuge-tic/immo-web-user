@@ -50,6 +50,9 @@ export interface User {
   photo_profil?: string | null
   cip_url?: string | null
   ifu_url?: string | null
+  /** Vérification des pièces d'identité (CIP/IFU) par l'équipe REFUGE. */
+  statut_verification_documents?: import('../utils/verificationDocuments').StatutVerificationDocuments | null
+  motif_rejet_documents?: string | null
   score_credibilite?: number
   nb_etoiles?: number
   penalite_pourcentage?: number
@@ -76,6 +79,8 @@ export interface Photo {
   bien_id?: number
   piece_id?: number | null
   url: string
+  /** Vignette WebP de 480 px créée au téléversement (FE-D-002) ; absente pour les photos antérieures. */
+  thumbnail_url?: string | null
   is_cover?: boolean
 }
 
@@ -121,6 +126,8 @@ export interface Bien {
   photos?: Photo[]
   /** Statut du favori pour l'utilisateur courant, quand l'API le renseigne. */
   isFavori?: boolean
+  /** Vidéo de présentation (MP4) ; absente ou null sans vidéo. */
+  video_url?: string | null
 }
 
 /** `GET /biens/:id`, création, mise à jour : le bien, parfois enveloppé dans `data` ou `bien`. */

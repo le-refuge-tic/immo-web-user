@@ -33,6 +33,7 @@ import type { Bien, Visite } from '../../types/api'
 import type { LoyersDashboard, ProprioProfil } from '../../types/proprietaire'
 import { withAlpha } from '../../utils/color'
 import ErrorState from '../../components/ErrorState'
+import { imageDeCouverture } from '../../utils/imageCouverture'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -549,7 +550,7 @@ export default function ProprietaireDashboard() {
                           >
                             <div className="relative overflow-hidden" style={{ height: 160 }}>
                               {cover?.url
-                                ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                ? <img loading="lazy" {...imageDeCouverture([cover], undefined, '(max-width: 768px) 85vw, 400px')} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                 : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${withAlpha(BLUE, '30')})` }}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                                   </div>

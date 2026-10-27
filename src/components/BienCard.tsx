@@ -8,6 +8,7 @@ import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
 import { track } from '../lib/analytics'
 import type { Bien } from '../types/api'
+import { imageDeCouverture } from '../utils/imageCouverture'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -48,8 +49,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     setIsFav(favoriteIds?.has(bien.id) ?? false)
   }, [favoriteIds, bien.id])
 
-  const cover    = bien.photos?.find(p => p.is_cover) || bien.photos?.[0]
-  const coverUrl = cover ? resolveUrl(cover.url) : null
+  // Vignette (480 px) si elle existe : l'image de la carte est l'élément le plus lourd de l'accueil (FE-D-002).
+  const couverture = imageDeCouverture(bien.photos, resolveUrl, '(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 300px')
 
   const isLocation = bien.transaction === 'location'
 
@@ -125,8 +126,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     >
       {/* ── Image ── */}
       <div className="relative h-44 sm:h-48 md:h-52 lg:h-56 img-zoom">
-        {coverUrl ? (
-          <img src={coverUrl} alt={label} className="w-full h-full object-cover" loading="lazy" />
+        {couverture ? (
+          <img src={couverture.src} srcSet={couverture.srcSet} sizes={couverture.sizes} alt={label} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: emptyBg }}>
             <svg className="w-12 h-12" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
