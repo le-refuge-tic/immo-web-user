@@ -1,28 +1,24 @@
-import { useMemo, useRef } from 'react'
-import { keepIdempotencyKey, newIdempotencyKey } from '../utils/paymentAttempt'
+import { useCallback, useRef, useState } from 'react'
+import { creerTentative, type Tentative } from '../utils/paymentAttempt'
 
-export interface PaymentAttempt {
-  /** Clé d'idempotence de la tentative en cours (créée au premier appel). */
-  key: () => string
-  /** Tentative terminée (confirmée, refusée ou abandonnée) : la prochaine aura une nouvelle clé. */
-  reset: () => void
-  /** À appeler quand l'initiation échoue : garde la clé seulement si le serveur a pu traiter la demande. */
-  fail: (err: unknown) => void
-}
+export type PaymentAttempt = Tentative
 
 /**
- * Une clé `Idempotency-Key` par tentative de paiement (FE-B-006) : rejouer la
- * même demande après une coupure retrouve la transaction déjà créée au lieu
- * d'en ouvrir une seconde.
+ * Une clé `Idempotency-Key` par tentative d'opération d'argent (FE-B-006) : rejouer la
+ * même demande après une coupure retrouve la transaction déjà créée au lieu d'en
+ * ouvrir une seconde. Logique dans `creerTentative` (utils/paymentAttempt).
  */
 export function usePaymentAttempt(): PaymentAttempt {
-  const keyRef = useRef<string | null>(null)
-  return useMemo<PaymentAttempt>(() => ({
-    key: () => {
-      if (!keyRef.current) keyRef.current = newIdempotencyKey()
-      return keyRef.current
-    },
-    reset: () => { keyRef.current = null },
-    fail: err => { if (!keepIdempotencyKey(err)) keyRef.current = null },
-  }), [])
+  const [tentative] = useState(() => creerTentative())
+  return tentative
+}
+
+/** Une tentative par objet payé (par exemple par loyer, quand plusieurs loyers sont payés à la suite). */
+export function useTentativesParCle(): (cle: string | number) => PaymentAttempt {
+  const tentatives = useRef(new Map<string | number, PaymentAttempt>())
+  return useCallback((cle: string | number) => {
+    let t = tentatives.current.get(cle)
+    if (!t) { t = creerTentative(); tentatives.current.set(cle, t) }
+    return t
+  }, [])
 }

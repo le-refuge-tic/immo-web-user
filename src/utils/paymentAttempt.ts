@@ -57,3 +57,33 @@ export function newIdempotencyKey(): string {
 export function idempotencyHeader(key: string): Record<string, string> {
   return { 'Idempotency-Key': key }
 }
+
+export interface Tentative {
+  /**
+   * Clé d'idempotence de la tentative en cours (créée au premier appel). `signature` décrit la
+   * demande (montant, portefeuille, loyer…) : si elle change, c'est une autre demande, donc une
+   * nouvelle clé (rejouer l'ancienne serait refusé par le serveur).
+   */
+  key: (signature?: string) => string
+  /** Tentative terminée (confirmée, refusée ou abandonnée) : la prochaine aura une nouvelle clé. */
+  reset: () => void
+  /** À appeler quand l'envoi échoue : garde la clé seulement si le serveur a pu traiter la demande. */
+  fail: (err: unknown) => void
+}
+
+/** Tentative d'une opération d'argent (paiement, recharge, retrait), sans état React. */
+export function creerTentative(nouvelleCle: () => string = newIdempotencyKey): Tentative {
+  let cle: string | null = null
+  let signatureCle: string | undefined
+  return {
+    key: signature => {
+      if (!cle || signature !== signatureCle) {
+        cle = nouvelleCle()
+        signatureCle = signature
+      }
+      return cle
+    },
+    reset: () => { cle = null },
+    fail: err => { if (!keepIdempotencyKey(err)) cle = null },
+  }
+}

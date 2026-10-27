@@ -5,6 +5,7 @@ import type { RetraitProprio } from '../types/proprietaire'
 import type {
   ConfirmerChangementNumeroResponse, InitierChangementNumeroResponse, NumeroRetraitInfo, Wallet, WalletTransaction,
 } from '../types/wallet'
+import { idempotencyHeader } from '../utils/paymentAttempt'
 
 /** Type de wallet par défaut : c'est le seul réellement crédité par les paiements (loyers, frais de visite). */
 const TYPE_DEFAUT = 'revenus_locatifs'
@@ -21,9 +22,13 @@ export const walletApi = {
   transactions: (type: string = TYPE_DEFAUT) =>
     axios.get<ListResponse<WalletTransaction>>(`${BASE}/wallets/me/transactions`, { ...auth(), params: { type } }).then(r => r.data),
 
-  /** Débite le wallet et crée une demande de retrait (payout FedaPay après validation admin). */
-  demandeRetrait: (montant: number, walletType: string = TYPE_DEFAUT) =>
-    axios.post<RetraitProprio>(`${BASE}/retraits/me`, { montant, wallet_type: walletType }, auth()).then(r => r.data),
+  /**
+   * Débite le wallet et crée une demande de retrait (payout FedaPay après validation admin).
+   * La clé d'idempotence évite un double débit si la demande est renvoyée (FE-B-006).
+   */
+  demandeRetrait: (montant: number, walletType: string, idempotencyKey: string) =>
+    axios.post<RetraitProprio>(`${BASE}/retraits/me`, { montant, wallet_type: walletType },
+      { ...auth(), headers: { ...auth().headers, ...idempotencyHeader(idempotencyKey) } }).then(r => r.data),
 
   mesRetraits: () =>
     axios.get<ListResponse<RetraitProprio>>(`${BASE}/retraits/me`, auth()).then(r => r.data),

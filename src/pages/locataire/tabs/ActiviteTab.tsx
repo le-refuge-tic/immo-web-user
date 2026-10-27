@@ -9,6 +9,7 @@ import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_L
 import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, loyerRepare, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
+import { useTentativesParCle } from '../../../hooks/usePaymentAttempt'
 import { GREEN, TEAL, ORANGE, GREEN_TX, ORANGE_TX, TEAL_TX } from '../shared'
 import { IcCheck, IcCal, IcMoney } from '../icons'
 import OperateurChips from '../OperateurChips'
@@ -31,6 +32,8 @@ export default function ActiviteTab() {
   const [payMsg, setPayMsg]     = useState('')
   const [payUrl, setPayUrl]     = useState('')
   const polling                 = usePaymentPolling()
+  // Une clé d'idempotence par loyer : un renvoi retrouve la transaction et son lien de paiement (FE-B-006).
+  const tentativeLoyer          = useTentativesParCle()
   const initiationEnCoursRef    = useRef(false)
 
   const load = async () => {
@@ -95,7 +98,11 @@ export default function ActiviteTab() {
     const loyerId = prochainLoyer.id
     setPaying(true); setPayState('waiting')
     try {
-      const res = await paiementApi.initierLoyer({ loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel })
+      const tentative = tentativeLoyer(loyerId)
+      const res = await paiementApi.initierLoyer(
+        { loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel },
+        tentative.key(`${operateur}:${tel}`),
+      )
       if (res.url_paiement) {
         // Lien refusé par la liste de domaines autorisés : on n'annonce pas « terminez dans l'onglet ouvert » et on ne suit rien.
         if (!openPaymentUrl(res.url_paiement)) {
@@ -116,12 +123,13 @@ export default function ActiviteTab() {
           intervalMs: 3000,
           maxAttempts: res.url_paiement ? 100 : 20,
           check: async () => issueStatutLoyer((await paiementApi.statutLoyer(reference)).statut),
-          onSuccess: () => { setPayState('success'); load() },
-          onFailed: () => { setPayState('error'); setPayMsg('Paiement échoué.') },
+          onSuccess: () => { tentativeLoyer(loyerId).reset(); setPayState('success'); load() },
+          onFailed: () => { tentativeLoyer(loyerId).reset(); setPayState('error'); setPayMsg('Paiement échoué.') },
           onTimeout: () => { setPayState('error'); setPayMsg('Délai expiré.') },
         })
       }
     } catch (e: unknown) {
+      tentativeLoyer(loyerId).fail(e)
       setPayState('error'); setPayMsg(apiMessage(e) || "Le paiement n'a pas pu aboutir. Réessayez dans un instant.")
     } finally {
       initiationEnCoursRef.current = false
