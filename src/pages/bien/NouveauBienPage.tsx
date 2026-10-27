@@ -27,6 +27,7 @@ export default function NouveauBienPage() {
     error,
     createdId,
     created,
+    envoisEchoues,
     navigate,
     draft,
     medias,
@@ -53,6 +54,14 @@ export default function NouveauBienPage() {
         <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--p-muted)' }}>
           En attente de validation par l'administrateur. Vous serez notifié une fois approuvé.
         </p>
+        {(envoisEchoues.photos > 0 || envoisEchoues.video) && (
+          <p role="alert" className="text-sm font-semibold mb-6 max-w-xs" style={{ color: 'var(--tx-amber)' }}>
+            {[
+              envoisEchoues.photos > 0 && `${envoisEchoues.photos} photo${envoisEchoues.photos > 1 ? 's' : ''}`,
+              envoisEchoues.video && 'la vidéo',
+            ].filter(Boolean).join(' et ')} n'{envoisEchoues.photos + (envoisEchoues.video ? 1 : 0) > 1 ? 'ont' : 'a'} pas pu être envoyée{envoisEchoues.photos + (envoisEchoues.video ? 1 : 0) > 1 ? 's' : ''}. Ajoutez-les depuis « Voir mon annonce ».
+          </p>
+        )}
         <button onClick={() => navigate(createdId ? `/proprietaire/biens/${createdId}` : '/proprietaire')}
           className="px-8 py-4 rounded-xl font-bold"
           style={{ background: BLUE, color: 'white', boxShadow: `0 4px 24px ${withAlpha(BLUE, '44')}` }}>

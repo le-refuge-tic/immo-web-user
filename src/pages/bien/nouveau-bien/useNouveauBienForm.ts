@@ -30,6 +30,8 @@ export function useNouveauBienForm() {
   const [error, setError] = useState('')
   const [createdId, setCreatedId] = useState<number | null>(null)
   const [created, setCreated] = useState(false)
+  // Envois qui ont échoué après la création du bien : signalés sur l'écran de confirmation.
+  const [envoisEchoues, setEnvoisEchoues] = useState<{ photos: number; video: boolean }>({ photos: 0, video: false })
   const [photos, setPhotos] = useState<File[]>([])
   const [video, setVideo] = useState<File | null>(null)
   // Photos et vidéo du brouillon, gardées à part dans IndexedDB (FE-B-002)
@@ -356,17 +358,22 @@ export function useNouveauBienForm() {
       setCreatedId(bien.id)
       track('annonce_publiee', { type: String(bien.type ?? '') })
 
+      let photosEchouees = 0
+      let videoEchouee = false
       if (photos.length > 0 && bien.id) {
         for (let i = 0; i < photos.length; i++) {
           try {
             await biensApi.uploadPhoto(bien.id, photos[i])
-            setUploadProgress(Math.round(((i + 1) / photos.length) * 100))
-          } catch {}
+          } catch {
+            photosEchouees++
+          }
+          setUploadProgress(Math.round(((i + 1) / photos.length) * 100))
         }
       }
       if (video && bien.id) {
-        try { await biensApi.uploadVideo(bien.id, video) } catch {}
+        try { await biensApi.uploadVideo(bien.id, video) } catch { videoEchouee = true }
       }
+      setEnvoisEchoues({ photos: photosEchouees, video: videoEchouee })
 
       draft.clear()
       // Sans attendre : le bien est créé, un stockage lent ne doit pas retarder la confirmation.
@@ -410,6 +417,7 @@ export function useNouveauBienForm() {
     createdId,
     setCreatedId,
     created,
+    envoisEchoues,
     setCreated,
     photos,
     setPhotos,

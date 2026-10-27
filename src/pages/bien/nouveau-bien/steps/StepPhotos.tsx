@@ -4,6 +4,8 @@ import { BLUE, TYPES_BIEN, EQUIPEMENTS_RESIDENTIEL, EQUIPEMENTS_BOUTIQUE, ALENTO
 import { Card, RecapSection } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import { withAlpha } from '../../../../utils/color'
+import { erreurVideo, TAILLE_MAX_VIDEO_MO } from '../../../../utils/videoAnnonce'
+import { useState } from 'react'
 
 export function StepPhotos({ form }: { form: NouveauBienForm }) {
   const {
@@ -53,6 +55,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     labelElec,
     labelEau,
   } = form
+  const [videoErreur, setVideoErreur] = useState<string | null>(null)
   return (
       <div className="space-y-4">
 
@@ -206,7 +209,8 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
         {/* ── Vidéo ── */}
         <Card>
           <p className="text-sm font-bold mb-1" style={{ color: 'var(--p-text)' }}>Vidéo du bien <span className="font-normal text-xs" style={{ color: 'var(--p-muted)' }}>(optionnel)</span></p>
-          <p className="text-xs mb-4" style={{ color: 'var(--p-muted)' }}>Maximum 1 vidéo (MP4 uniquement)</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--p-muted)' }}>Maximum 1 vidéo (MP4, {TAILLE_MAX_VIDEO_MO} Mo au plus)</p>
+          {videoErreur && <p role="alert" className="text-xs font-semibold mb-3" style={{ color: 'var(--tx-red)' }}>{videoErreur}</p>}
 
           {video ? (
             <div className="flex items-center gap-3 px-4 py-3 rounded-xl border"
@@ -242,7 +246,11 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
               <input type="file" accept="video/mp4" className="hidden"
                 onChange={e => {
                   const f = e.target.files?.[0]
-                  if (f) setVideo(f)
+                  e.target.value = ''
+                  if (!f) return
+                  const erreur = erreurVideo(f)
+                  setVideoErreur(erreur)
+                  if (!erreur) setVideo(f)
                 }} />
             </label>
           )}

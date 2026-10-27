@@ -99,6 +99,16 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
         </div>
       )}
 
+      {/* Vidéo : rien n'est téléchargé avant la lecture (données mobiles) */}
+      {bien.video_url && (
+        <div>
+          <SectionTitle title="Vidéo" />
+          {/* oxlint-disable-next-line jsx-a11y/media-has-caption -- vidéo filmée par l'annonceur, sans piste de sous-titres disponible ; c'est une visite visuelle du bien, toutes les informations sont écrites dans la fiche */}
+          <video src={bien.video_url} controls preload="none" playsInline
+            aria-label="Vidéo de présentation du bien" className="w-full rounded-2xl bg-black aspect-video" />
+        </div>
+      )}
+
       {/* Composition */}
       {composition && composition.length > 0 && (
         <div>
