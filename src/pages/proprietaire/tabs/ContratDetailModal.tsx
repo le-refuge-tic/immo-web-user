@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { IcPayments } from './icons'
-import { BLUE, bienLabel, fmtPrix } from './shared'
+import { BLUE, bienLabel, fmtPrix, BLUE_TX } from './shared'
 import { loyerStatut, CONTRAT_STATUT, moisLabel, dateLabel } from './LoyersTab'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import type { ContratResume } from '../../../types/proprietaire'
@@ -46,7 +46,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
             : <div className="w-full h-full flex items-center justify-center"
                 style={{ background: `linear-gradient(135deg, ${withAlpha(BLUE, '18')}, ${withAlpha(BLUE, '08')})` }}>
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-4xl"
-                  style={{ background: withAlpha(BLUE, '20'), color: BLUE }}>{initiale}</div>
+                  style={{ background: withAlpha(BLUE, '20'), color: BLUE_TX }}>{initiale}</div>
               </div>
           }
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
@@ -73,11 +73,11 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Loyer mensuel</p>
-              <p className="font-black text-[20px]" style={{ color: BLUE }}>{fmtPrix(c.loyer_mensuel)}</p>
+              <p className="font-black text-[20px]" style={{ color: BLUE_TX }}>{fmtPrix(c.loyer_mensuel)}</p>
             </div>
             <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Progression</p>
-              <p className="font-black text-[20px]" style={{ color: progressPct === 100 ? 'var(--c-success-bright)' : BLUE }}>
+              <p className="font-black text-[20px]" style={{ color: progressPct === 100 ? 'var(--c-success-bright)' : BLUE_TX }}>
                 {payesCount}<span className="text-sm font-medium text-gray-500">/{totalCount}</span>
               </p>
               <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--c-blue-wash)' }}>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../../api/walletApi'
-import { PURPLE } from '../shared'
+import { PURPLE, PURPLE_TX } from '../shared'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { WalletTransaction } from '../../../types/wallet'
 import { withAlpha } from '../../../utils/color'
@@ -33,7 +33,7 @@ export default function PortefeuilleTab() {
       <div className="px-4 py-5">
         <div className="flex items-center justify-between mb-4">
           <p className="font-bold text-text-dark text-[17px]">Historique des transactions</p>
-          <button onClick={() => navigate('/portefeuille')} className="text-sm font-semibold" style={{ color: PURPLE }}>
+          <button onClick={() => navigate('/portefeuille')} className="text-sm font-semibold" style={{ color: PURPLE_TX }}>
             Voir tout
           </button>
         </div>
@@ -80,7 +80,7 @@ export default function PortefeuilleTab() {
             })}
             <button onClick={() => navigate('/portefeuille')}
               className="w-full py-3 rounded-xl text-sm font-bold mt-1"
-              style={{ background: withAlpha(PURPLE, '12'), color: PURPLE }}>
+              style={{ background: withAlpha(PURPLE, '12'), color: PURPLE_TX }}>
               Voir tout l'historique
             </button>
           </>

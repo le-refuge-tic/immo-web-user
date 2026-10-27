@@ -6,7 +6,7 @@ import { visitesApi } from '../../../api/visitesApi'
 import { chatApi } from '../../../api/chatApi'
 import { notificationsApi } from '../../../api/notificationsApi'
 import { IcMessage } from './icons'
-import { IcHome, IcCal, IcBell, BLUE, formatConvTime } from './shared'
+import { IcHome, IcCal, IcBell, BLUE, formatConvTime, BLUE_TX } from './shared'
 import type { Tab } from './shared'
 import type { Notification } from '../../../types/api'
 import ErrorState from '../../../components/ErrorState'
@@ -30,7 +30,7 @@ function notifIcon(type: string): { node: React.ReactNode; color: string } {
   if (type === 'nouveau_message') return { node: <IcMessage />, color: 'var(--c-violet-soft)' }
   if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: 'var(--tx-red)' }
   if (type === 'visite_confirmee') return { node: <IcBell />, color: 'var(--tx-green)' }
-  if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: BLUE }
+  if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: BLUE_TX }
   return { node: <IcBell />, color: 'var(--p-muted)' as string }
 }
 
@@ -115,11 +115,11 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Espace propriétaire</p>
           <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
             Notifications
-            {unread > 0 && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{unread}</span>}
+            {unread > 0 && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE_TX }}>{unread}</span>}
           </h2>
         </div>
         {unread > 0 && (
-          <button onClick={markAll} className="text-xs font-bold" style={{ color: BLUE }}>Tout marquer lu</button>
+          <button onClick={markAll} className="text-xs font-bold" style={{ color: BLUE_TX }}>Tout marquer lu</button>
         )}
       </div>
 

@@ -4,6 +4,8 @@ import type { ProfilDemarcheur } from '../../types/demarcheur'
 export const PURPLE      = '#9B59B6'
 export const DARK_PURPLE = '#4A0E8F'
 export const MID_PURPLE  = '#7B2FBE'
+/** Accent en couleur de texte : même valeur en clair, éclairci en sombre (FE-B-024). Les fonds gardent PURPLE. */
+export const PURPLE_TX   = 'var(--tx-violet)'
 
 export type Tab = 'tableau' | 'biens' | 'reservations' | 'notifications' | 'portefeuille' | 'profil' | 'delegations'
 
@@ -24,11 +26,12 @@ export function fmtSemaine(raw: string) {
   if (isNaN(d.getTime())) return raw.slice(0, 10)
   return `Sem. du ${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
 }
+/** Statut de modération : `color` pour un texte, `fill` pour un fond plein sous texte blanc (FE-B-024). */
 export function statutBien(s: string) {
-  if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50' }
-  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50', fill: '#4CAF50' }
+  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336', fill: '#F44336' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
+  return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
 }
 export function statutVisite(s: string) {
   if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }

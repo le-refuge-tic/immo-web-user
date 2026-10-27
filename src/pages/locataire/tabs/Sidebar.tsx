@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
 import logoUrl from '../../../assets/REFUGE-LOGO.webp'
-import { GREEN } from '../shared'
+import { GREEN, GREEN_TX } from '../shared'
 import { TABS } from '../tabsConfig'
 import { IcLogout } from '../icons'
 import type { Tab } from '../shared'
@@ -26,15 +26,15 @@ export default function Sidebar({ tab, setTab, user, navigate, logout }: Sidebar
         <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 34, height: 34, objectFit: 'contain' }} />
         <span className="font-bold text-lg tracking-tight" style={{ color: 'var(--c-cyan)' }}>REFUGE</span>
       </button>
-      <p className="px-6 mb-2 text-micro font-bold uppercase tracking-wider" style={{ color: 'rgba(0,0,0,0.35)' }}>Espace Locataire</p>
+      <p className="px-6 mb-2 text-micro font-bold uppercase tracking-wider" style={{ color: 'var(--tx-muted)' }}>Espace Locataire</p>
       <nav className="flex-1 px-3 space-y-1">
         {TABS.map(t => {
           const active = tab === t.key
           return (
             <button key={t.key} onClick={() => t.key === 'messages' ? navigate('/conversations') : setTab(t.key)}
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left"
-              style={{ color: active ? GREEN : 'rgba(0,0,0,0.55)', background: active ? withAlpha(GREEN, '15') : 'transparent' }}>
-              <span style={{ color: active ? GREEN : 'rgba(0,0,0,0.4)' }}>{t.icon(active)}</span>
+              style={{ color: active ? GREEN_TX : 'var(--tx-ink-55)', background: active ? withAlpha(GREEN, '15') : 'transparent' }}>
+              <span style={{ color: active ? GREEN_TX : 'rgba(0,0,0,0.4)' }}>{t.icon(active)}</span>
               {t.label}
             </button>
           )

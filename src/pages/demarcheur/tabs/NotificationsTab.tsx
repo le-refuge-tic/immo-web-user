@@ -5,7 +5,7 @@ import { visitesApi } from '../../../api/visitesApi'
 import { chatApi } from '../../../api/chatApi'
 import { notificationsApi } from '../../../api/notificationsApi'
 import { useNotifications } from '../../../context/NotificationsContext'
-import { PURPLE, type Tab } from '../shared'
+import { PURPLE, type Tab, PURPLE_TX } from '../shared'
 import { IcHome, IcCal, IcBell, IcChat } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { Notification } from '../../../types/api'
@@ -39,7 +39,7 @@ function notifIconD(type: string): { node: React.ReactNode; color: string } {
   if (type === 'nouveau_message') return { node: <IcChat />, color: 'var(--c-violet-soft)' }
   if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: 'var(--tx-red)' }
   if (type === 'visite_confirmee') return { node: <IcBell />, color: 'var(--tx-green)' }
-  if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE }
+  if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: PURPLE_TX }
   return { node: <IcBell />, color: 'var(--c-grey)' }
 }
 
@@ -118,16 +118,16 @@ export default function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab) =>
       <div className="bg-white px-4 md:px-5 py-3 border-b border-divider flex items-center justify-between flex-shrink-0">
         <p className="font-bold text-text-dark">
           Notifications
-          {unread > 0 && <span className="ml-2 text-sm font-bold" style={{ color: PURPLE }}>{unread}</span>}
+          {unread > 0 && <span className="ml-2 text-sm font-bold" style={{ color: PURPLE_TX }}>{unread}</span>}
         </p>
-        {unread > 0 && <button onClick={markAll} className="text-xs font-bold" style={{ color: PURPLE }}>Tout marquer lu</button>}
+        {unread > 0 && <button onClick={markAll} className="text-xs font-bold" style={{ color: PURPLE_TX }}>Tout marquer lu</button>}
       </div>
 
       <div className="bg-white px-4 md:px-5 py-2.5 border-b border-divider flex gap-2 flex-shrink-0">
         {([['toutes', 'Toutes'], ['non_lues', `Non lues${unread > 0 ? ` (${unread})` : ''}`]] as const).map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)}
             className="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors"
-            style={filter === k ? { background: PURPLE, color: 'rgb(255,255,255)' } : { background: 'var(--surface-g, #F4F6FA)', color: '#5F6B7A' }}>
+            style={filter === k ? { background: PURPLE, color: 'rgb(255,255,255)' } : { background: 'var(--surface-g, #F4F6FA)', color: 'var(--tx-muted)' }}>
             {l}
           </button>
         ))}

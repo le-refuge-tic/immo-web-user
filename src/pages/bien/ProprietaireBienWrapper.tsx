@@ -7,6 +7,8 @@ import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { withAlpha } from '../../utils/color'
 
 const BLUE = 'var(--c-brand)'
+// Bleu en couleur de texte : identique en clair, éclairci sur la palette marine (FE-B-024).
+const BLUE_TX = 'var(--tx-brand)'
 
 type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 
@@ -81,7 +83,7 @@ export default function ProprietaireBienWrapper() {
             {/* Logo */}
             <button onClick={() => navigate('/proprietaire')} className="flex items-center gap-2 flex-shrink-0">
               <img src={logoUrl} alt="REFUGE" className="w-8 h-8 rounded-[8px] object-contain" />
-              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE }}>REFUGE</span>
+              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE_TX }}>REFUGE</span>
             </button>
 
             {/* Retour Mes biens */}
@@ -103,7 +105,7 @@ export default function ProprietaireBienWrapper() {
                     onClick={() => goToTab(item.key)}
                     className="relative whitespace-nowrap text-caption font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
-                      ...(active ? { color: BLUE, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
+                      ...(active ? { color: BLUE_TX, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
                       minHeight: 36,
                       transition: 'color 0.2s ease, background 0.2s ease',
                     }}>
@@ -182,7 +184,7 @@ export default function ProprietaireBienWrapper() {
                     <button key={item.key}
                       onClick={() => { goToTab(item.key); setMenuOpen(false) }}
                       className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium transition-all"
-                      style={active ? { color: BLUE, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
+                      style={active ? { color: BLUE_TX, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                       <span className="truncate w-full text-center px-1">{item.label}</span>
                     </button>
                   )

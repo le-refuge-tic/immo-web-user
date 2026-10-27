@@ -11,6 +11,8 @@ type RoleInfo = {
   label: string
   desc: string
   color: string
+  /** Fond plein sous un texte blanc (ne s'éclaircit pas en sombre, FE-B-024). */
+  fill: string
   bg: string
   icon: React.ReactNode
 }
@@ -21,10 +23,10 @@ const IcBriefcase = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="non
 const IcKey = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a4 4 0 11-8.6 2.4L2 14v3h3v-2h2v-2h2l1.6-1.6A4 4 0 0115 7z" /><circle cx="15.5" cy="6.5" r=".6" fill="currentColor" /></svg>
 
 const ROLES: RoleInfo[] = [
-  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
-  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: 'var(--c-steel)', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
-  { key: 'demarcheur',   label: 'Démarcheur',        desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
+  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', fill: 'var(--c-primary)', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
+  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: 'var(--c-steel)', fill: 'var(--c-steel)', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
+  { key: 'demarcheur',   label: 'Démarcheur',        desc: 'Mandataire immobilier — gérer des biens clients', color: 'var(--tx-violet)', fill: 'var(--c-fill-violet)', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: 'var(--tx-green)', fill: 'var(--c-fill-green)', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
 ]
 
 function roleLabel(key: string) {
@@ -149,14 +151,14 @@ export default function ManageRolesPage() {
                     boxShadow: isActiveNow ? `0 4px 16px ${withAlpha(r.color, '25')}` : '0 1px 3px rgba(0,0,0,0.03)',
                   }}>
                   <div className="p-4 flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: isDisponible ? 'rgba(0,0,0,0.05)' : r.color, color: isDisponible ? '#8A93A3' : 'rgb(255,255,255)' }}>
+                    <div className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: isDisponible ? 'rgba(0,0,0,0.05)' : r.fill, color: isDisponible ? '#8A93A3' : 'rgb(255,255,255)' }}>
                       {r.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-bold text-text-dark text-sm">{r.label}</p>
                         {statusLabel && (
-                          <span className="text-micro font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.color : r.bg, color: isActiveNow ? 'rgb(255,255,255)' : r.color }}>
+                          <span className="text-micro font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: isActiveNow ? r.fill : r.bg, color: isActiveNow ? 'rgb(255,255,255)' : r.color }}>
                             {statusLabel}
                           </span>
                         )}
@@ -172,13 +174,13 @@ export default function ManageRolesPage() {
                       // (code d'invitation), jamais d'une activation directe.
                       <button onClick={() => navigate('/rejoindre-bien')}
                         className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold transition-opacity hover:opacity-90"
-                        style={{ background: r.color }}>
+                        style={{ background: r.fill }}>
                         Rejoindre un bien
                       </button>
                     ) : isDisponible ? (
                       <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
                         className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-opacity hover:opacity-90"
-                        style={{ background: r.color }}>
+                        style={{ background: r.fill }}>
                         Activer ce rôle
                       </button>
                     ) : (
@@ -220,7 +222,7 @@ export default function ManageRolesPage() {
                         <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey bg-white">Annuler</button>
                         <button onClick={() => activerRole(r.key)} disabled={busy}
                           className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
-                          style={{ background: r.color }}>
+                          style={{ background: r.fill }}>
                           {busy ? 'Activation…' : 'Confirmer'}
                         </button>
                       </div>

@@ -67,7 +67,7 @@ export default function ContratBailPage() {
   ]
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-dvh flex flex-col" style={{ background: 'var(--c-page-grey)' }}>
       {/* Header */}
       <div className="print:hidden flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5"
         style={{ background: 'linear-gradient(135deg, #1A1A2E, var(--c-navy-deep))', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
@@ -111,7 +111,7 @@ export default function ContratBailPage() {
 
               {/* Articles */}
               {ARTICLES.map((a, i) => (
-                <div key={i} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                <div key={i} className="rounded-2xl p-4" style={{ background: 'var(--c-card-glass)', border: '1px solid rgba(0,0,0,0.06)' }}>
                   <p className="font-bold text-text-dark text-sm mb-2">{a.titre}</p>
                   <p className="text-sm text-text-grey leading-relaxed">{a.corps}</p>
                 </div>
@@ -120,7 +120,7 @@ export default function ContratBailPage() {
               {/* Acceptation */}
               <button onClick={() => setAccepted(!accepted)}
                 className="print:hidden w-full flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all"
-                style={{ borderColor: accepted ? 'var(--c-brand)' : 'rgba(0,0,0,0.10)', background: accepted ? 'rgba(75,107,255,0.06)' : 'rgba(255,255,255,0.85)' }}>
+                style={{ borderColor: accepted ? 'var(--c-brand)' : 'rgba(0,0,0,0.10)', background: accepted ? 'rgba(75,107,255,0.06)' : 'var(--c-card-glass)' }}>
                 <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
                   style={{ background: accepted ? 'var(--c-brand)' : 'transparent', border: accepted ? 'none' : '2px solid var(--c-gray-300)' }}>
                   {accepted && <svg className="w-3 h-3 text-white" fill="none" stroke="white" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
@@ -135,7 +135,7 @@ export default function ContratBailPage() {
       </div>
 
       {/* CTA */}
-      <div className="print:hidden flex-shrink-0 px-5 py-4 border-t" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.07)' }}>
+      <div className="print:hidden flex-shrink-0 px-5 py-4 border-t" style={{ background: 'var(--c-bar-glass)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.07)' }}>
         <div className="max-w-2xl mx-auto">
           <button onClick={() => accepted && navigate(`/paiement-integration/${bienId}`)}
             disabled={!accepted || (loadError && !bien)}

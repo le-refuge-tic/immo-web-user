@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { walletApi } from '../../../api/walletApi'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
-import { GREEN } from '../shared'
+import { GREEN, GREEN_TX } from '../shared'
 import { IcLogout } from '../icons'
 import { withAlpha } from '../../../utils/color'
 
@@ -22,7 +22,7 @@ export default function ProfilTab() {
           style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>{initials}</div>
         <p className="font-bold text-text-dark text-lg">{user?.prenom} {user?.nom}</p>
         <p className="text-sm text-text-grey mt-0.5">{user?.email || user?.telephone}</p>
-        <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold" style={{ background: withAlpha(GREEN, '20'), color: GREEN }}>Locataire</span>
+        <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold" style={{ background: withAlpha(GREEN, '20'), color: GREEN_TX }}>Locataire</span>
       </div>
       <div className="px-4 space-y-2">
         {[

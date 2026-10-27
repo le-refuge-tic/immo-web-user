@@ -4,7 +4,7 @@ import { visitesApi } from '../../../api/visitesApi'
 import { chatApi } from '../../../api/chatApi'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { suggestPush } from '../../../lib/push'
-import { PURPLE, DARK_PURPLE, statutVisite } from '../shared'
+import { PURPLE, DARK_PURPLE, statutVisite, PURPLE_TX } from '../shared'
 import { IcHome, IcCal, IcChat } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import { apiMessage } from '../../../utils/apiMessage'
@@ -116,7 +116,7 @@ export default function ReservationsTab() {
         {['Toutes', 'À traiter', 'Confirmées', 'Échouées', 'Annulées'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="flex-1 py-3 text-xs font-bold border-b-2 transition-colors"
-            style={filter === f ? { borderColor: PURPLE, color: PURPLE } : { borderColor: 'transparent', color: 'var(--c-grey)' }}>
+            style={filter === f ? { borderColor: PURPLE, color: PURPLE_TX } : { borderColor: 'transparent', color: 'var(--c-grey)' }}>
             {f}
           </button>
         ))}
@@ -163,7 +163,7 @@ export default function ReservationsTab() {
               </div>
               <div className="bg-surface-g rounded-xl p-3 mb-3">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span style={{ color: PURPLE }}><IcHome /></span>
+                  <span style={{ color: PURPLE_TX }}><IcHome /></span>
                   <p className="text-xs font-medium text-text-dark truncate">{bType} — {bLoc}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -206,12 +206,12 @@ export default function ReservationsTab() {
                   </button>
                 ) : (
                   <button onClick={() => ouvrirChat(v)} disabled={chatLoadingId === v.id}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: withAlpha(PURPLE, '50'), color: PURPLE, background: withAlpha(PURPLE, '10') }}>
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold disabled:opacity-50" style={{ borderColor: withAlpha(PURPLE, '50'), color: PURPLE_TX, background: withAlpha(PURPLE, '10') }}>
                     <IcChat /> {chatLoadingId === v.id ? '…' : 'Chat'}
                   </button>
                 )}
                 {!echouee && v.statut === 'en_attente' && <>
-                  <button onClick={() => { setCpError(''); setCpId(v.id) }} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: withAlpha(PURPLE, '80'), color: PURPLE }}>Autre créneau</button>
+                  <button onClick={() => { setCpError(''); setCpId(v.id) }} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: withAlpha(PURPLE, '80'), color: PURPLE_TX }}>Autre créneau</button>
                   <button onClick={() => confirmer(v.id)} disabled={actionId === v.id} className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
                 </>}
                 {!echouee && v.statut === 'confirmee' && (

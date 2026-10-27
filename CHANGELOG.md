@@ -26,6 +26,12 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   sans rechargement de page (BUG-05).
 - Après une création, une modification, un changement de statut ou une suppression de bien, les
   listes et fiches en cache sont relues ; le cache est vidé à la connexion et à la déconnexion.
+- Thème sombre (FE-B-024) : plus aucun contraste insuffisant propre au sombre sur les 62 écrans et
+  onglets mesurés par axe-core (110 nœuds au départ : menus des espaces, accents locataire,
+  démarcheur et propriétaire, prix et liens, cartes de la recharge et du contrat de bail, badges,
+  messagerie). Le thème clair est inchangé au pixel près, sauf le libellé « Espace Locataire »,
+  trop pâle en clair aussi, et le dégradé des icônes de rôle de l'espace propriétaire, qui
+  s'arrêtait sur du noir à cause d'une fonction qui n'acceptait qu'un code hexadécimal.
 
 ## [0.5.0] - 2026-10-27
 

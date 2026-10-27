@@ -145,12 +145,12 @@ export default function RechargementWalletPage() {
                 return (
                   <button key={o.id} onClick={() => { setOpId(o.id); setState('idle'); setError(''); attempt.reset() }}
                     className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-left transition-all"
-                    style={{ background: sel ? withAlpha(o.color, '14') : 'white', border: `1.5px solid ${sel ? o.color : 'rgba(0,0,0,0.08)'}` }}>
+                    style={{ background: sel ? withAlpha(o.color, '14') : 'var(--c-card)', border: `1.5px solid ${sel ? o.color : 'rgba(0,0,0,0.08)'}` }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(o.color, '20') }}>
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={o.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20M6 15h2m4 0h2M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm" style={{ color: sel ? o.color : '#1A1A2E' }}>{o.label}</p>
+                      <p className="font-bold text-sm" style={{ color: sel ? o.color : 'var(--c-ink-navy)' }}>{o.label}</p>
                       <p className="text-xs text-text-grey">{o.tagline}</p>
                     </div>
                     {sel && (

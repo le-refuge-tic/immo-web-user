@@ -9,7 +9,7 @@ import VerificationCipModal from '../VerificationCipModal'
 import DelegationModal from '../DelegationModal'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { IcPayments, IcChevron, IcHandshake } from './icons'
-import { IcWallet, IcPerson, IcStar, IcShield, IcEdit, IcUpload, BLUE } from './shared'
+import { IcWallet, IcPerson, IcStar, IcShield, IcEdit, IcUpload, BLUE_TX } from './shared'
 import type { Bien, Visite } from '../../../types/api'
 import type { ProprioProfil } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
@@ -42,13 +42,13 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
     : null
 
   const kpis = [
-    { label: 'Score', value: `${Math.round(score)}`, color: BLUE },
+    { label: 'Score', value: `${Math.round(score)}`, color: BLUE_TX },
     { label: 'Occupation', value: `${tauxOccupation}%`, color: 'var(--tx-green)' },
     { label: 'Publiés', value: `${tauxPublication}%`, color: 'var(--tx-amber)' },
   ]
 
   const menuItems = [
-    { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE, onClick: () => setEditOpen(true) },
+    { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE_TX, onClick: () => setEditOpen(true) },
     { icon: <IcShield />, label: 'Changer le mot de passe', color: 'var(--c-purple-dark)', onClick: () => setPasswordOpen(true) },
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: 'var(--c-sky)', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
@@ -137,7 +137,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] mb-4" style={{ color: 'var(--p-muted)' }}>MES RÉSERVATIONS</p>
             <div className="flex">
               {[
-                { label: 'Total', value: visites.length, color: BLUE },
+                { label: 'Total', value: visites.length, color: BLUE_TX },
                 { label: 'Confirmées', value: visitesConfirmees, color: 'var(--tx-green)' },
                 { label: 'En attente', value: visitesEnAttente, color: 'var(--tx-amber)' },
                 { label: 'Effectuées', value: visitesEffectuees, color: 'var(--c-purple-dark)' },
@@ -156,7 +156,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] mb-4" style={{ color: 'var(--p-muted)' }}>MES BIENS</p>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Total', value: biens.length, color: BLUE },
+                { label: 'Total', value: biens.length, color: BLUE_TX },
                 { label: 'Publiés', value: approuves, color: 'var(--tx-green)' },
                 { label: 'Occupés', value: biensOccupes, color: 'var(--tx-amber)' },
               ].map(s => (

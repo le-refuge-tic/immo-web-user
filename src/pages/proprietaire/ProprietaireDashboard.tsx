@@ -15,7 +15,7 @@ import { AnimatedGroup } from '../../components/ui/animated-group'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { IcPayments, IcChevron, IcMessagesNav } from './tabs/icons'
-import { IcHome, IcCal, IcClock, IcWallet, IcPlus, IcStar, IcShield, IcPin, IcLogout, BLUE, ROLE_LABELS, ROLE_ROUTES, TABS, NAV_ITEMS, bienLabel, bienComposition, fmtPrix, statutBien, buildCountSeries, LiveIndicator } from './tabs/shared'
+import { IcHome, IcCal, IcClock, IcWallet, IcPlus, IcStar, IcShield, IcPin, IcLogout, BLUE, ROLE_LABELS, ROLE_ROUTES, TABS, NAV_ITEMS, bienLabel, bienComposition, fmtPrix, statutBien, buildCountSeries, LiveIndicator, BLUE_TX } from './tabs/shared'
 import type { Tab } from './tabs/shared'
 import { MesBiensTab } from './tabs/MesBiensTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
@@ -215,7 +215,7 @@ export default function ProprietaireDashboard() {
             {/* Logo */}
             <button onClick={() => { setTab('tableau'); setIsScrolled(false) }} className="flex items-center gap-2 flex-shrink-0">
               <img loading="lazy" src={logoUrl} alt="REFUGE" className="w-8 h-8 rounded-[8px] object-contain" />
-              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE }}>REFUGE</span>
+              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE_TX }}>REFUGE</span>
             </button>
 
             {/* Nav tabs — desktop large uniquement : en dessous, la barre du bas (4 onglets + Plus) prend le relais */}
@@ -228,7 +228,7 @@ export default function ProprietaireDashboard() {
                     onClick={() => { setTab(item.key); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
                     className="relative whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
-                      ...(active ? { color: BLUE, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
+                      ...(active ? { color: BLUE_TX, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
                       minHeight: '36px',
                       transition: 'color 0.2s ease, background 0.2s ease',
                     }}>
@@ -244,7 +244,7 @@ export default function ProprietaireDashboard() {
               {/* Alertes — onglet notifications interne à l'espace propriétaire */}
               <button onClick={() => setTab('notifications')} title="Notifications"
                 className="relative w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
-                style={{ borderColor: tab === 'notifications' ? BLUE : 'var(--p-border)', background: 'var(--p-card)', color: tab === 'notifications' ? BLUE : 'var(--p-muted)' }}>
+                style={{ borderColor: tab === 'notifications' ? BLUE : 'var(--p-border)', background: 'var(--p-card)', color: tab === 'notifications' ? BLUE_TX : 'var(--p-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
               </button>
@@ -268,9 +268,9 @@ export default function ProprietaireDashboard() {
                     {rolesActifs.map(r => (
                       <button key={r} onClick={() => goToRoleSpace(r)}
                         className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left transition-colors"
-                        style={{ color: r === activeRole ? BLUE : 'var(--p-text)', fontWeight: r === activeRole ? 700 : 500 }}>
+                        style={{ color: r === activeRole ? BLUE_TX : 'var(--p-text)', fontWeight: r === activeRole ? 700 : 500 }}>
                         {ROLE_LABELS[r] || r}
-                        {r === activeRole && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: withAlpha(BLUE, '22'), color: BLUE }}>Actuel</span>}
+                        {r === activeRole && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: withAlpha(BLUE, '22'), color: BLUE_TX }}>Actuel</span>}
                       </button>
                     ))}
                   </div>
@@ -313,7 +313,7 @@ export default function ProprietaireDashboard() {
                         <button key={item.key}
                           onClick={() => { setTab(item.key); setMenuOpen(false); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
                           className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium transition-all"
-                          style={active ? { color: BLUE, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
+                          style={active ? { color: BLUE_TX, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                           {item.icon}
                           <span className="truncate w-full text-center px-1">{item.label}</span>
                         </button>
@@ -365,7 +365,7 @@ export default function ProprietaireDashboard() {
                 {/* Mini stats pills glassmorphic */}
                 <div className="flex gap-3 mt-7 overflow-x-auto scrollbar-hide pb-0.5">
                   {[
-                    { icon: <IcHome />, value: `${biens.length}`, label: 'Biens', color: BLUE },
+                    { icon: <IcHome />, value: `${biens.length}`, label: 'Biens', color: BLUE_TX },
                     { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: 'var(--tx-amber)' },
                     { icon: <IcShield />, value: `${score}`, label: 'Score', color: 'var(--tx-green)' },
                     { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>, value: `${totalVues}`, label: 'Vues', color: '#A78BFA' },
@@ -424,7 +424,7 @@ export default function ProprietaireDashboard() {
               </div>
               <div className="flex gap-2.5 mb-7 overflow-x-auto scrollbar-hide pb-1">
                 {[
-                  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
+                  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE_TX, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
                   { icon: <IcCal />, color: 'var(--tx-blue)', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
                   { icon: <IcPayments />, color: 'var(--tx-green)', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
                   { icon: <IcMessagesNav />, color: 'var(--c-accent)', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
@@ -449,7 +449,7 @@ export default function ProprietaireDashboard() {
               {/* ── Carte portefeuille biens — PropertyStatsCard ── */}
               <div className="sticky top-0 z-10 flex items-center justify-between py-2 mb-2 -mx-1 px-1" style={{ background: 'var(--p-deep)' }}>
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens</p>
-                <span className="text-[13px] font-black" style={{ color: BLUE }}>{biens.length}</span>
+                <span className="text-[13px] font-black" style={{ color: BLUE_TX }}>{biens.length}</span>
               </div>
               <div className="mb-5 mx-auto w-full px-2" style={{ maxWidth: '72rem' }}>
                 <PropertyStatsCard
@@ -457,7 +457,7 @@ export default function ProprietaireDashboard() {
                   total={biens.length}
                   dark={isDark}
                   stats={[
-                    { label: 'Total',       value: biens.length,   color: BLUE      },
+                    { label: 'Total',       value: biens.length,   color: BLUE_TX      },
                     { label: 'Publiés',     value: biensApprouves, color: 'var(--tx-green)' },
                     { label: 'En attente',  value: biensEnAttente, color: 'var(--tx-amber)' },
                     { label: 'Rejetés',     value: biensRejetes,   color: 'var(--tx-red)' },
@@ -524,7 +524,7 @@ export default function ProprietaireDashboard() {
                   <div className="mb-2">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens récents</p>
-                      <button onClick={() => setTab('biens')} className="text-xs font-bold" style={{ color: BLUE }}>Voir tout →</button>
+                      <button onClick={() => setTab('biens')} className="text-xs font-bold" style={{ color: BLUE_TX }}>Voir tout →</button>
                     </div>
                     <div
                       ref={carousel2Ref}
@@ -644,7 +644,7 @@ export default function ProprietaireDashboard() {
                   aria-label={t.label} aria-current={active ? 'page' : undefined}
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
                   style={active ? { background: withAlpha(BLUE, '14') } : {}}>
-                  <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.icon}</span>
+                  <span style={{ color: active ? BLUE_TX : 'var(--p-muted)' }}>{t.icon}</span>
                   <span className="text-[10px] font-semibold" style={{ color: active ? 'var(--p-accent-text)' : 'var(--p-muted)' }}>{t.label}</span>
                 </button>
               )
@@ -665,7 +665,7 @@ export default function ProprietaireDashboard() {
                       </span>
                     )}
                   </span>
-                  <span className="text-[10px] font-semibold" style={{ color: moreActive ? BLUE : 'var(--p-muted)' }}>
+                  <span className="text-[10px] font-semibold" style={{ color: moreActive ? BLUE_TX : 'var(--p-muted)' }}>
                     {moreActive ? (NAV_ITEMS.find(n => n.key === tab)?.label ?? 'Plus') : 'Plus'}
                   </span>
                 </button>
@@ -687,8 +687,8 @@ export default function ProprietaireDashboard() {
                   <button
                     onClick={() => { setTab(n.key); setMoreOpen(false); if (n.key === 'messages' || n.key === 'notifications') refreshNotifications() }}
                     className="relative w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold"
-                    style={{ background: active ? withAlpha(BLUE, '14') : 'var(--p-bg, transparent)', color: active ? BLUE : 'var(--p-text)', border: '1px solid var(--p-border)' }}>
-                    <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{n.icon}</span>
+                    style={{ background: active ? withAlpha(BLUE, '14') : 'var(--p-bg, transparent)', color: active ? BLUE_TX : 'var(--p-text)', border: '1px solid var(--p-border)' }}>
+                    <span style={{ color: active ? BLUE_TX : 'var(--p-muted)' }}>{n.icon}</span>
                     {n.label}
                     {badge > 0 && (
                       <span className="absolute top-2 right-3 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white" style={{ background: 'var(--c-red-ios)' }}>

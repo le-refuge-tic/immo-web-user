@@ -4,7 +4,7 @@ import { visitesApi } from '../../../api/visitesApi'
 import { chatApi } from '../../../api/chatApi'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
-import { IcPin, IcChat, BLUE, bienLabel, fmtPrix, statutVisite } from './shared'
+import { IcPin, IcChat, BLUE, bienLabel, fmtPrix, statutVisite, BLUE_TX } from './shared'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ReservationDetailModal } from './ReservationDetailModal'
 import type { Bien, Visite } from '../../../types/api'
@@ -133,7 +133,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Agenda</p>
             <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
               Réservations
-              {!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{filtered.length}</span>}
+              {!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE_TX }}>{filtered.length}</span>}
             </h2>
           </div>
           <button onClick={load}
@@ -162,7 +162,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
             <button onClick={() => setBienIdFilter(null)}
               className="flex-shrink-0 px-3.5 py-1 rounded-full text-[11px] font-semibold border transition-all"
               style={bienIdFilter === null
-                ? { background: withAlpha(BLUE, '14'), color: BLUE, borderColor: withAlpha(BLUE, '30') }
+                ? { background: withAlpha(BLUE, '14'), color: BLUE_TX, borderColor: withAlpha(BLUE, '30') }
                 : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
               Tous les biens
             </button>
@@ -170,7 +170,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
               <button key={b.id} onClick={() => setBienIdFilter(b.id)}
                 className="flex-shrink-0 px-3.5 py-1 rounded-full text-[11px] font-semibold border transition-all whitespace-nowrap"
                 style={bienIdFilter === b.id
-                  ? { background: withAlpha(BLUE, '14'), color: BLUE, borderColor: withAlpha(BLUE, '30') }
+                  ? { background: withAlpha(BLUE, '14'), color: BLUE_TX, borderColor: withAlpha(BLUE, '30') }
                   : { background: 'var(--p-card)', color: 'var(--p-muted)', borderColor: 'var(--p-border)' }}>
                 {b.label}
               </button>
@@ -218,8 +218,8 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                 const echouee = isEchouee(v)
                 const urgente = !echouee && isUrgente(v, now)
                 const mins = urgente ? minutesAvant(v, now) : null
-                const { label: sLabel, color: sColor } = echouee
-                  ? { label: 'Échouée', color: 'var(--tx-red)' }
+                const { label: sLabel, color: sColor, fill: sFill } = echouee
+                  ? { label: 'Échouée', color: 'var(--tx-red)', fill: 'var(--c-fill-red)' }
                   : statutVisite(v.statut)
                 const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
                 const initiale = clientNom[0]?.toUpperCase() || '?'
@@ -266,7 +266,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
 
                       {/* Badge statut haut-gauche */}
                       <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-                        style={{ background: accentColor, boxShadow: `0 2px 8px ${withAlpha(accentColor, '55')}` }}>
+                        style={{ background: urgente ? 'var(--c-danger)' : sFill, boxShadow: `0 2px 8px ${withAlpha(accentColor, '55')}` }}>
                         {urgente ? '⚡ Urgent' : sLabel}
                       </span>
 
@@ -317,7 +317,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
                         <button
                           onClick={e => { e.stopPropagation(); setModalVisiteId(v.id) }}
                           className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
-                          style={{ background: hoveredVisiteEl === `detail-${v.id}` ? withAlpha(BLUE, '22') : withAlpha(BLUE, '12'), color: BLUE, border: `1px solid ${withAlpha(BLUE, '20')}` }}
+                          style={{ background: hoveredVisiteEl === `detail-${v.id}` ? withAlpha(BLUE, '22') : withAlpha(BLUE, '12'), color: BLUE_TX, border: `1px solid ${withAlpha(BLUE, '20')}` }}
                           onMouseEnter={() => setHoveredVisiteEl(`detail-${v.id}`)}
                           onMouseLeave={() => setHoveredVisiteEl(null)}>
                           Voir le détail

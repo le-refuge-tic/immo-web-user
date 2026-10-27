@@ -1,4 +1,4 @@
-import { GREEN, TEAL } from '../shared'
+import { TEAL, GREEN_TX, TEAL_TX } from '../shared'
 import { IcChat, IcPhone } from '../icons'
 import type { User } from '../../../types/api'
 import { withAlpha } from '../../../utils/color'
@@ -15,11 +15,11 @@ export default function GestionnaireCard({ gestionnaire, chatLoading, onOpenChat
         <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'demarcheur' ? 'Démarcheur' : 'Propriétaire'}</p>
       </div>
       <button onClick={onOpenChat} disabled={chatLoading}
-        className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-50" style={{ background: withAlpha(TEAL, '20'), color: TEAL }}>
+        className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-50" style={{ background: withAlpha(TEAL, '20'), color: TEAL_TX }}>
         <IcChat />
       </button>
       {gestionnaire.telephone && (
-        <a href={`tel:${gestionnaire.telephone}`} className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0" style={{ background: 'rgba(34,197,94,0.125)', color: GREEN }}>
+        <a href={`tel:${gestionnaire.telephone}`} className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0" style={{ background: 'rgba(34,197,94,0.125)', color: GREEN_TX }}>
           <IcPhone />
         </a>
       )}

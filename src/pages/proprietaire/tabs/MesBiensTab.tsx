@@ -4,7 +4,7 @@ import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
-import { IcPlus, IcPin, IcTrash, IcEdit, BLUE, bienLabel, bienComposition, fmtPrix, statutBien } from './shared'
+import { IcPlus, IcPin, IcTrash, IcEdit, BLUE, bienLabel, bienComposition, fmtPrix, statutBien, BLUE_TX } from './shared'
 
 import type { Bien } from '../../../types/api'
 import CarouselPauseToggle from '../../../components/CarouselPauseToggle'
@@ -92,7 +92,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                 {...carouselProps}
               >
                 {recentBiens.map(b => {
-                  const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
+                  const { label: sLabel, fill: sFill } = statutBien(b.statut_moderation || 'en_attente')
                   const loc = b.localisation
                   const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
                   const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
@@ -114,7 +114,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                             </div>
                         }
                         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
-                        <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sColor }}>{sLabel}</span>
+                        <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sFill }}>{sLabel}</span>
                         <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: 'rgb(255,255,255)' }}>
                           {b.transaction === 'location' ? 'À louer' : 'À vendre'}
                         </span>
@@ -170,7 +170,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Portefeuille</p>
               <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
                 Mes biens
-                <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{biens.length}</span>
+                <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE_TX }}>{biens.length}</span>
               </h2>
             </div>
             <div className="flex gap-2">
@@ -258,7 +258,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
             <AnimatedGroup preset="blur-slide" stagger={0.06}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filtered.map(b => {
-                  const { label, color } = statutBien(b.statut_moderation || 'en_attente')
+                  const { label, fill } = statutBien(b.statut_moderation || 'en_attente')
                   const loc = b.localisation
                   const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
                   const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
@@ -291,7 +291,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)' }} />
                         {/* Badge statut */}
                         <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-                          style={{ background: color, boxShadow: `0 2px 8px ${withAlpha(color, '55')}` }}>
+                          style={{ background: fill, boxShadow: `0 2px 8px ${withAlpha(fill, '55')}` }}>
                           {label}
                         </span>
                         {/* Badge transaction */}
@@ -331,7 +331,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         {(nbPieces > 0 || superficie || compo) && (
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             {nbPieces > 0 && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: withAlpha(BLUE, '10'), color: BLUE }}>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: withAlpha(BLUE, '10'), color: BLUE_TX }}>
                                 {nbPieces} pièce{nbPieces > 1 ? 's' : ''}
                               </span>
                             )}
@@ -358,7 +358,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                           onClick={e => e.stopPropagation()}>
                           <button onClick={() => setEditingBien(b)}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
-                            style={{ background: hoveredEl === `modifier-${b.id}` ? withAlpha(BLUE, '20') : withAlpha(BLUE, '10'), color: BLUE, border: `1px solid ${withAlpha(BLUE, '20')}` }}
+                            style={{ background: hoveredEl === `modifier-${b.id}` ? withAlpha(BLUE, '20') : withAlpha(BLUE, '10'), color: BLUE_TX, border: `1px solid ${withAlpha(BLUE, '20')}` }}
                             onMouseEnter={() => setHoveredEl(`modifier-${b.id}`)}
                             onMouseLeave={() => setHoveredEl(null)}>
                             <IcEdit /> Modifier

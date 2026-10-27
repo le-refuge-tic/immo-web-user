@@ -11,7 +11,7 @@ import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_L
 import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
-import { GREEN, TEAL, OPERATEURS } from '../shared'
+import { GREEN, TEAL, OPERATEURS, GREEN_TX, TEAL_TX } from '../shared'
 import { IcHome, IcCheck, IcPin } from '../icons'
 import OperateurChips from '../OperateurChips'
 import GestionnaireCard from './GestionnaireCard'
@@ -220,8 +220,8 @@ export default function MonLogementTab() {
           {/* Prépayé */}
           {Number(contrat.loyer_prepaye_mois || 0) > 0 && (
             <div className="mx-4 md:mx-0 mt-4 rounded-2xl p-4 flex items-center gap-3" style={{ background: withAlpha(TEAL, '12'), border: `1px solid ${withAlpha(TEAL, '30')}` }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(TEAL, '20'), color: TEAL }}><IcCheck /></div>
-              <p className="text-sm font-semibold" style={{ color: TEAL }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(TEAL, '20'), color: TEAL_TX }}><IcCheck /></div>
+              <p className="text-sm font-semibold" style={{ color: TEAL_TX }}>
                 {contrat.loyer_prepaye_mois} mois déjà prépayés à l'intégration — inclus avant votre première échéance.
               </p>
             </div>
@@ -277,12 +277,12 @@ export default function MonLogementTab() {
                   ) : payState === 'waiting' ? (
                     <div role="status" className="flex flex-col items-center gap-2 py-2">
                       <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: GREEN, borderTopColor: 'transparent' }} />
-                      {payProgress && <p className="text-xs font-semibold" style={{ color: GREEN }}>{payProgress}</p>}
+                      {payProgress && <p className="text-xs font-semibold" style={{ color: GREEN_TX }}>{payProgress}</p>}
                       {payUrl ? (
                         <>
                           <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
                           <button onClick={() => openPaymentUrl(payUrl)}
-                            className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
+                            className="mt-1 text-xs font-bold" style={{ color: GREEN_TX }}>
                             Rouvrir la page de paiement
                           </button>
                         </>
@@ -338,15 +338,15 @@ export default function MonLogementTab() {
                 {historique.map((h, i) => (
                   <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(0,0,0,0.06)' }}>
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34,197,94,0.125)' }}>
-                      <span style={{ color: GREEN }}><IcCheck /></span>
+                      <span style={{ color: GREEN_TX }}><IcCheck /></span>
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-text-dark text-sm">{formatMois(h.mois || h.created_at)}</p>
                       <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
                     </div>
-                    <p className="font-bold text-sm flex-shrink-0" style={{ color: GREEN }}>{Number(h.montant).toLocaleString('fr-FR')} F</p>
+                    <p className="font-bold text-sm flex-shrink-0" style={{ color: GREEN_TX }}>{Number(h.montant).toLocaleString('fr-FR')} F</p>
                     {h.transaction_id && (
-                      <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)} className="text-xs font-bold flex-shrink-0" style={{ color: TEAL }}>Reçu</button>
+                      <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)} className="text-xs font-bold flex-shrink-0" style={{ color: TEAL_TX }}>Reçu</button>
                     )}
                   </div>
                 ))}
@@ -357,7 +357,7 @@ export default function MonLogementTab() {
           {loyers.length === 0 && historique.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center px-6 md:mx-0 md:rounded-3xl md:mt-5" style={{ background: 'transparent' }}>
               <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: withAlpha(GREEN, '20') }}>
-                <span style={{ color: GREEN }}><IcCheck /></span>
+                <span style={{ color: GREEN_TX }}><IcCheck /></span>
               </div>
               <p className="font-bold text-text-dark mb-1">Tout est à jour !</p>
               <p className="text-text-grey text-sm">Aucun loyer en attente.</p>
@@ -374,7 +374,7 @@ export default function MonLogementTab() {
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between"><span className="text-text-grey">Loyer mensuel</span><span className="font-bold text-text-dark">{Number(contrat.loyer_mensuel || 0).toLocaleString('fr-FR')} F</span></div>
                 <div className="flex justify-between"><span className="text-text-grey">Loyers payés</span><span className="font-bold text-text-dark">{data.mois_payes ?? 0}</span></div>
-                <div className="flex justify-between"><span className="text-text-grey">Loyers dûs</span><span className="font-bold" style={{ color: (data.mois_dus ?? 0) > 0 ? 'var(--c-danger)' : GREEN }}>{data.mois_dus ?? 0}</span></div>
+                <div className="flex justify-between"><span className="text-text-grey">Loyers dûs</span><span className="font-bold" style={{ color: (data.mois_dus ?? 0) > 0 ? 'var(--c-danger)' : GREEN_TX }}>{data.mois_dus ?? 0}</span></div>
               </div>
             </div>
           </div>

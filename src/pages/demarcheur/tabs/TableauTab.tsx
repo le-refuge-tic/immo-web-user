@@ -1,6 +1,6 @@
 import type { CompteursCommercial, PerfHebdoSemaine } from '../../../api/commercialApi'
 import { bienTypeLabel } from '../../../utils/bienType'
-import { PURPLE, DARK_PURPLE, fmtPrix, fmtSemaine, statutBien, isCommercial, type Tab } from '../shared'
+import { PURPLE, DARK_PURPLE, fmtPrix, fmtSemaine, statutBien, isCommercial, type Tab, PURPLE_TX } from '../shared'
 import { IcHome, IcCal, IcShield, IcPin } from '../icons'
 import type { Bien } from '../../../types/api'
 import type { ProfilDemarcheur } from '../../../types/demarcheur'
@@ -72,7 +72,7 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
             <p className="text-[17px] font-bold text-text-dark mb-3.5">Mes performances</p>
             <div className="grid grid-cols-2 gap-3 mb-4">
               {[
-                { label: 'Biens publiés', value: compteurs.total_publies, color: PURPLE },
+                { label: 'Biens publiés', value: compteurs.total_publies, color: PURPLE_TX },
                 { label: 'En vérification', value: compteurs.en_verification, color: 'var(--tx-amber)' },
                 { label: 'Validés', value: compteurs.valides, color: 'var(--tx-green)' },
                 { label: 'Validés cette semaine', value: compteurs.valides_semaine, color: 'var(--tx-blue)' },
@@ -92,7 +92,7 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
                     <div key={s.semaine_debut} className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-xs text-text-grey">{fmtSemaine(s.semaine_debut)}</span>
-                        <span className="text-caption px-1.5 py-0.5 rounded" style={{ background: withAlpha(PURPLE, '15'), color: PURPLE }}>
+                        <span className="text-caption px-1.5 py-0.5 rounded" style={{ background: withAlpha(PURPLE, '15'), color: PURPLE_TX }}>
                           {s.nb_biens_valides} bien{s.nb_biens_valides !== 1 ? 's' : ''}
                         </span>
                         {s.palier_atteint && (
@@ -111,7 +111,7 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
         {/* Biens récents */}
         <div className="flex items-center justify-between mb-3.5">
           <p className="text-[17px] font-bold text-text-dark">Mes biens récents</p>
-          <button onClick={() => onOpenTab('biens')} className="text-sm font-semibold" style={{ color: PURPLE }}>Voir tout</button>
+          <button onClick={() => onOpenTab('biens')} className="text-sm font-semibold" style={{ color: PURPLE_TX }}>Voir tout</button>
         </div>
         {loading ? (
           [1,2].map(n => <div key={n} className="h-20 skeleton rounded-xl mb-2.5" />)
@@ -126,7 +126,7 @@ export default function TableauTab({ me, biens, loading, score, compteurs, perfH
           return (
             <div key={b.id} className="card-soft rounded-[14px] p-3.5 mb-2.5 flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(PURPLE, '15') }}>
-                <span style={{ color: PURPLE }}><IcHome /></span>
+                <span style={{ color: PURPLE_TX }}><IcHome /></span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-text-dark text-sm">{bienTypeLabel(b)}</p>

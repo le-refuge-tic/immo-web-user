@@ -10,7 +10,7 @@ import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { Bien } from '../../types/api'
 import type { ProfilDemarcheur } from '../../types/demarcheur'
 import { unwrapList } from '../../utils/unwrapList'
-import { PURPLE, DARK_PURPLE, MID_PURPLE, isCommercial, type Tab } from './shared'
+import { PURPLE, DARK_PURPLE, MID_PURPLE, isCommercial, type Tab, PURPLE_TX } from './shared'
 import { IcDash, IcHome, IcCal, IcPerson, IcPlus, IcVerif, IcEye, IcStar, IcBell, IcWallet } from './icons'
 import TableauTab from './tabs/TableauTab'
 import MesBiensTab from './tabs/MesBiensTab'
@@ -101,8 +101,8 @@ export default function DemarcheurDashboard() {
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                style={active ? { background: withAlpha(PURPLE, '15'), color: PURPLE } : { color: '#5F6B7A' }}>
-                <span style={{ color: active ? PURPLE : 'var(--c-slate)' }}>{t.icon}</span>
+                style={active ? { background: withAlpha(PURPLE, '15'), color: PURPLE_TX } : { color: 'var(--tx-muted)' }}>
+                <span style={{ color: active ? PURPLE_TX : 'var(--c-slate)' }}>{t.icon}</span>
                 {t.label}
               </button>
             )
@@ -205,7 +205,7 @@ export default function DemarcheurDashboard() {
               return (
                 <button key={t.key} onClick={() => setTab(t.key)} aria-current={active ? 'page' : undefined}
                   className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${active ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
-                  style={active ? { background: withAlpha(PURPLE, '18'), color: PURPLE } : {}}>
+                  style={active ? { background: withAlpha(PURPLE, '18'), color: PURPLE_TX } : {}}>
                   <span>{t.icon}</span>
                   <span className={`text-[10px] ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>
                 </button>
@@ -218,7 +218,7 @@ export default function DemarcheurDashboard() {
                   aria-current={moreActive ? 'page' : undefined}
                   aria-label={'Plus' + (unreadAlertes > 0 ? ', alertes non lues' : '')}
                   className={`relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all ${moreActive ? '' : 'text-[#6B6B70] dark:text-white/60'}`}
-                  style={moreActive ? { background: withAlpha(PURPLE, '18'), color: PURPLE } : {}}>
+                  style={moreActive ? { background: withAlpha(PURPLE, '18'), color: PURPLE_TX } : {}}>
                   <span className="relative">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
                     {unreadAlertes > 0 && <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
@@ -241,8 +241,8 @@ export default function DemarcheurDashboard() {
                 <li key={t.key}>
                   <button onClick={() => { setTab(t.key); setMoreOpen(false) }}
                     className={`w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold border border-divider dark:border-white/10 ${active ? '' : 'text-text-dark'}`}
-                    style={active ? { background: withAlpha(PURPLE, '18'), color: PURPLE } : {}}>
-                    <span style={{ color: active ? PURPLE : undefined }} className={active ? '' : 'text-text-grey'}>{t.icon}</span>
+                    style={active ? { background: withAlpha(PURPLE, '18'), color: PURPLE_TX } : {}}>
+                    <span style={{ color: active ? PURPLE_TX : undefined }} className={active ? '' : 'text-text-grey'}>{t.icon}</span>
                     {t.label}
                   </button>
                 </li>

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { rolesApi } from '../../../api/rolesApi'
-import { BLUE, ROLE_ROUTES, shade } from './shared'
+import { ROLE_ROUTES, assombrir, BLUE, BLUE_TX } from './shared'
+import { withAlpha } from '../../../utils/color'
 
 import { apiMessage } from '../../../utils/apiMessage'
 
@@ -34,11 +35,12 @@ function MaskIcon({ role, size = 22 }: { role: string; size?: number }) {
   )
 }
 
-const ROLES_META: { key: string; label: string; desc: string; color: string }[] = [
-  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)' },
-  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: BLUE },
-  { key: 'demarcheur',   label: 'Démarcheur',   desc: 'Mandataire immobilier — gérer des biens clients', color: '#9B59B6' },
-  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: 'var(--tx-green)' },
+// `color` : texte (s'éclaircit en sombre) ; `fill` : fond plein sous texte blanc (FE-B-024).
+const ROLES_META: { key: string; label: string; desc: string; color: string; fill: string }[] = [
+  { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', fill: 'var(--c-primary)' },
+  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: BLUE_TX, fill: BLUE },
+  { key: 'demarcheur',   label: 'Démarcheur',   desc: 'Mandataire immobilier — gérer des biens clients', color: 'var(--tx-violet)', fill: 'var(--c-fill-violet)' },
+  { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: 'var(--tx-green)', fill: 'var(--c-fill-green)' },
 ]
 
 export function RolesTab() {
@@ -138,15 +140,15 @@ export function RolesTab() {
             return (
               <div key={r.key} className="rounded-2xl overflow-hidden bg-p-card transition-shadow hover:shadow-md"
                 style={{
-                  border: isActiveNow ? `1.5px solid ${r.color}` : '1px solid rgba(0,0,0,0.07)',
-                  boxShadow: isActiveNow ? `0 4px 16px ${r.color}25` : '0 1px 3px rgba(0,0,0,0.03)',
+                  border: isActiveNow ? `1.5px solid ${r.fill}` : '1px solid rgba(0,0,0,0.07)',
+                  boxShadow: isActiveNow ? `0 4px 16px ${withAlpha(r.fill, '25')}` : '0 1px 3px rgba(0,0,0,0.03)',
                 }}>
                 <div className="p-4 flex items-start gap-3">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{
-                      background: isDisponible ? '#1A3355' : `linear-gradient(135deg, ${r.color}, ${shade(r.color, 0.3)})`,
+                      background: isDisponible ? '#1A3355' : `linear-gradient(135deg, ${r.fill}, ${assombrir(r.fill, 0.3)})`,
                       color: isDisponible ? '#8A93A3' : '#fff',
-                      boxShadow: isDisponible ? undefined : `0 4px 10px ${r.color}40`,
+                      boxShadow: isDisponible ? undefined : `0 4px 10px ${withAlpha(r.fill, '40')}`,
                     }}>
                     <MaskIcon role={r.key} />
                   </div>
@@ -155,7 +157,7 @@ export function RolesTab() {
                       <p className="font-bold text-p-text text-sm">{r.label}</p>
                       {statusLabel && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                          style={{ background: isActiveNow ? r.color : r.color + '18', color: isActiveNow ? '#fff' : r.color }}>
+                          style={{ background: isActiveNow ? r.fill : withAlpha(r.fill, '18'), color: isActiveNow ? '#fff' : r.color }}>
                           {statusLabel}
                         </span>
                       )}
@@ -168,7 +170,7 @@ export function RolesTab() {
                   {isActivable ? (
                     <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
                       className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-opacity hover:opacity-90"
-                      style={{ background: r.color }}>
+                      style={{ background: r.fill }}>
                       Activer ce rôle
                     </button>
                   ) : isDisponible ? (
@@ -178,7 +180,7 @@ export function RolesTab() {
                       {!isActiveNow && (
                         <button onClick={() => goToRoleSpace(r.key)}
                           className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-opacity hover:opacity-80"
-                          style={{ background: r.color + '18', color: r.color }}>
+                          style={{ background: withAlpha(r.fill, '18'), color: r.color }}>
                           Accéder à cet espace
                         </button>
                       )}
@@ -212,7 +214,7 @@ export function RolesTab() {
                       <button onClick={() => setActivating(null)} className="flex-1 py-2.5 rounded-xl border border-p-border text-sm font-semibold text-p-muted bg-p-surface">Annuler</button>
                       <button onClick={() => activerRole(r.key)} disabled={busy}
                         className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
-                        style={{ background: r.color }}>
+                        style={{ background: r.fill }}>
                         {busy ? 'Activation…' : 'Confirmer'}
                       </button>
                     </div>

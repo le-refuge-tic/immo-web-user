@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { walletApi } from '../../../api/walletApi'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { IcTrendUp, IcTrendDown } from './icons'
-import { BLUE, DARK_BLUE } from './shared'
+import { BLUE, DARK_BLUE, BLUE_TX } from './shared'
 
 import { categorieTransaction, TransactionDetailModal } from './TransactionsTab'
 import { svgMaskUrl } from './RolesTab'
@@ -115,7 +115,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
               <p className="text-[10px] font-bold text-p-muted uppercase tracking-wide mb-0.5">Envoyé sur</p>
               <p className="font-semibold text-sm text-p-text truncate">{numeroInfo?.masque || '—'}</p>
             </div>
-            <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE }}>Changer</button>
+            <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE_TX }}>Changer</button>
           </div>
 
           {montantValide && (
@@ -221,7 +221,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
               Demander un retrait
             </button>
             <button onClick={onOpenTransactions}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-p-card transition-opacity hover:opacity-90" style={{ color: BLUE }}>
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-p-card transition-opacity hover:opacity-90" style={{ color: BLUE_TX }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 7h6m-6 4h6" /></svg>
               Historique complet
             </button>
@@ -269,7 +269,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
         <div className="flex items-center justify-between mb-3">
           <p className="font-bold text-p-text">Transactions récentes</p>
           {transactions.length > 0 && (
-            <button onClick={onOpenTransactions} className="text-xs font-semibold" style={{ color: BLUE }}>Voir tout →</button>
+            <button onClick={onOpenTransactions} className="text-xs font-semibold" style={{ color: BLUE_TX }}>Voir tout →</button>
           )}
         </div>
         {loading ? [1, 2, 3].map(n => <div key={n} className="h-16 skeleton-dark rounded-xl mb-2" />) : noData ? (

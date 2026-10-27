@@ -23,6 +23,8 @@ export const IcUpload  = () => <svg viewBox="0 0 24 24" fill="none" stroke="curr
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 export const BLUE      = 'var(--c-brand)'   // bleu principal (propriétaire)
+/** Bleu principal en couleur de texte : identique en clair, éclairci sur la palette marine (FE-B-024). Les fonds gardent BLUE. */
+export const BLUE_TX   = 'var(--tx-brand)'
 export const DARK_BLUE = '#0B1C30'   // navy
 
 export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Démarcheur', locataire: 'Locataire' }
@@ -84,18 +86,19 @@ export function bienComposition(b: { pieces?: Piece[] } | null | undefined): str
 export function fmtPrix(p: number | string | null | undefined) {
   const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
 }
+// Statuts : `color` pour un texte, `fill` pour un fond plein sous texte blanc (FE-B-024).
 export function statutBien(s: string) {
-  if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--c-green-material)' }
-  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: 'var(--c-red-material)' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--c-green-material)', fill: 'var(--c-green-material)' }
+  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: 'var(--c-red-material)', fill: 'var(--c-red-material)' }
+  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
+  return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
 }
 export function statutVisite(s: string) {
-  if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--c-green-material)' }
-  if (s === 'annulee')         return { label: 'Annulée',         color: 'var(--c-red-material)' }
-  if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE }
-  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)' }
-  return { label: 'En attente', color: 'var(--tx-amber)' }
+  if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--c-green-material)', fill: 'var(--c-green-material)' }
+  if (s === 'annulee')         return { label: 'Annulée',         color: 'var(--c-red-material)', fill: 'var(--c-red-material)' }
+  if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE_TX, fill: BLUE }
+  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
+  return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
 }
 
 const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
@@ -142,12 +145,12 @@ export function buildCountSeries<T>(items: T[], getDate: (item: T) => string | n
 
 /** Assombrit une couleur hex d'un facteur (0-1) — utilisé pour donner un
  *  léger dégradé de profondeur aux StatCards pleines couleurs. */
-export function shade(hex: string, amt: number): string {
-  const n = parseInt(hex.slice(1), 16)
-  const r = Math.max(0, Math.round(((n >> 16) & 255) * (1 - amt)))
-  const g = Math.max(0, Math.round(((n >> 8) & 255) * (1 - amt)))
-  const b = Math.max(0, Math.round((n & 255) * (1 - amt)))
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+/**
+ * Assombrit une couleur CSS quelconque (hex, `var(--jeton)`) de `amt` (0-1). Remplace l'ancien `shade`,
+ * qui exigeait un hex : sur un `var()`, il produisait une couleur invalide et le dégradé disparaissait.
+ */
+export function assombrir(color: string, amt: number): string {
+  return `color-mix(in srgb, ${color} ${Math.round((1 - amt) * 100)}%, black)`
 }
 
 

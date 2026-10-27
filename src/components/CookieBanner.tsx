@@ -32,7 +32,7 @@ export default function CookieBanner() {
       className="fixed z-[90] left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] md:bottom-6 md:left-auto md:right-6 md:max-w-sm glass-strong rounded-2xl p-4 shadow-xl"
     >
       <p id="cookie-title" className="text-sm font-bold text-text-dark">Cookies et mesure d’audience</p>
-      <p id="cookie-desc" className="text-xs text-text-grey mt-1.5 leading-relaxed">
+      <p id="cookie-desc" className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--tx-secondary)' }}>
         Nous utilisons uniquement les cookies nécessaires au fonctionnement du site. Avec votre accord, nous mesurons aussi
         la fréquentation de façon anonyme, sans cookie publicitaire.
         {choix && <> Choix actuel : <strong>{choix.analytics ? 'mesure acceptée' : 'mesure refusée'}</strong>.</>}

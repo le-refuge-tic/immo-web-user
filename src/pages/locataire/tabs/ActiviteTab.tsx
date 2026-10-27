@@ -9,7 +9,7 @@ import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_L
 import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, loyerRepare, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
-import { GREEN, TEAL, ORANGE } from '../shared'
+import { GREEN, TEAL, ORANGE, GREEN_TX, ORANGE_TX, TEAL_TX } from '../shared'
 import { IcCheck, IcCal, IcMoney } from '../icons'
 import OperateurChips from '../OperateurChips'
 import type { ModePaiementLoyer, MonLogement } from '../../../types/locataire'
@@ -69,10 +69,10 @@ export default function ActiviteTab() {
     if (!prochainLoyer) return null
     const diff = new Date(prochainLoyer.date_echeance).getTime() - Date.now()
     const jours = Math.ceil(diff / 86400000)
-    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.125)' }
-    if (jours <= 3) return { label: `Dû dans ${jours}j`, color: ORANGE, bg: withAlpha(ORANGE, '20') }
-    if (jours <= 7) return { label: `À payer dans ${jours}j`, color: TEAL, bg: withAlpha(TEAL, '20') }
-    return { label: `${jours} jours`, color: GREEN, bg: withAlpha(GREEN, '20') }
+    if (jours < 0)  return { label: `En retard de ${-jours}j`, color: 'var(--tx-red)', fill: 'var(--c-fill-red)', bg: 'rgba(239,68,68,0.125)' }
+    if (jours <= 3) return { label: `Dû dans ${jours}j`, color: ORANGE_TX, fill: ORANGE, bg: withAlpha(ORANGE, '20') }
+    if (jours <= 7) return { label: `À payer dans ${jours}j`, color: TEAL_TX, fill: TEAL, bg: withAlpha(TEAL, '20') }
+    return { label: `${jours} jours`, color: GREEN_TX, fill: GREEN, bg: withAlpha(GREEN, '20') }
   }
 
   const payer = async () => {
@@ -146,7 +146,7 @@ export default function ActiviteTab() {
       {Number(contrat?.loyer_prepaye_mois || 0) > 0 && (
         <div className="mt-5 md:mt-8 rounded-2xl p-4 flex items-center gap-3" style={{ background: withAlpha(TEAL, '15'), border: `1px solid ${withAlpha(TEAL, '30')}` }}>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(TEAL, '20') }}>
-            <span style={{ color: TEAL }}><IcCheck /></span>
+            <span style={{ color: TEAL_TX }}><IcCheck /></span>
           </div>
           <p className="text-sm text-text-dark"><strong>{contrat?.loyer_prepaye_mois}</strong> mois déjà prépayés — vous êtes à jour d'avance.</p>
         </div>
@@ -157,7 +157,7 @@ export default function ActiviteTab() {
         <div className="mt-5 md:mt-8 rounded-3xl p-5" style={{ background: urg.bg, border: `1.5px solid ${withAlpha(urg.color, '30')}` }}>
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-text-dark">Prochaine échéance</p>
-            <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: urg.color, color: 'white' }}>{urg.label}</span>
+            <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: urg.fill, color: 'white' }}>{urg.label}</span>
           </div>
           <p className="text-2xl font-bold text-text-dark mb-1">{Number(prochainLoyer.montant).toLocaleString('fr-FR')} FCFA</p>
           <div className="flex items-center gap-1.5 text-text-grey text-sm">
@@ -181,7 +181,7 @@ export default function ActiviteTab() {
                 <>
                   <p className="text-sm text-text-grey text-center">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
                   <button onClick={() => openPaymentUrl(payUrl)}
-                    className="mt-1 text-xs font-bold" style={{ color: GREEN }}>
+                    className="mt-1 text-xs font-bold" style={{ color: GREEN_TX }}>
                     Rouvrir la page de paiement
                   </button>
                 </>
@@ -197,7 +197,7 @@ export default function ActiviteTab() {
           ) : payState === 'error' ? (
             <div className="text-center">
               <p role="alert" className="text-red-500 text-sm mb-2">{payMsg}</p>
-              <button onClick={() => setPayState('idle')} className="text-sm font-semibold" style={{ color: TEAL }}>Réessayer</button>
+              <button onClick={() => setPayState('idle')} className="text-sm font-semibold" style={{ color: TEAL_TX }}>Réessayer</button>
             </div>
           ) : (
             <>
@@ -238,18 +238,18 @@ export default function ActiviteTab() {
         ) : historique.map((h, i) => (
           <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl mb-2" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(0,0,0,0.06)' }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(GREEN, '15') }}>
-              <span style={{ color: GREEN }}><IcMoney /></span>
+              <span style={{ color: GREEN_TX }}><IcMoney /></span>
             </div>
             <div className="flex-1">
               <p className="font-semibold text-text-dark text-sm">{formatMois(h.mois || h.created_at)}</p>
               <p className="text-xs text-text-grey">{new Date(h.created_at || h.date_paiement).toLocaleDateString('fr-FR')}</p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-sm" style={{ color: GREEN }}>+{Number(h.montant).toLocaleString('fr-FR')} F</p>
-              <span className="text-micro font-semibold" style={{ color: GREEN }}>Payé</span>
+              <p className="font-bold text-sm" style={{ color: GREEN_TX }}>+{Number(h.montant).toLocaleString('fr-FR')} F</p>
+              <span className="text-micro font-semibold" style={{ color: GREEN_TX }}>Payé</span>
               {h.transaction_id && (
                 <button onClick={() => navigate(`/recu/loyer/${h.transaction_id}`)}
-                  className="block mt-1 text-micro font-bold underline" style={{ color: TEAL }}>Reçu</button>
+                  className="block mt-1 text-micro font-bold underline" style={{ color: TEAL_TX }}>Reçu</button>
               )}
             </div>
           </div>

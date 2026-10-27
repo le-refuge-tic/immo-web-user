@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { IcChat, BLUE, bienLabel, fmtPrix, statutVisite } from './shared'
+import { IcChat, BLUE, bienLabel, fmtPrix, statutVisite, BLUE_TX } from './shared'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import type { Visite } from '../../../types/api'
@@ -143,7 +143,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl p-4 border" style={{ background: 'rgb(255,255,255)', borderColor: 'var(--c-blue-wash)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Frais de visite</p>
-              <p className="font-black text-[18px]" style={{ color: BLUE }}>
+              <p className="font-black text-[18px]" style={{ color: BLUE_TX }}>
                 {Number(v.frais_visite) > 0 ? fmtPrix(v.frais_visite) : 'Gratuit'}
               </p>
             </div>
@@ -252,7 +252,7 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
           <div className="flex gap-2 pt-1 pb-1 flex-wrap">
             <button onClick={() => onChat(v)} disabled={chatLoadingId === v.id}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-semibold disabled:opacity-50 transition-all"
-              style={{ borderColor: withAlpha(BLUE, '40'), color: BLUE, background: withAlpha(BLUE, '08') }}>
+              style={{ borderColor: withAlpha(BLUE, '40'), color: BLUE_TX, background: withAlpha(BLUE, '08') }}>
               {chatLoadingId === v.id
                 ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 : <IcChat />}

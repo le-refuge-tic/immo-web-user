@@ -4,7 +4,7 @@ import { loyersApi } from '../../../api/loyersApi'
 import AjouterBienGestionModal from '../AjouterBienGestionModal'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcPayments, IcRefresh } from './icons'
-import { IcHome, IcClock, IcWallet, IcPlus, IcShield, IcShare, BLUE, bienLabel, fmtPrix } from './shared'
+import { IcHome, IcClock, IcWallet, IcPlus, IcShield, IcShare, BLUE, bienLabel, fmtPrix, BLUE_TX } from './shared'
 
 import { ContratDetailModal } from './ContratDetailModal'
 import { onActivateKey } from '../../../utils/keyboard'
@@ -142,8 +142,8 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
             <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
               Loyers
               {filter === 'gestion'
-                ? (gestionLoaded && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{biensGestion.length}</span>)
-                : (!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{sorted.length}</span>)}
+                ? (gestionLoaded && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE_TX }}>{biensGestion.length}</span>)
+                : (!loading && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE_TX }}>{sorted.length}</span>)}
             </h2>
           </div>
         </div>
@@ -151,7 +151,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
         {/* ── KPI cards ── */}
         {!loading && data && (() => {
           const kpis = [
-            { label: 'TOTAL PERÇU', value: `${Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} F`, color: BLUE,      icon: <IcWallet /> },
+            { label: 'TOTAL PERÇU', value: `${Number(stats.revenus_total ?? 0).toLocaleString('fr-FR')} F`, color: BLUE_TX,      icon: <IcWallet /> },
             { label: 'CE MOIS',     value: `${Number(stats.revenus_mois ?? 0).toLocaleString('fr-FR')} F`,  color: 'var(--tx-green)', icon: <IcPayments /> },
             { label: 'EN ATTENTE',  value: `${Number(enAttenteMontant).toLocaleString('fr-FR')} F`,          color: 'var(--tx-amber)', icon: <IcClock /> },
             { label: 'EN RETARD',   value: `${enRetardCount + impayesCount}`,                                color: enRetardCount + impayesCount > 0 ? 'var(--c-danger)' : 'var(--c-success-bright)', icon: <IcShield /> },
@@ -260,7 +260,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                         <p className="font-bold text-sm truncate" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
                         <p className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville || '—'}</p>
                       </div>
-                      <span className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE }}>{fmtPrix(b.prix)}<span className="font-normal opacity-70">/mois</span></span>
+                      <span className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE_TX }}>{fmtPrix(b.prix)}<span className="font-normal opacity-70">/mois</span></span>
                     </div>
 
                     {b.locataire ? (

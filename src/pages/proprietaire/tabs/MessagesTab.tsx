@@ -3,7 +3,7 @@ import { useAuth } from '../../../context/AuthContext'
 import { chatApi } from '../../../api/chatApi'
 import ChatThread from '../../conversations/ChatThread'
 import { IcMessagesNav } from './icons'
-import { BLUE, MSG_AVATAR_COLORS, formatConvTime } from './shared'
+import { BLUE, MSG_AVATAR_COLORS, formatConvTime, BLUE_TX } from './shared'
 import type { Conversation, User } from '../../../types/api'
 import type { MessageHit } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
@@ -100,7 +100,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
           ) : filtered.length === 0 && messageHits.length === 0 && !searchingMsgs && !searchError ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: withAlpha(BLUE, '14') }}>
-                <span style={{ color: BLUE }}><IcMessagesNav /></span>
+                <span style={{ color: BLUE_TX }}><IcMessagesNav /></span>
               </div>
               <p className="text-sm font-bold mb-1" style={{ color: 'var(--p-text)' }}>{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
               <p className="text-xs" style={{ color: 'var(--p-muted)' }}>{search ? `Rien ne correspond à « ${search} ».` : 'Vos échanges avec vos clients apparaîtront ici.'}</p>
@@ -194,7 +194,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-8" style={{ background: 'var(--p-deep)' }}>
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: withAlpha(BLUE, '12') }}>
-              <span style={{ color: BLUE }}><IcMessagesNav /></span>
+              <span style={{ color: BLUE_TX }}><IcMessagesNav /></span>
             </div>
             <p className="text-[15px] font-bold mb-1.5" style={{ color: 'var(--p-text)' }}>Sélectionnez une conversation</p>
             <p className="text-[13px] max-w-xs" style={{ color: 'var(--p-muted)' }}>Choisissez un contact dans la liste pour afficher les messages.</p>

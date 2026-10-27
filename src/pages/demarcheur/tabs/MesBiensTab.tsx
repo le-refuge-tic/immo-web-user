@@ -4,7 +4,7 @@ import { onActivateKey } from '../../../utils/keyboard'
 import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
 import { bienTypeLabel } from '../../../utils/bienType'
-import { PURPLE, DARK_PURPLE, fmtPrix, statutBien } from '../shared'
+import { PURPLE, DARK_PURPLE, fmtPrix, statutBien, PURPLE_TX } from '../shared'
 import { IcPlus, IcPin, IcTrash, IcEdit, IcRefresh } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { Bien } from '../../../types/api'
@@ -58,7 +58,7 @@ export default function MesBiensTab() {
             <button onClick={() => navigate('/nouveau-bien')} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold" style={{ background: PURPLE }}>
               <IcPlus /> Ajouter
             </button>
-            <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: withAlpha(PURPLE, '15'), color: PURPLE }}>
+            <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: withAlpha(PURPLE, '15'), color: PURPLE_TX }}>
               <IcRefresh /> Actualiser
             </button>
           </div>
@@ -96,7 +96,7 @@ export default function MesBiensTab() {
         ) : (
           <div className="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
             {filtered.map(b => {
-              const { label, color } = statutBien(b.statut_moderation || 'en_attente')
+              const { label, fill } = statutBien(b.statut_moderation || 'en_attente')
               const loc = b.localisation
               const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
               const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
@@ -109,7 +109,7 @@ export default function MesBiensTab() {
                       : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${withAlpha(DARK_PURPLE, 'cc')}, ${withAlpha(PURPLE, 'aa')})` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
                     }
                     <div className="absolute inset-0 bg-black/20" />
-                    <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-caption font-bold" style={{ background: color }}>{label}</span>
+                    <span className="absolute top-3 left-3 px-2 py-1 rounded-lg text-white text-caption font-bold" style={{ background: fill }}>{label}</span>
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       <button onClick={(e) => { e.stopPropagation(); setEditingBien(b) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcEdit /></button>
                       {confirmDeleteBienId === b.id ? (

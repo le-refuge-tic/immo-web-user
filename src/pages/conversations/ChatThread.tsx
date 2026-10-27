@@ -347,7 +347,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
                 accepted: { accent: 'var(--c-success)', label: 'Créneau confirmé' },
                 declined: { accent: 'var(--c-danger)', label: 'Créneau refusé' },
                 countered: { accent: '#FB923C', label: 'Contre-proposition' },
-                pending: { accent: 'var(--c-brand)', label: 'Créneau en discussion' },
+                pending: { accent: 'var(--tx-brand)', label: 'Créneau en discussion' },
               }
               const c = cfg[status] || cfg.pending
               return (

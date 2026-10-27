@@ -70,6 +70,8 @@ Les tests Playwright (`e2e/`) jouent les parcours critiques (découverte et rech
 
 Pas de couleur hexadécimale nouvelle dans les composants : utiliser les classes du thème (`tailwind.config.js`), les variables CSS de `src/index.css` (`--c-*` pour la marque et les états, `--p-*` pour l'espace propriétaire, `--tx-*` pour les textes qui s'éclaircissent en mode sombre) et `withAlpha(couleur, 'hh')` (`src/utils/color.ts`) pour appliquer une opacité. Les surcharges du mode sombre de `index.css` lisent certains styles en ligne tels que le navigateur les sérialise (`rgb(26, 26, 46)`) : ne pas remplacer par un mot-clé (`white`) ou une variable une couleur qu'elles ciblent sans vérifier le rendu sombre.
 
+Texte ou fond : une couleur de texte s'éclaircit en sombre (`--tx-*`, et dans les espaces `GREEN_TX`, `TEAL_TX`, `PURPLE_TX`, `BLUE_TX`), une couleur de fond plein sous un texte blanc ne change pas (`--c-fill-*`, `--c-primary`, `--c-amber-dark`, constantes `GREEN`, `TEAL`, `PURPLE`, `BLUE`). Utiliser un jeton de texte comme fond rend le texte blanc illisible en sombre ; les statuts exposent pour cela `color` (texte) et `fill` (fond). `e2e/contraste-sombre.spec.ts` vérifie avec axe-core qu'aucun contraste insuffisant n'apparaît en sombre.
+
 ## Déploiement (Vercel)
 
 1. Définir `VITE_API_URL` dans Project Settings > Environment Variables (Production et Preview).

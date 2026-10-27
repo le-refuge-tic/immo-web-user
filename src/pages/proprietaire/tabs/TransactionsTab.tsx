@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { walletApi } from '../../../api/walletApi'
 import { IcTrendUp, IcTrendDown } from './icons'
-import { BLUE, fmtPrix } from './shared'
+import { BLUE, fmtPrix, BLUE_TX } from './shared'
 
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { onActivateKey } from '../../../utils/keyboard'
@@ -12,7 +12,7 @@ import ErrorState from '../../../components/ErrorState'
 // ─── Tab: Historique des transactions ──────────────────────────────────────────
 export function categorieTransaction(description: string | null | undefined): { label: string; color: string } {
   const d = (description || '').toLowerCase()
-  if (d.startsWith('loyer')) return { label: 'Loyer', color: BLUE }
+  if (d.startsWith('loyer')) return { label: 'Loyer', color: BLUE_TX }
   if (d.startsWith('frais de visite')) return { label: 'Visite', color: 'var(--c-purple-dark)' }
   if (d.startsWith('intégration') || d.startsWith('integration')) return { label: 'Intégration', color: 'var(--tx-amber)' }
   return { label: 'Autre', color: 'var(--c-grey)' }
@@ -137,7 +137,7 @@ export function TransactionsTab() {
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Topbar de section — titre + filtres (l'entête général de l'app reste au-dessus) */}
       <div className="bg-p-surface border-b border-p-border flex items-center gap-3 px-4 md:px-6 py-3 flex-shrink-0 flex-wrap">
-        <h1 className="text-[17px] font-bold uppercase tracking-wide" style={{ color: BLUE }}>Historique des transactions</h1>
+        <h1 className="text-[17px] font-bold uppercase tracking-wide" style={{ color: BLUE_TX }}>Historique des transactions</h1>
         <div className="flex-1" />
         <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
           aria-label="Filtrer par catégorie"
@@ -178,7 +178,7 @@ export function TransactionsTab() {
         </div>
         <div className="flex items-center gap-3 rounded-xl card-navy p-3.5">
           <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(BLUE, '18') }}>
-            <span style={{ color: BLUE }}><IcTrendUp /></span>
+            <span style={{ color: BLUE_TX }}><IcTrendUp /></span>
           </div>
           <div className="min-w-0">
             <p className="text-xs text-p-muted">Plus grosse</p>

@@ -25,7 +25,7 @@ export function SlotBubble({ m, userId, isDark, tp, tm, bienId, isClientRole, pa
     accepted: { bg: 'rgba(34,197,94,0.10)', accent: 'var(--c-success)', label: 'Confirmé ✓' },
     declined:  { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', accent: '#94A3B8', label: 'Refusé' },
     countered: { bg: 'rgba(251,146,60,0.10)', accent: '#FB923C', label: 'Contre-proposé' },
-    pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: 'var(--c-brand)', label: isMe ? 'En attente…' : 'Créneau proposé' },
+    pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: 'var(--tx-brand)', label: isMe ? 'En attente…' : 'Créneau proposé' },
   }
   const pal = p[status] || p.pending
   return (

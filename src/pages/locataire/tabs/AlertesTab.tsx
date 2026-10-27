@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { notificationsApi } from '../../../api/notificationsApi'
 import { useNotifications } from '../../../context/NotificationsContext'
-import { GREEN } from '../shared'
+import { GREEN, GREEN_TX } from '../shared'
 import { IcBell } from '../icons'
 import AlerteItem from './AlerteItem'
 import { compterNonLues, estAlerteLocataire, marquerLue, marquerToutesLues, ROLE_ESPACE_LOCATAIRE } from './alertesLocataire'
@@ -66,7 +66,7 @@ export default function AlertesTab() {
       {refreshError && <RefreshFailedNotice onRetry={() => charger(true)} />}
       {nonLues > 0 && (
         <div className="flex justify-end mb-2">
-          <button onClick={toutMarquerLu} className="text-xs font-bold" style={{ color: GREEN }}>Tout marquer comme lu</button>
+          <button onClick={toutMarquerLu} className="text-xs font-bold" style={{ color: GREEN_TX }}>Tout marquer comme lu</button>
         </div>
       )}
       {alertes.length === 0 ? (

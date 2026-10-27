@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { GREEN, TEAL } from './shared'
+import { GREEN, TEAL, GREEN_TX } from './shared'
 import type { Tab } from './shared'
 import { TABS } from './tabsConfig'
 import { IcChat } from './icons'
@@ -77,7 +77,7 @@ export default function LocataireDashboard() {
                 <button key={t.key} onClick={() => t.key === 'messages' ? navigate('/conversations') : setTab(t.key)}
                   aria-current={active ? 'page' : undefined}
                   className={`flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[56px] rounded-2xl transition-all ${active ? '' : 'text-black/55 dark:text-white/60'}`}
-                  style={active ? { background: withAlpha(GREEN, '18'), color: GREEN } : {}}>
+                  style={active ? { background: withAlpha(GREEN, '18'), color: GREEN_TX } : {}}>
                   <span>{t.icon(active)}</span>
                   {/* Libellé toujours visible : une icône seule n'est pas assez explicite */}
                   <span className={`text-micro ${active ? 'font-bold' : 'font-semibold'}`}>{t.label}</span>
