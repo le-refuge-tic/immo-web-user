@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { Bien } from '../../../types/api'
-import type { BienFavori } from '../../../types/recherche'
-import { biensApi, type BiensListParams } from '../../../api/biensApi'
-import { favoritesApi } from '../../../api/favoritesApi'
+import type { BiensListParams } from '../../../api/biensApi'
+import { useFavoriIds } from '../../../hooks/useFavoris'
 import { useAuth } from '../../../context/AuthContext'
 import { useTheme } from '../../../context/ThemeContext'
 import { rechercherQuartiers, trouverQuartierExact, type Quartier, VILLES_AVEC_QUARTIERS } from '../../../data/quartiers'
@@ -13,6 +12,9 @@ import { readSearchFilters, writeSearchFilters, piecesQuery, piecesLabel, type S
 import { norm, matchLoc, inBudgetRange, isBudgetVoisin, fmtFcfa } from './helpers'
 import { TRANSACTIONS, TYPES, SOUS_TYPES, PAGE_SIZE, PROXIMITY_MAX_KM } from './options'
 import { useTokens } from './tokens'
+import { useBiensPages, useDebouncedValue } from './useBiensPages'
+
+const NO_BIENS: Bien[] = []
 
 /** État, filtres synchronisés avec l'URL, chargement et calcul des résultats de la page de recherche. */
 export function useSearchPage() {
@@ -55,22 +57,9 @@ export function useSearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
-  const [allBiens,    setAllBiens]    = useState<Bien[]>([])
-  const [total,       setTotal]       = useState(0)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [loadMoreError, setLoadMoreError] = useState(false)
-  const lastParamsRef = useRef<Record<string, unknown>>({})
-  const pageRef       = useRef(1)
-  // Incrémenté à chaque nouvelle recherche : une réponse arrivée après coup est ignorée
-  const generationRef = useRef(0)
-  const [wideBiens,   setWideBiens]   = useState<Bien[]>([])
-  const [favIds,      setFavIds]      = useState<Set<number>>(new Set())
-  const [loading,     setLoading]     = useState(false)
-  const [fetchError,  setFetchError]  = useState(false)
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAllAutres, setShowAllAutres] = useState(false)
-  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sidebarRef   = useRef<HTMLElement>(null)
   const scrollTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -99,33 +88,44 @@ export function useSearchPage() {
     if (superficieMax && supMax !== null)     params.superficie_max = supMax
     return params
   }, [sousType, pieces, superficieMin, superficieMax])
-  const filterParamsKey = JSON.stringify(filterParams)
 
-  // Vivier des suggestions « autres biens » : mêmes critères hors localisation, filtrés par le serveur
-  useEffect(() => {
-    let cancelled = false
-    const timer = setTimeout(() => {
-      biensApi.list({ ...JSON.parse(filterParamsKey), limit: PAGE_SIZE })
-        .then(data => { if (!cancelled) setWideBiens(Array.isArray(data) ? data : data.data || []) })
-        .catch(() => {})
-    }, 420)
-    return () => { cancelled = true; clearTimeout(timer) }
-  }, [filterParamsKey])
+  // Clé des paramètres réellement envoyés : taper dans la recherche sans changer de ville ne recharge rien.
+  const paramsKey = useMemo(() => {
+    // Filtrés par le serveur : le total et les pages restent justes (FE-D-005).
+    // Le prix reste local : il alimente les suggestions « budget voisin ».
+    const params: BiensListParams = { ...filterParams, limit: PAGE_SIZE }
+    if (transaction) params.transaction = transaction
+    if (type)        params.type        = type
+    if (sortBy !== 'pertinence') params.tri = sortBy
+    const nq = norm(query.trim())
+    const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
+    if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
+    return JSON.stringify(params)
+  }, [query, transaction, type, filterParams, sortBy])
+
+  // Couche de données (FE-A-004) : cache par jeu de paramètres, annulation, jamais de réponse
+  // périmée. Le vivier des suggestions « autres biens » (mêmes critères hors localisation) a la
+  // même clé que la liste principale tant qu'aucune ville, transaction ou type n'est choisi :
+  // une seule requête à l'ouverture de la page.
+  const main = useBiensPages(useDebouncedValue(paramsKey))
+  const wide = useBiensPages(useDebouncedValue(JSON.stringify({ ...filterParams, limit: PAGE_SIZE })))
+  const wideBiens = wide.biens
+  // Échec d'une nouvelle recherche : on n'affiche plus la liste de l'ancienne, ni son total.
+  // Un échec de « page suivante » ou d'une relecture de fond (cache périmé) laisse, lui, la
+  // liste déjà chargée pour ces critères.
+  const fetchError    = main.query.isError && !main.query.isFetchNextPageError && !main.query.data
+  const allBiens      = fetchError ? NO_BIENS : main.biens
+  const total         = fetchError ? 0 : main.total
+  const loading       = main.query.isPending
+  const loadingMore   = main.query.isFetchingNextPage
+  const loadMoreError = main.query.isFetchNextPageError
 
   useEffect(() => { setShowAllAutres(false) }, [allBiens])
 
   const suggestions: Quartier[] = query.trim().length >= 1 ? rechercherQuartiers(query) : []
   const pickSuggestion = (q: Quartier) => { setQuery(q.nom); setShowSuggest(false) }
 
-  useEffect(() => {
-    if (!isLoggedIn) return
-    favoritesApi.list()
-      .then(d => {
-        const l = Array.isArray(d) ? d : d.data || []
-        setFavIds(new Set(l.map((f: BienFavori) => f.bien_id || f.id)))
-      })
-      .catch(() => {})
-  }, [isLoggedIn])
+  const { favIds, onFavToggle } = useFavoriIds(isLoggedIn)
 
   const applySort = useCallback((biens: Bien[], q: string) => {
     if (sortBy === 'prix_asc')  return [...biens].sort((a, b) => Number(a.prix) - Number(b.prix))
@@ -231,77 +231,14 @@ export function useSearchPage() {
     return haversineKm(refCoords.lat, refCoords.lng, c.lat, c.lng)
   }
 
-  const fetchBiens = useCallback(async (params: BiensListParams) => {
-    const generation = ++generationRef.current
-    setLoading(true)
-    setFetchError(false)
-    setLoadMoreError(false)
-    setLoadingMore(false)
-    lastParamsRef.current = params
-    pageRef.current = 1
-    try {
-      const data = await biensApi.list({ ...params, page: 1 })
-      if (generation !== generationRef.current) return
-      const list = Array.isArray(data) ? data : data.data || []
-      setAllBiens(list)
-      setTotal(Array.isArray(data) ? list.length : Number(data.total ?? list.length))
-    } catch {
-      if (generation !== generationRef.current) return
-      // Échec : on n'affiche plus la liste de l'ancienne recherche, ni son total
-      setAllBiens([])
-      setTotal(0)
-      setFetchError(true)
-    }
-    if (generation === generationRef.current) setLoading(false)
-  }, [])
-
   // Page suivante : s'ajoute à la liste affichée (jamais de troncature silencieuse, FE-D-005)
-  const loadMore = useCallback(async () => {
+  const { fetchNextPage, refetch } = main.query
+  const loadMore = useCallback(() => {
     if (loadingMore || loading) return
-    const generation = generationRef.current
-    setLoadingMore(true)
-    setLoadMoreError(false)
-    try {
-      const next = pageRef.current + 1
-      const data = await biensApi.list({ ...lastParamsRef.current, page: next })
-      if (generation !== generationRef.current) return
-      const list = Array.isArray(data) ? data : data.data || []
-      pageRef.current = next
-      setAllBiens(prev => {
-        const known = new Set(prev.map(b => b.id))
-        return [...prev, ...list.filter(b => !known.has(b.id))]
-      })
-      if (!Array.isArray(data) && data.total !== undefined) setTotal(Number(data.total))
-    } catch {
-      // Erreur propre à la page suivante : la liste déjà chargée reste affichée
-      if (generation === generationRef.current) setLoadMoreError(true)
-    }
-    if (generation === generationRef.current) setLoadingMore(false)
-  }, [loadingMore, loading])
+    void fetchNextPage()
+  }, [loadingMore, loading, fetchNextPage])
 
-  const buildParams = useCallback(() => {
-    // Filtrés par le serveur : le total et les pages restent justes (FE-D-005).
-    // Le prix reste local : il alimente les suggestions « budget voisin ».
-    const params: BiensListParams = { ...filterParams, limit: PAGE_SIZE }
-    if (transaction) params.transaction = transaction
-    if (type)        params.type        = type
-    if (sortBy !== 'pertinence') params.tri = sortBy
-    const nq = norm(query.trim())
-    const matchedVille = VILLES_AVEC_QUARTIERS.find(v => norm(v).includes(nq) || nq.includes(norm(v)))
-    if (nq.length >= 2 && matchedVille) params.ville = norm(matchedVille)
-    return params
-  }, [query, transaction, type, filterParams, sortBy])
-
-  // Clé des paramètres réellement envoyés : taper dans la recherche sans changer de ville ne recharge rien
-  const paramsKey = JSON.stringify(buildParams())
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => { fetchBiens(JSON.parse(paramsKey)) }, 420)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [paramsKey, fetchBiens])
-
-  const retryFetch = useCallback(() => { fetchBiens(JSON.parse(paramsKey)) }, [paramsKey, fetchBiens])
+  const retryFetch = useCallback(() => { void refetch() }, [refetch])
 
   const reset = () => {
     setQuery(''); setTransaction(''); setType(''); setPrixMin(''); setPrixMax('')
@@ -332,7 +269,6 @@ export function useSearchPage() {
   const localFiltersActive = !!(prixMin || prixMax)
 
   const sharedResults = { search, loading, fetchError, retryFetch, favIds, isDark, tk, showAllAutres, setShowAllAutres, mainDistanceFor: distanceFor }
-  const onFavToggle   = (id: number, added: boolean) => setFavIds(prev => { const n = new Set(prev); if (added) n.add(id); else n.delete(id); return n })
 
   return {
     tk, isDark, query, setQuery, showSuggest, setShowSuggest, suggestions, pickSuggestion,

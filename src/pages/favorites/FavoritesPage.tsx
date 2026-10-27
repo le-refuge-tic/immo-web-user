@@ -1,44 +1,34 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { favoritesApi } from '../../api/favoritesApi'
 import BienCard from '../../components/BienCard'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { unwrapList } from '../../utils/unwrapList'
-import { useApiQuery } from '../../hooks/useApiQuery'
-import type { Bien } from '../../types/api'
+import { queryKeys } from '../../api/queryKeys'
+import { useFavoriIds, useFavorisQuery, favoriId, type Favori } from '../../hooks/useFavoris'
 import { apiMessage } from '../../utils/apiMessage'
 import ErrorState from '../../components/ErrorState'
 
-// Les favoris sont parfois renvoyés avec l'identifiant du bien dans `bien_id`.
-type Favori = Bien & { bien_id?: number; bien?: Bien }
 const NO_FAVORIS: Favori[] = []
 
 export default function FavoritesPage() {
   usePageTitle('Favoris')
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
-  // Chargement annulable, sans réponse périmée (FE-A-004).
-  const { data, setData, loading, error: loadError, refetch } = useApiQuery(
-    signal => favoritesApi.list(signal).then(unwrapList),
-    [isLoggedIn],
-    { enabled: isLoggedIn },
-  )
+  // Même cache que les cœurs de l'accueil et de la recherche (FE-A-004).
+  const queryClient = useQueryClient()
+  const { data, isPending, isError: loadError, refetch } = useFavorisQuery(isLoggedIn)
+  const loading = isLoggedIn && isPending
   const biens: Favori[] = data ?? NO_FAVORIS
-  const favIds = useMemo(() => new Set<number>(biens.map(f => (f as Favori).bien_id || f.id)), [biens])
+  const { favIds, onFavToggle: handleFavToggle } = useFavoriIds(isLoggedIn)
   const [confirmClearAll, setConfirmClearAll] = useState(false)
   const [clearError, setClearError] = useState('')
 
-  const handleFavToggle = (id: number, added: boolean) => {
-    if (!added) {
-      setData(prev => (prev ?? NO_FAVORIS).filter(b => ((b as Favori).bien_id || b.id) !== id))
-    }
-  }
-
   const handleClearAll = async () => {
-    const ids = Array.from(favIds)
-    setData([])
+    const ids = biens.map(favoriId)
+    queryClient.setQueryData<Favori[]>(queryKeys.favoris, [])
     setConfirmClearAll(false)
     setClearError('')
     // On attend la fin de toutes les suppressions avant de recharger : un rechargement au premier
@@ -48,7 +38,7 @@ export default function FavoritesPage() {
     if (echec) {
       // La liste affichée doit refléter le serveur : on la recharge et on prévient la personne.
       setClearError(apiMessage(echec.reason) || "Tous les favoris n'ont pas pu être supprimés. Réessayez.")
-      refetch()
+      void refetch()
     }
   }
 
@@ -124,7 +114,7 @@ export default function FavoritesPage() {
           </div>
 
         ) : loadError && biens.length === 0 ? (
-          <ErrorState title="Impossible de charger vos favoris" onRetry={refetch} />
+          <ErrorState title="Impossible de charger vos favoris" onRetry={() => { void refetch() }} />
 
         ) : biens.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">

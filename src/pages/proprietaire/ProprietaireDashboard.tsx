@@ -144,7 +144,10 @@ export default function ProprietaireDashboard() {
   // rafraîchit silencieusement toutes les 30s (et quand l'onglet redevient
   // visible) tant qu'on reste sur l'onglet Tableau — pas de spinner plein
   // écran pour ces rafraîchissements, juste l'horodatage qui bouge.
-  useEffect(() => { loadData() }, [])
+  // Rechargé à chaque changement d'espace (BUG-04 du cahier des rôles, FE-A-004) : pas de données
+  // d'un espace précédent après un aller-retour dans la même session.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- loadData est recréée à chaque rendu ; seul le changement d'espace doit recharger
+  useEffect(() => { loadData() }, [activeRole])
   useEffect(() => {
     if (tab !== 'tableau') return
     // Onglet masqué : aucun rafraîchissement (la reprise de visibilité recharge déjà)

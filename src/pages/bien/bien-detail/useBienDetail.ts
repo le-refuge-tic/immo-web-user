@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, type SetStateAction } from 'react'
 import { useParams } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../../context/AuthContext'
 import { biensApi } from '../../../api/biensApi'
+import { queryKeys } from '../../../api/queryKeys'
+import { unwrapList } from '../../../utils/unwrapList'
 import { visitesApi } from '../../../api/visitesApi'
 import { shareBien } from '../../../services/shareService'
 import { bienTypeLabel } from '../../../utils/bienType'
@@ -15,7 +18,21 @@ import { isEchoueeVisite } from './helpers'
 export function useBienDetail() {
   const { id } = useParams<{ id: string }>()
   const { isLoggedIn, user } = useAuth()
-  const [bien, setBien] = useState<Bien | null>(null)
+  const bienId = Number(id)
+  const queryClient = useQueryClient()
+  // Fiche en cache par identifiant (FE-A-004) : un retour sur la fiche l'affiche aussitôt ;
+  // une autre adresse a sa propre entrée, jamais l'ancien bien sous la nouvelle adresse.
+  const detail = useQuery({
+    queryKey: queryKeys.biens.detail(bienId),
+    queryFn: ({ signal }) => biensApi.byId(bienId, signal),
+  })
+  const bien: Bien | null = detail.data ?? null
+  const setBien = useCallback((value: SetStateAction<Bien | null>) => {
+    queryClient.setQueryData<Bien>(queryKeys.biens.detail(bienId), prev => {
+      const next = typeof value === 'function' ? value(prev ?? null) : value
+      return next ?? undefined
+    })
+  }, [queryClient, bienId])
   const bienTitle = bien ? (bien.localisation?.quartier ? `${bienTypeLabel(bien)} — ${bien.localisation.quartier}` : bienTypeLabel(bien)) : ''
   const bienDescription = bien
     ? `${bienTitle}${bien.localisation?.ville ? `, ${bien.localisation.ville}` : ''} : ${Number(bien.prix).toLocaleString('fr-FR')} FCFA${bien.transaction === 'location' ? ' par mois' : ''}. ${String(bien.description ?? '').slice(0, 110)}`.trim()
@@ -23,10 +40,13 @@ export function useBienDetail() {
   usePageTitle(bienTitle, bienDescription)
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- un seul suivi par annonce affichée (identifiant)
   useEffect(() => { if (bien?.id) track('vue_annonce', { type: bien.type, transaction: bien.transaction }) }, [bien?.id])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const loading = detail.isPending
+  const statutErreur = (detail.error as { response?: { status?: number } } | null)?.response?.status
+  // 404 (absent), 400 (identifiant invalide) et 403 (non accessible) : le bien n'existe pas pour cette personne.
+  const introuvable = statutErreur === 404 || statutErreur === 400 || statutErreur === 403
+  const error = detail.isError && introuvable ? 'Bien introuvable' : ''
   // Panne (réseau, 5xx) : distincte d'un bien réellement introuvable (404), avec relance possible.
-  const [loadError, setLoadError] = useState(false)
+  const loadError = detail.isError && !introuvable
   const [actionError, setActionError] = useState('')
   const [photoIdx, setPhotoIdx] = useState(0)
 
@@ -39,60 +59,36 @@ export function useBienDetail() {
   const [annulerBusy, setAnnulerBusy] = useState(false)
   const [, setConfirmAnnulerVisite] = useState(false)
 
-  const [isOccupeLocal, setIsOccupeLocal] = useState(false)
+  const isOccupeLocal = bien?.statut === 'occupe'
   const [togglingStatut, setTogglingStatut] = useState(false)
   const [editing, setEditing] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
-  const [similaires, setSimilaires] = useState<Bien[]>([])
 
-  // Un chargement plus récent (autre identifiant, nouvel essai) rend les réponses précédentes caduques.
-  const chargementRef = useRef(0)
-  const charger = useCallback(() => {
-    const courant = ++chargementRef.current
-    // Jamais l'ancien bien sous la nouvelle adresse : une panne doit afficher l'erreur, pas le bien précédent.
-    setBien(null)
-    setLoading(true)
-    setLoadError(false)
-    setError('')
-    biensApi.byId(Number(id))
-      .then(d => {
-        if (courant !== chargementRef.current) return
-        setBien(d)
-        setIsOccupeLocal(d.statut === 'occupe')
-      })
-      .catch((e: unknown) => {
-        if (courant !== chargementRef.current) return
-        const status = (e as { response?: { status?: number } } | null)?.response?.status
-        // 404 (absent), 400 (identifiant invalide) et 403 (non accessible) : le bien n'existe pas pour cette personne.
-        if (status === 404 || status === 400 || status === 403) setError('Bien introuvable')
-        else setLoadError(true)
-      })
-      .finally(() => { if (courant === chargementRef.current) setLoading(false) })
-  }, [id])
-  useEffect(() => { charger() }, [charger])
+  const { refetch } = detail
+  const charger = useCallback(() => { void refetch() }, [refetch])
 
   // Biens à proximité — même transaction (location/vente), hors le bien
   // courant, triés par proximité réelle : même quartier d'abord, puis même
   // ville. On ne filtre plus par type pour ne pas vider la liste dans les
   // quartiers où peu de biens partagent exactement le même type.
-  useEffect(() => {
-    if (!bien) return
-    biensApi.list({ transaction: bien.transaction })
-      .then(d => {
-        const list = Array.isArray(d) ? d : d.data || []
-        const autres = list.filter((b: Bien) => b.id !== bien.id)
-        const quartier = bien.localisation?.quartier
-        const ville = bien.localisation?.ville
-        const parPrixCroissant = (a: Bien, b: Bien) => Number(a.prix) - Number(b.prix)
-        const memeQuartier = (quartier ? autres.filter((b: Bien) => b.localisation?.quartier === quartier) : []).sort(parPrixCroissant)
-        const memeVille = autres
-          .filter((b: Bien) => b.localisation?.ville === ville && !memeQuartier.some((m: Bien) => m.id === b.id))
-          .sort(parPrixCroissant)
-        setSimilaires([...memeQuartier, ...memeVille].slice(0, 6))
-      })
-      .catch(() => { /* suggestions facultatives : la fiche s'affiche sans elles */ })
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- la liste de biens proches ne dépend que de l'identité du bien affiché, pas de chaque champ
-  }, [bien?.id])
+  // Suggestions facultatives : en cas d'échec, la fiche s'affiche sans elles.
+  const transaction = bien?.transaction
+  const proches = useQuery({
+    queryKey: queryKeys.biens.list({ transaction }),
+    queryFn: ({ signal }) => biensApi.list({ transaction }, signal).then(unwrapList),
+    enabled: !!bien,
+  })
+  const quartierBien = bien?.localisation?.quartier
+  const villeBien = bien?.localisation?.ville
+  const similaires = useMemo<Bien[]>(() => {
+    const autres = (proches.data ?? []).filter(b => b.id !== bienId)
+    const parPrixCroissant = (a: Bien, b: Bien) => Number(a.prix) - Number(b.prix)
+    const memeQuartier = (quartierBien ? autres.filter(b => b.localisation?.quartier === quartierBien) : []).sort(parPrixCroissant)
+    const memeVille = autres
+      .filter(b => b.localisation?.ville === villeBien && !memeQuartier.some(m => m.id === b.id))
+      .sort(parPrixCroissant)
+    return [...memeQuartier, ...memeVille].slice(0, 6)
+  }, [proches.data, bienId, quartierBien, villeBien])
 
   const partager = async () => {
     // Feature detection au tap : share sheet natif si dispo, sinon fenêtre custom
@@ -103,15 +99,19 @@ export function useBienDetail() {
 
   const isOwnBien = !!(isLoggedIn && user && bien && bien.user_id === user.id)
 
+  // Liés à l'identifiant du bien affiché, pas à l'objet : un rechargement de fond de la fiche
+  // (cache périmé) ne renvoie ni la vue ni les requêtes de visites.
+  const bienAffiche = bien?.id
+
   // Vues + visite active du client (non-propriétaire, connecté)
   useEffect(() => {
-    if (!bien || !isLoggedIn || isOwnBien) return
+    if (!bienAffiche || !isLoggedIn || isOwnBien) return
     // Compteur de vues : statistique de fond, sans effet pour la personne
-    biensApi.incrementerVue(bien.id).catch(() => {})
+    biensApi.incrementerVue(bienAffiche).catch(() => {})
     visitesApi.mesVisites()
       .then(data => {
         const list = Array.isArray(data) ? data : data.data || []
-        const pourCeBien = list.filter((v: Visite) => v.bien?.id === bien.id)
+        const pourCeBien = list.filter((v: Visite) => v.bien?.id === bienAffiche)
         let active: Visite | null = null, cancellee: Visite | null = null, echouee: Visite | null = null
         for (const v of pourCeBien) {
           if (['en_attente', 'contre_proposee', 'confirmee'].includes(v.statut)) {
@@ -124,18 +124,18 @@ export function useBienDetail() {
         setVisiteActive(active); setVisiteCancellee(cancellee); setVisiteEchouee(echouee)
       })
       .catch(() => { /* état de la visite facultatif : la fiche reste consultable, le bouton de réservation s'affiche */ })
-  }, [bien, isLoggedIn, isOwnBien])
+  }, [bienAffiche, isLoggedIn, isOwnBien])
 
   // Visites confirmées — vue owner (avec accès) ou publique (créneaux seuls)
   useEffect(() => {
-    if (!bien) return
+    if (!bienAffiche) return
     if (isOwnBien) {
       // Créneaux déjà pris : information complémentaire, la fiche s'affiche sans elle
-      visitesApi.visitesConfirmeesParBien(bien.id).then(setVisitesConfirmees).catch(() => {})
+      visitesApi.visitesConfirmeesParBien(bienAffiche).then(setVisitesConfirmees).catch(() => {})
     } else {
-      biensApi.visitesPlanifiees(bien.id).then(setVisitesPlanifiees).catch(() => {})
+      biensApi.visitesPlanifiees(bienAffiche).then(setVisitesPlanifiees).catch(() => {})
     }
-  }, [bien, isOwnBien])
+  }, [bienAffiche, isOwnBien])
 
   const toggleDisponibilite = async () => {
     if (!bien || togglingStatut) return
@@ -144,7 +144,8 @@ export function useBienDetail() {
     setActionError('')
     try {
       await biensApi.updateStatut(bien.id, newStatut)
-      setIsOccupeLocal(!isOccupeLocal)
+      // Affiché tout de suite ; biensApi relit ensuite listes et fiche (FE-A-004).
+      setBien(prev => (prev ? { ...prev, statut: newStatut } : prev))
     } catch (e: unknown) {
       // Le bouton redevient actif : on peut simplement recliquer.
       setActionError(apiMessage(e) || 'Le changement de disponibilité a échoué. Réessayez.')

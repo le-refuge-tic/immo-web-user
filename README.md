@@ -61,6 +61,7 @@ Les tests Playwright (`e2e/`) jouent les parcours critiques (découverte et rech
 
 - `src/pages/<écran>/` : une page par dossier ; les grosses pages sont découpées en hook (`useXxx`), sections et modules d'options (par exemple `bien/nouveau-bien/`, `search/recherche/`). Aucun fichier ne dépasse 800 lignes.
 - `src/api/` : un module par domaine, appels axios typés ; `httpInterceptor.ts` gère le rafraîchissement du jeton.
+- `src/lib/queryClient.ts` et `src/api/queryKeys.ts` : couche de données TanStack Query (cache d'une minute, pas de nouvelle tentative automatique). Lire une ressource avec `useQuery` et une clé de `queryKeys` ; les écritures sur un bien appellent `invaliderBiens()` (déjà fait dans `biensApi`). `useApiQuery` reste pour les écrans sans cache.
 - `src/types/` : types de domaine des réponses d'API (`api.ts` et un fichier par domaine).
 - `src/components/ui/ModalSheet.tsx` : toute fenêtre modale passe par ce composant (focus piégé, Échap, retour du focus).
 - `src/components/ErrorState.tsx` : état d'erreur d'un chargement avec « Réessayer » ; une panne d'API ne doit jamais ressembler à « aucun résultat ».

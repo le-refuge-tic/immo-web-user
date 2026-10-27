@@ -36,7 +36,7 @@ const PRIMARY_TABS: Tab[] = ['tableau', 'biens', 'reservations']
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function DemarcheurDashboard() {
   usePageTitle('Espace démarcheur')
-  const { user: authUser } = useAuth()
+  const { user: authUser, activeRole } = useAuth()
   const { unreadAlertesEspace: unreadAlertes } = useNotifications()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('tableau')
@@ -72,7 +72,9 @@ export default function DemarcheurDashboard() {
     }
     setLoading(false)
   }
-  useEffect(() => { loadData() }, [])
+  // Rechargé à chaque changement d'espace (BUG-04 du cahier des rôles, FE-A-004).
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- loadData est recréée à chaque rendu ; seul le changement d'espace doit recharger
+  useEffect(() => { loadData() }, [activeRole])
 
   const me = user || authUser
   const initials = `${me?.prenom?.[0] || ''}${me?.nom?.[0] || ''}`.toUpperCase()

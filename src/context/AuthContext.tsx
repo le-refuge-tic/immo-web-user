@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { tokenStore } from '../utils/tokenStore'
-import { readStoredUser, writeStoredUser } from '../utils/storedUser'
+import { readStoredUser, writeStoredUser, STORED_USER_SYNC_EVENT } from '../utils/storedUser'
 import { revokeSession } from '../api/authApi'
 import { unsubscribeFromPush } from '../lib/push'
 import { userApi } from '../api/userApi'
 import { clearFormDrafts } from '../utils/formDraft'
 import { clearMediaDrafts } from '../utils/mediaDraft'
+import { queryClient } from '../lib/queryClient'
 import type { LoginPayload, SessionUser } from '../types/session'
 
 type AuthUser = SessionUser
@@ -55,6 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = (data: LoginPayload) => {
+    // Nouveau compte : aucune donnée en cache d'une session précédente (favoris, visites…).
+    queryClient.clear()
     const u: AuthUser = data.user
     const t: string = data.access_token
     const rt: string = data.refresh_token
@@ -79,6 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenStore.clearTokens()
     clearFormDrafts()
     void clearMediaDrafts()
+    // Données du compte en cache (favoris, visites…) : rien ne doit passer au compte suivant.
+    queryClient.clear()
   }
 
   const updateUser = (partial: Partial<AuthUser>) => {
@@ -109,6 +114,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch(() => { /* enrichissement du profil facultatif : la session garde les informations déjà connues */ })
     return () => { cancelled = true }
   }, [token])
+
+  // Rôles changés par un rafraîchissement du jeton (intercepteur, BUG-05) : on ne reprend que les
+  // rôles, et seulement pour le même compte ; le nom et la photo chargés en mémoire, plus récents
+  // que le stockage, sont gardés.
+  useEffect(() => {
+    const synchroniser = () => {
+      const stocke = readStoredUser<AuthUser>()
+      if (!stocke) return
+      setUser(prev => (prev && prev.id === stocke.id
+        ? { ...prev, roles_actifs: stocke.roles_actifs, role_principal: stocke.role_principal, role: stocke.role }
+        : prev))
+    }
+    window.addEventListener(STORED_USER_SYNC_EVENT, synchroniser)
+    return () => window.removeEventListener(STORED_USER_SYNC_EVENT, synchroniser)
+  }, [])
 
   // Resynchronise localStorage si activeRole stocké n'est plus valide
   useEffect(() => {

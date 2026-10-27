@@ -69,8 +69,14 @@ test.describe('P1 découverte', () => {
     expect(queries.at(-1)?.has('pieces')).toBe(false)
 
     for (let i = 0; i < 5; i++) await moins.click()
-    await expect.poll(() => queries.at(-1)?.has('pieces') || queries.at(-1)?.has('pieces_min')).toBe(false)
     await expect(moins).toBeDisabled()
+    await expect(page).not.toHaveURL(/pieces/)
+    // Sans filtre de pièces, la liste chargée à l'ouverture est encore en cache (FE-A-004) :
+    // elle est réaffichée sans nouvelle requête, et aucune requête n'a gardé un filtre de pièces.
+    const avant = queries.length
+    await page.waitForTimeout(800)
+    expect(queries.slice(avant).some(q => q.has('pieces') || q.has('pieces_min'))).toBe(false)
+    await expect(page.locator('article').locator('visible=true').first()).toBeVisible()
   })
 
   test('un échec de la page 2 garde la liste déjà chargée et « Réessayer » recharge la même page', async ({ page }) => {

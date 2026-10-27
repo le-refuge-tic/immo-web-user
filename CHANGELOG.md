@@ -15,6 +15,17 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 - Brouillon d'annonce : les photos et la vidéo choisies sont conservées dans le navigateur
   (IndexedDB, 7 jours) et retrouvées après une session expirée ou un rechargement ; elles sont
   effacées à la publication, par « Tout effacer » et à la déconnexion (FE-B-002).
+- Couche de données TanStack Query (FE-A-004) : cache d'une minute par jeu de paramètres,
+  déduplication et annulation des requêtes. Une seule requête de liste à l'ouverture de la
+  recherche ; revenir d'une fiche vers l'accueil ou la recherche ne recharge rien pendant la durée
+  du cache ; cœurs des favoris partagés entre l'accueil, la recherche et la page Favoris.
+
+### Corrigé
+- Tableaux de bord propriétaire et démarcheur rechargés à chaque changement d'espace (BUG-04).
+- Un rafraîchissement du jeton qui change les rôles est repris tout de suite par l'interface,
+  sans rechargement de page (BUG-05).
+- Après une création, une modification, un changement de statut ou une suppression de bien, les
+  listes et fiches en cache sont relues ; le cache est vidé à la connexion et à la déconnexion.
 
 ## [0.5.0] - 2026-10-27
 

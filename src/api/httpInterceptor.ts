@@ -3,7 +3,7 @@ import { tokenStore } from '../utils/tokenStore'
 import { BASE } from './apiBase'
 import type { RefreshResponse } from '../types/auth'
 import { revokeSession } from './authApi'
-import { readStoredUser, writeStoredUser } from '../utils/storedUser'
+import { notifyStoredUserChanged, readStoredUser, writeStoredUser } from '../utils/storedUser'
 import { markSessionExpired } from '../utils/sessionExpiry'
 
 /**
@@ -51,6 +51,8 @@ export async function refreshAccessToken(): Promise<string | null> {
         }
       } catch {}
     }
+    // Le contexte React reprend les rôles du serveur sans attendre un rechargement de page (BUG-05).
+    notifyStoredUserChanged()
     return data.access_token as string
   } catch {
     // Un autre onglet a pu rafraîchir juste avant avec ce même refresh token

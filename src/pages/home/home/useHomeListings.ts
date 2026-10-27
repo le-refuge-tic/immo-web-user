@@ -1,52 +1,35 @@
-import { useState, useEffect } from 'react'
-import { biensApi } from '../../../api/biensApi'
-import { favoritesApi } from '../../../api/favoritesApi'
+import { useMemo } from 'react'
+import { useQueries } from '@tanstack/react-query'
+import { biensApi, type BiensListParams } from '../../../api/biensApi'
+import { queryKeys } from '../../../api/queryKeys'
+import { useFavoriIds } from '../../../hooks/useFavoris'
+import { unwrapList } from '../../../utils/unwrapList'
 import type { Bien } from '../../../types/api'
-import type { BienFavori } from '../../../types/recherche'
 
-/** Chargement des annonces (location + vente) et des favoris de l'utilisateur connecté. */
+const LISTES: BiensListParams[] = [
+  { transaction: 'location', limit: 100 },
+  { transaction: 'vente', limit: 100 },
+]
+
+/**
+ * Annonces de l'accueil (location + vente) et favoris de l'utilisateur connecté.
+ * En cache (FE-A-004) : revenir d'une fiche vers l'accueil ne recharge pas les listes.
+ */
 export function useHomeListings(isLoggedIn: boolean) {
-  const [biens, setBiens] = useState<Bien[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState(false)
-  const [favIds, setFavIds] = useState<Set<number>>(new Set())
+  const listes = useQueries({
+    queries: LISTES.map(params => ({
+      queryKey: queryKeys.biens.list(params),
+      queryFn: ({ signal }: { signal: AbortSignal }) => biensApi.list(params, signal).then(unwrapList),
+    })),
+  })
+  const [location, vente] = listes
+  const biens = useMemo<Bien[]>(() => [...(location.data ?? []), ...(vente.data ?? [])], [location.data, vente.data])
+  const loading = listes.some(q => q.isPending && q.fetchStatus !== 'idle')
+  const loadError = listes.some(q => q.isError)
+  const loadBiens = () => { listes.forEach(q => { void q.refetch() }) }
 
-  const loadBiens = async () => {
-    setLoading(true); setLoadError(false)
-    try {
-      const [locData, venteData] = await Promise.all([
-        biensApi.list({ transaction: 'location', limit: 100 }),
-        biensApi.list({ transaction: 'vente',    limit: 100 }),
-      ])
-      const loc   = Array.isArray(locData)   ? locData   : locData.data   || []
-      const vente = Array.isArray(venteData) ? venteData : venteData.data || []
-      setBiens([...loc, ...vente])
-    } catch {
-      setLoadError(true)
-    }
-    setLoading(false)
-  }
-
-  const loadFavs = async () => {
-    if (!isLoggedIn) return
-    try {
-      const data = await favoritesApi.list()
-      const list = Array.isArray(data) ? data : data.data || []
-      setFavIds(new Set(list.map((f: BienFavori) => f.bien_id || f.id)))
-    } catch { /* cœurs des favoris facultatifs : les annonces s'affichent sans eux */ }
-  }
-
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- rechargement voulu uniquement à la connexion ou déconnexion ; les fonctions sont recréées à chaque rendu
-  useEffect(() => { loadBiens(); loadFavs() }, [isLoggedIn])
-
-  const handleFavToggle = (id: number, added: boolean) => {
-    setFavIds(prev => {
-      const next = new Set(prev)
-      if (added) next.add(id)
-      else next.delete(id)
-      return next
-    })
-  }
+  // Cœurs des favoris facultatifs : sans eux, les annonces s'affichent quand même.
+  const { favIds, onFavToggle: handleFavToggle } = useFavoriIds(isLoggedIn)
 
   return { biens, loading, loadError, favIds, loadBiens, handleFavToggle }
 }

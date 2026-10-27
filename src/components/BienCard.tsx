@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '../api/queryKeys'
 import { API_ORIGIN } from '../api/apiBase'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -36,6 +38,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
+  const queryClient = useQueryClient()
   const [isFav,     setIsFav]     = useState(favoriteIds?.has(bien.id) ?? false)
   const [toggling,  setToggling]  = useState(false)
   const [favPopped, setFavPopped] = useState(false)
@@ -90,7 +93,10 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       const { isFavori } = await favoritesApi.toggle(bien.id)
       setIsFav(isFavori)
       if (isFavori) track('favori_ajoute', { type: bien.type })
-      onFavoriteToggle?.(bien.id, isFavori)
+      // Sans gestionnaire (fiche, suggestions), le cache des favoris est relu ici : les cœurs des
+      // autres écrans et la page Favoris restent justes (FE-A-004).
+      if (onFavoriteToggle) onFavoriteToggle(bien.id, isFavori)
+      else void queryClient.invalidateQueries({ queryKey: queryKeys.favoris })
     } catch {
       // Le cœur garde son état réel ; la personne peut simplement recliquer.
       setFavError(true)
