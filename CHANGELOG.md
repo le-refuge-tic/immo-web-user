@@ -12,6 +12,14 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 ## [Non publié]
 
 ### Ajouté
+- Vignettes des photos (FE-D-002) : les cartes d'annonces chargent la vignette de 480 px créée
+  par le backend au téléversement (`srcset` vers l'original sur écran large ou haute densité) ;
+  les photos plus anciennes gardent l'original jusqu'au rattrapage côté backend.
+- Vidéo d'annonce : affichée sur la fiche (rien n'est téléchargé avant la lecture), format MP4 et
+  30 Mo vérifiés au choix ; un envoi de photo ou de vidéo qui échoue après la publication est
+  signalé au lieu d'être ignoré.
+- Statut de vérification des pièces d'identité (CIP/IFU) dans le profil propriétaire et démarcheur :
+  en cours, validé, ou refusé avec son motif.
 - Créneau de visite expiré : une proposition restée sans réponse après son heure s'affiche
   « Expiré » et invite à proposer un nouvel horaire ; la notification « Créneau expiré » ouvre la
   conversation (tâche serveur associée côté backend).
@@ -24,6 +32,9 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   du cache ; cœurs des favoris partagés entre l'accueil, la recherche et la page Favoris.
 
 ### Corrigé
+- Paiement du loyer et demande de retrait envoyés avec une clé d'idempotence (FE-B-006) : un
+  renvoi après une coupure ne crée pas de seconde transaction et retrouve le lien de paiement ;
+  la clé change dès que la demande change (montant, portefeuille, opérateur).
 - Tableaux de bord propriétaire et démarcheur rechargés à chaque changement d'espace (BUG-04).
 - Un rafraîchissement du jeton qui change les rôles est repris tout de suite par l'interface,
   sans rechargement de page (BUG-05).

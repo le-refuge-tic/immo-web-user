@@ -3,6 +3,8 @@ import { userApi } from '../../api/userApi'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { ProprioProfil } from '../../types/proprietaire'
 import { apiMessage } from '../../utils/apiMessage'
+import StatutVerificationDocuments from '../../components/StatutVerificationDocuments'
+import type { StatutVerificationDocuments as Statut } from '../../utils/verificationDocuments'
 
 type Props = { user: ProprioProfil | null | undefined; onClose: () => void }
 
@@ -52,6 +54,9 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
 }
 
 export default function VerificationCipModal({ user, onClose }: Props) {
+  // Un document envoyé repasse la demande « en attente » côté serveur : on l'affiche tout de suite.
+  const [statut, setStatut] = useState<Statut | null | undefined>(user?.statut_verification_documents)
+  const envoyer = (envoi: (f: File) => Promise<unknown>) => async (f: File) => { await envoi(f); setStatut('en_attente') }
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handleEscape)
@@ -74,8 +79,9 @@ export default function VerificationCipModal({ user, onClose }: Props) {
             Une pièce d'identité vérifiée renforce la confiance des locataires et démarcheurs qui interagissent avec vos annonces. Envoyez votre CIP (Carte d'Identité Personnelle) ou votre IFU.
           </p>
 
-          <DocUploader label="CIP (Carte d'Identité Personnelle)" existingUrl={user?.cip_url} onUpload={f => userApi.uploadCip(f)} />
-          <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={f => userApi.uploadIfu(f)} />
+          <StatutVerificationDocuments statut={statut} motif={statut === 'rejete' ? user?.motif_rejet_documents : null} />
+          <DocUploader label="CIP (Carte d'Identité Personnelle)" existingUrl={user?.cip_url} onUpload={envoyer(f => userApi.uploadCip(f))} />
+          <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={envoyer(f => userApi.uploadIfu(f))} />
         </div>
       </div>
     </ModalSheet>

@@ -11,6 +11,9 @@ import type { Bien, User } from './api'
  * (rôles typés en `string` pour accepter les deux).
  */
 export interface ProfilDemarcheur {
+  /** Vérification des pièces d'identité (CIP/IFU) par l'équipe REFUGE. */
+  statut_verification_documents?: import('../utils/verificationDocuments').StatutVerificationDocuments | null
+  motif_rejet_documents?: string | null
   id?: number
   prenom?: string
   nom?: string
