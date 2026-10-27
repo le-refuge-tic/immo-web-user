@@ -32,9 +32,11 @@ test.describe('Alertes du locataire', () => {
     const lue = page.getByTestId('alerte').filter({ hasText: 'Loyer reçu' })
     const nonLue = page.getByTestId('alerte').filter({ hasText: 'Nouvelle quittance' })
     await expect(lue).toHaveAttribute('data-lu', 'true')
-    await expect(lue.locator('p').first()).not.toHaveClass(/font-semibold/)
+    await expect(lue.getByText('Loyer reçu')).not.toHaveClass(/font-semibold/)
     await expect(nonLue).toHaveAttribute('data-lu', 'false')
-    await expect(nonLue.locator('p').first()).toHaveClass(/font-semibold/)
+    await expect(nonLue.getByText('Nouvelle quittance')).toHaveClass(/font-semibold/)
+    // Une alerte non lue est un vrai bouton, annoncé « Non lue » (FE-B-011, FE-C-002).
+    await expect(page.getByRole('button', { name: /Non lue : Nouvelle quittance/ })).toBeVisible()
   })
 })
 

@@ -41,9 +41,13 @@ export default function FavoritesPage() {
     setData([])
     setConfirmClearAll(false)
     setClearError('')
-    try { await Promise.all(ids.map(id => favoritesApi.toggle(id))) } catch (e: unknown) {
+    // On attend la fin de toutes les suppressions avant de recharger : un rechargement au premier
+    // échec reviendrait avec des favoris encore en cours de suppression.
+    const resultats = await Promise.allSettled(ids.map(id => favoritesApi.toggle(id)))
+    const echec = resultats.find((r): r is PromiseRejectedResult => r.status === 'rejected')
+    if (echec) {
       // La liste affichée doit refléter le serveur : on la recharge et on prévient la personne.
-      setClearError(apiMessage(e) || "Tous les favoris n'ont pas pu être supprimés. Réessayez.")
+      setClearError(apiMessage(echec.reason) || "Tous les favoris n'ont pas pu être supprimés. Réessayez.")
       refetch()
     }
   }

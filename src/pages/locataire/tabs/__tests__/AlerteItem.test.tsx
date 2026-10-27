@@ -24,6 +24,23 @@ describe('AlerteItem (alertes du locataire)', () => {
     expect(html).toContain('mt-1.5')
   })
 
+  it('une alerte non lue ouvrable est un vrai bouton, sans élément de bloc ni libellé qui masque la date', () => {
+    const html = renderToStaticMarkup(<AlerteItem n={{ ...base, lu: false }} onOpen={() => {}} />)
+
+    expect(html).toMatch(/^<button type="button"/)
+    expect(html).not.toContain('role="button"')
+    expect(html).not.toContain('aria-label')
+    expect(html).toContain('<span class="sr-only">Non lue : </span>')
+    expect(html).toContain('01/10/2026')
+    expect(html.slice(html.indexOf('>') + 1)).not.toMatch(/<(div|p)[\s>]/)
+  })
+
+  it('une alerte lue reste passive, même avec onOpen', () => {
+    const html = renderToStaticMarkup(<AlerteItem n={{ ...base, lu: true }} onOpen={() => {}} />)
+
+    expect(html).not.toContain('<button')
+  })
+
   it('retombe sur le message quand le titre est vide', () => {
     const html = renderToStaticMarkup(<AlerteItem n={{ ...base, titre: '', message: 'Texte ancien', lu: true }} />)
 
