@@ -148,7 +148,7 @@ export function TransactionsTab() {
           {(['tous', 'credit', 'debit'] as const).map(f => (
             <button key={f} onClick={() => setTypeFilter(f)}
               className="rounded-md px-3 py-1 text-xs font-semibold transition-colors"
-              style={typeFilter === f ? { background: BLUE, color: '#060D1A' } : { color: 'var(--p-muted)' }}>
+              style={typeFilter === f ? { background: BLUE, color: 'rgb(255,255,255)' } : { color: 'var(--p-muted)' }}>
               {f === 'tous' ? 'Tous' : f === 'credit' ? 'Entrées' : 'Sorties'}
             </button>
           ))}

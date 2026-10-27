@@ -330,7 +330,7 @@ export default function ReservationPage() {
         })()}
         <button onClick={() => timeInputRef.current?.showPicker?.() || timeInputRef.current?.click()}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-semibold"
-          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid var(--c-line)', color: 'var(--c-grey)' }}>
+          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid var(--c-line)', color: 'var(--tx-muted)' }}>
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <circle cx="12" cy="13" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4l2 2M9 3h6" />
           </svg>

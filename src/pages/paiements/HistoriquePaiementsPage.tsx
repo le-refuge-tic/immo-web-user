@@ -48,7 +48,8 @@ const statutLabel = (t: HistoriquePaiement) => {
   }
 }
 
-const statutColor = (s: string) => (s === 'Payé' || s === 'Reçu') ? 'var(--c-success)' : s === 'Échoué' ? 'var(--c-danger)' : (s === 'Remboursé' || s === 'En attente') ? 'var(--c-amber-dark)' : '#6B7280'
+// Couleurs de texte des statuts, lisibles sur leur pastille teintée en clair comme en sombre (FE-C-004).
+const statutColor = (s: string) => (s === 'Payé' || s === 'Reçu') ? 'var(--c-success)' : s === 'Échoué' ? 'var(--tx-red)' : (s === 'Remboursé' || s === 'En attente') ? 'var(--tx-amber)' : 'var(--tx-muted)'
 
 const iconFor = (t: HistoriquePaiement) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>

@@ -150,7 +150,7 @@ export default function RechargementWalletPage() {
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={o.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20M6 15h2m4 0h2M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm" style={{ color: sel ? o.color : 'var(--c-ink-navy)' }}>{o.label}</p>
+                      <p className="font-bold text-sm" style={{ color: 'var(--c-ink-navy)' }}>{o.label}</p>
                       <p className="text-xs text-text-grey">{o.tagline}</p>
                     </div>
                     {sel && (
@@ -170,7 +170,7 @@ export default function RechargementWalletPage() {
               {[5000, 10000, 25000, 50000].map(v => (
                 <button key={v} type="button" onClick={() => setMontant(String(v))}
                   className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
-                  style={{ background: montant === String(v) ? withAlpha(accent, '20') : 'rgba(0,0,0,0.05)', color: montant === String(v) ? accent : '#64748B', border: `1px solid ${montant === String(v) ? withAlpha(accent, '40') : 'transparent'}` }}>
+                  style={{ background: montant === String(v) ? withAlpha(accent, '20') : 'rgba(0,0,0,0.05)', color: montant === String(v) ? accent : 'var(--tx-muted)', border: `1px solid ${montant === String(v) ? withAlpha(accent, '40') : 'transparent'}` }}>
                   {(v / 1000)}k
                 </button>
               ))}

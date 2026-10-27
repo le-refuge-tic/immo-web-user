@@ -2,8 +2,9 @@ import { createRequire } from 'node:module'
 import { expect, test, type Page } from '@playwright/test'
 import { BIEN, mockApp, type Mocks, type Role } from './support/mockApi'
 
-// Thème sombre (FE-B-024), critère de l'audit : en sombre, axe-core color-contrast ne relève aucun
-// nœud de plus qu'en clair. Écrans corrigés le 27/10/2026 (espaces locataire, démarcheur,
+// Contrastes (FE-C-004, FE-B-024) : en clair, axe-core color-contrast ne relève aucun nœud (hors
+// logotype « REFUGE », exempté par WCAG 1.4.3) ; en sombre, aucun nœud de plus qu'en clair (critère
+// de l'audit pour FE-B-024). Écrans corrigés le 27/10/2026 (espaces locataire, démarcheur,
 // propriétaire, recharge, contrat de bail, messagerie). Mesure complète des 62 écrans et onglets :
 // banc hors dépôt, voir le CHANGELOG.
 
@@ -29,13 +30,13 @@ const DONNEES: Mocks = {
   },
 }
 
-/** Cibles des nœuds color-contrast de la page affichée. */
+/** Cibles des nœuds color-contrast de la page affichée (le logotype « REFUGE » est exempté). */
 async function noeudsContraste(page: Page): Promise<string[]> {
   await page.addScriptTag({ path: AXE })
   return page.evaluate(async () => {
-    const axe = (window as unknown as { axe: { run: (ctx: Document, opts: object) => Promise<{ violations: { nodes: { target: string[] }[] }[] }> } }).axe
-    const r = await axe.run(document, { runOnly: { type: 'rule', values: ['color-contrast'] }, resultTypes: ['violations'] })
-    return (r.violations[0]?.nodes ?? []).map(n => n.target.join(' '))
+    const axe = (window as unknown as { axe: { run: (ctx: Document, opts: object) => Promise<unknown> } }).axe
+    const r = await axe.run(document, { runOnly: { type: 'rule', values: ['color-contrast'] }, resultTypes: ['violations'] }) as { violations: { nodes: { target: string[]; html: string }[] }[] }
+    return (r.violations[0]?.nodes ?? []).filter(n => !/>REFUGE<\/span>$/.test(n.html)).map(n => n.target.join(' '))
   })
 }
 
@@ -59,7 +60,7 @@ const ECRANS: { nom: string; route: string; role: Role; onglet?: string; bureau?
 ]
 
 for (const e of ECRANS) {
-  test(`${e.nom} : aucun contraste insuffisant de plus en sombre qu'en clair`, async ({ browser }) => {
+  test(`${e.nom} : aucun contraste insuffisant en clair, ni en plus en sombre`, async ({ browser }) => {
     const viewport = e.bureau ? { width: 1440, height: 900 } : { width: 390, height: 844 }
     const resultats: Record<string, string[]> = {}
     for (const theme of ['light', 'dark'] as const) {
@@ -68,6 +69,7 @@ for (const e of ECRANS) {
       resultats[theme] = await mesurer(page, theme, e.route, e.role, e.onglet)
       await ctx.close()
     }
+    expect(resultats.light).toEqual([])
     const clairs = new Set(resultats.light)
     expect(resultats.dark.filter(cible => !clairs.has(cible))).toEqual([])
   })

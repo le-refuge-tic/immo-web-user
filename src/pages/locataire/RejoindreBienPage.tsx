@@ -5,7 +5,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { apiMessage } from '../../utils/apiMessage'
 import { withAlpha } from '../../utils/color'
 
-const BLUE = 'var(--c-steel)'
+// Fond plein sous texte blanc : variante foncée de l'acier (≥ 4,5:1, FE-C-004).
+const BLUE = 'var(--c-fill-steel)'
 
 export default function RejoindreBienPage() {
   usePageTitle('Rejoindre un bien')

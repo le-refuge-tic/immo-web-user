@@ -88,14 +88,14 @@ export function fmtPrix(p: number | string | null | undefined) {
 }
 // Statuts : `color` pour un texte, `fill` pour un fond plein sous texte blanc (FE-B-024).
 export function statutBien(s: string) {
-  if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--c-green-material)', fill: 'var(--c-green-material)' }
-  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: 'var(--c-red-material)', fill: 'var(--c-red-material)' }
+  if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--tx-green)', fill: 'var(--c-fill-success)' }
+  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: 'var(--tx-red)', fill: 'var(--c-fill-error)' }
   if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
   return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
 }
 export function statutVisite(s: string) {
-  if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--c-green-material)', fill: 'var(--c-green-material)' }
-  if (s === 'annulee')         return { label: 'Annulée',         color: 'var(--c-red-material)', fill: 'var(--c-red-material)' }
+  if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--tx-green)', fill: 'var(--c-fill-success)' }
+  if (s === 'annulee')         return { label: 'Annulée',         color: 'var(--tx-red)', fill: 'var(--c-fill-error)' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE_TX, fill: BLUE }
   if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
   return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }

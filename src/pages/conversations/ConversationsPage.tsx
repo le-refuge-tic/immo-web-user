@@ -81,7 +81,7 @@ export default function ConversationsPage() {
   const bgChatArea = isDark ? '#0F1117' : '#EEF0F7'
   // Text
   const textPrimary   = isDark ? 'var(--c-mist)' : 'var(--c-ink-900)'
-  const textSecondary = isDark ? 'rgba(232,233,240,0.60)' : '#6B7280'
+  const textSecondary = isDark ? 'rgba(232,233,240,0.60)' : 'var(--tx-muted)'
   const textMuted     = isDark ? 'rgba(232,233,240,0.60)' : 'var(--c-slate)'
   // Borders & dividers
   const border    = isDark ? 'rgba(255,255,255,0.07)' : 'var(--c-line)'

@@ -172,7 +172,7 @@ export default function ReservationsTab() {
                 </div>
               </div>
               {v.paiement_effectue && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: 'rgba(76,175,80,0.063)', borderColor: 'rgba(76,175,80,0.188)', color: 'var(--c-green-material)' }}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 text-xs font-semibold" style={{ background: 'rgba(76,175,80,0.063)', borderColor: 'rgba(76,175,80,0.188)', color: 'var(--tx-green)' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   Frais de visite payés
                 </div>
@@ -212,7 +212,7 @@ export default function ReservationsTab() {
                 )}
                 {!echouee && v.statut === 'en_attente' && <>
                   <button onClick={() => { setCpError(''); setCpId(v.id) }} className="flex-1 py-2 rounded-xl border text-xs font-bold" style={{ borderColor: withAlpha(PURPLE, '80'), color: PURPLE_TX }}>Autre créneau</button>
-                  <button onClick={() => confirmer(v.id)} disabled={actionId === v.id} className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>
+                  <button onClick={() => confirmer(v.id)} disabled={actionId === v.id} className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: 'var(--c-fill-success)' }}>Confirmer</button>
                 </>}
                 {!echouee && v.statut === 'confirmee' && (
                   <button onClick={() => marquerEffectuee(v.id)} disabled={actionId === v.id} className="flex-1 py-2 rounded-xl text-white text-xs font-bold disabled:opacity-50" style={{ background: PURPLE }}>Marquer effectuée</button>

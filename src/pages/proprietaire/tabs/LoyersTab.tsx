@@ -18,15 +18,16 @@ import ErrorState from '../../../components/ErrorState'
 // `en_retard`, `paye`, `impaye`). `impaye` correspond à un loyer escaladé à
 // l'administration (`escalade_admin`) : distingué du simple retard.
 export function loyerStatut(s: string): { label: string; color: string } {
-  if (s === 'paye')      return { label: 'Payé',       color: 'var(--c-green-material)' }
-  if (s === 'en_retard') return { label: 'En retard',  color: 'var(--c-red-material)' }
+  if (s === 'paye')      return { label: 'Payé',       color: 'var(--tx-green)' }
+  if (s === 'en_retard') return { label: 'En retard',  color: 'var(--tx-red)' }
   if (s === 'impaye')    return { label: 'Impayé',     color: '#C62828' }
   return { label: 'En attente', color: 'var(--tx-amber)' }
 }
-export const CONTRAT_STATUT: Record<string, { label: string; color: string }> = {
-  actif:   { label: 'Actif',   color: 'var(--c-green-material)' },
-  resilie: { label: 'Résilié', color: 'var(--p-muted)' },
-  expire:  { label: 'Expiré',  color: 'var(--c-red-material)' },
+/** `color` : texte ; `fill` : pastille pleine sous texte blanc (FE-C-004, FE-B-024). */
+export const CONTRAT_STATUT: Record<string, { label: string; color: string; fill: string }> = {
+  actif:   { label: 'Actif',   color: 'var(--tx-green)', fill: 'var(--c-fill-success)' },
+  resilie: { label: 'Résilié', color: 'var(--p-muted)', fill: 'var(--p-muted)' },
+  expire:  { label: 'Expiré',  color: 'var(--tx-red)', fill: 'var(--c-fill-error)' },
 }
 export function moisLabel(d: string | number | Date | null | undefined) {
   if (!d) return '—'
@@ -320,7 +321,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
           <AnimatedGroup preset="blur-slide" stagger={0.055}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
               {sorted.map(c => {
-                const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)' }
+                const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)', fill: 'var(--p-muted)' }
                 const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
                 const aJour = !c.prochain
                 const prochainStatut = c.prochain ? loyerStatut(c.prochain.statut) : null
@@ -355,7 +356,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
 
                       {/* Statut contrat haut-gauche */}
                       <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-                        style={{ background: cStatut.color, boxShadow: `0 2px 8px ${withAlpha(cStatut.color, '55')}` }}>
+                        style={{ background: cStatut.fill, boxShadow: `0 2px 8px ${withAlpha(cStatut.fill, '55')}` }}>
                         {cStatut.label}
                       </span>
 

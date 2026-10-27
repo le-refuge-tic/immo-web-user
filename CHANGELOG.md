@@ -32,6 +32,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   messagerie). Le thème clair est inchangé au pixel près, sauf le libellé « Espace Locataire »,
   trop pâle en clair aussi, et le dégradé des icônes de rôle de l'espace propriétaire, qui
   s'arrêtait sur du noir à cause d'une fonction qui n'acceptait qu'un code hexadécimal.
+- Contrastes en thème clair (FE-C-004) : 63 nœuds axe-core sur 26 écrans, 0 aujourd'hui sur les
+  62 mesurés (seul reste le logotype « REFUGE », exempté). Assombrissements minimaux, calculés pour
+  4,5:1 sur le pire fond mesuré : violet, vert locataire, ambre, bleu de marque, gris secondaire,
+  acier ; pastilles « Publié », « Payé », « Rejeté », « En retard » sur des verts et rouges plus
+  soutenus ; statuts écrits avec les jetons de texte.
 
 ## [0.5.0] - 2026-10-27
 

@@ -28,14 +28,14 @@ export function fmtSemaine(raw: string) {
 }
 /** Statut de modération : `color` pour un texte, `fill` pour un fond plein sous texte blanc (FE-B-024). */
 export function statutBien(s: string) {
-  if (s === 'approuve')    return { label: 'Publié ✓',    color: '#4CAF50', fill: '#4CAF50' }
-  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: '#F44336', fill: '#F44336' }
+  if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--tx-green)', fill: 'var(--c-fill-success)' }
+  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: 'var(--tx-red)', fill: 'var(--c-fill-error)' }
   if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
   return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
 }
 export function statutVisite(s: string) {
-  if (s === 'confirmee')       return { label: 'Confirmée',       color: '#4CAF50' }
-  if (s === 'annulee')         return { label: 'Annulée',         color: '#F44336' }
+  if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--tx-green)' }
+  if (s === 'annulee')         return { label: 'Annulée',         color: 'var(--tx-red)' }
   if (s === 'effectuee')       return { label: 'Effectuée',       color: PURPLE }
   if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)' }
   return { label: 'En attente', color: 'var(--tx-amber)' }

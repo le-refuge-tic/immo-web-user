@@ -25,22 +25,27 @@
 :root {
   --tx-red: #C81E15;
   --tx-green: #166534;
-  --tx-amber: #B45309;
+  --tx-amber: #A94E08;
   --tx-blue: #3A5AEE;
   /* Accents d'espace en couleur de texte (FE-B-024) : valeur claire identique aux constantes
      GREEN / TEAL / PURPLE, variante éclaircie en sombre. Les fonds pleins gardent la constante. */
-  --tx-loc-green: #15803D;
+  --tx-loc-green: #137638;
   --tx-loc-teal: #0369A1;
-  --tx-violet: #9B59B6;
-  /* Libellés secondaires des menus latéraux. */
-  --tx-muted: #5F6B7A;
+  --tx-violet: #9053A9;
+  --tx-steel: #2772A4;
+  /* Libellés secondaires des menus latéraux et textes gris sur fond teinté. */
+  --tx-muted: #5D6978;
   --tx-ink-55: rgba(0,0,0,0.55);
   /* Fonds pleins sous un texte blanc : mêmes teintes que les jetons de texte en clair, mais
      inchangés en sombre (un fond éclairci rendrait le texte blanc illisible). */
   --c-fill-red: #C81E15;
   --c-fill-green: #166534;
   --c-fill-violet: #9B59B6;
-  --tx-brand: #4160F2;
+  /* Fonds pleins des statuts (Publié, Payé / Rejeté, En retard) : ≥ 4,5:1 sous texte blanc (FE-C-004). */
+  --c-fill-success: #2E7D32;
+  --c-fill-error: #D32F2F;
+  --c-fill-steel: #2772A4;
+  --tx-brand: #3D5AE3;
   /* Texte secondaire sur surface vitrée (bannières) : #5E5E63 = text-grey en clair. */
   --tx-secondary: #5E5E63;
   /* Fond des pastilles de filtre inactives (26 usages de var(--surface-g, #F4F6FA)). */
@@ -124,6 +129,7 @@
   --tx-loc-green: #4ADE80;
   --tx-loc-teal: #7DD3FC;
   --tx-violet: #D2A8EC;
+  --tx-steel: #7FB8E0;
   --tx-muted: #A8A8B8;
   --tx-ink-55: rgba(255,255,255,0.62);
   --tx-brand: #9DB0FF;

@@ -11,9 +11,10 @@ import { dateVisiteRecu } from '../../utils/dateVisite'
 import { withAlpha } from '../../utils/color'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
-const VISITE = { dark: '#1A6B3C', light: 'var(--c-green-flat)' } // vert
-const LOYER = { dark: '#1A3A6B', light: 'var(--c-steel)' } // bleu
-const DEPOT = { dark: '#5B2A8C', light: 'var(--c-violet)' } // violet
+// `texte` : la même teinte lisible en texte (≥ 4,5:1), en clair comme en sombre (FE-C-004).
+const VISITE = { dark: '#1A6B3C', light: 'var(--c-green-flat)', texte: 'var(--tx-green)' } // vert
+const LOYER = { dark: '#1A3A6B', light: 'var(--c-steel)', texte: 'var(--tx-steel)' } // bleu
+const DEPOT = { dark: '#5B2A8C', light: 'var(--c-violet)', texte: 'var(--tx-violet)' } // violet
 
 function fmtDate(raw: string | undefined | null) {
   if (!raw) return '--'
@@ -310,7 +311,7 @@ export default function RecuPage() {
             <IconRow icon={<IcCal />} label="Date" value={fmtDate(recu.date_paiement)} />
             <IconRow icon={<IcOp />} label="Opérateur" value={operateur} />
             {recu.telephone_paiement && <IconRow icon={<IcPhone />} label="Numéro" value={recu.telephone_paiement} />}
-            <IconRow icon={<IcCheck />} label="Statut" value="Confirmé" valueColor={theme.light} />
+            <IconRow icon={<IcCheck />} label="Statut" value="Confirmé" valueColor={theme.texte} />
           </div>
 
           {isIntegration && recu.details && (
@@ -319,7 +320,7 @@ export default function RecuPage() {
               <div className="px-5 pt-4.5 pb-4.5">
                 <p className="text-micro font-bold uppercase tracking-wide text-text-grey mb-2.5">Détail du paiement</p>
                 {recu.details.avance > 0 && <IconRow icon={<IcHome />} label="Avance" value={`${fmt(recu.details.avance)} FCFA`} />}
-                {recu.details.prepaye > 0 && <IconRow icon={<IcHome />} label="Loyer prépayé" value={`${fmt(recu.details.prepaye)} FCFA`} valueColor={theme.light} />}
+                {recu.details.prepaye > 0 && <IconRow icon={<IcHome />} label="Loyer prépayé" value={`${fmt(recu.details.prepaye)} FCFA`} valueColor={theme.texte} />}
                 {recu.details.caution_eau > 0 && <IconRow icon={<IcHome />} label="Caution eau" value={`${fmt(recu.details.caution_eau)} FCFA`} />}
                 {recu.details.caution_elec > 0 && <IconRow icon={<IcHome />} label="Caution élec." value={`${fmt(recu.details.caution_elec)} FCFA`} />}
               </div>

@@ -24,7 +24,7 @@ const IcKey = () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" str
 
 const ROLES: RoleInfo[] = [
   { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', fill: 'var(--c-primary)', bg: 'rgba(75,107,255,0.1)',  icon: <IcSearch /> },
-  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: 'var(--c-steel)', fill: 'var(--c-steel)', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
+  { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: 'var(--tx-steel)', fill: 'var(--c-fill-steel)', bg: 'rgba(46,134,193,0.1)',  icon: <IcHome /> },
   { key: 'demarcheur',   label: 'Démarcheur',        desc: 'Mandataire immobilier — gérer des biens clients', color: 'var(--tx-violet)', fill: 'var(--c-fill-violet)', bg: 'rgba(155,89,182,0.1)',  icon: <IcBriefcase /> },
   { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers — obtenu en rejoignant un bien via un code d\'invitation', color: 'var(--tx-green)', fill: 'var(--c-fill-green)', bg: 'rgba(34,197,94,0.1)',   icon: <IcKey /> },
 ]

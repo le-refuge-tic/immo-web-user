@@ -8,7 +8,7 @@ import { withAlpha } from '../../../utils/color'
 
 export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResume; onClose: () => void }) {
   const c = contrat
-  const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)' }
+  const cStatut = CONTRAT_STATUT[c.statut] || { label: c.statut, color: 'var(--p-muted)', fill: 'var(--p-muted)' }
   const initiale = (c.locataire?.prenom || c.locataire?.nom || '?').charAt(0).toUpperCase()
   const cover = c.bien?.photos?.find(p => p.is_cover) || c.bien?.photos?.[0]
   const payesCount: number = c.payesCount ?? 0
@@ -54,7 +54,7 @@ export function ContratDetailModal({ contrat, onClose }: { contrat: ContratResum
             className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-xl text-white/80 hover:text-white transition-colors"
             style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}>✕</button>
           <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-            style={{ background: cStatut.color }}>
+            style={{ background: cStatut.fill }}>
             {cStatut.label}
           </span>
           <div className="absolute bottom-3 left-4 right-4">
