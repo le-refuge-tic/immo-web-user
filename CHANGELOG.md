@@ -32,6 +32,13 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   du cache ; cœurs des favoris partagés entre l'accueil, la recherche et la page Favoris.
 
 ### Corrigé
+- Photos ou vidéo dont l'envoi échoue après la publication : conservées, signalées sur l'écran de
+  confirmation avec un bouton « Réessayer l'envoi » (aucun autre écran ne permet d'ajouter un
+  fichier à une annonce publiée).
+- Une clé d'idempotence déjà servie (paiement précédent expiré ou refusé) ne bloque plus un nouvel
+  essai : nouvelle clé et un seul renvoi automatique, sur le loyer, la recharge et le retrait.
+- Le bandeau de vérification des pièces d'identité suit le statut du serveur après un envoi ; la
+  vidéo de la fiche affiche la photo de couverture avant la lecture.
 - Paiement du loyer et demande de retrait envoyés avec une clé d'idempotence (FE-B-006) : un
   renvoi après une coupure ne crée pas de seconde transaction et retrouve le lien de paiement ;
   la clé change dès que la demande change (montant, portefeuille, opérateur).

@@ -4,7 +4,7 @@ import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { ProprioProfil } from '../../types/proprietaire'
 import { apiMessage } from '../../utils/apiMessage'
 import StatutVerificationDocuments from '../../components/StatutVerificationDocuments'
-import type { StatutVerificationDocuments as Statut } from '../../utils/verificationDocuments'
+import { useStatutDocuments } from '../../hooks/useStatutDocuments'
 
 type Props = { user: ProprioProfil | null | undefined; onClose: () => void }
 
@@ -55,8 +55,8 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
 
 export default function VerificationCipModal({ user, onClose }: Props) {
   // Un document envoyé repasse la demande « en attente » côté serveur : on l'affiche tout de suite.
-  const [statut, setStatut] = useState<Statut | null | undefined>(user?.statut_verification_documents)
-  const envoyer = (envoi: (f: File) => Promise<unknown>) => async (f: File) => { await envoi(f); setStatut('en_attente') }
+  const [statut, marquerEnvoye] = useStatutDocuments(user?.statut_verification_documents)
+  const envoyer = (envoi: (f: File) => Promise<unknown>) => async (f: File) => { await envoi(f); marquerEnvoye() }
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handleEscape)

@@ -10,7 +10,7 @@ import { IcShield, IcUpload, IcChevron } from '../icons'
 import type { ProfilDemarcheur } from '../../../types/demarcheur'
 import { apiMessage } from '../../../utils/apiMessage'
 import StatutVerificationDocuments from '../../../components/StatutVerificationDocuments'
-import type { StatutVerificationDocuments as Statut } from '../../../utils/verificationDocuments'
+import { useStatutDocuments } from '../../../hooks/useStatutDocuments'
 
 export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDemarcheur | null | undefined; onOpenDelegations: () => void }) {
   const navigate = useNavigate()
@@ -22,7 +22,7 @@ export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDem
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   // Un document envoyé repasse la demande « en attente » côté serveur : on l'affiche tout de suite.
-  const [statutDocs, setStatutDocs] = useState<Statut | null | undefined>(user?.statut_verification_documents)
+  const [statutDocs, marquerEnvoye] = useStatutDocuments(user?.statut_verification_documents)
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
 
@@ -30,7 +30,7 @@ export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDem
     if (!cipFile) return
     setUploading(true)
     setUploadError('')
-    try { await userApi.uploadCip(cipFile); setCipFile(null); setStatutDocs('en_attente') } catch (e: unknown) {
+    try { await userApi.uploadCip(cipFile); setCipFile(null); marquerEnvoye() } catch (e: unknown) {
       // Le fichier reste sélectionné et le bouton « Envoyer » redevient actif.
       setUploadError(apiMessage(e) || "L'envoi du document a échoué. Réessayez.")
     }
@@ -40,7 +40,7 @@ export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDem
     if (!ifuFile) return
     setUploading(true)
     setUploadError('')
-    try { await userApi.uploadIfu(ifuFile); setIfuFile(null); setStatutDocs('en_attente') } catch (e: unknown) {
+    try { await userApi.uploadIfu(ifuFile); setIfuFile(null); marquerEnvoye() } catch (e: unknown) {
       setUploadError(apiMessage(e) || "L'envoi du document a échoué. Réessayez.")
     }
     setUploading(false)
@@ -79,7 +79,7 @@ export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDem
         <p className="font-bold text-text-dark mb-3">Vérification d'identité</p>
         {uploadError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{uploadError}</p>}
         <div className="space-y-3">
-          <StatutVerificationDocuments statut={statutDocs ?? user?.statut_verification_documents} motif={(statutDocs ?? user?.statut_verification_documents) === 'rejete' ? user?.motif_rejet_documents : null} />
+          <StatutVerificationDocuments statut={statutDocs} motif={statutDocs === 'rejete' ? user?.motif_rejet_documents : null} />
           {[
             { label: 'CIP (Carte d\'identité professionnelle)', file: cipFile, setFile: setCipFile, onUpload: uploadCip },
             { label: 'IFU (Identifiant Fiscal Unique)', file: ifuFile, setFile: setIfuFile, onUpload: uploadIfu },
