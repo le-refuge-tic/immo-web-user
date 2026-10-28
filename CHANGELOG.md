@@ -11,6 +11,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Sécurité
+- Les comptes de l'équipe Refuge (admin, super admin, commercial) ne peuvent plus ouvrir de session
+  sur le site : la connexion envoie `espace: 'public'` et le serveur les refuse (403) ; une session
+  staff déjà présente dans le navigateur est fermée au chargement.
+
 ### Ajouté
 - Vignettes des photos (FE-D-002) : les cartes d'annonces chargent la vignette de 480 px créée
   par le backend au téléversement (`srcset` vers l'original sur écran large ou haute densité) ;
