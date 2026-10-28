@@ -32,6 +32,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   du cache ; cœurs des favoris partagés entre l'accueil, la recherche et la page Favoris.
 
 ### Corrigé
+- Inscription web ouverte à tous, prospects compris : l'en-tête propose « S'inscrire » et le
+  parcours demande le profil (je cherche un bien / je suis propriétaire). La restriction aux
+  propriétaires (PR #4) reste disponible avec `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT=true`.
+- Accueil, « Emplacements » : avec moins de 8 quartiers, des pastilles fixes au lieu d'un bandeau
+  défilant qui laissait des vides et faisait sortir les pastilles de l'écran.
 - Correctifs de la recette (branche recette/integration) repris dans l'écran découpé : un message
   supprimé par un administrateur est signalé comme tel (B9) ; le reçu affiche le type de bien
   calculé par le serveur (B10) ; la vérification CIP / IFU passe en lecture seule tant que les

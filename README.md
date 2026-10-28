@@ -23,7 +23,7 @@ Modèle complet dans `.env.example`. Les variables `VITE_*` sont embarquées dan
 | `VITE_API_URL` | oui | URL de base de l'API, ex. `https://<backend>/api/v1`. En développement, repli sur `http://localhost:3000/api/v1`. **En production, le build échoue si elle est absente ou non HTTPS.** |
 | `VITE_SITE_URL` | production | Domaine public (`https://…`) pour les URL absolues (`og:image`, `canonical`, `sitemap.xml`). |
 | `VITE_ALLOW_INDEXING` | non | `true` **uniquement en production**. Sinon `robots.txt` interdit tout et chaque page porte `noindex` (staging, aperçus). |
-| `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT` | non | `true` par défaut : l'inscription web ne crée que des comptes propriétaires. `false` rouvre le choix du rôle. Restriction d'interface : l'API accepte toujours les inscriptions de l'application mobile. |
+| `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT` | non | `false` par défaut : l'inscription web est ouverte à tous, avec le choix du rôle (prospect, propriétaire…). `true` la restreint aux comptes propriétaires. Restriction d'interface : l'API accepte toujours les inscriptions de l'application mobile. |
 | `VITE_SENTRY_DSN` | non | Active le suivi d'erreurs Sentry (chargé à la demande). Vide = aucun envoi. |
 | `VITE_RELEASE` | non | Identifiant de version associé aux erreurs Sentry. Par défaut `immo-web-user@<version de package.json>`, suivi du commit sur Vercel. |
 | `VITE_UMAMI_WEBSITE_ID` | non | Mesure d'audience Umami sans cookie. Vide = aucun script chargé. |
