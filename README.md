@@ -76,6 +76,8 @@ Illustrations : les couleurs qui ne sont pas des couleurs d'interface (drapeaux,
 
 ## Déploiement (Vercel)
 
+**Variables par environnement** : `VITE_API_URL` doit être définie séparément pour **Production** (API de production) et pour **Preview, toutes les branches** (API du staging). Ne jamais la limiter à une branche : les autres previews retomberaient sur la valeur de production. Un build de preview qui vise l'API de production échoue volontairement (`scripts/garde-api-preview.mjs`, hôtes supplémentaires dans `PROD_API_HOSTS`, dérogation `VITE_AUTORISER_API_PROD_EN_PREVIEW=true`).
+
 1. Définir `VITE_API_URL` dans Project Settings > Environment Variables (Production et Preview).
 2. Chaque push sur la branche de production déclenche un déploiement ; commande de build `npm run build`, dossier `dist`.
 3. `vercel.json` fournit la réécriture SPA (`/(.*)` vers `/index.html`), les en-têtes de sécurité (CSP, nosniff, Referrer-Policy, Permissions-Policy, X-Frame-Options, HSTS) et le cache long des fichiers à empreinte (`/assets/*`).

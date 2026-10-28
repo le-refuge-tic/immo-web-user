@@ -32,6 +32,10 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   du cache ; cœurs des favoris partagés entre l'accueil, la recherche et la page Favoris.
 
 ### Corrigé
+- Une preview Vercel ne peut plus être construite contre l'API de production : le build échoue avec
+  la marche à suivre (garde `scripts/garde-api-preview.mjs`). Une preview de la branche
+  recette/integration affichait les données de production parce que `VITE_API_URL` n'y était pas
+  réservée au staging.
 - Inscription web ouverte à tous, prospects compris : l'en-tête propose « S'inscrire » et le
   parcours demande le profil (je cherche un bien / je suis propriétaire). La restriction aux
   propriétaires (PR #4) reste disponible avec `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT=true`.
