@@ -12,6 +12,7 @@ import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
 import { useTentativesParCle } from '../../../hooks/usePaymentAttempt'
+import { avecCle } from '../../../utils/paymentAttempt'
 import { GREEN, TEAL, OPERATEURS, GREEN_TX, TEAL_TX } from '../shared'
 import { IcHome, IcCheck, IcPin } from '../icons'
 import OperateurChips from '../OperateurChips'
@@ -128,14 +129,14 @@ export default function MonLogementTab() {
       for (let i = 0; i < selected.length; i++) {
         setPayProgress(selected.length > 1 ? `Paiement ${i + 1}/${selected.length}…` : '')
         loyerCourant = selected[i]
-        const res = await paiementApi.initierLoyer(
-          { loyer_id: loyerCourant, methode_paiement: operateur, telephone_paiement: tel },
-          tentativeLoyer(loyerCourant).key(`${operateur}:${tel}`),
-        )
+        const loyerId = loyerCourant
+        const res = await avecCle(tentativeLoyer(loyerId), `${operateur}:${tel}`, cle =>
+          paiementApi.initierLoyer({ loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel }, cle))
         const hasUrl = !!res.url_paiement
         if (res.url_paiement) {
           // Lien refusé par la liste de domaines autorisés : on ne suit rien et on n'annonce pas d'onglet ouvert.
           if (!openPaymentUrl(res.url_paiement)) {
+            tentativeLoyer(loyerId).reset()
             setPayUrl('')
             setPayState('error'); setPayMsg('Le lien de paiement reçu est invalide. Vérifiez votre historique avant de réessayer.')
             setPayProgress(''); setPaying(false); initiationEnCoursRef.current = false
@@ -149,6 +150,7 @@ export default function MonLogementTab() {
         // Le backend renvoie `reference` : sans elle, aucun suivi ne peut partir.
         const refId = referenceLoyer(res)
         if (!refId) {
+          tentativeLoyer(loyerId).reset()
           setPayState('error'); setPayMsg('Référence de paiement manquante. Vérifiez votre historique avant de réessayer.')
           setPayProgress(''); setPaying(false); initiationEnCoursRef.current = false
           load()

@@ -13,6 +13,7 @@ import type { MouvementWallet, RetraitProprio, WalletProprio } from '../../../ty
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
 import { usePaymentAttempt } from '../../../hooks/usePaymentAttempt'
+import { avecCle } from '../../../utils/paymentAttempt'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -50,7 +51,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
     setError('')
     setSubmitting(true)
     try {
-      await walletApi.demandeRetrait(montantNum, 'revenus_locatifs', attempt.key(`revenus_locatifs:${montantNum}`))
+      await avecCle(attempt, `revenus_locatifs:${montantNum}`, cle => walletApi.demandeRetrait(montantNum, 'revenus_locatifs', cle))
       attempt.reset()
       setSuccessMsg(true)
       onSuccess()

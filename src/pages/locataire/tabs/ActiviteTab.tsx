@@ -10,6 +10,7 @@ import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, loyerRepare, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
 import { useTentativesParCle } from '../../../hooks/usePaymentAttempt'
+import { avecCle } from '../../../utils/paymentAttempt'
 import { GREEN, TEAL, ORANGE, GREEN_TX, ORANGE_TX, TEAL_TX } from '../shared'
 import { IcCheck, IcCal, IcMoney } from '../icons'
 import OperateurChips from '../OperateurChips'
@@ -98,14 +99,12 @@ export default function ActiviteTab() {
     const loyerId = prochainLoyer.id
     setPaying(true); setPayState('waiting')
     try {
-      const tentative = tentativeLoyer(loyerId)
-      const res = await paiementApi.initierLoyer(
-        { loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel },
-        tentative.key(`${operateur}:${tel}`),
-      )
+      const res = await avecCle(tentativeLoyer(loyerId), `${operateur}:${tel}`, cle =>
+        paiementApi.initierLoyer({ loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel }, cle))
       if (res.url_paiement) {
         // Lien refusé par la liste de domaines autorisés : on n'annonce pas « terminez dans l'onglet ouvert » et on ne suit rien.
         if (!openPaymentUrl(res.url_paiement)) {
+          tentativeLoyer(loyerId).reset()
           setPayUrl('')
           setPayState('error'); setPayMsg('Le lien de paiement reçu est invalide. Vérifiez votre historique avant de réessayer.')
           return
@@ -117,6 +116,7 @@ export default function ActiviteTab() {
       // Le backend renvoie `reference` : sans elle, aucun suivi ne peut partir.
       const reference = referenceLoyer(res)
       if (!reference) {
+        tentativeLoyer(loyerId).reset()
         setPayState('error'); setPayMsg('Référence de paiement manquante. Vérifiez votre historique avant de réessayer.')
       } else {
         polling.start({

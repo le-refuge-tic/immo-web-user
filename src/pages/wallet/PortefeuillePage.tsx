@@ -10,6 +10,7 @@ import { apiMessage } from '../../utils/apiMessage'
 import ErrorState from '../../components/ErrorState'
 import { messageMontantRetrait } from '../../utils/retrait'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
+import { avecCle } from '../../utils/paymentAttempt'
 
 const isLoyer = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -104,7 +105,7 @@ function ClientWalletView() {
     setSubmitting(true)
     setRetraitError('')
     try {
-      await walletApi.demandeRetrait(Number(montant), 'epargne', attempt.key(`epargne:${montant}`))
+      await avecCle(attempt, `epargne:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'epargne', cle))
       attempt.reset()
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
     } catch (e: unknown) {
@@ -289,7 +290,7 @@ function WalletCommissionsView() {
     setSubmitting(true)
     setRetraitError('')
     try {
-      await walletApi.demandeRetrait(Number(montant), 'revenus_locatifs', attempt.key(`revenus_locatifs:${montant}`))
+      await avecCle(attempt, `revenus_locatifs:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'revenus_locatifs', cle))
       attempt.reset()
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
     } catch (e: unknown) {

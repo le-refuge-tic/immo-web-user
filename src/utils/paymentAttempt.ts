@@ -87,3 +87,24 @@ export function creerTentative(nouvelleCle: () => string = newIdempotencyKey): T
     fail: err => { if (!keepIdempotencyKey(err)) cle = null },
   }
 }
+
+/** Le serveur refuse une clé déjà servie pour une autre demande ou après un échec (409). */
+export function cleDejaServie(err: unknown): boolean {
+  const { response } = (err ?? {}) as ErreurHttp
+  return response?.status === 409 && response.data?.code === 'IDEMPOTENCY_KEY_REUSED'
+}
+
+/**
+ * Envoie une opération d'argent avec la clé de la tentative. Si le serveur répond que la clé a
+ * déjà servi (paiement précédent expiré ou refusé entre-temps), c'est une nouvelle demande :
+ * nouvelle clé et un seul nouvel essai, sans faire recliquer la personne.
+ */
+export async function avecCle<T>(tentative: Tentative, signature: string, appel: (cle: string) => Promise<T>): Promise<T> {
+  try {
+    return await appel(tentative.key(signature))
+  } catch (err) {
+    if (!cleDejaServie(err)) throw err
+    tentative.reset()
+    return appel(tentative.key(signature))
+  }
+}
