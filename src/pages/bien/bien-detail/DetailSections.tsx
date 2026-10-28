@@ -5,6 +5,7 @@ import logoSbee from '../../../assets/logo-SBEE.png'
 import logoSoneb from '../../../assets/logo-SONEB.webp'
 import { Icon, type IconType } from './Icon'
 import { fmtSlot, fmtDateLongue, fcfa, INFO_ROW_META } from './helpers'
+import { imageDeCouverture } from '../../../utils/imageCouverture'
 
 // ─── Contenu partagé (mobile & desktop) — sections empilées, sans onglets ────
 export function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows, terrainRows, voisinageLabels, visitesPlanifiees, visitesConfirmees }: {
@@ -104,7 +105,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
         <div>
           <SectionTitle title="Vidéo" />
           {/* oxlint-disable-next-line jsx-a11y/media-has-caption -- vidéo filmée par l'annonceur, sans piste de sous-titres disponible ; c'est une visite visuelle du bien, toutes les informations sont écrites dans la fiche */}
-          <video src={bien.video_url} controls preload="none" playsInline
+          <video src={bien.video_url} poster={imageDeCouverture(bien.photos)?.src} controls preload="none" playsInline
             aria-label="Vidéo de présentation du bien" className="w-full rounded-2xl bg-black aspect-video" />
         </div>
       )}

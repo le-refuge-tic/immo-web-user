@@ -13,6 +13,7 @@ import { StepHonoraires } from './nouveau-bien/steps/StepHonoraires'
 import { StepPhotos } from './nouveau-bien/steps/StepPhotos'
 import { withAlpha } from '../../utils/color'
 import { resumeMedias } from '../../hooks/useMediaDraft'
+import { messageEnvoisEchoues } from '../../utils/envoisEchoues'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
@@ -28,6 +29,8 @@ export default function NouveauBienPage() {
     createdId,
     created,
     envoisEchoues,
+    renvoyerEchecs,
+    renvoiEnCours,
     navigate,
     draft,
     medias,
@@ -54,13 +57,17 @@ export default function NouveauBienPage() {
         <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--p-muted)' }}>
           En attente de validation par l'administrateur. Vous serez notifié une fois approuvé.
         </p>
-        {(envoisEchoues.photos > 0 || envoisEchoues.video) && (
-          <p role="alert" className="text-sm font-semibold mb-6 max-w-xs" style={{ color: 'var(--tx-amber)' }}>
-            {[
-              envoisEchoues.photos > 0 && `${envoisEchoues.photos} photo${envoisEchoues.photos > 1 ? 's' : ''}`,
-              envoisEchoues.video && 'la vidéo',
-            ].filter(Boolean).join(' et ')} n'{envoisEchoues.photos + (envoisEchoues.video ? 1 : 0) > 1 ? 'ont' : 'a'} pas pu être envoyée{envoisEchoues.photos + (envoisEchoues.video ? 1 : 0) > 1 ? 's' : ''}. Ajoutez-les depuis « Voir mon annonce ».
-          </p>
+        {messageEnvoisEchoues(envoisEchoues.photos, envoisEchoues.video) && (
+          <div className="mb-6 max-w-xs">
+            <p role="alert" className="text-sm font-semibold" style={{ color: 'var(--tx-amber)' }}>
+              {messageEnvoisEchoues(envoisEchoues.photos, envoisEchoues.video)}
+            </p>
+            <button type="button" onClick={renvoyerEchecs} disabled={renvoiEnCours}
+              className="mt-2 px-5 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
+              style={{ background: withAlpha(BLUE, '18'), color: 'var(--tx-brand)' }}>
+              {renvoiEnCours ? 'Envoi…' : "Réessayer l'envoi"}
+            </button>
+          </div>
         )}
         <button onClick={() => navigate(createdId ? `/proprietaire/biens/${createdId}` : '/proprietaire')}
           className="px-8 py-4 rounded-xl font-bold"
