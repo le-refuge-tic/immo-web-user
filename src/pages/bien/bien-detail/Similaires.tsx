@@ -1,6 +1,7 @@
 import type { Bien, Photo } from '../../../types/api'
 import { resolveUrl } from './helpers'
 import { SectionTitle } from './DetailSections'
+import { suffixeUnite } from '../../../utils/prix'
 
 interface SimilairesProps {
   similaires: Bien[]
@@ -26,7 +27,7 @@ export function SimilairesDesktop({ similaires, onOpen }: SimilairesProps) {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-text-dark truncate">{Number(b.prix).toLocaleString('fr-FR')} FCFA{b.transaction === 'location' ? '/mois' : ''}</p>
+                <p className="text-sm font-bold text-text-dark truncate">{Number(b.prix).toLocaleString('fr-FR')} FCFA{suffixeUnite(b)}</p>
                 <p className="text-xs text-text-grey truncate">{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville}</p>
               </div>
             </button>
@@ -56,7 +57,7 @@ export function SimilairesMobile({ similaires, onOpen }: SimilairesProps) {
                   )}
                 </div>
                 <div className="p-2.5">
-                  <p className="text-sm font-bold text-text-dark truncate">{Number(b.prix).toLocaleString('fr-FR')} FCFA{b.transaction === 'location' ? '/mois' : ''}</p>
+                  <p className="text-sm font-bold text-text-dark truncate">{Number(b.prix).toLocaleString('fr-FR')} FCFA{suffixeUnite(b)}</p>
                   <p className="text-xs text-text-grey truncate">{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville}</p>
                 </div>
               </button>

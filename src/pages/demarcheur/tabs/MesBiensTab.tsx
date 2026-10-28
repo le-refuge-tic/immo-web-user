@@ -12,6 +12,7 @@ import { withAlpha } from '../../../utils/color'
 import { apiMessage } from '../../../utils/apiMessage'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
+import { suffixeUnite } from '../../../utils/prix'
 
 export default function MesBiensTab() {
   const [biens, setBiens] = useState<Bien[]>([])
@@ -121,7 +122,7 @@ export default function MesBiensTab() {
                         <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
                       )}
                     </div>
-                    <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
+                    <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{suffixeUnite(b)}</span>
                   </div>
                   <div className="p-3.5">
                     <p className="font-bold text-text-dark text-sm">{bienTypeLabel(b)}</p>

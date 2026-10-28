@@ -13,6 +13,7 @@ import { track } from '../../../lib/analytics'
 import { apiMessage } from '../../../utils/apiMessage'
 import type { Bien, Visite } from '../../../types/api'
 import { isEchoueeVisite } from './helpers'
+import { libellePrix } from '../../../utils/prix'
 
 /** État, chargement et actions de la fiche d'un bien (déplacé tel quel de BienDetailPage). */
 export function useBienDetail() {
@@ -35,7 +36,7 @@ export function useBienDetail() {
   }, [queryClient, bienId])
   const bienTitle = bien ? (bien.localisation?.quartier ? `${bienTypeLabel(bien)} — ${bien.localisation.quartier}` : bienTypeLabel(bien)) : ''
   const bienDescription = bien
-    ? `${bienTitle}${bien.localisation?.ville ? `, ${bien.localisation.ville}` : ''} : ${Number(bien.prix).toLocaleString('fr-FR')} FCFA${bien.transaction === 'location' ? ' par mois' : ''}. ${String(bien.description ?? '').slice(0, 110)}`.trim()
+    ? `${bienTitle}${bien.localisation?.ville ? `, ${bien.localisation.ville}` : ''} : ${Number(bien.prix).toLocaleString('fr-FR')} FCFA${libellePrix(bien) === 'prix de vente' ? '' : ` ${libellePrix(bien)}`}. ${String(bien.description ?? '').slice(0, 110)}`.trim()
     : undefined
   usePageTitle(bienTitle, bienDescription)
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- un seul suivi par annonce affichée (identifiant)

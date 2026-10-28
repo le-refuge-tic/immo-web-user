@@ -6,6 +6,8 @@ import logoSoneb from '../../../assets/logo-SONEB.webp'
 import { Icon, type IconType } from './Icon'
 import { fmtSlot, fmtDateLongue, fcfa, INFO_ROW_META } from './helpers'
 import { imageDeCouverture } from '../../../utils/imageCouverture'
+import { nomEtDescription } from '../../../utils/guesthouse'
+import { GuesthouseSections } from './GuesthouseSections'
 
 // ─── Contenu partagé (mobile & desktop) — sections empilées, sans onglets ────
 export function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows, terrainRows, voisinageLabels, visitesPlanifiees, visitesConfirmees }: {
@@ -16,6 +18,9 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
   visitesConfirmees: { count: number; visites: { id: number; date: string | null }[] } | null
 }) {
   const am = bien.amenites as Amenites | null | undefined
+  // Guesthouse : sections dédiées ; les blocs d'appartement (composition, logement, conditions d'entrée) ne s'appliquent pas
+  const isGuesthouse = bien.type === 'guesthouse'
+  const description = nomEtDescription(bien).description
   const hasFeatureChips = ((bien.details_maison?.superficie ?? 0) > 0) ||
     ((bien.details_terrain?.superficie ?? 0) > 0) || bien.details_appart?.entree_personnelle ||
     bien.details_maison?.cloture || bien.details_terrain?.cloture ||
@@ -93,10 +98,10 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       )}
 
       {/* Description */}
-      {bien.description && (
+      {description && (
         <div>
           <SectionTitle title="Description" />
-          <p className="text-sm text-text-grey leading-relaxed">{bien.description}</p>
+          <p className="text-sm text-text-grey leading-relaxed">{description}</p>
         </div>
       )}
 
@@ -110,8 +115,10 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
         </div>
       )}
 
+      {isGuesthouse && <GuesthouseSections bien={bien} />}
+
       {/* Composition */}
-      {composition && composition.length > 0 && (
+      {!isGuesthouse && composition && composition.length > 0 && (
         <div>
           <SectionTitle title="Composition" />
           <div className="flex flex-wrap gap-2.5">
@@ -126,7 +133,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       )}
 
       {/* Infos logement */}
-      {logementRows.length > 0 && (
+      {!isGuesthouse && logementRows.length > 0 && (
         <div>
           <SectionTitle title="Informations logement" />
           <InfoCard rows={logementRows} amenites={am} />
@@ -157,7 +164,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       )}
 
       {/* Conditions à l'entrée (location uniquement) */}
-      {isLocation && (
+      {isLocation && !isGuesthouse && (
         <div>
           <SectionTitle title="Conditions à l'entrée" />
           <IntegrationCard bien={bien} isOwnBien={isOwnBien} />

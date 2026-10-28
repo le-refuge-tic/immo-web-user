@@ -48,3 +48,22 @@ export const BUDGET_PRESETS = [
 export const PAGE_SIZE = 100
 
 export const AUTRES_PAGE_SIZE = 12
+
+/** Guesthouse : équipements clés proposés en filtre (codes du référentiel GET /equipements). */
+export const EQUIPEMENTS_CLES = [
+  { code: 'wifi',               label: 'Wi-Fi' },
+  { code: 'climatisation',      label: 'Climatisation' },
+  { code: 'piscine',            label: 'Piscine' },
+  { code: 'groupe_electrogene', label: 'Groupe électrogène' },
+]
+
+/** Guesthouse : budgets rapides par nuit. */
+export const BUDGET_PRESETS_NUIT = [
+  { label: '< 15K',  max: 15_000 },
+  { label: '< 25K',  max: 25_000 },
+  { label: '< 50K',  max: 50_000 },
+  { label: '< 100K', max: 100_000 },
+]
+
+/** Dernier cran du compteur de voyageurs (« 10+ »). */
+export const CAPACITE_MAX_FILTRE = 10

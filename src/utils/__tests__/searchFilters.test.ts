@@ -8,6 +8,7 @@ describe('readSearchFilters', () => {
     expect(parse('')).toEqual({
       q: '', transaction: '', type: '', prixMin: '', prixMax: '', sousType: '',
       pieces: '', superficieMin: '', superficieMax: '', sortBy: 'pertinence',
+      capaciteMin: '', equipements: [], garage: false,
     })
   })
 
@@ -57,5 +58,17 @@ describe('piecesQuery', () => {
     expect(piecesQuery('3')).toEqual({ pieces: 3 })
     expect(piecesQuery('5')).toEqual({ pieces_min: 5 })
     expect(piecesQuery('')).toEqual({})
+  })
+})
+
+describe('filtres guesthouse', () => {
+  it('lit capacité, équipements (assainis, sans doublon) et garage', () => {
+    const f = parse('type=guesthouse&capacite_min=4&equipements=wifi,piscine,wifi,%3Cx%3E&garage=1')
+    expect(f).toMatchObject({ capaciteMin: '4', equipements: ['wifi', 'piscine'], garage: true })
+  })
+  it('écrit les filtres guesthouse et omet les valeurs vides', () => {
+    const p = writeSearchFilters({ ...parse(''), type: 'guesthouse', capaciteMin: '3', equipements: ['wifi'], garage: true })
+    expect(p).toMatchObject({ type: 'guesthouse', capacite_min: '3', equipements: 'wifi', garage: '1' })
+    expect(writeSearchFilters(parse(''))).toEqual({})
   })
 })

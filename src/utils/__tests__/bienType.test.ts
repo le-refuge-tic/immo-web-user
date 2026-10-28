@@ -7,3 +7,10 @@ describe('bienTypeLabel', () => {
   it('retombe sur le type', () => expect(bienTypeLabel({ type: 'terrain' })).toBe('Terrain'))
   it('gère un bien absent', () => expect(bienTypeLabel(null)).toBe('Bien'))
 })
+
+describe('bienTypeLabel — guesthouse', () => {
+  it('une guesthouse reste « Guesthouse » quel que soit son ancien sous-type', () => {
+    expect(bienTypeLabel({ type: 'guesthouse', amenites: { sous_type: 'duplex' } })).toBe('Guesthouse')
+    expect(bienTypeLabel({ type: 'guesthouse', amenites: { sous_type: 'appartement' } })).toBe('Guesthouse')
+  })
+})

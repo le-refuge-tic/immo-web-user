@@ -10,7 +10,7 @@ import { getQuartierCoords, haversineKm, distanceEntreQuartiers } from '../../..
 import { useScrollRestoration } from '../../../hooks/useScrollRestoration'
 import { readSearchFilters, writeSearchFilters, piecesQuery, piecesLabel, type SortKey } from '../../../utils/searchFilters'
 import { norm, matchLoc, inBudgetRange, isBudgetVoisin, fmtFcfa } from './helpers'
-import { TRANSACTIONS, TYPES, SOUS_TYPES, PAGE_SIZE, PROXIMITY_MAX_KM } from './options'
+import { TRANSACTIONS, TYPES, SOUS_TYPES, PAGE_SIZE, PROXIMITY_MAX_KM, EQUIPEMENTS_CLES } from './options'
 import { useTokens } from './tokens'
 import { useBiensPages, useDebouncedValue } from './useBiensPages'
 
@@ -36,16 +36,19 @@ export function useSearchPage() {
   const [superficieMin, setSuperficieMin] = useState(initial.superficieMin)
   const [superficieMax, setSuperficieMax] = useState(initial.superficieMax)
   const [sortBy,        setSortBy]        = useState<SortKey>(initial.sortBy)
+  const [capaciteMin,   setCapaciteMin]   = useState(initial.capaciteMin)
+  const [equipements,   setEquipements]   = useState<string[]>(initial.equipements)
+  const [garage,        setGarage]        = useState(initial.garage)
 
   useEffect(() => {
     setSearchParams(
-      writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy }),
+      writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy, capaciteMin, equipements, garage }),
       { replace: true },
     )
-  }, [query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy, setSearchParams])
+  }, [query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy, capaciteMin, equipements, garage, setSearchParams])
 
   // Sens inverse : Précédent / Suivant ou un lien interne vers une autre recherche mettent l'état à jour
-  const filtersKey = JSON.stringify(writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy }))
+  const filtersKey = JSON.stringify(writeSearchFilters({ q: query, transaction, type, prixMin, prixMax, sousType, pieces, superficieMin, superficieMax, sortBy, capaciteMin, equipements, garage }))
   useEffect(() => {
     const fromUrl = readSearchFilters(searchParams)
     if (JSON.stringify(writeSearchFilters(fromUrl)) === filtersKey) return
@@ -53,6 +56,7 @@ export function useSearchPage() {
     setPrixMin(fromUrl.prixMin); setPrixMax(fromUrl.prixMax); setSousType(fromUrl.sousType)
     setPieces(fromUrl.pieces)
     setSuperficieMin(fromUrl.superficieMin); setSuperficieMax(fromUrl.superficieMax); setSortBy(fromUrl.sortBy)
+    setCapaciteMin(fromUrl.capaciteMin); setEquipements(fromUrl.equipements); setGarage(fromUrl.garage)
     // Déclenché par l'URL seulement : filtersKey reflète l'état courant au moment du changement d'URL
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
@@ -86,8 +90,14 @@ export function useSearchPage() {
     Object.assign(params, piecesQuery(pieces))
     if (superficieMin && supMin !== null)     params.superficie_min = supMin
     if (superficieMax && supMax !== null)     params.superficie_max = supMax
+    // Critères propres aux guesthouses : envoyés seulement quand ce type est choisi
+    if (type === 'guesthouse') {
+      if (capaciteMin)        params.capacite_min = Number(capaciteMin)
+      if (equipements.length) params.equipements  = equipements.join(',')
+      if (garage)             params.garage       = 'true'
+    }
     return params
-  }, [sousType, pieces, superficieMin, superficieMax])
+  }, [sousType, pieces, superficieMin, superficieMax, type, capaciteMin, equipements, garage])
 
   // Clé des paramètres réellement envoyés : taper dans la recherche sans changer de ville ne recharge rien.
   const paramsKey = useMemo(() => {
@@ -243,6 +253,7 @@ export function useSearchPage() {
   const reset = () => {
     setQuery(''); setTransaction(''); setType(''); setPrixMin(''); setPrixMax('')
     setSousType(''); setPieces(''); setSuperficieMin(''); setSuperficieMax(''); setSortBy('pertinence')
+    setCapaciteMin(''); setEquipements([]); setGarage(false)
   }
 
   type Chip = { label: string; onRemove: () => void }
@@ -256,12 +267,20 @@ export function useSearchPage() {
   if (pieces)        chips.push({ label: piecesLabel(pieces), onRemove: () => setPieces('') })
   if (superficieMin) chips.push({ label: `≥ ${superficieMin} m²`, onRemove: () => setSuperficieMin('') })
   if (superficieMax) chips.push({ label: `≤ ${superficieMax} m²`, onRemove: () => setSuperficieMax('') })
+  if (type === 'guesthouse') {
+    if (capaciteMin) chips.push({ label: `${capaciteMin}+ voyageurs`, onRemove: () => setCapaciteMin('') })
+    for (const code of equipements) {
+      chips.push({ label: EQUIPEMENTS_CLES.find(e => e.code === code)?.label ?? code, onRemove: () => setEquipements(l => l.filter(c => c !== code)) })
+    }
+    if (garage) chips.push({ label: 'Garage', onRemove: () => setGarage(false) })
+  }
   const hasFilters = chips.length > 0
 
   const fp = {
     isDark, tk, transaction, setTransaction, type, setType,
     prixMin, setPrixMin, prixMax, setPrixMax,
     sousType, setSousType, pieces, setPieces, superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
+    capaciteMin, setCapaciteMin, equipements, setEquipements, garage, setGarage,
   }
 
   useScrollRestoration(!loading && allBiens.length > 0)

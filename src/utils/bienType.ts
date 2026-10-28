@@ -52,6 +52,8 @@ function extractSousType(bien: BienTypable): string | undefined {
  */
 export function bienTypeLabel(bien: BienTypable | null | undefined): string {
   if (!bien) return 'Bien'
+  // Guesthouse : type à part entière, jamais affichée sous son ancien sous-type d'appartement
+  if (bien.type === 'guesthouse') return TYPE_LABELS.guesthouse
   const sous = extractSousType(bien)
   if (sous && SOUS_TYPE_LABELS[sous]) return SOUS_TYPE_LABELS[sous]
   if (bien.type && TYPE_LABELS[bien.type]) return TYPE_LABELS[bien.type]

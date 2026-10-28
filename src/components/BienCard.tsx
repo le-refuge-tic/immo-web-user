@@ -9,6 +9,8 @@ import { favoritesApi } from '../api/favoritesApi'
 import { track } from '../lib/analytics'
 import type { Bien } from '../types/api'
 import { imageDeCouverture } from '../utils/imageCouverture'
+import { suffixeUnite } from '../utils/prix'
+import { nomEtDescription, resumeCapacite } from '../utils/guesthouse'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -68,8 +70,13 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
   }
   const sousType = typeof bien.amenites?.sous_type === 'string' ? bien.amenites.sous_type : undefined
-  const label    = (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
+  const isGuesthouse = bien.type === 'guesthouse'
+  // Guesthouse : son nom (1re ligne de la description) plutôt qu'un ancien sous-type d'appartement
+  const label    = isGuesthouse
+    ? (nomEtDescription(bien).nom ?? typeLabel.guesthouse)
+    : (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
   const title    = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
+  const capacite = isGuesthouse ? resumeCapacite(bien.details_guesthouse) : null
 
   /* ── Tokens thème ── */
   const textPrimary  = isDark ? '#E8E8EF'                : '#1D1D1F'
@@ -149,6 +156,12 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           >
             {isLocation ? 'À LOUER' : 'À VENDRE'}
           </span>
+          {isGuesthouse && (
+            <span className="ml-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
+              style={{ background: 'rgba(13,148,136,0.94)', border: '1px solid rgba(255,255,255,0.3)' }}>
+              GUESTHOUSE
+            </span>
+          )}
         </div>
 
         {/* Bouton favori */}
@@ -204,7 +217,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
         <p className="text-lg md:text-xl font-bold leading-tight tracking-tight" style={{ color: textPrimary }}>
           {Number(bien.prix).toLocaleString('fr-FR')}{' '}
           <span className="text-sm font-medium" style={{ color: textMuted }}>
-            FCFA{isLocation ? '/mois' : ''}
+            FCFA{suffixeUnite(bien)}
           </span>
         </p>
         <h3 className="text-sm font-semibold mt-1 truncate" style={{ color: textSecond }}>
@@ -214,6 +227,9 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             <span className="sr-only"> — {bien.transaction === 'location' ? 'à louer' : 'à vendre'}</span>
           </Link>
         </h3>
+        {capacite && (
+          <p className="text-xs mt-1 font-medium" style={{ color: textSecond }}>{capacite}</p>
+        )}
         <div className="flex items-center gap-1 mt-2">
           <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

@@ -15,6 +15,7 @@ import { apiMessage } from '../../../utils/apiMessage'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
 import { imageDeCouverture } from '../../../utils/imageCouverture'
+import { suffixeUnite } from '../../../utils/prix'
 
 // ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
 export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
@@ -121,7 +122,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         </span>
                         <div className="absolute bottom-3 left-3 right-3">
                           <p className="text-white font-black text-[15px] leading-none drop-shadow">
-                            {fmtPrix(b.prix)}{b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70"> /mois</span>}
+                            {fmtPrix(b.prix)}{suffixeUnite(b) && <span className="text-[11px] font-normal text-white/70"> {suffixeUnite(b)}</span>}
                           </p>
                         </div>
                       </div>
@@ -304,7 +305,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                           <p className="text-white font-black text-[17px] leading-none drop-shadow">
                             {fmtPrix(b.prix)}
-                            {b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70">/mois</span>}
+                            {suffixeUnite(b) && <span className="text-[11px] font-normal text-white/70">{suffixeUnite(b)}</span>}
                           </p>
                           {(b.nb_consultations ?? 0) > 0 && (
                             <span className="flex items-center gap-1 text-[10px] text-white/80">

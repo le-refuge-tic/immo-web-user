@@ -12,6 +12,8 @@ import { BottomCta } from './bien-detail/BottomCta'
 import { GalleryMobile, GalleryDesktop } from './bien-detail/Galleries'
 import { SimilairesDesktop, SimilairesMobile } from './bien-detail/Similaires'
 import ErrorState from '../../components/ErrorState'
+import { suffixeUnite } from '../../utils/prix'
+import { nomEtDescription } from '../../utils/guesthouse'
 
 export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: boolean }) {
   const navigate = useNavigate()
@@ -56,7 +58,11 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const isLocation = bien.transaction === 'location'
   const typeLabel = bienTypeLabel(bien)
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
-  const title = bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
+  // Guesthouse : son nom (1re ligne de la description) quand il existe
+  const nomGuesthouse = nomEtDescription(bien).nom
+  const title = nomGuesthouse
+    ? `${nomGuesthouse}${bien.localisation?.quartier ? ` — ${bien.localisation.quartier}` : ''}`
+    : bien.localisation?.quartier ? `${typeLabel} — ${bien.localisation.quartier}` : typeLabel
   const prix = Number(bien.prix).toLocaleString('fr-FR')
   const accentColor = isLocation ? 'var(--c-brand)' : 'var(--c-orange-dark)'
   const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
@@ -143,7 +149,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                   </div>
                 )}
                 <p className="text-3xl font-bold" style={{ color: hasPromo ? 'var(--c-danger)' : accentColor }}>
-                  {hasPromo ? prixPromo : prix} <span className="text-base font-medium text-text-grey">FCFA{isLocation ? '/mois' : ''}</span>
+                  {hasPromo ? prixPromo : prix} <span className="text-base font-medium text-text-grey">FCFA{suffixeUnite(bien)}</span>
                 </p>
               </div>
 
@@ -227,7 +233,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
             </div>
           )}
           <p className="text-2xl font-bold" style={{ color: hasPromo ? 'var(--c-danger)' : accentColor }}>
-            {hasPromo ? prixPromo : prix} FCFA{isLocation && <span className="text-base font-medium text-text-grey">/mois</span>}
+            {hasPromo ? prixPromo : prix} FCFA{suffixeUnite(bien) && <span className="text-base font-medium text-text-grey">{suffixeUnite(bien)}</span>}
           </p>
         </div>
 

@@ -34,6 +34,7 @@ import type { LoyersDashboard, ProprioProfil } from '../../types/proprietaire'
 import { withAlpha } from '../../utils/color'
 import ErrorState from '../../components/ErrorState'
 import { imageDeCouverture } from '../../utils/imageCouverture'
+import { suffixeUnite } from '../../utils/prix'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -562,7 +563,7 @@ export default function ProprietaireDashboard() {
                               </span>
                               <div className="absolute bottom-3 left-3 right-3">
                                 <p className="text-white font-black text-[15px] leading-none drop-shadow">
-                                  {fmtPrix(b.prix)}{b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70"> /mois</span>}
+                                  {fmtPrix(b.prix)}{suffixeUnite(b) && <span className="text-[11px] font-normal text-white/70"> {suffixeUnite(b)}</span>}
                                 </p>
                               </div>
                             </div>

@@ -130,6 +130,40 @@ export interface Bien {
   video_url?: string | null
   /** Libellé exact du type (sous-type compris), calculé par le backend sur les reçus. */
   type_label?: string | null
+  /** Unité du prix calculée par l'API : par nuit (guesthouse), par mois (location), total (vente). */
+  unite_prix?: 'nuit' | 'mois' | 'total'
+  /** Détails d'une guesthouse ; null pour les autres types (et les anciennes guesthouses). */
+  details_guesthouse?: DetailsGuesthouse | null
+  /** Équipements cochés (fiche détail d'une guesthouse). */
+  equipements_liste?: EquipementBien[]
+}
+
+export interface LitGuesthouse { type: string; nombre: number }
+
+export interface DetailsGuesthouse {
+  prix_nuitee: number
+  caution: number | null
+  nuitees_min: number
+  capacite: number
+  nb_chambres: number
+  lits: LitGuesthouse[]
+  nb_salles_bain: number
+  garage: boolean
+  type_acces_garage: 'prive' | 'commun' | null
+  /** Format HH:MM:SS */
+  heure_arrivee: string
+  heure_depart: string
+  animaux_autorises: boolean
+  fetes_autorisees: boolean
+  fumeur_autorise: boolean
+}
+
+export interface EquipementBien {
+  code: string
+  libelle: string
+  categorie: string
+  icone?: string | null
+  ordre?: number
 }
 
 /** `GET /biens/:id`, création, mise à jour : le bien, parfois enveloppé dans `data` ou `bien`. */
