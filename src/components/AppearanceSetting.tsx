@@ -37,6 +37,7 @@ export default function AppearanceSetting({ className = 'px-4 py-3.5' }: { class
         <MoonMenuIcon />
         <span id={labelId} className="flex-1 text-sm text-text-dark font-medium">Apparence</span>
       </div>
+      {/* oxlint-disable-next-line jsx-a11y/interactive-supports-focus -- le groupe reçoit les flèches des radios, qui portent le tabIndex (tabulation itinérante) */}
       <div role="radiogroup" aria-labelledby={labelId} onKeyDown={onKeyDown} className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06]">
         {THEME_OPTIONS.map(o => {
           const selected = preference === o.value

@@ -1,3 +1,21 @@
+/* Plus Jakarta Sans variable (licence OFL), auto-hébergée : latin + latin étendu, chargés selon les caractères utilisés */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/plus-jakarta-sans-latin-ext-wght-normal.v1.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/plus-jakarta-sans-latin-wght-normal.v1.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,19 +23,130 @@
 /* Couleurs de texte sémantiques : éclaircies en mode sombre pour garder un
    contraste AA (≥ 4,5:1) sur les fonds #0F0F14 / glass-card sombres. */
 :root {
-  --tx-red: #DC2626;
-  --tx-green: #15803D;
-  --tx-amber: #B45309;
+  --tx-red: #C81E15;
+  --tx-green: #166534;
+  --tx-amber: #A94E08;
   --tx-blue: #3A5AEE;
+  /* Accents d'espace en couleur de texte (FE-B-024) : valeur claire identique aux constantes
+     GREEN / TEAL / PURPLE, variante éclaircie en sombre. Les fonds pleins gardent la constante. */
+  --tx-loc-green: #137638;
+  --tx-loc-teal: #0369A1;
+  --tx-violet: #9053A9;
+  --tx-steel: #2772A4;
+  /* Libellés secondaires des menus latéraux et textes gris sur fond teinté. */
+  --tx-muted: #5D6978;
+  --tx-ink-55: rgba(0,0,0,0.55);
+  /* Fonds pleins sous un texte blanc : mêmes teintes que les jetons de texte en clair, mais
+     inchangés en sombre (un fond éclairci rendrait le texte blanc illisible). */
+  --c-fill-red: #C81E15;
+  --c-fill-green: #166534;
+  --c-fill-violet: #9B59B6;
+  /* Fonds pleins des statuts (Publié, Payé / Rejeté, En retard) : ≥ 4,5:1 sous texte blanc (FE-C-004). */
+  --c-fill-success: #2E7D32;
+  --c-fill-error: #D32F2F;
+  --c-fill-steel: #2772A4;
+  --tx-brand: #3D5AE3;
+  /* Texte secondaire sur surface vitrée (bannières) : #5E5E63 = text-grey en clair. */
+  --tx-secondary: #5E5E63;
+  /* Fond des pastilles de filtre inactives (26 usages de var(--surface-g, #F4F6FA)). */
+  --surface-g: #F4F6FA;
+  /* Carte sur fond de page (choix d'opérateur…) : blanc en clair, même teinte que les surcharges sombres. */
+  --c-card: #FFFFFF;
+  /* Fond de page gris clair et cartes / barres vitrées des pages de contrat et d'intégration. */
+  --c-page-grey: #F8F9FA;
+  --c-card-glass: rgba(255,255,255,0.85);
+  --c-bar-glass: rgba(255,255,255,0.95);
+  /* Anneau de focus : ≥ 3:1 sur fond clair (WCAG 2.4.11 / 1.4.11) */
+  --focus-ring: #3A5AEE;
+  /* Palette « proprio » (marine) par défaut ; .proprio-root.proprio-light la remplace par la palette claire. */
+  --p-deep: #060D1A;
+  --p-surface: #0B1C30;
+  --p-card: #112440;
+  --p-border: #1A3355;
+  --p-text: #F0EDE8;
+  --p-muted: #8A9BB5;
+  /* Couleurs de marque et d'état : un seul endroit pour les changer (FE-B-017). */
+  --c-brand: #4160F2;
+  --c-primary: #3A5AEE;
+  --c-violet: #7B4BFF;
+  --c-danger: #DC2626;
+  --c-success: #15803D;
+  --c-success-bright: #16A34A;
+  --c-green: #22C55E;
+  --c-accent: #FF6B35;
+  --c-amber-dark: #B45309;
+  --c-red-ios: #FF3B30;
+  --c-brand-soft: #9DB0FF;
+  --c-red: #EF4444;
+  --c-whatsapp: #25D366;
+  --c-sky: #0EA5E9;
+  --c-green-material: #4CAF50;
+  --c-amber: #F59E0B;
+  /* Autres couleurs réutilisées (≥ 3 emplois). */
+  --c-blue-wash: #E8EDFB;
+  --c-line: #E5E7EB;
+  --c-cyan: #00AEEF;
+  --c-wash: #F8FAFF;
+  --c-slate: #5F6672;
+  --c-navy-deep: #0F3460;
+  --c-steel: #2E86C1;
+  --c-emerald-dark: #065F46;
+  --c-slate-light: #CBD5E1;
+  --c-orange-dark: #C2410C;
+  --c-purple-dark: #7B2FBE;
+  --c-red-material: #F44336;
+  --c-indigo: #6366F1;
+  --c-green-flat: #27AE60;
+  --c-ink-900: #111827;
+  --c-mist: #E8E9F0;
+  --c-fog: #F3F4F8;
+  --c-green-flag: #006A4E;
+  --c-green-soft: #48C774;
+  --c-gray-300: #D1D5DB;
+  --c-violet-soft: #8B5CF6;
+  --c-amber-soft: #FDE68A;
+  --c-amber-600: #D97706;
+  --c-ink-navy: #1A1A2E;
+  --c-ink-black: #1D1D1F;
+  --c-grey: #6B7280;
+  --c-grey-warm: #6E6E73;
+  --c-page-blue: #F4F6FA;
+  --c-page-green: #F0FDF4;
 }
 .dark {
+  --focus-ring: #9DB0FF;
+  /* Encres et fonds de page : valeurs sombres reprises des surcharges [style*=…] plus bas. */
+  --c-ink-navy: #E8E8EF;
+  --c-ink-black: #E8E8EF;
+  --c-grey: #A8A8B8;
+  --c-grey-warm: #A8A8B8;
+  --c-page-blue: #0F0F14;
+  --c-page-green: #0F0F14;
   --tx-red: #F87171;
   --tx-green: #4ADE80;
   --tx-amber: #FBBF24;
   --tx-blue: #9DB0FF;
+  --tx-loc-green: #4ADE80;
+  --tx-loc-teal: #7DD3FC;
+  --tx-violet: #D2A8EC;
+  --tx-steel: #7FB8E0;
+  --tx-muted: #A8A8B8;
+  --tx-ink-55: rgba(255,255,255,0.62);
+  --tx-brand: #9DB0FF;
+  --tx-secondary: rgba(255,255,255,0.72);
+  --surface-g: rgba(255,255,255,0.07);
+  --c-card: #1E1E2E;
+  --c-page-grey: #0F0F14;
+  --c-card-glass: rgba(30,30,46,0.85);
+  --c-bar-glass: rgba(20,20,28,0.95);
 }
 
 @layer base {
+  /* Focus clavier visible partout, sans écraser les styles propres à un composant (:where = spécificité 0) */
+  :where(a, button, input, select, textarea, summary, [role='button'], [tabindex]):focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; padding: 0; }
   #root {
@@ -33,9 +162,6 @@
     color: #1D1D1F;
     -webkit-font-smoothing: antialiased;
   }
-  /* Luxury dashboard fonts (Cinzel display + Josefin Sans body) */
-  .font-cinzel   { font-family: 'Cinzel', Georgia, serif; }
-  .font-josefin  { font-family: 'Josefin Sans', 'Plus Jakarta Sans', sans-serif; }
   input, textarea, select, button { font-family: inherit; }
   ::selection { background: rgba(75,107,255,0.2); color: #1D1D1F; }
 }
@@ -229,6 +355,7 @@ div:hover > .hero-arrow { opacity: 1; }
     --p-border:       #1A3355;
     --p-text:         #F0EDE8;
     --p-muted:        #8A9BB5;
+    --p-accent-text:  #9DB0FF; /* texte d'accent lisible (≥ 4,5:1) sur fond marine */
   }
   /* Light mode — calqué sur AppColors mobile */
   .proprio-root.proprio-light {
@@ -238,7 +365,8 @@ div:hover > .hero-arrow { opacity: 1; }
     --p-card:         #FFFFFF;
     --p-border:       #E8EAED;
     --p-text:         #1A1A2E;
-    --p-muted:        #9E9E9E;
+    --p-muted:        #5F6672;
+    --p-accent-text:  #3550D8;
   }
 
   /* Smooth transition on ALL elements inside the dashboard root */
@@ -275,13 +403,7 @@ div:hover > .hero-arrow { opacity: 1; }
   .proprio-root .anim-fade-up,
   .proprio-root .anim-bounce-in { transition: none !important; }
 
-  /* Light mode — Tailwind class overrides */
-  .proprio-root.proprio-light .bg-\[\#060D1A\]  { background-color: #F4F6FA !important; }
-  .proprio-root.proprio-light .bg-\[\#0B1C30\]  { background-color: #FFFFFF !important; }
-  .proprio-root.proprio-light .bg-\[\#112440\]  { background-color: #FFFFFF !important; }
-  .proprio-root.proprio-light .border-\[\#1A3355\] { border-color: #E8EAED !important; }
-  .proprio-root.proprio-light .text-\[\#F0EDE8\] { color: #1A1A2E !important; }
-  .proprio-root.proprio-light .text-\[\#8A9BB5\] { color: #9E9E9E !important; }
+  /* Light mode — cartes (les couleurs du thème passent par les variables --p-*, voir plus haut) */
   .proprio-root.proprio-light .card-navy {
     background: #FFFFFF !important;
     border-color: rgba(0,0,0,0.08) !important;
@@ -350,7 +472,7 @@ div:hover > .hero-arrow { opacity: 1; }
   .nav-link { position: relative; transition: color 0.18s ease; }
   .nav-link::after {
     content: ''; position: absolute; bottom: -3px; left: 50%; width: 0; height: 2px;
-    background: #4B6BFF; border-radius: 1px; transform: translateX(-50%);
+    background: #4160F2; border-radius: 1px; transform: translateX(-50%);
     transition: width 0.25s cubic-bezier(0.22,0.61,0.36,1);
   }
   .nav-link:hover::after { width: 70%; }
@@ -438,6 +560,9 @@ div:hover > .hero-arrow { opacity: 1; }
 
   /* Textes génériques */
   .dark .text-text-dark { color: #E8E8EF !important; }
+  /* Couleurs de marque utilisées comme texte (prix, liens, erreurs) : variante lisible sur fond sombre (FE-B-024). */
+  .dark .text-primary { color: var(--tx-blue); }
+  .dark .text-danger { color: var(--tx-red); }
   .dark .text-text-grey { color: #9898a8 !important; }
 
   /* card-soft (cartes bg-white solides) */
@@ -524,7 +649,7 @@ div:hover > .hero-arrow { opacity: 1; }
 }
 .menu-item-hover:focus-visible {
   background: rgba(0,0,0,0.04);
-  outline: 2px solid #4B6BFF;
+  outline: 2px solid #4160F2;
   outline-offset: -2px;
 }
 .dark .menu-item-hover:hover {

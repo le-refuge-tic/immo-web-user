@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { notificationsApi } from '../../api/notificationsApi'
@@ -9,6 +10,7 @@ import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
 import { useNotifications } from '../../context/NotificationsContext'
 import type { Notification } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -73,18 +75,18 @@ const PaiementIcon = () => (
 
 type TypeCfg = { icon: React.ReactNode; color: string; bg: string }
 const TYPE_CONFIG: Record<string, TypeCfg> = {
-  visite:       { icon: <VisiteIcon />,       color: '#3A5AEE', bg: 'rgba(75,107,255,0.08)' },
-  annulation:   { icon: <AnnulationIcon />,   color: '#DC2626', bg: 'rgba(239,68,68,0.08)' },
-  confirmation: { icon: <ConfirmationIcon />, color: '#15803D', bg: 'rgba(34,197,94,0.08)' },
-  loyer:        { icon: <LoyerIcon />,        color: '#B45309', bg: 'rgba(245,158,11,0.08)' },
-  message:      { icon: <MessageIcon />,      color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)' },
-  systeme:      { icon: <SystemeIcon />,      color: '#6B7280', bg: 'rgba(107,114,128,0.08)' },
-  bien_approuve: { icon: <BienApprouveIcon />, color: '#15803D', bg: 'rgba(34,197,94,0.08)' },
-  bien_rejete:   { icon: <BienRejeteIcon />,   color: '#DC2626', bg: 'rgba(239,68,68,0.08)' },
-  proposition:   { icon: <SwapIcon />,         color: '#B45309', bg: 'rgba(245,158,11,0.10)' },
+  visite:       { icon: <VisiteIcon />,       color: 'var(--tx-blue)', bg: 'rgba(75,107,255,0.08)' },
+  annulation:   { icon: <AnnulationIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
+  confirmation: { icon: <ConfirmationIcon />, color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.08)' },
+  loyer:        { icon: <LoyerIcon />,        color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.08)' },
+  message:      { icon: <MessageIcon />,      color: 'var(--c-violet-soft)', bg: 'rgba(139,92,246,0.08)' },
+  systeme:      { icon: <SystemeIcon />,      color: 'var(--c-grey)', bg: 'rgba(107,114,128,0.08)' },
+  bien_approuve: { icon: <BienApprouveIcon />, color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.08)' },
+  bien_rejete:   { icon: <BienRejeteIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
+  proposition:   { icon: <SwapIcon />,         color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.10)' },
   paiement:      { icon: <PaiementIcon />,     color: '#7C3AED', bg: 'rgba(124,58,237,0.08)' },
-  documents_valides: { icon: <BienApprouveIcon />, color: '#15803D', bg: 'rgba(34,197,94,0.08)' },
-  documents_rejetes: { icon: <BienRejeteIcon />,   color: '#DC2626', bg: 'rgba(239,68,68,0.08)' },
+  documents_valides: { icon: <BienApprouveIcon />, color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.08)' },
+  documents_rejetes: { icon: <BienRejeteIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
 }
 
 // Types réellement émis par l'API → style, aligné sur _styleForType du mobile.
@@ -93,7 +95,7 @@ const TYPE_ALIAS: Record<string, string> = {
   visite_confirmee: 'confirmation', visite_contre_proposee: 'proposition',
   visite_client_recontrepropose: 'proposition', visite_proposition_envoyee: 'proposition',
   visite_annulee: 'annulation', visite_echouee: 'annulation',
-  paiement_visite: 'paiement', nouveau_message: 'message',
+  paiement_visite: 'paiement', nouveau_message: 'message', creneau_expire: 'proposition',
   bien_occupe: 'bien_rejete', bien_disponible: 'bien_approuve',
 }
 
@@ -136,12 +138,13 @@ const VISITE_TYPES = new Set([
 const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
 // Étiquette d'action affichée sous la notification, comme sur mobile (_Notif.chipLabel).
-function chipLabel(n: any): string | null {
+function chipLabel(n: Notification): string | null {
   const meta = n.meta || {}
   if (BIEN_TYPES.has(n.type) && meta.bien_id) return 'Voir le bien'
   if (VISITE_TYPES.has(n.type)) return 'Voir la visite'
   if (meta.action === 'feedback') return 'Donner mon avis'
   if (n.type === 'nouveau_message') return 'Voir le message'
+  if (n.type === 'creneau_expire') return 'Proposer un horaire'
   return null
 }
 
@@ -155,7 +158,7 @@ export default function NotificationsPage() {
   const navigate = useNavigate()
   // Chargement annulable, sans réponse périmée (FE-A-004) ; les mises à jour
   // locales (lu / tout lu) passent par setNotifsData.
-  const { data: notifsData, setData: setNotifsData, loading } = useApiQuery(
+  const { data: notifsData, setData: setNotifsData, loading, error: loadError, refetch } = useApiQuery(
     signal => notificationsApi.list(signal).then(unwrapList),
     [isLoggedIn],
     { enabled: isLoggedIn },
@@ -191,22 +194,22 @@ export default function NotificationsPage() {
     try {
       const [visitesData, convsData] = await Promise.all([visitesApi.mesVisites(), chatApi.conversations()])
       const visites = Array.isArray(visitesData) ? visitesData : visitesData.data || []
-      const visite = visites.find((v: any) => v.id === visiteId)
+      const visite = visites.find(v => v.id === visiteId)
       const bienId = visite?.bien?.id
       const otherId = visite?.client?.id === user.id ? visite?.gestionnaire?.id : visite?.client?.id
       if (!bienId || !otherId) return false
       const convs = Array.isArray(convsData) ? convsData : convsData.data || []
-      const match = convs.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === otherId))
+      const match = convs.find(c => c.bien?.id === bienId && c.participants?.some(p => p.id === otherId))
       if (!match) return false
       navigate(`/conversations/${match.id}`)
       return true
     } catch { return false }
   }
 
-  const openNotif = async (n: any) => {
+  const openNotif = async (n: Notification) => {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
-    if (n.type === 'nouveau_message' && meta.conversation_id) {
+    if ((n.type === 'nouveau_message' || n.type === 'creneau_expire') && meta.conversation_id) {
       navigate(`/conversations/${meta.conversation_id}`)
       return
     }
@@ -247,7 +250,7 @@ export default function NotificationsPage() {
           onClick={() => openNotif(n)}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openNotif(n) } }}
           aria-label={`${n.lu ? '' : 'Non lue : '}${title}`}
-          className={`glass-card rounded-2xl p-3.5 md:p-4 flex items-start gap-3 md:gap-4 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2 ${n.lu ? '' : 'ring-1 ring-primary/30'}`}
+          className={`glass-card rounded-2xl p-3.5 md:p-4 flex items-start gap-3 md:gap-4 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${n.lu ? '' : 'ring-1 ring-primary/30'}`}
         >
           <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
             {cfg.icon}
@@ -259,7 +262,7 @@ export default function NotificationsPage() {
             </div>
             {body && body !== title && <p className="text-xs text-text-grey mt-1 line-clamp-2">{body}</p>}
             {chip && (
-              <span className="inline-block mt-2 px-2.5 py-1 rounded-lg text-caption font-bold bg-primary/10 text-primary dark:text-[#9DB0FF]">
+              <span className="inline-block mt-2 px-2.5 py-1 rounded-lg text-caption font-bold bg-primary/10 text-primary dark:text-brand-soft">
                 {chip}
               </span>
             )}
@@ -284,10 +287,10 @@ export default function NotificationsPage() {
       <h2 className="text-xl font-bold text-text-dark mb-2">Restez informé</h2>
       <p className="text-text-grey text-sm mb-8 max-w-xs">Suivez vos visites, leurs confirmations et vos messages en temps réel.</p>
 <div className="flex flex-col items-center gap-3">
-        <button onClick={() => navigate('/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#3A5AEE,#6D3FE0)' }}>
-          Créer mon compte en 1 minute
+        <button onClick={() => navigate(PROPRIO_SEUL ? '/login' : '/register')} className="px-8 py-3.5 rounded-xl font-bold text-white shadow-btn hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,var(--c-primary),#6D3FE0)' }}>
+          {PROPRIO_SEUL ? 'Se connecter' : 'Créer mon compte en 1 minute'}
         </button>
-        <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-[#9DB0FF]">J’ai déjà un compte</button>
+        {!PROPRIO_SEUL && <button onClick={() => navigate('/login')} className="text-sm font-semibold text-primary dark:text-brand-soft">J’ai déjà un compte</button>}
       </div>
     </div>
   )
@@ -307,7 +310,7 @@ export default function NotificationsPage() {
             )}
           </div>
           {unread > 0 && (
-            <button onClick={markAll} className="text-sm text-primary dark:text-[#9DB0FF] font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors">
+            <button onClick={markAll} className="text-sm text-primary dark:text-brand-soft font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors">
               Tout lire
             </button>
           )}
@@ -320,6 +323,8 @@ export default function NotificationsPage() {
               <div key={n} className="skeleton rounded-2xl h-20" />
             ))}
           </div>
+        ) : loadError && notifs.length === 0 ? (
+          <ErrorState title="Impossible de charger vos alertes" onRetry={refetch} />
         ) : notifs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(75,107,255,0.10)' }}>
@@ -346,7 +351,7 @@ export default function NotificationsPage() {
             )}
             {hasMore && (
               <div className="flex justify-center pt-2">
-                <button onClick={() => setReadLimit(l => l + PAGE_SIZE)} className="px-5 py-2.5 rounded-full text-sm font-semibold bg-primary/10 text-primary dark:text-[#9DB0FF]">
+                <button onClick={() => setReadLimit(l => l + PAGE_SIZE)} className="px-5 py-2.5 rounded-full text-sm font-semibold bg-primary/10 text-primary dark:text-brand-soft">
                   Voir plus
                 </button>
               </div>

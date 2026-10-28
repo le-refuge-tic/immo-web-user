@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../config/inscription'
 import { useNotifications } from '../context/NotificationsContext'
 import { useScrolled } from '../context/ScrollContext'
 import { useTheme } from '../context/ThemeContext'
@@ -127,8 +128,8 @@ export default function TopNav() {
           {/* Logo */}
           <button onClick={() => navigate('/')} className="flex items-center gap-2.5 lg:gap-3 flex-shrink-0">
             <img src={logoUrl} alt="REFUGE" style={{ width: 60, height: 60, objectFit: 'contain', filter: isDark ? 'brightness(1.15) drop-shadow(0 0 6px rgba(0,174,239,0.35))' : 'none' }} className="lg:w-[68px] lg:h-[68px]" />
-            {/* #0077B6 en clair : #00AEEF sur fond clair ne passe pas le contraste AA (2,6:1) */}
-            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: isDark ? '#00AEEF' : '#0077B6' }}>REFUGE</span>
+            {/* #0077B6 en clair : var(--c-cyan) sur fond clair ne passe pas le contraste AA (2,6:1) */}
+            <span className="font-extrabold text-xl lg:text-2xl tracking-tight hidden sm:inline" style={{ color: isDark ? 'var(--c-cyan)' : '#0077B6' }}>REFUGE</span>
           </button>
 
           {/* Nav centré */}
@@ -141,7 +142,7 @@ export default function TopNav() {
                   onClick={() => handleNav(item)}
                   className={`relative flex items-center gap-1.5 lg:gap-2 px-2.5 lg:px-4 py-2 rounded-xl text-[13px] lg:text-sm font-medium transition-all whitespace-nowrap ${!active ? 'nav-link' : ''}`}
                   style={{
-                    color:      active ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'),
+                    color:      active ? 'var(--c-brand)' : (isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'),
                     background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
                     border:     active ? '1px solid rgba(75,107,255,0.25)' : '1px solid transparent',
                     boxShadow:  active ? 'inset 0 1px 0 rgba(255,255,255,0.6)' : 'none',
@@ -168,14 +169,14 @@ export default function TopNav() {
                   title={item.label}
                   className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
                   style={{
-                    color: active ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.60)'),
+                    color: active ? 'var(--c-brand)' : (isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.60)'),
                     background: active ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.75)'),
                     border: '1px solid ' + (active ? 'rgba(75,107,255,0.25)' : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')),
                   }}
                 >
                   {item.path === '/notifications' ? <BellIcon /> : <ChatIcon />}
                   {badge > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-micro font-bold text-white" style={{ background: '#FF3B30', border: '2px solid ' + (isDark ? '#0F0F14' : '#F5F5F7') }}>
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-micro font-bold text-white" style={{ background: 'var(--c-red-ios)', border: '2px solid ' + (isDark ? '#0F0F14' : '#F5F5F7') }}>
                       {badge > 9 ? '9+' : badge}
                     </span>
                   )}
@@ -202,9 +203,9 @@ export default function TopNav() {
                 <button
                   onClick={() => navigate('/register')}
                   className="px-3 lg:px-4 py-2 text-[13px] lg:text-sm font-semibold rounded-xl text-white transition-all btn-glow whitespace-nowrap"
-                  style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}
+                  style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}
                 >
-                  S'inscrire
+                  {PROPRIO_SEUL ? 'Je suis propriétaire' : "S'inscrire"}
                 </button>
               </div>
             ) : (
@@ -229,7 +230,7 @@ export default function TopNav() {
                   {user?.photo_profil ? (
                     <img src={user.photo_profil} alt="" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
                       {initials}
                     </div>
                   )}
@@ -277,7 +278,7 @@ export default function TopNav() {
                             onClick={() => { setActiveRole(role); navigate(path); setMenuOpen(false) }}
                             role="menuitem"
                             className="menu-item-hover w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-left"
-                            style={{ color: isCurrent ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
+                            style={{ color: isCurrent ? 'var(--c-brand)' : (isDark ? 'rgba(255,255,255,0.80)' : '#1D1D1F') }}
                           >
                             <span>{label}</span>
                             {isCurrent && (
@@ -304,7 +305,7 @@ export default function TopNav() {
                     )}
                     <div className="py-1.5 mt-1.5" style={{ borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') }}>
                       <button onClick={handleLogout} role="menuitem"
-                        className="menu-item-hover w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-left" style={{ color: '#FF3B30' }}>
+                        className="menu-item-hover w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-left" style={{ color: 'var(--c-red-ios)' }}>
                         <LogOutIcon /> Se déconnecter
                       </button>
                     </div>

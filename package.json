@@ -1,21 +1,31 @@
 {
   "name": "immo-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.5.0",
   "type": "module",
   "engines": {
     "node": ">=22",
     "npm": ">=10"
   },
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || exit 0",
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "lint": "oxlint --max-warnings 26",
     "preview": "vite preview",
     "test": "vitest run",
-    "check:links": "node scripts/check-links.mjs"
+    "check:links": "node scripts/check-links.mjs",
+    "check:size": "node scripts/check-bundle-size.mjs",
+    "check:colors": "node scripts/check-inline-colors.mjs",
+    "check:any": "node scripts/check-explicit-any.mjs",
+    "check:changelog": "node scripts/check-changelog.mjs",
+    "check": "tsc -b && npm run lint && npm run check:any && npm run check:colors && npm run check:links && npm run check:changelog",
+    "test:e2e": "playwright test",
+    "check:e2e-types": "tsc -p e2e"
   },
   "dependencies": {
+    "@sentry/react": "^11.7.0",
+    "@tanstack/react-query": "^5.105.0",
     "axios": "^1.18.1",
     "clsx": "^2.1.1",
     "framer-motion": "^13.0.0",
@@ -25,7 +35,8 @@
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1",
     "socket.io-client": "^4.8.3",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "web-vitals": "^6.2.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -34,6 +45,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.5.2",
+    "axe-core": "^4.10.3",
     "oxlint": "^1.71.0",
     "postcss": "^8.5.16",
     "tailwindcss": "^3.4.19",

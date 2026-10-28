@@ -18,11 +18,11 @@ export interface PerfHebdoSemaine {
 export const commercialApi = {
   /** Compteurs du commercial connecté : total publiés, en vérification, validés, validés cette semaine. */
   compteurs: (commercialId: number) =>
-    axios.get(`${BASE}/admin/commerciaux/${commercialId}/compteurs`, auth())
-      .then(r => r.data as CompteursCommercial),
+    axios.get<CompteursCommercial>(`${BASE}/admin/commerciaux/${commercialId}/compteurs`, auth())
+      .then(r => r.data),
 
   /** Historique hebdomadaire de performance (gains par semaine) du commercial. */
   performanceHebdo: (commercialId: number, semaines = 8) =>
-    axios.get(`${BASE}/admin/commerciaux/${commercialId}/performance-hebdo`, { ...auth(), params: { semaines } })
-      .then(r => r.data as PerfHebdoSemaine[]),
+    axios.get<PerfHebdoSemaine[]>(`${BASE}/admin/commerciaux/${commercialId}/performance-hebdo`, { ...auth(), params: { semaines } })
+      .then(r => r.data),
 }

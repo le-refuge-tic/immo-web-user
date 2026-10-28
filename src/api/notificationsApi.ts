@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { ListResponse, Notification, NotificationsCount } from '../types/api'
+import type { MessageResponse } from '../types/auth'
 import { BASE, auth } from './apiBase'
 
 export const notificationsApi = {
@@ -11,9 +12,9 @@ export const notificationsApi = {
     axios.get<NotificationsCount>(`${BASE}/alertes/count`, { ...auth(), params: role ? { role } : undefined }).then(r => r.data),
 
   markRead: (id: number) =>
-    axios.patch(`${BASE}/alertes/${id}/lire`, {}, auth()).then(r => r.data),
+    axios.patch<MessageResponse>(`${BASE}/alertes/${id}/lire`, {}, auth()).then(r => r.data),
 
   /** `role` : ne marque lues que les alertes de cet espace. */
   markAllRead: (role?: string) =>
-    axios.patch(`${BASE}/alertes/lire-tout`, {}, { ...auth(), params: role ? { role } : undefined }).then(r => r.data),
+    axios.patch<MessageResponse>(`${BASE}/alertes/lire-tout`, {}, { ...auth(), params: role ? { role } : undefined }).then(r => r.data),
 }

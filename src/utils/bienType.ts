@@ -1,3 +1,5 @@
+import type { Amenites } from '../types/amenites'
+
 /**
  * Libellé du type de logement.
  *
@@ -7,6 +9,14 @@
  * type réel. Ce helper priorise donc le sous-type et ne retombe sur le type
  * que si aucun sous-type n'est connu.
  */
+
+/** Forme minimale lue : un bien complet ou un objet partiel (sous-type à plat). */
+export type BienTypable = {
+  type?: string
+  sousType?: string
+  sous_type?: string
+  amenites?: Record<string, unknown> | null
+}
 
 const TYPE_LABELS: Record<string, string> = {
   maison: 'Maison',
@@ -32,15 +42,15 @@ const SOUS_TYPE_LABELS: Record<string, string> = {
 }
 
 /** Récupère le sous-type quel que soit l'emplacement du champ selon l'endpoint. */
-function extractSousType(bien: any): string | undefined {
-  return bien?.sousType ?? bien?.sous_type ?? bien?.amenites?.sous_type
+function extractSousType(bien: BienTypable): string | undefined {
+  return bien?.sousType ?? bien?.sous_type ?? (bien?.amenites as Amenites | null | undefined)?.sous_type
 }
 
 /**
  * Libellé du type précis d'un bien.
  * @example bienTypeLabel({ type: 'appart_vide', amenites: { sous_type: 'villa' } }) -> 'Villa'
  */
-export function bienTypeLabel(bien: any): string {
+export function bienTypeLabel(bien: BienTypable | null | undefined): string {
   if (!bien) return 'Bien'
   const sous = extractSousType(bien)
   if (sous && SOUS_TYPE_LABELS[sous]) return SOUS_TYPE_LABELS[sous]

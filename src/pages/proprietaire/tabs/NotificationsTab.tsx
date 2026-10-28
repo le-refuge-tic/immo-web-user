@@ -6,9 +6,10 @@ import { visitesApi } from '../../../api/visitesApi'
 import { chatApi } from '../../../api/chatApi'
 import { notificationsApi } from '../../../api/notificationsApi'
 import { IcMessage } from './icons'
-import { IcHome, IcCal, IcBell, BLUE, formatConvTime } from './shared'
+import { IcHome, IcCal, IcBell, BLUE, formatConvTime, BLUE_TX } from './shared'
 import type { Tab } from './shared'
 import type { Notification } from '../../../types/api'
+import ErrorState from '../../../components/ErrorState'
 
 /* ── Onglet Notifications — propre à l'espace propriétaire ─────────────────
  * Affiche uniquement les alertes concernant le rôle propriétaire (target_role
@@ -25,11 +26,11 @@ const NOTIF_VISITE_TYPES = new Set([
 const NOTIF_BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
 function notifIcon(type: string): { node: React.ReactNode; color: string } {
-  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: '#15803D' }
-  if (type === 'nouveau_message') return { node: <IcMessage />, color: '#8B5CF6' }
-  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: '#DC2626' }
-  if (type === 'visite_confirmee') return { node: <IcBell />, color: '#15803D' }
-  if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: BLUE }
+  if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: 'var(--tx-green)' }
+  if (type === 'nouveau_message') return { node: <IcMessage />, color: 'var(--c-violet-soft)' }
+  if (type === 'visite_annulee' || type === 'visite_echouee') return { node: <IcBell />, color: 'var(--tx-red)' }
+  if (type === 'visite_confirmee') return { node: <IcBell />, color: 'var(--tx-green)' }
+  if (NOTIF_VISITE_TYPES.has(type)) return { node: <IcCal />, color: BLUE_TX }
   return { node: <IcBell />, color: 'var(--p-muted)' as string }
 }
 
@@ -39,15 +40,18 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
   const { refresh: refreshCounts, markAlertesRead } = useNotifications()
   const [notifs, setNotifs] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [filter, setFilter] = useState<'toutes' | 'non_lues'>('toutes')
 
-  useEffect(() => {
+  const charger = () => {
     setLoading(true)
+    setLoadError(false)
     notificationsApi.list()
       .then(d => setNotifs(Array.isArray(d) ? d : d.data || []))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { charger() }, [])
 
   // Notifications de l'espace propriétaire : rôle cible explicite = proprietaire,
   // ou sans rôle (alertes antérieures au champ target_role).
@@ -75,19 +79,19 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
     try {
       const [vd, cd] = await Promise.all([visitesApi.mesVisites(), chatApi.conversations()])
       const visites = Array.isArray(vd) ? vd : vd.data || []
-      const visite = visites.find((v: any) => v.id === visiteId)
+      const visite = visites.find(v => v.id === visiteId)
       const bienId = visite?.bien?.id
       const otherId = visite?.client?.id === user.id ? visite?.gestionnaire?.id : visite?.client?.id
       if (!bienId || !otherId) return false
       const convs = Array.isArray(cd) ? cd : cd.data || []
-      const match = convs.find((c: any) => c.bien?.id === bienId && c.participants?.some((p: any) => p.id === otherId))
+      const match = convs.find(c => c.bien?.id === bienId && c.participants?.some(p => p.id === otherId))
       if (!match) return false
       onOpenTab('messages', match.id)
       return true
     } catch { return false }
   }
 
-  const openNotif = async (n: any) => {
+  const openNotif = async (n: Notification) => {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
     if (n.type === 'nouveau_message' && meta.conversation_id) {
@@ -111,11 +115,11 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--p-muted)' }}>Espace propriétaire</p>
           <h2 className="text-[22px] font-black tracking-tight" style={{ color: 'var(--p-text)' }}>
             Notifications
-            {unread > 0 && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE }}>{unread}</span>}
+            {unread > 0 && <span className="ml-2 text-[15px] font-bold" style={{ color: BLUE_TX }}>{unread}</span>}
           </h2>
         </div>
         {unread > 0 && (
-          <button onClick={markAll} className="text-xs font-bold" style={{ color: BLUE }}>Tout marquer lu</button>
+          <button onClick={markAll} className="text-xs font-bold" style={{ color: BLUE_TX }}>Tout marquer lu</button>
         )}
       </div>
 
@@ -125,7 +129,7 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
           <button key={k} onClick={() => setFilter(k)}
             className="px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
             style={filter === k
-              ? { background: BLUE, color: '#fff' }
+              ? { background: BLUE, color: 'rgb(255,255,255)' }
               : { background: 'var(--p-card)', color: 'var(--p-muted)', border: '1px solid var(--p-border)' }}>
             {l}
           </button>
@@ -137,6 +141,8 @@ export function NotificationsTab({ onOpenTab }: { onOpenTab: (t: Tab, convId?: n
           <div className="space-y-3">
             {[1, 2, 3, 4].map(i => <div key={i} className="skeleton rounded-2xl h-20" />)}
           </div>
+        ) : loadError && notifs.length === 0 ? (
+          <ErrorState palette="proprietaire" title="Impossible de charger vos notifications" onRetry={charger} />
         ) : displayed.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'var(--p-card)', color: 'var(--p-muted)' }}>

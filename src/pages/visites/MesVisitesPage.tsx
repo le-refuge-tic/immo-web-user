@@ -1,74 +1,24 @@
-import { useState, useEffect, useRef } from 'react'
-import { openPaymentUrl } from '../../utils/paymentUrl'
-import { createPortal } from 'react-dom'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { visitesApi } from '../../api/visitesApi'
-import { paiementApi } from '../../api/paiementApi'
 import { chatApi } from '../../api/chatApi'
-import FaceRating from '../../components/FaceRating'
 import { bienTypeLabel } from '../../utils/bienType'
-import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { unwrapList } from '../../utils/unwrapList'
 import { useApiQuery } from '../../hooks/useApiQuery'
-import type { Visite } from '../../types/api'
-import { track } from '../../lib/analytics'
+import ErrorState from '../../components/ErrorState'
+import RefreshFailedNotice from '../../components/RefreshFailedNotice'
 import { apiMessage } from '../../utils/apiMessage'
-
-const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
-  en_attente:      { label: 'En attente',      color: '#B45309', bg: 'rgba(245,158,11,0.1)' },
-  contre_proposee: { label: 'Contre-proposée', color: '#B45309', bg: 'rgba(230,126,34,0.12)' },
-  confirmee:       { label: 'Confirmée',        color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
-  effectuee:       { label: 'Effectuée',        color: '#3A5AEE', bg: 'rgba(58,90,238,0.1)' },
-  annulee:         { label: 'Annulée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
-  payee:           { label: 'Payée',            color: '#15803D', bg: 'rgba(34,197,94,0.1)' },
-  echouee:         { label: 'Échouée',          color: '#DC2626', bg: 'rgba(239,68,68,0.1)' },
-}
-
-// Même règle que côté mobile : une visite non traitée (confirmée ou en attente
-// de réponse) est considérée "échouée" 2h après la date programmée.
-function isEchoueeVisite(v: any): boolean {
-  if (v.statut === 'echouee') return true
-  if (v.statut === 'effectuee' || v.statut === 'annulee') return false
-  const raw = v.date_contre_proposee || v.date_souhaitee
-  if (!raw) return false
-  return Date.now() > new Date(raw).getTime() + 2 * 60 * 60 * 1000
-}
-
-function isDatePasseeVisite(v: any): boolean {
-  const raw = v.date_contre_proposee || v.date_souhaitee
-  if (!raw) return false
-  return Date.now() > new Date(raw).getTime()
-}
-
-const OPERATORS = [
-  { key: 'momo',    label: 'MTN MoMo' },
-  { key: 'fedapay', label: 'FedaPay'  },
-]
-
-
-function fmtDate(raw: string | undefined | null) {
-  if (!raw) return '--'
-  try {
-    const dt = new Date(raw)
-    return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()} à ${String(dt.getHours()).padStart(2, '0')}h${String(dt.getMinutes()).padStart(2, '0')}`
-  } catch { return raw }
-}
-
-const TABS = ['Toutes', 'À venir', 'Terminées', 'Annulées', 'Échouées']
-
-const ISSUES_TAGS = [
-  "L'interlocuteur n'était pas professionnel",
-  'Le bien ne correspond pas aux photos',
-  'La description était trompeuse',
-  "L'état du bien était décevant",
-  'Des informations importantes ont été omises',
-  'La visite était trop précipitée',
-  "Le bien n'est plus disponible comme annoncé",
-  'Le prix annoncé ne reflète pas la réalité',
-]
-
-const NO_VISITES: Visite[] = []
+import { TABS, NO_VISITES } from './visites/constants'
+import { fmtDate, isEchoueeVisite } from './visites/helpers'
+import type { ConfirmDialogState } from './visites/types'
+import type { Visite } from '../../types/api'
+import { VisiteCard } from './visites/VisiteCard'
+import { usePaiementVisite } from './visites/usePaiementVisite'
+import { useAvisVisite } from './visites/useAvisVisite'
+import { PaiementModal } from './visites/PaiementModal'
+import { FeedbackModal } from './visites/FeedbackModal'
+import { ConfirmDialog } from './visites/ConfirmDialog'
 
 export default function MesVisitesPage() {
   usePageTitle('Mes visites')
@@ -76,53 +26,31 @@ export default function MesVisitesPage() {
   const location = useLocation()
   const [tab, setTab] = useState(0)
   // Chargement annulable, sans réponse périmée (FE-A-004) ; refetch recharge la liste.
-  const { data: visitesData, loading, refetch: loadVisites } = useApiQuery(
+  const { data: visitesData, loading, error: loadError, refetch: loadVisites } = useApiQuery(
     signal => visitesApi.mesVisites(signal).then(unwrapList),
     [],
   )
   const visites = visitesData ?? NO_VISITES
-  const [showPay, setShowPay] = useState<any>(null)
-  const [operator, setOperator] = useState('momo')
-  const [phoneOp, setPhoneOp] = useState('')
-  const [paying, setPaying] = useState(false)
-  const [payError, setPayError] = useState('')
-  const [payState, setPayState] = useState<'idle' | 'waiting' | 'pending' | 'success'>('idle')
-  const [payRefId, setPayRefId] = useState('')
-  const [payUrl, setPayUrl] = useState('')
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const [confirmDialog, setConfirmDialog] = useState<{ title: string; body: string; onConfirm: () => void } | null>(null)
-  const [showFeedback, setShowFeedback] = useState<any>(null)
-  const [feedbackNote, setFeedbackNote] = useState<number | null>(null)
-  const [feedbackTags, setFeedbackTags] = useState<string[]>([])
-  const [feedbackComment, setFeedbackComment] = useState('')
-  const [feedbackSaving, setFeedbackSaving] = useState(false)
-  const [feedbackError, setFeedbackError] = useState('')
-  const [feedbackDone, setFeedbackDone] = useState(false)
-
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
-
-  useEffect(() => {
-    const onVisibility = () => {
-      if (document.hidden && pollRef.current) {
-        clearInterval(pollRef.current)
-        pollRef.current = null
-      }
-    }
-    document.addEventListener('visibilitychange', onVisibility)
-    return () => document.removeEventListener('visibilitychange', onVisibility)
-  }, [])
+  const pay = usePaiementVisite({ loadVisites })
+  const { setShowPay } = pay
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
+  // Échec d'une action (annuler, confirmer…) : le bouton de la carte reste utilisable pour recommencer.
+  const [actionError, setActionError] = useState('')
+  const echecAction = (e: unknown, repli: string) => setActionError(apiMessage(e) || repli)
+  const avis = useAvisVisite({ loadVisites })
 
   // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
   // dans le chat (comme sur mobile) — au lieu de laisser l'utilisateur
   // rechercher lui-même la visite dans la liste.
   useEffect(() => {
-    const targetId = (location.state as any)?.openPayForVisiteId
+    const targetId = (location.state as { openPayForVisiteId?: number } | null)?.openPayForVisiteId
     if (!targetId || visites.length === 0) return
     const v = visites.find(x => x.id === targetId)
     if (v) {
       setShowPay(v)
       navigate(location.pathname, { replace: true, state: {} })
     }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate et le chemin courant ne servent qu'à effacer l'état de navigation une fois consommé
   }, [visites, location.state])
 
   const filtered = visites.filter(v => {
@@ -135,7 +63,7 @@ export default function MesVisitesPage() {
     return true
   })
 
-  const handleAnnuler = (v: any) => {
+  const handleAnnuler = (v: Visite) => {
     const body = v.statut === 'confirmee'
       ? 'Cette visite est déjà confirmée. Voulez-vous vraiment l\'annuler ?'
       : 'Voulez-vous vraiment annuler cette demande de visite ?'
@@ -146,52 +74,69 @@ export default function MesVisitesPage() {
         setConfirmDialog(null)
         // Recharger même en cas d'erreur réseau — le serveur a peut-être traité
         // la demande (cold start Render) et l'état affiché doit refléter la réalité.
-        try { await visitesApi.annuler(v.id) } catch (_) {} finally { loadVisites() }
+        setActionError('')
+        try { await visitesApi.annuler(v.id) } catch (e: unknown) { echecAction(e, "L'annulation de la visite a échoué. Réessayez.") } finally { loadVisites() }
       },
     })
   }
 
-  const handleMarquerEffectuee = (v: any) => {
+  const handleMarquerEffectuee = (v: Visite) => {
     setConfirmDialog({
       title: 'Visite effectuée ?',
       body: 'Confirmez-vous que la visite a bien eu lieu ?',
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.marquerEffectuee(v.id) } catch (_) {} finally { loadVisites() }
+        setActionError('')
+        try { await visitesApi.marquerEffectuee(v.id) } catch (e: unknown) { echecAction(e, 'La mise à jour de la visite a échoué. Réessayez.') } finally { loadVisites() }
       },
     })
   }
 
   const handleAccepterCP = async (id: number) => {
+    setActionError('')
     try {
       await visitesApi.accepterContreProposition(id)
       loadVisites()
-    } catch (_) {}
+    } catch (e: unknown) {
+      echecAction(e, "Le créneau proposé n'a pas pu être accepté. Réessayez.")
+    }
   }
 
-  const handleRefuserCP = (v: any) => {
+  const handleRefuserCP = (v: Visite) => {
     setConfirmDialog({
       title: 'Refuser le créneau proposé ?',
       body: 'La visite sera annulée. Vous pouvez faire une nouvelle demande si vous le souhaitez.',
       onConfirm: async () => {
         setConfirmDialog(null)
-        try { await visitesApi.annuler(v.id) } catch (_) {} finally { loadVisites() }
+        setActionError('')
+        try { await visitesApi.annuler(v.id) } catch (e: unknown) { echecAction(e, 'Le refus du créneau a échoué. Réessayez.') } finally { loadVisites() }
       },
     })
   }
 
   const handleReproposer = async (id: number, isoDate: string) => {
-    try { await visitesApi.reProposer(id, isoDate) } catch (_) {} finally { loadVisites() }
+    setActionError('')
+    try {
+      await visitesApi.reProposer(id, isoDate)
+    } catch (e) {
+      // Refus du serveur (4xx) : la carte affiche l'erreur et garde son formulaire ouvert, sans recharger la liste.
+      // Pas de réponse (délai dépassé, coupure) : le serveur a peut-être enregistré la proposition, on recharge.
+      if (!(e as { response?: unknown } | null)?.response) loadVisites()
+      throw e
+    }
+    loadVisites()
   }
 
   const openChat = async (bienId: number, draftMessage?: string) => {
     try {
       const conv = await chatApi.creerConversation(bienId)
       navigate(`/conversations/${conv.conversationId}`, draftMessage ? { state: { draftMessage } } : undefined)
-    } catch (_) {}
+    } catch (e: unknown) {
+      echecAction(e, "Impossible d'ouvrir la conversation. Réessayez.")
+    }
   }
 
-  const handleContacterEchouee = (v: any) => {
+  const handleContacterEchouee = (v: Visite) => {
     const bien = v.bien
     const gestionnairePrenom = v.gestionnaire?.prenom || ''
     const typeStr = bien ? bienTypeLabel(bien) : 'ce bien'
@@ -201,108 +146,16 @@ export default function MesVisitesPage() {
   }
 
   const handleIntegration = async (id: number, integre: boolean, bienId?: number) => {
+    setActionError('')
     try {
       await visitesApi.deciderIntegration(id, integre)
       loadVisites()
       // Comme sur mobile : le contrat de bail s'affiche une seule fois,
       // juste après avoir accepté d'intégrer — avant d'aller au paiement.
       if (integre && bienId) navigate(`/contrat-bail/${bienId}`)
-    } catch (_) {}
-  }
-
-  const handlePayer = async () => {
-    if (!showPay) return
-    if (payState === 'pending') return
-    if (operator !== 'fedapay' && !validateBeninPhone(phoneOp)) return
-    setPaying(true)
-    setPayError('')
-    try {
-      const res = await paiementApi.initierVisite({
-        visite_id: showPay.id,
-        phone: phoneOp,
-        methode_paiement: operator as any,
-      })
-      const ref = res.referenceId || res.reference_id
-      setPayRefId(ref)
-      setPayState('waiting')
-      // FedaPay : la transaction est créée côté serveur mais le paiement ne
-      // se fait que sur sa page hébergée — sans cette ouverture, l'utilisateur
-      // reste bloqué sur l'écran d'attente jusqu'au timeout du polling.
-      if (res.url_paiement) {
-        setPayUrl(res.url_paiement)
-        openPaymentUrl(res.url_paiement)
-      } else {
-        setPayUrl('')
-      }
-      let attempts = 0
-      // FedaPay se paie sur une page hébergée ouverte à part — l'utilisateur a
-      // besoin de bien plus de temps que pour valider un push USSD MoMo.
-      const maxAttempts = res.url_paiement ? 100 : 20
-      pollRef.current = setInterval(async () => {
-        attempts++
-        try {
-          const status = await paiementApi.statutVisite(ref)
-          if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
-            clearInterval(pollRef.current!)
-            setPayState('success')
-            track('visite_payee')
-            loadVisites()
-          } else if (status.statut === 'echoue' || status.statut === 'failed') {
-            clearInterval(pollRef.current!)
-            setPayError('Paiement refusé. Vérifiez votre solde Mobile Money.')
-            setPayState('idle')
-          }
-        } catch (_) {}
-        if (attempts >= maxAttempts) { clearInterval(pollRef.current!); setPayState('pending') }
-      }, 5000)
-    } catch (err: any) {
-      setPayError(apiMessage(err) || 'Erreur de paiement')
-      setPayState('idle')
+    } catch (e: unknown) {
+      echecAction(e, "Votre choix n'a pas pu être enregistré. Réessayez.")
     }
-    setPaying(false)
-  }
-
-  const closePayModal = () => {
-    if (pollRef.current) clearInterval(pollRef.current)
-    setShowPay(null)
-    setPayState('idle')
-    setPhoneOp('')
-    setPayError('')
-    setPayUrl('')
-  }
-
-  const openFeedback = (v: any) => {
-    setShowFeedback(v)
-    setFeedbackNote(null)
-    setFeedbackTags([])
-    setFeedbackComment('')
-    setFeedbackError('')
-    setFeedbackDone(false)
-  }
-
-  const needsTags = feedbackNote !== null && feedbackNote <= 3
-  const canSubmitFeedback = feedbackNote !== null &&
-    (feedbackNote > 3 || feedbackTags.length > 0 || feedbackComment.trim().length > 0)
-
-  const toggleFeedbackTag = (tag: string) =>
-    setFeedbackTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
-
-  const handleSubmitFeedback = async () => {
-    if (!showFeedback || !canSubmitFeedback) return
-    setFeedbackSaving(true)
-    setFeedbackError('')
-    try {
-      await visitesApi.donnerFeedback(showFeedback.id, {
-        note: feedbackNote!,
-        tags: feedbackTags.length ? feedbackTags : undefined,
-        texte: feedbackComment.trim() || undefined,
-      })
-      setFeedbackDone(true)
-      loadVisites()
-    } catch (err: any) {
-      setFeedbackError(apiMessage(err) || "Impossible d'envoyer l'avis")
-    }
-    setFeedbackSaving(false)
   }
 
   return (
@@ -312,7 +165,7 @@ export default function MesVisitesPage() {
       <div className="sticky top-0 md:top-[72px] z-10 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(15,15,20,0.88)] border-b border-black/[0.07] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
         <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="flex items-center gap-3 pt-6 md:pt-5 pb-3">
-            <button onClick={() => navigate(-1)}
+            <button onClick={() => navigate(-1)} aria-label="Retour"
               className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0">
               <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -320,7 +173,7 @@ export default function MesVisitesPage() {
             </button>
             <div>
               <h1 className="text-lg md:text-xl font-bold text-text-dark">Mes visites</h1>
-              {!loading && <p className="text-xs text-text-grey">{visites.length} visite{visites.length > 1 ? 's' : ''} au total</p>}
+              {!loading && !loadError && <p className="text-xs text-text-grey">{visites.length} visite{visites.length > 1 ? 's' : ''} au total</p>}
             </div>
           </div>
           {/* Tabs */}
@@ -328,9 +181,9 @@ export default function MesVisitesPage() {
           <div role="group" aria-label="Filtrer les visites" className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {TABS.map((t, i) => (
               <button key={t} type="button" aria-pressed={tab === i} onClick={() => setTab(i)}
-                className={`flex-shrink-0 px-3 md:px-6 pb-3 text-[13px] font-semibold transition-all relative whitespace-nowrap ${tab === i ? 'text-[#3A5AEE] dark:text-[#9DB0FF]' : 'text-[#6B7280] dark:text-[#9CA3AF]'}`}>
+                className={`flex-shrink-0 px-3 md:px-6 pb-3 text-[13px] font-semibold transition-all relative whitespace-nowrap ${tab === i ? 'text-primary dark:text-brand-soft' : 'text-gray-500 dark:text-[#5F6672]'}`}>
                 {t}
-                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#4B6BFF]" />}
+                {tab === i && <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-brand" />}
               </button>
             ))}
           </div>
@@ -338,15 +191,19 @@ export default function MesVisitesPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 py-6">
+        {actionError && <RefreshFailedNotice message={actionError} />}
+        {!!loadError && !loading && visites.length > 0 && <RefreshFailedNotice onRetry={loadVisites} />}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(n => <div key={n} className="skeleton rounded-2xl h-28" />)}
           </div>
+        ) : loadError && visites.length === 0 ? (
+          <ErrorState title="Impossible de charger vos visites" onRetry={loadVisites} />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-[20px] flex items-center justify-center mx-auto mb-4"
               style={{ background: 'rgba(75,107,255,0.1)' }}>
-              <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.5}>
+              <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
@@ -355,552 +212,19 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(bienId) => openChat(bienId)} onContacterEchouee={handleContacterEchouee} onFeedback={openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
+            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(bienId) => openChat(bienId)} onContacterEchouee={handleContacterEchouee} onFeedback={avis.openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
           </div>
         )}
       </div>
 
       {/* Payment modal */}
-      {showPay && createPortal(
-        <div aria-hidden="true" className="fixed inset-0 bg-black/50 z-[60] flex items-end md:items-center md:justify-center" onClick={payState === 'idle' || payState === 'pending' ? closePayModal : undefined}>
-          <div role="dialog" aria-modal="true" aria-label="Payer la visite" aria-hidden="false" className="glass-strong rounded-t-3xl md:rounded-3xl p-6 w-full md:max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="w-12 h-1 bg-divider rounded-full mx-auto mb-5" />
-
-            {payState === 'pending' ? (
-              <div className="flex flex-col items-center text-center py-6">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#FEF3C7' }}>
-                  <svg className="w-8 h-8" fill="none" stroke="#F59E0B" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <p className="font-bold text-text-dark mb-2">Confirmation en attente</p>
-                <p className="text-sm text-text-grey mb-6">Nous n'avons pas encore reçu la confirmation de l'opérateur. Si vous avez validé sur votre téléphone, le paiement apparaîtra ici dès réception.</p>
-                <button
-                  onClick={async () => {
-                    if (!payRefId) return
-                    setPayState('waiting')
-                    let attempts = 0
-                    pollRef.current = setInterval(async () => {
-                      attempts++
-                      try {
-                        const status = await paiementApi.statutVisite(payRefId)
-                        if (status.statut === 'confirme' || status.statut === 'reussi' || status.statut === 'success') {
-                          clearInterval(pollRef.current!); setPayState('success'); track('visite_payee'); loadVisites()
-                        } else if (status.statut === 'echoue' || status.statut === 'failed') {
-                          clearInterval(pollRef.current!); setPayError('Paiement refusé par l\'opérateur.'); setPayState('idle')
-                        }
-                      } catch (_) {}
-                      if (attempts >= 10) { clearInterval(pollRef.current!); setPayState('pending') }
-                    }, 5000)
-                  }}
-                  className="w-full py-3.5 rounded-xl font-bold text-white mb-3" style={{ background: '#B45309' }}>
-                  Vérifier à nouveau
-                </button>
-                <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
-              </div>
-            ) : payState === 'success' ? (
-              <div className="flex flex-col items-center text-center py-4">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
-                  <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <p className="font-bold text-text-dark mb-1">Paiement confirmé !</p>
-                <p className="text-sm text-text-grey mb-5">Les frais de visite ont bien été réglés.</p>
-                <button onClick={() => { navigate(`/recu/visite/${payRefId}`) }} className="w-full py-3.5 rounded-xl font-bold text-white mb-2" style={{ background: '#4B6BFF' }}>
-                  Voir mon reçu
-                </button>
-                <button onClick={closePayModal} className="text-sm font-semibold text-text-grey">Fermer</button>
-              </div>
-            ) : payState === 'waiting' ? (
-              <div className="flex flex-col items-center text-center py-6">
-                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="font-bold text-text-dark mb-1">Confirmation en cours…</p>
-                {payUrl ? (
-                  <>
-                    <p className="text-sm text-text-grey mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                    <button onClick={() => openPaymentUrl(payUrl)}
-                      className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#C2410C' }}>
-                      Rouvrir la page de paiement
-                    </button>
-                  </>
-                ) : (
-                  <p className="text-sm text-text-grey">Validez la demande sur votre téléphone {phoneOp}</p>
-                )}
-              </div>
-            ) : (
-              <>
-                <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
-                <p className="text-sm text-text-grey mb-4">
-                  Montant : <span className="font-bold text-text-dark">{Number(showPay?.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA</span>
-                </p>
-                {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
-                <div className="flex gap-2 mb-4">
-                  {OPERATORS.map(op => (
-                    <button
-                      key={op.key}
-                      onClick={() => setOperator(op.key)}
-                      className="flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
-                      style={{
-                        borderColor: operator === op.key ? '#4B6BFF' : '#E5E7EB',
-                        color: operator === op.key ? '#4B6BFF' : '#9CA3AF',
-                        background: operator === op.key ? 'rgba(75,107,255,0.06)' : 'transparent',
-                      }}
-                    >
-                      {op.label}
-                    </button>
-                  ))}
-                </div>
-                {operator === 'fedapay' ? (
-                  <p className="text-xs text-text-grey mb-4">Vous serez redirigé vers la page de paiement sécurisée FedaPay (carte ou Mobile Money).</p>
-                ) : (
-                  <div className="flex items-center gap-3 rounded-2xl px-3.5 border border-divider bg-surface-g mb-4 focus-within:border-primary">
-                    <span className="text-lg">🇧🇯</span>
-                    <span className="font-bold text-text-dark text-sm">+229</span>
-                    <div className="w-px h-5 bg-divider" />
-                    <input
-                      type="tel"
-                      value={phoneOp}
-                      onChange={e => setPhoneOp(e.target.value.replace(/\D/g, ''))}
-                      placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
-                      className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
-                    />
-                  </div>
-                )}
-                <button
-                  onClick={handlePayer}
-                  disabled={(operator !== 'fedapay' && !validateBeninPhone(phoneOp)) || paying}
-                  className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
-                  style={{ background: '#C2410C' }}
-                >
-                  {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Confirmer le paiement'}
-                </button>
-              </>
-            )}
-          </div>
-        </div>,
-        document.body,
-      )}
+      {pay.showPay && <PaiementModal pay={pay} />}
 
       {/* Feedback modal */}
-      {showFeedback && createPortal(
-        <div role="dialog" aria-modal="true" aria-label="Donner un avis" className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#F8F9FA' }}>
-          {feedbackDone ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: '#F0FDF4' }}>
-                <svg className="w-8 h-8" fill="none" stroke="#22C55E" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-              </div>
-              <p className="font-bold text-text-dark mb-1">Merci pour votre avis !</p>
-              <button onClick={() => setShowFeedback(null)} className="mt-3 text-sm font-semibold text-text-grey">Fermer</button>
-            </div>
-          ) : (
-            <>
-              {/* En-tête */}
-              <div className="flex-shrink-0 flex items-center gap-4 px-4 pt-4 pb-3">
-                <button onClick={() => setShowFeedback(null)}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white flex-shrink-0"
-                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-                  <svg className="w-5 h-5 text-text-grey" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-                <div className="min-w-0">
-                  <p className="font-bold text-text-dark text-[15px]">Votre avis sur la visite</p>
-                  {showFeedback?.gestionnaire?.prenom && (
-                    <p className="text-xs text-text-grey truncate">Avec {showFeedback.gestionnaire.prenom}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Contenu */}
-              <div className="flex-1 overflow-y-auto px-5 pt-2 pb-32 md:max-w-md md:mx-auto md:w-full">
-                {feedbackError && <p className="text-danger text-sm mb-3">{feedbackError}</p>}
-
-                <div className="bg-white rounded-2xl px-5 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                  <p className="font-semibold text-text-dark text-[15px] text-center mb-7 leading-snug">
-                    Comment s'est passée votre visite ?
-                  </p>
-                  <FaceRating selected={feedbackNote} onSelect={n => { setFeedbackNote(n); if (n > 3) setFeedbackTags([]) }} />
-                </div>
-
-                {needsTags && (
-                  <div className="bg-white rounded-2xl p-5 mb-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                    <div className="flex items-center gap-2.5 mb-1.5">
-                      <div className="w-[3px] h-[18px] rounded-full flex-shrink-0" style={{ background: '#DC2626' }} />
-                      <p className="font-bold text-text-dark text-sm">Qu'est-ce qui n'a pas fonctionné ?</p>
-                    </div>
-                    <p className="text-xs text-text-grey mb-4">Sélectionnez tout ce qui s'applique (au moins un)</p>
-                    <div className="flex flex-wrap gap-2">
-                      {ISSUES_TAGS.map(tag => {
-                        const sel = feedbackTags.includes(tag)
-                        return (
-                          <button key={tag} onClick={() => toggleFeedbackTag(tag)}
-                            className="px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5"
-                            style={sel
-                              ? { background: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.6)', color: '#DC2626', fontWeight: 600 }
-                              : { background: 'transparent', borderColor: 'rgba(0,0,0,0.15)', color: '#6B7280' }}>
-                            {sel && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                            {tag}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                  <p className="font-semibold text-text-dark text-[13.5px] mb-3">
-                    {needsTags ? 'Vous souhaitez ajouter quelque chose ?' : 'Laissez un commentaire (optionnel)'}
-                  </p>
-                  <textarea
-                    value={feedbackComment}
-                    onChange={e => setFeedbackComment(e.target.value)}
-                    placeholder="Partagez votre expérience en détail…"
-                    rows={4}
-                    maxLength={500}
-                    className="w-full rounded-2xl px-3.5 py-3.5 text-[13.5px] outline-none resize-none"
-                    style={{ background: '#F5F5F5' }}
-                  />
-                  <p className="text-caption text-text-grey text-right mt-1">{feedbackComment.length}/500</p>
-                </div>
-              </div>
-
-              {/* Barre d'envoi fixe */}
-              <div className="flex-shrink-0 bg-white px-5 pt-3 safe-bottom" style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.05)' }}>
-                <div className="md:max-w-md md:mx-auto pb-3">
-                  <button
-                    onClick={handleSubmitFeedback}
-                    disabled={feedbackSaving || !canSubmitFeedback}
-                    className="w-full h-[52px] rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-opacity"
-                    style={{ background: '#4B6BFF', opacity: canSubmitFeedback ? 1 : 0.45 }}
-                  >
-                    {feedbackSaving ? <div className="w-[22px] h-[22px] border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Envoyer mon avis'}
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>,
-        document.body,
-      )}
+      {avis.showFeedback && <FeedbackModal avis={avis} />}
 
       {/* Confirm dialog */}
-      {confirmDialog && createPortal(
-        <div aria-hidden="true" className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center px-5" onClick={() => setConfirmDialog(null)}>
-          <div role="dialog" aria-modal="true" aria-label={confirmDialog.title} aria-hidden="false" className="glass-strong rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-text-dark text-base mb-2">{confirmDialog.title}</h3>
-            <p className="text-sm text-text-grey leading-relaxed mb-5">{confirmDialog.body}</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDialog(null)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-dark">
-                Garder
-              </button>
-              <button onClick={confirmDialog.onConfirm} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ background: '#DC2626' }}>
-                Confirmer
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
-      )}
+      {confirmDialog && <ConfirmDialog dialog={confirmDialog} onClose={() => setConfirmDialog(null)} />}
     </div>
   )
 }
-
-type VisiteCardProps = {
-  visite: any
-  onAnnuler: (v: any) => void
-  onAccepterCP: (id: number) => void
-  onRefuserCP: (v: any) => void
-  onReproposer: (id: number, isoDate: string) => void | Promise<void>
-  onMarquerEffectuee: (v: any) => void
-  onIntegration: (id: number, integre: boolean, bienId?: number) => void
-  onPay: (v: any) => void
-  onMessage: (bienId: number) => void
-  onContacterEchouee: (v: any) => void
-  onFeedback: (v: any) => void
-  onPayIntegration: (bienId: number) => void
-}
-
-function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {
-  const isEchouee = isEchoueeVisite(v)
-  const isDatePassee = isDatePasseeVisite(v)
-  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: '#6B7280', bg: '#F4F6FA' })
-  const bien = v.bien
-  const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
-  const isCP = v.statut === 'contre_proposee' && !isEchouee
-  const [reproposing, setReproposing] = useState(false)
-  const [newDate, setNewDate] = useState('')
-  const [newTime, setNewTime] = useState('')
-  const [submittingRepro, setSubmittingRepro] = useState(false)
-
-  const handleSubmitRepro = async () => {
-    if (!newDate || !newTime) return
-    setSubmittingRepro(true)
-    try {
-      await onReproposer(v.id, `${newDate}T${newTime}:00`)
-      setReproposing(false)
-      setNewDate('')
-      setNewTime('')
-    } catch (_) {}
-    setSubmittingRepro(false)
-  }
-
-  return (
-    <div
-      className="glass-card rounded-2xl p-4"
-      style={{ border: isCP ? `1.5px solid rgba(230,126,34,0.4)` : undefined }}
-    >
-      {/* Top row */}
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div
-            className="w-[46px] h-[46px] rounded-[13px] flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(75,107,255,0.1)' }}
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <polyline strokeLinecap="round" strokeLinejoin="round" points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-text-dark text-sm truncate">{typeStr}</p>
-            <p className="text-xs text-text-grey mt-0.5 truncate">
-              {bien?.localisation?.quartier ? `${bien.localisation.quartier}, ` : ''}
-              {bien?.localisation?.ville || '--'}
-            </p>
-          </div>
-        </div>
-        <span
-          className="text-caption font-bold px-2.5 py-1 rounded-full flex-shrink-0"
-          style={{ color: meta.color, background: meta.bg }}
-        >
-          {meta.label}
-        </span>
-      </div>
-
-      {/* Dates : « Votre demande » face à « Le gestionnaire propose » (comme sur le mobile) */}
-      {isCP && v.date_contre_proposee ? (
-        <div className="space-y-1.5 mb-3">
-          <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs border border-dashed border-divider">
-            <span className="text-text-grey">Votre demande</span>
-            <span className="text-text-grey font-medium">{fmtDate(v.date_souhaitee)}</span>
-          </div>
-          <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(230,126,34,0.10)', border: '1px solid rgba(230,126,34,0.25)' }}>
-            <span className="font-semibold text-[#B45309] dark:text-[#FBBF24]">Le gestionnaire propose</span>
-            <span className="font-bold text-text-dark">{fmtDate(v.date_contre_proposee)}</span>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5 text-xs text-text-grey mb-2">
-          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span>{v.statut === 'confirmee' ? 'Prévue' : 'Souhaitée'} : {fmtDate(v.date_souhaitee || v.creneau?.debut)}</span>
-        </div>
-      )}
-
-      {/* Contact partagé — visible ~30 min avant une visite confirmée */}
-      {!isEchouee && v.statut === 'confirmee' && v.numeros_partages && (
-        <div className="flex items-center gap-2.5 p-3 rounded-xl mb-3"
-          style={{ background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.3)' }}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(37,211,102,0.15)' }}>
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-micro font-semibold" style={{ color: '#25D366' }}>Visite dans 30 min — Infos visite</p>
-            <p className="text-[13px] font-bold text-text-dark">+22993463716</p>
-          </div>
-          <a href="https://wa.me/22993463716" target="_blank" rel="noreferrer"
-            className="px-2.5 py-1.5 rounded-lg text-caption font-bold flex-shrink-0"
-            style={{ background: '#fff', border: '1.5px solid #25D366', color: '#25D366' }}>
-            WhatsApp
-          </a>
-        </div>
-      )}
-
-      {/* Visite échouée */}
-      {isEchouee && (
-        <div className="flex items-center gap-2 p-3 rounded-xl mb-3"
-          style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)' }}>
-          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 16l6-6" />
-          </svg>
-          <p className="text-xs font-medium" style={{ color: 'var(--tx-red)' }}>Cette visite ne s'est pas tenue.</p>
-        </div>
-      )}
-
-      {isEchouee && bien?.id && (
-        <button onClick={() => onContacterEchouee(v)}
-          className="w-full py-2.5 rounded-xl text-xs font-bold mb-3 flex items-center justify-center gap-1.5"
-          style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.35)', color: 'var(--tx-red)' }}>
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          Contacter le gestionnaire
-        </button>
-      )}
-
-      {/* Contre-proposition : créneau dépassé */}
-      {isCP && isDatePassee && (
-        <div className="flex items-start gap-2 p-3 rounded-xl mb-3"
-          style={{ background: 'rgba(230,126,34,0.08)', border: '1px solid rgba(230,126,34,0.35)' }}>
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-          </svg>
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--tx-amber)' }}>
-            Le créneau proposé est dépassé. Attendez que le gestionnaire propose une nouvelle date.
-          </p>
-        </div>
-      )}
-
-      {/* Integration decision */}
-      {v.statut === 'effectuee' && (v.client_decision_integration === null || v.client_decision_integration === undefined) && (
-        <div className="bg-primary/5 rounded-xl p-3 mb-3">
-          <p className="text-xs font-bold text-text-dark mb-2">Souhaitez-vous intégrer ce logement ?</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => onIntegration(v.id, true, bien?.id)}
-              className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}
-            >
-              Oui, j'intègre
-            </button>
-            <button
-              onClick={() => onIntegration(v.id, false)}
-              className="flex-1 py-2 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--tx-red)' }}
-            >
-              Non, je passe
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Décision oui, paiement d'intégration effectué */}
-      {v.statut === 'effectuee' && v.client_decision_integration === true && v.paiement_integration_effectue && (
-        <div className="rounded-xl p-3 mb-3 text-center" style={{ background: 'rgba(34,197,94,0.1)' }}>
-          <p className="text-xs font-bold" style={{ color: 'var(--tx-green)' }}>Intégré · Terminé</p>
-        </div>
-      )}
-
-      {/* Décision oui, paiement d'intégration en attente */}
-      {v.statut === 'effectuee' && v.client_decision_integration === true && !v.paiement_integration_effectue && (
-        <button
-          onClick={() => onPayIntegration(bien?.id)}
-          className="w-full py-2.5 rounded-xl text-xs font-bold text-white mb-3"
-          style={{ background: '#4B6BFF' }}
-        >
-          Payer l'intégration
-        </button>
-      )}
-
-      {/* Actions */}
-      <div className="flex gap-2 flex-wrap">
-        {/* Contre-proposition: accept / propose another date / refuse */}
-        {isCP && !isDatePassee && !reproposing && (
-          <>
-            {/* Ordre mobile : action destructive à gauche, action principale à droite */}
-            <button
-              onClick={() => onRefuserCP(v)}
-              className="px-3 py-2.5 rounded-xl text-xs font-bold text-[#DC2626] dark:text-[#F87171]"
-              style={{ border: '1.5px solid rgba(239,68,68,0.4)' }}
-            >
-              Refuser
-            </button>
-            <button
-              onClick={() => setReproposing(true)}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-primary/10 text-[#3A5AEE] dark:text-[#9DB0FF]"
-            >
-              Autre date
-            </button>
-            <button
-              onClick={() => onAccepterCP(v.id)}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white"
-              style={{ background: '#3A5AEE' }}
-            >
-              Accepter
-            </button>
-          </>
-        )}
-
-        {/* Confirmée: payer (pas encore payé) + message + annuler */}
-        {!isEchouee && v.statut === 'confirmee' && !v.paiement_effectue && (
-          <button
-            onClick={() => onPay(v)}
-            className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
-            style={{ background: '#C2410C' }}
-          >
-            Payer les frais de visite ({Number(v.frais_visite ?? 500).toLocaleString('fr-FR')} FCFA)
-          </button>
-        )}
-
-        {!isEchouee && v.statut === 'confirmee' && bien?.id && (
-          <button
-            onClick={() => onMessage(bien.id)}
-            className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(75,107,255,0.1)', color: 'var(--tx-blue)' }}
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            Message
-          </button>
-        )}
-
-        {!isEchouee && v.statut === 'confirmee' && v.paiement_effectue && (
-          <button
-            onClick={() => onMarquerEffectuee(v)}
-            className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--tx-green)' }}
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Marquer comme effectuée
-          </button>
-        )}
-
-        {!isEchouee && (v.statut === 'en_attente' || v.statut === 'confirmee') && (
-          <button
-            onClick={() => onAnnuler(v)}
-            className="px-3 py-2 rounded-xl text-xs font-bold"
-            style={{ border: '1.5px solid rgba(239,68,68,0.4)', color: 'var(--tx-red)' }}
-          >
-            Annuler
-          </button>
-        )}
-
-        {v.statut === 'effectuee' && !v.feedback_donne && (
-          <button
-            onClick={() => onFeedback(v)}
-            className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-            style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--tx-amber)' }}
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-            Donner mon avis
-          </button>
-        )}
-      </div>
-
-      {/* Formulaire inline : proposer une autre date */}
-      {isCP && reproposing && (
-        <div className="mt-3 pt-3 border-t border-divider">
-          <p className="text-sm font-bold text-text-dark mb-3">Proposer une autre date</p>
-          <div className="space-y-2 mb-3">
-            <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
-              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
-            <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
-              className="w-full bg-surface-g rounded-xl px-3 py-2.5 text-sm outline-none border border-divider focus:border-primary" />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => { setReproposing(false); setNewDate(''); setNewTime('') }}
-              className="flex-1 py-2.5 rounded-xl border border-divider text-sm font-semibold text-text-grey">
-              Annuler
-            </button>
-            <button onClick={handleSubmitRepro} disabled={!newDate || !newTime || submittingRepro}
-              className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50" style={{ background: '#4B6BFF' }}>
-              {submittingRepro ? 'Envoi…' : 'Envoyer'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-

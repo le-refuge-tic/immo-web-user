@@ -13,8 +13,8 @@ export const deviceTrust = {
     try { return localStorage.getItem(DEVICE_KEY) || undefined } catch { return undefined }
   },
   /** Mémorise le jeton renvoyé par /auth/otp/verify, s'il y en a un. */
-  remember: (data: any) => {
-    const t = data?.device_token
+  remember: (data: object | null | undefined) => {
+    const t = data && 'device_token' in data ? data.device_token : undefined
     if (typeof t !== 'string' || !t) return
     try { localStorage.setItem(DEVICE_KEY, t) } catch { /* stockage indisponible : OTP redemandé */ }
   },

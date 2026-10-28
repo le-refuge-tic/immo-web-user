@@ -20,3 +20,13 @@ export function readStoredUser<T>(): T | null {
 export function writeStoredUser(user: object): void {
   localStorage.setItem('rg_user', JSON.stringify(toStoredUser(user)))
 }
+
+/**
+ * BUG-05 du cahier des rôles : un rafraîchissement du jeton peut changer les rôles enregistrés
+ * hors de React (intercepteur axios). Cet événement prévient AuthContext, qui les reprend.
+ */
+export const STORED_USER_SYNC_EVENT = 'rg:stored-user-sync'
+
+export function notifyStoredUserChanged(): void {
+  try { window.dispatchEvent(new Event(STORED_USER_SYNC_EVENT)) } catch { /* hors navigateur */ }
+}

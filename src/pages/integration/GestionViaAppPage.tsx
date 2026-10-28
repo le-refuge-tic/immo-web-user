@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { loyersApi } from '../../api/loyersApi'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { withAlpha } from '../../utils/color'
+import { apiMessage } from '../../utils/apiMessage'
 
-const GREEN = '#15803D'
+const GREEN = 'var(--c-success)'
 
 const AVANTAGES = [
   { icon: '🔔', title: 'Rappels automatiques', desc: 'Alerte 3 jours avant l\'échéance de votre loyer' },
@@ -18,13 +20,19 @@ export default function GestionViaAppPage() {
   const { contratId } = useParams<{ contratId: string }>()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const activer = async () => {
     setLoading(true)
+    setError('')
     try {
       if (contratId) await loyersApi.activerGestionApp(Number(contratId))
-    } catch (_) {}
-    navigate('/locataire', { replace: true })
+      navigate('/locataire', { replace: true })
+    } catch (e: unknown) {
+      // On reste sur la page : le bouton redevient actif pour renvoyer la demande.
+      setError(apiMessage(e) || "L'activation a échoué. Réessayez.")
+      setLoading(false)
+    }
   }
 
   const refuser = () => navigate('/locataire', { replace: true })
@@ -47,7 +55,7 @@ export default function GestionViaAppPage() {
         <div className="max-w-md mx-auto px-5 py-8 space-y-3 pb-36">
           {AVANTAGES.map((a, i) => (
             <div key={i} className="flex items-start gap-4 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(34,197,94,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-xl" style={{ background: GREEN + '15' }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-xl" style={{ background: withAlpha(GREEN, '15') }}>
                 {a.icon}
               </div>
               <div>
@@ -67,6 +75,7 @@ export default function GestionViaAppPage() {
       {/* CTA */}
       <div className="flex-shrink-0 px-5 py-5 border-t" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.07)' }}>
         <div className="max-w-md mx-auto space-y-3">
+          {error && <p role="alert" className="text-sm font-semibold text-center" style={{ color: 'var(--c-danger)' }}>{error}</p>}
           <button onClick={activer} disabled={loading}
             className="w-full py-4 rounded-xl font-bold text-white text-sm disabled:opacity-60"
             style={{ background: `linear-gradient(135deg, #064E3B, ${GREEN})`, boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>

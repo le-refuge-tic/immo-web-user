@@ -15,18 +15,25 @@ import { AnimatedGroup } from '../../components/ui/animated-group'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { IcPayments, IcChevron, IcMessagesNav } from './tabs/icons'
-import { IcHome, IcCal, IcClock, IcWallet, IcPlus, IcStar, IcShield, IcPin, IcLogout, BLUE, ROLE_LABELS, ROLE_ROUTES, TABS, NAV_ITEMS, typeLabel, bienLabel, bienComposition, fmtPrix, statutBien, buildRevenueSeries, buildCountSeries, LiveIndicator } from './tabs/shared'
+import { IcHome, IcCal, IcClock, IcWallet, IcPlus, IcStar, IcShield, IcPin, IcLogout, BLUE, ROLE_LABELS, ROLE_ROUTES, TABS, NAV_ITEMS, bienLabel, bienComposition, fmtPrix, statutBien, buildCountSeries, LiveIndicator, BLUE_TX } from './tabs/shared'
 import type { Tab } from './tabs/shared'
 import { MesBiensTab } from './tabs/MesBiensTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
 import { MessagesTab } from './tabs/MessagesTab'
 import { ReservationsTab } from './tabs/ReservationsTab'
 import { LoyersTab } from './tabs/LoyersTab'
-import { CreneauxTab } from './tabs/CreneauxTab'
 import { PortefeuilleTab } from './tabs/PortefeuilleTab'
 import { TransactionsTab } from './tabs/TransactionsTab'
 import { RolesTab } from './tabs/RolesTab'
 import { ProfilTab } from './tabs/ProfilTab'
+import CarouselPauseToggle from '../../components/CarouselPauseToggle'
+import { useCarouselAutoplay } from '../../hooks/useCarouselAutoplay'
+import { onActivateKey } from '../../utils/keyboard'
+import type { Bien, Visite } from '../../types/api'
+import type { LoyersDashboard, ProprioProfil } from '../../types/proprietaire'
+import { withAlpha } from '../../utils/color'
+import ErrorState from '../../components/ErrorState'
+import { imageDeCouverture } from '../../utils/imageCouverture'
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
@@ -40,7 +47,9 @@ export default function ProprietaireDashboard() {
   const location = useLocation()
   // Le thème suit le réglage global (Profil > Paramètres > Apparence).
   const isDark = useTheme().theme === 'dark'
-  const fromDetail = !!(location.state as any)?.fromDetail
+  // `location.state` est typé `any` par react-router : on le déclare avec sa vraie forme.
+  const navState: { fromDetail?: boolean; tab?: Tab; convId?: number } | null = location.state
+  const fromDetail = !!navState?.fromDetail
   const [isScrolled, setIsScrolled] = useState(fromDetail)
   const [menuOpen, setMenuOpen] = useState(false)
   const tabMounted = useRef(false)
@@ -68,9 +77,9 @@ export default function ProprietaireDashboard() {
     setActiveRole(role)
     navigate(ROLE_ROUTES[role] || '/')
   }
-  const [tab, setTab] = useState<Tab>((location.state as any)?.tab ?? 'tableau')
+  const [tab, setTab] = useState<Tab>(navState?.tab ?? 'tableau')
   const [moreOpen, setMoreOpen] = useState(false)
-  const [messagesInitConvId, setMessagesInitConvId] = useState<number | null>((location.state as any)?.convId ?? null)
+  const [messagesInitConvId, setMessagesInitConvId] = useState<number | null>(navState?.convId ?? null)
   const [messagesInitDraft, setMessagesInitDraft] = useState<string | null>(null)
   const openTab = (t: Tab, convId?: number, draftMessage?: string) => {
     if (t === 'messages') {
@@ -96,19 +105,20 @@ export default function ProprietaireDashboard() {
       requestAnimationFrame(() => setIsScrolled(false))
     })
     return () => cancelAnimationFrame(id)
-  }, [])
-  const carousel2Ref = useRef<HTMLDivElement>(null)
-  const [carousel2Paused, setCarousel2Paused] = useState(false)
-  const [carousel2Idx, setCarousel2Idx] = useState(0)
+  }, [fromDetail])
 
-  const [user, setUser] = useState<any>(null)
-  const [biens, setBiens] = useState<any[]>([])
+  const [user, setUser] = useState<ProprioProfil | null>(null)
+  const [biens, setBiens] = useState<Bien[]>([])
+  const { ref: carousel2Ref, index: carousel2Idx, setIndex: setCarousel2Idx, paused: carousel2Paused, togglePause: toggleCarousel2, autoplayAvailable, containerProps: carousel2Props } =
+    useCarouselAutoplay(Math.min(5, biens.length))
   const [loading, setLoading] = useState(true)
-  const [loyersDash, setLoyersDash] = useState<any>(null)
-  const [visites, setVisites] = useState<any[]>([])
+  const [loyersDash, setLoyersDash] = useState<LoyersDashboard | null>(null)
+  const [visites, setVisites] = useState<Visite[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [chartPeriod, setChartPeriod] = useState<3 | 6 | 12>(6)
+  // Échec d'un chargement demandé par la personne (ouverture ou « Réessayer ») ; un rafraîchissement
+  // automatique qui échoue garde les données déjà affichées sans bruit.
+  const [loadError, setLoadError] = useState(false)
   const [hoveredOverviewEl, setHoveredOverviewEl] = useState<string | null>(null)
 
   const loadData = async (silent = false) => {
@@ -121,8 +131,12 @@ export default function ProprietaireDashboard() {
       if (b.status === 'fulfilled') setBiens(Array.isArray(b.value) ? b.value : b.value.data || [])
       if (l.status === 'fulfilled') setLoyersDash(l.value)
       if (v.status === 'fulfilled') setVisites(Array.isArray(v.value) ? v.value : v.value.data || [])
-      setLastUpdated(new Date())
-    } catch (_) {}
+      const echec = b.status === 'rejected' || l.status === 'rejected' || v.status === 'rejected'
+      if (!echec) { setLoadError(false); setLastUpdated(new Date()) }
+      else if (!silent) setLoadError(true)
+    } catch {
+      if (!silent) setLoadError(true)
+    }
     setLoading(false)
     setRefreshing(false)
   }
@@ -131,57 +145,24 @@ export default function ProprietaireDashboard() {
   // rafraîchit silencieusement toutes les 30s (et quand l'onglet redevient
   // visible) tant qu'on reste sur l'onglet Tableau — pas de spinner plein
   // écran pour ces rafraîchissements, juste l'horodatage qui bouge.
-  useEffect(() => { loadData() }, [])
+  // Rechargé à chaque changement d'espace (BUG-04 du cahier des rôles, FE-A-004) : pas de données
+  // d'un espace précédent après un aller-retour dans la même session.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- loadData est recréée à chaque rendu ; seul le changement d'espace doit recharger
+  useEffect(() => { loadData() }, [activeRole])
   useEffect(() => {
     if (tab !== 'tableau') return
-    const id = setInterval(() => loadData(true), 30000)
+    // Onglet masqué : aucun rafraîchissement (la reprise de visibilité recharge déjà)
+    const id = setInterval(() => { if (document.visibilityState === 'visible') loadData(true) }, 30000)
     const onVisible = () => { if (document.visibilityState === 'visible') loadData(true) }
     document.addEventListener('visibilitychange', onVisible)
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
   }, [tab])
 
-  useEffect(() => {
-    if (carousel2Paused || biens.length === 0) return
-    const id = setInterval(() => {
-      const el = carousel2Ref.current
-      if (!el || carousel2Paused) return
-      const count = Math.min(5, biens.length)
-      const cardW = el.scrollWidth / count
-      const maxScroll = el.scrollWidth - el.clientWidth
-      const isAtEnd = el.scrollLeft + cardW >= maxScroll - 1
-      const next = isAtEnd ? 0 : el.scrollLeft + cardW
-      el.scrollTo({ left: next, behavior: 'smooth' })
-      setCarousel2Idx(isAtEnd ? 0 : Math.round(next / cardW))
-    }, 3500)
-    return () => clearInterval(id)
-  }, [carousel2Paused, biens.length])
-
   const me = user || authUser
   const initials = `${me?.prenom?.[0] || ''}${me?.nom?.[0] || ''}`.toUpperCase()
   const score = me?.score_credibilite ?? 100
-  const approuves = biens.filter(b => b.statut_moderation === 'approuve').length
-  const enAttente = biens.filter(b => b.statut_moderation === 'en_attente').length
-  const rejetes   = biens.filter(b => b.statut_moderation === 'rejete').length
   const reservationsEnAttente = visites.filter(v => v.statut === 'en_attente').length
   const totalVues = biens.reduce((s, b) => s + (b.nb_consultations || 0), 0)
-
-  const biensParType = (() => {
-    const counts: Record<string, number> = {}
-    for (const b of biens) counts[b.type] = (counts[b.type] || 0) + 1
-    return Object.entries(counts)
-      .map(([type, n]) => ({ label: typeLabel(type), value: n }))
-      .sort((a, b) => b.value - a.value)
-  })()
-
-  // Séries "carte KPI" — toujours 6 mois, indépendantes du sélecteur de
-  // période du graphique (qui ne doit affecter que le grand graphique).
-  const revenusSeries6 = buildRevenueSeries(loyersDash?.contrats || [])
-  const revenusMoisActuel = revenusSeries6[revenusSeries6.length - 1]?.value ?? 0
-  const revenusMoisPrecedent = revenusSeries6[revenusSeries6.length - 2]?.value ?? 0
-  const revenusTrendPct = revenusMoisPrecedent > 0
-    ? Math.round(((revenusMoisActuel - revenusMoisPrecedent) / revenusMoisPrecedent) * 100)
-    : (revenusMoisActuel > 0 ? 100 : 0)
-  const hasRevenus = revenusSeries6.some(m => m.value > 0)
 
   const visitesSeries6 = buildCountSeries(visites, v => v.date_souhaitee)
   const visitesMoisActuel = visitesSeries6[visitesSeries6.length - 1]?.value ?? 0
@@ -190,17 +171,13 @@ export default function ProprietaireDashboard() {
     ? Math.round(((visitesMoisActuel - visitesMoisPrecedent) / visitesMoisPrecedent) * 100)
     : (visitesMoisActuel > 0 ? 100 : 0)
 
-  // Séries des grands graphiques — respectent le sélecteur 3M/6M/12M
-  // (comme le 7D/30D/90D du template).
-  const revenusSeries = buildRevenueSeries(loyersDash?.contrats || [], chartPeriod)
-  const visitesSeries = buildCountSeries(visites, v => v.date_souhaitee, chartPeriod)
   const hasVisites = visitesSeries6.some(m => m.value > 0)
 
   // Alerte loyers — réutilise les données déjà chargées (loyersDash), sans
   // appel réseau supplémentaire ; masquée si rien à signaler.
-  const loyersDashList = (loyersDash?.contrats || []).flatMap((c: any) => c.loyers || [])
-  const loyersEnRetardCount = loyersDash?.stats?.loyers_en_retard ?? loyersDashList.filter((l: any) => l.statut === 'en_retard').length
-  const loyersImpayesCount = loyersDashList.filter((l: any) => l.statut === 'impaye').length
+  const loyersDashList = (loyersDash?.contrats || []).flatMap(c => c.loyers || [])
+  const loyersEnRetardCount = loyersDash?.stats?.loyers_en_retard ?? loyersDashList.filter(l => l.statut === 'en_retard').length
+  const loyersImpayesCount = loyersDashList.filter(l => l.statut === 'impaye').length
 
   const biensOccupes = biens.filter(b => b.statut === 'occupe').length
   const tauxOccupation = biens.length > 0 ? Math.round((biensOccupes / biens.length) * 100) : 0
@@ -239,7 +216,7 @@ export default function ProprietaireDashboard() {
             {/* Logo */}
             <button onClick={() => { setTab('tableau'); setIsScrolled(false) }} className="flex items-center gap-2 flex-shrink-0">
               <img loading="lazy" src={logoUrl} alt="REFUGE" className="w-8 h-8 rounded-[8px] object-contain" />
-              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE }}>REFUGE</span>
+              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE_TX }}>REFUGE</span>
             </button>
 
             {/* Nav tabs — desktop large uniquement : en dessous, la barre du bas (4 onglets + Plus) prend le relais */}
@@ -252,12 +229,12 @@ export default function ProprietaireDashboard() {
                     onClick={() => { setTab(item.key); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
                     className="relative whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
-                      ...(active ? { color: BLUE, background: BLUE + '14' } : { color: 'var(--p-muted)' }),
+                      ...(active ? { color: BLUE_TX, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
                       minHeight: '36px',
                       transition: 'color 0.2s ease, background 0.2s ease',
                     }}>
                     {item.label}
-                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: '#FF3B30' }} />}
+                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
                   </button>
                 )
               })}
@@ -268,13 +245,13 @@ export default function ProprietaireDashboard() {
               {/* Alertes — onglet notifications interne à l'espace propriétaire */}
               <button onClick={() => setTab('notifications')} title="Notifications"
                 className="relative w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
-                style={{ borderColor: tab === 'notifications' ? BLUE : 'var(--p-border)', background: 'var(--p-card)', color: tab === 'notifications' ? BLUE : 'var(--p-muted)' }}>
+                style={{ borderColor: tab === 'notifications' ? BLUE : 'var(--p-border)', background: 'var(--p-card)', color: tab === 'notifications' ? BLUE_TX : 'var(--p-muted)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
               </button>
               {/* Profile + roles flyout */}
               <div className="relative" onMouseEnter={() => openRolesMenu('topbar')} onMouseLeave={scheduleCloseRolesMenu}>
-                <button onClick={() => setTab('profil')}
+                <button onClick={() => setTab('profil')} aria-label="Mon profil"
                   className="flex items-center gap-2 rounded-lg px-2 py-1.5 border transition-colors"
                   style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)' }}>
                   <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style={{ background: BLUE }}>
@@ -292,9 +269,9 @@ export default function ProprietaireDashboard() {
                     {rolesActifs.map(r => (
                       <button key={r} onClick={() => goToRoleSpace(r)}
                         className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm text-left transition-colors"
-                        style={{ color: r === activeRole ? BLUE : 'var(--p-text)', fontWeight: r === activeRole ? 700 : 500 }}>
+                        style={{ color: r === activeRole ? BLUE_TX : 'var(--p-text)', fontWeight: r === activeRole ? 700 : 500 }}>
                         {ROLE_LABELS[r] || r}
-                        {r === activeRole && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: BLUE + '22', color: BLUE }}>Actuel</span>}
+                        {r === activeRole && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: withAlpha(BLUE, '22'), color: BLUE_TX }}>Actuel</span>}
                       </button>
                     ))}
                   </div>
@@ -307,7 +284,7 @@ export default function ProprietaireDashboard() {
                 <IcLogout />
               </button>
               {/* Hamburger — mobile */}
-              <button onClick={() => setMenuOpen(o => !o)}
+              <button onClick={() => setMenuOpen(o => !o)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
                 className="xl:hidden w-8 h-8 rounded-lg flex items-center justify-center border"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
                 <div style={{ width: 18, height: 14, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -337,7 +314,7 @@ export default function ProprietaireDashboard() {
                         <button key={item.key}
                           onClick={() => { setTab(item.key); setMenuOpen(false); setIsScrolled(false); if (item.key === 'messages') refreshNotifications() }}
                           className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium transition-all"
-                          style={active ? { color: BLUE, background: BLUE + '14', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
+                          style={active ? { color: BLUE_TX, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                           {item.icon}
                           <span className="truncate w-full text-center px-1">{item.label}</span>
                         </button>
@@ -373,14 +350,14 @@ export default function ProprietaireDashboard() {
               <div className="relative px-5 md:px-8 xl:px-10 pt-10 pb-12">
                 {/* Eyebrow */}
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="h-px w-6" style={{ background: '#fff' }} />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ color: '#fff' }}>Espace propriétaire</p>
+                  <div className="h-px w-6" style={{ background: 'rgb(255,255,255)' }} />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.32em]" style={{ color: 'rgb(255,255,255)' }}>Espace propriétaire</p>
                 </div>
 
                 <h1 className="text-[32px] md:text-[40px] font-black tracking-tight leading-[1.1] text-white">
                   Bonjour{me?.prenom ? `,` : ''}<br />
-                  {me?.prenom && <span style={{ color: '#fff' }}>{me.prenom}</span>}
-                  {!me?.prenom && <span style={{ color: '#fff' }}>Propriétaire</span>}
+                  {me?.prenom && <span style={{ color: 'rgb(255,255,255)' }}>{me.prenom}</span>}
+                  {!me?.prenom && <span style={{ color: 'rgb(255,255,255)' }}>Propriétaire</span>}
                 </h1>
                 <p className="text-[12px] mt-2.5 text-white/50 font-medium">
                   {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -389,13 +366,13 @@ export default function ProprietaireDashboard() {
                 {/* Mini stats pills glassmorphic */}
                 <div className="flex gap-3 mt-7 overflow-x-auto scrollbar-hide pb-0.5">
                   {[
-                    { icon: <IcHome />, value: `${biens.length}`, label: 'Biens', color: BLUE },
-                    { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: '#B45309' },
-                    { icon: <IcShield />, value: `${score}`, label: 'Score', color: '#15803D' },
+                    { icon: <IcHome />, value: `${biens.length}`, label: 'Biens', color: BLUE_TX },
+                    { icon: <IcStar />, value: `${me?.nb_etoiles ?? 0}`, label: 'Étoiles', color: 'var(--tx-amber)' },
+                    { icon: <IcShield />, value: `${score}`, label: 'Score', color: 'var(--tx-green)' },
                     { icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>, value: `${totalVues}`, label: 'Vues', color: '#A78BFA' },
                   ].map(s => (
                     <div key={s.label} className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3"
-                      style={{ background: 'rgba(6,13,26,0.55)', border: `1px solid ${BLUE}28`, backdropFilter: 'blur(16px)', minWidth: '68px', minHeight: '44px' }}>
+                      style={{ background: 'rgba(6,13,26,0.55)', border: `1px solid ${withAlpha(BLUE, '28')}`, backdropFilter: 'blur(16px)', minWidth: '68px', minHeight: '44px' }}>
                       <span style={{ color: s.color }}>{s.icon}</span>
                       <p className="font-black text-[18px] leading-none text-white">{s.value}</p>
                       <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>{s.label}</p>
@@ -415,13 +392,19 @@ export default function ProprietaireDashboard() {
                   item: { hidden: { opacity: 0, scale: 0.92, y: 16 }, visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 22 } } },
                 }}>
 
+              {loadError && (
+                <div className="rounded-2xl mb-5 border" style={{ background: 'var(--p-card)', borderColor: 'var(--p-border)' }}>
+                  <ErrorState palette="proprietaire" title="Impossible de charger votre tableau de bord" hint="Certaines informations peuvent être manquantes. Vérifiez votre connexion et réessayez." onRetry={() => loadData()} className="py-6" />
+                </div>
+              )}
+
               {/* Alert loyers */}
               {(loyersImpayesCount > 0 || loyersEnRetardCount > 0) && (
                 <button onClick={() => setTab('loyers')} aria-label="Voir les loyers en retard"
                   className="w-full flex items-center gap-3 rounded-2xl mb-5 p-4 border text-left cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-[0_4px_16px_rgba(244,67,54,0.12)]"
-                  style={{ background: '#F4433608', borderColor: '#F4433628', minHeight: '56px' }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#F4433618' }}>
-                    <span style={{ color: '#F44336' }}><IcClock /></span>
+                  style={{ background: 'rgba(244,67,54,0.031)', borderColor: 'rgba(244,67,54,0.157)', minHeight: '56px' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(244,67,54,0.094)' }}>
+                    <span style={{ color: 'var(--c-red-material)' }}><IcClock /></span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm" style={{ color: 'var(--p-text)' }}>
@@ -442,22 +425,21 @@ export default function ProprietaireDashboard() {
               </div>
               <div className="flex gap-2.5 mb-7 overflow-x-auto scrollbar-hide pb-1">
                 {[
-                  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
-                  { icon: <IcCal />, color: '#3A5AEE', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
-                  { icon: <IcPayments />, color: '#15803D', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
-                  { icon: <IcClock />, color: '#0EA5E9', label: 'Créneaux', action: () => setTab('creneaux') },
-                  { icon: <IcMessagesNav />, color: '#FF6B35', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
+                  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE_TX, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
+                  { icon: <IcCal />, color: 'var(--tx-blue)', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
+                  { icon: <IcPayments />, color: 'var(--tx-green)', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
+                  { icon: <IcMessagesNav />, color: 'var(--c-accent)', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
                   { icon: <IcWallet />, color: '#A78BFA', label: 'Portefeuille', action: () => setTab('portefeuille') },
                 ].map(q => (
                   <button key={q.label} onClick={q.action} aria-label={q.label}
                     className="relative flex-shrink-0 flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all duration-200"
-                    style={{ background: hoveredOverviewEl === `chip-${q.label}` ? q.color + '22' : q.color + '12', border: `1.5px solid ${q.color}30`, minHeight: '44px', boxShadow: hoveredOverviewEl === `chip-${q.label}` ? `0 4px 16px ${q.color}25` : 'none' }}
+                    style={{ background: hoveredOverviewEl === `chip-${q.label}` ? withAlpha(q.color, '22') : withAlpha(q.color, '12'), border: `1.5px solid ${withAlpha(q.color, '30')}`, minHeight: '44px', boxShadow: hoveredOverviewEl === `chip-${q.label}` ? `0 4px 16px ${withAlpha(q.color, '25')}` : 'none' }}
                     onMouseEnter={() => setHoveredOverviewEl(`chip-${q.label}`)}
                     onMouseLeave={() => setHoveredOverviewEl(null)}>
                     <span style={{ color: q.color }}>{q.icon}</span>
                     <span className="text-[12px] font-semibold whitespace-nowrap" style={{ color: 'var(--p-text)' }}>{q.label}</span>
                     {(q.badge ?? 0) > 0 && (
-                      <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-black text-white" style={{ background: '#FF3B30' }}>
+                      <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-black text-white" style={{ background: 'var(--c-red-ios)' }}>
                         {(q.badge ?? 0) > 9 ? '9+' : q.badge}
                       </span>
                     )}
@@ -468,7 +450,7 @@ export default function ProprietaireDashboard() {
               {/* ── Carte portefeuille biens — PropertyStatsCard ── */}
               <div className="sticky top-0 z-10 flex items-center justify-between py-2 mb-2 -mx-1 px-1" style={{ background: 'var(--p-deep)' }}>
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens</p>
-                <span className="text-[13px] font-black" style={{ color: BLUE }}>{biens.length}</span>
+                <span className="text-[13px] font-black" style={{ color: BLUE_TX }}>{biens.length}</span>
               </div>
               <div className="mb-5 mx-auto w-full px-2" style={{ maxWidth: '72rem' }}>
                 <PropertyStatsCard
@@ -476,10 +458,10 @@ export default function ProprietaireDashboard() {
                   total={biens.length}
                   dark={isDark}
                   stats={[
-                    { label: 'Total',       value: biens.length,   color: BLUE      },
-                    { label: 'Publiés',     value: biensApprouves, color: '#15803D' },
-                    { label: 'En attente',  value: biensEnAttente, color: '#B45309' },
-                    { label: 'Rejetés',     value: biensRejetes,   color: '#DC2626' },
+                    { label: 'Total',       value: biens.length,   color: BLUE_TX      },
+                    { label: 'Publiés',     value: biensApprouves, color: 'var(--tx-green)' },
+                    { label: 'En attente',  value: biensEnAttente, color: 'var(--tx-amber)' },
+                    { label: 'Rejetés',     value: biensRejetes,   color: 'var(--tx-red)' },
                   ]}
                 />
               </div>
@@ -494,16 +476,16 @@ export default function ProprietaireDashboard() {
                       ? `${visitesTrendPct >= 0 ? '↑' : '↓'} ${Math.abs(visitesTrendPct)}% vs mois dernier`
                       : 'ce mois',
                     subColor: hasVisites && visitesTrendPct !== undefined
-                      ? (visitesTrendPct >= 0 ? '#15803D' : '#DC2626')
+                      ? (visitesTrendPct >= 0 ? 'var(--c-success)' : 'var(--c-danger)')
                       : undefined,
-                    color: '#7B2FBE',
+                    color: 'var(--c-purple-dark)',
                     icon: <IcCal />,
                   },
                   {
                     label: "Taux d'occupation",
                     value: `${tauxOccupation}%`,
                     sub: `${biensOccupes} / ${biens.length} biens`,
-                    color: '#15803D',
+                    color: 'var(--tx-green)',
                     icon: <IcHome />,
                   },
                 ].map(card => (
@@ -515,7 +497,7 @@ export default function ProprietaireDashboard() {
                         boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06)',
                       }}>
                       <span className="flex items-center justify-center w-10 h-10 rounded-full mb-2.5 flex-shrink-0"
-                        style={{ background: card.color + '18', color: card.color }}>
+                        style={{ background: withAlpha(card.color, '18'), color: card.color }}>
                         {card.icon}
                       </span>
                       <p className="font-black text-[26px] leading-none mb-1" style={{ color: card.color }}>
@@ -543,37 +525,39 @@ export default function ProprietaireDashboard() {
                   <div className="mb-2">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens récents</p>
-                      <button onClick={() => setTab('biens')} className="text-xs font-bold" style={{ color: BLUE }}>Voir tout →</button>
+                      <button onClick={() => setTab('biens')} className="text-xs font-bold" style={{ color: BLUE_TX }}>Voir tout →</button>
                     </div>
                     <div
                       ref={carousel2Ref}
+                      role="region" aria-label="Mes biens récents" tabIndex={0}
                       className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-                      onMouseEnter={() => setCarousel2Paused(true)}
-                      onMouseLeave={() => setCarousel2Paused(false)}
+                      {...carousel2Props}
                     >
                       {recentBiens.map(b => {
                         const { label: sLabel, color: sColor } = statutBien(b.statut_moderation || 'en_attente')
                         const loc = b.localisation
                         const adresse = loc ? `${loc.quartier ? loc.quartier + ', ' : ''}${loc.ville || ''}` : '—'
-                        const cover = b.photos?.find((p: any) => p.is_cover) || b.photos?.[0]
+                        const cover = b.photos?.find(p => p.is_cover) || b.photos?.[0]
                         const compo = bienComposition(b)
                         return (
                           <div
                             key={b.id}
                             className="flex-shrink-0 snap-start group rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(75,107,255,0.14)] w-[85%] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
                             style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+                            role="button" tabIndex={0}
+                            onKeyDown={onActivateKey(() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } }))}
                             onClick={() => navigate(`/proprietaire/biens/${b.id}`, { state: { fromDashboard: true } })}
                           >
                             <div className="relative overflow-hidden" style={{ height: 160 }}>
                               {cover?.url
-                                ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${BLUE}30)` }}>
+                                ? <img loading="lazy" {...imageDeCouverture([cover], undefined, '(max-width: 768px) 85vw, 400px')} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${withAlpha(BLUE, '30')})` }}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                                   </div>
                               }
                               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)' }} />
                               <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{ background: sColor }}>{sLabel}</span>
-                              <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: '#fff' }}>
+                              <span className="absolute top-3 right-3 px-2 py-1 rounded-full text-[10px] font-bold" style={{ background: 'rgba(0,0,0,0.50)', color: 'rgb(255,255,255)' }}>
                                 {b.transaction === 'location' ? 'À louer' : 'À vendre'}
                               </span>
                               <div className="absolute bottom-3 left-3 right-3">
@@ -597,10 +581,13 @@ export default function ProprietaireDashboard() {
                       })}
                     </div>
                     {recentBiens.length > 3 && (
-                      <div className="flex justify-center gap-2 mt-4">
+                      <div className="flex justify-center items-center gap-2 mt-4">
+                        {autoplayAvailable && <CarouselPauseToggle paused={carousel2Paused} onToggle={toggleCarousel2} subject="mes biens récents" />}
                         {recentBiens.map((_, i) => (
                           <button
                             key={i}
+                            aria-label={`Afficher le bien ${i + 1} sur ${recentBiens.length}`}
+                            aria-current={carousel2Idx === i}
                             onClick={() => {
                               const el = carousel2Ref.current
                               if (!el) return
@@ -608,7 +595,7 @@ export default function ProprietaireDashboard() {
                               el.scrollTo({ left: cardW * i, behavior: 'smooth' })
                               setCarousel2Idx(i)
                             }}
-                            style={{ width: carousel2Idx === i ? 20 : 8, height: 8, borderRadius: 4, background: carousel2Idx === i ? '#4B6BFF' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
+                            style={{ width: carousel2Idx === i ? 20 : 8, height: 8, borderRadius: 4, background: carousel2Idx === i ? 'var(--c-brand)' : 'rgba(75,107,255,0.25)', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', padding: 0 }}
                           />
                         ))}
                       </div>
@@ -627,7 +614,6 @@ export default function ProprietaireDashboard() {
         {tab === 'messages'      && <MessagesTab initialConvId={messagesInitConvId} initialDraft={messagesInitDraft} />}
         {tab === 'notifications' && <NotificationsTab onOpenTab={openTab} />}
         {tab === 'loyers'        && <LoyersTab onScrolled={setIsScrolled} />}
-        {tab === 'creneaux'      && <CreneauxTab />}
         {tab === 'portefeuille' && <PortefeuilleTab onOpenTransactions={() => setTab('transactions')} />}
         {tab === 'transactions' && <TransactionsTab />}
         {tab === 'roles'        && <RolesTab />}
@@ -641,7 +627,7 @@ export default function ProprietaireDashboard() {
         <div className="xl:hidden fixed bottom-20 right-4 md:bottom-24 md:right-8 z-20">
           <button onClick={() => navigate('/nouveau-bien')}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #4B6BFF, #3A5AEE)', color: '#fff', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
+            style={{ background: 'linear-gradient(135deg, var(--c-brand), var(--c-primary))', color: 'rgb(255,255,255)', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
             <IcPlus /> Nouveau bien
           </button>
         </div>
@@ -658,9 +644,9 @@ export default function ProprietaireDashboard() {
                 <button key={t.key} onClick={() => setTab(t.key)}
                   aria-label={t.label} aria-current={active ? 'page' : undefined}
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
-                  style={active ? { background: BLUE + '14' } : {}}>
-                  <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.icon}</span>
-                  <span className="text-[10px] font-semibold" style={{ color: active ? BLUE : 'var(--p-muted)' }}>{t.label}</span>
+                  style={active ? { background: withAlpha(BLUE, '14') } : {}}>
+                  <span style={{ color: active ? BLUE_TX : 'var(--p-muted)' }}>{t.icon}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? 'var(--p-accent-text)' : 'var(--p-muted)' }}>{t.label}</span>
                 </button>
               )
             })}
@@ -671,16 +657,16 @@ export default function ProprietaireDashboard() {
                 <button onClick={() => setMoreOpen(true)} aria-haspopup="dialog" aria-expanded={moreOpen}
                   aria-label={'Plus' + (moreBadge > 0 ? `, ${moreBadge} non lu${moreBadge > 1 ? 's' : ''}` : '')}
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 min-w-[60px] rounded-[14px] transition-all"
-                  style={moreActive ? { background: BLUE + '14' } : {}}>
-                  <span className="relative" style={{ color: moreActive ? BLUE : 'var(--p-muted)' }}>
+                  style={moreActive ? { background: withAlpha(BLUE, '14') } : {}}>
+                  <span className="relative" style={{ color: moreActive ? 'var(--p-accent-text)' : 'var(--p-muted)' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
                     {moreBadge > 0 && (
-                      <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                      <span className="absolute -top-1.5 -right-2 flex items-center justify-center min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold text-white" style={{ background: 'var(--c-red-ios)' }}>
                         {moreBadge > 9 ? '9+' : moreBadge}
                       </span>
                     )}
                   </span>
-                  <span className="text-[10px] font-semibold" style={{ color: moreActive ? BLUE : 'var(--p-muted)' }}>
+                  <span className="text-[10px] font-semibold" style={{ color: moreActive ? BLUE_TX : 'var(--p-muted)' }}>
                     {moreActive ? (NAV_ITEMS.find(n => n.key === tab)?.label ?? 'Plus') : 'Plus'}
                   </span>
                 </button>
@@ -702,11 +688,11 @@ export default function ProprietaireDashboard() {
                   <button
                     onClick={() => { setTab(n.key); setMoreOpen(false); if (n.key === 'messages' || n.key === 'notifications') refreshNotifications() }}
                     className="relative w-full flex flex-col items-center gap-1.5 py-3.5 rounded-2xl text-xs font-semibold"
-                    style={{ background: active ? BLUE + '14' : 'var(--p-bg, transparent)', color: active ? BLUE : 'var(--p-text)', border: '1px solid var(--p-border)' }}>
-                    <span style={{ color: active ? BLUE : 'var(--p-muted)' }}>{n.icon}</span>
+                    style={{ background: active ? withAlpha(BLUE, '14') : 'var(--p-bg, transparent)', color: active ? BLUE_TX : 'var(--p-text)', border: '1px solid var(--p-border)' }}>
+                    <span style={{ color: active ? BLUE_TX : 'var(--p-muted)' }}>{n.icon}</span>
                     {n.label}
                     {badge > 0 && (
-                      <span className="absolute top-2 right-3 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white" style={{ background: '#FF3B30' }}>
+                      <span className="absolute top-2 right-3 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white" style={{ background: 'var(--c-red-ios)' }}>
                         {badge > 9 ? '9+' : badge}
                       </span>
                     )}

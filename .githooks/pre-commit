@@ -1,0 +1,6 @@
+#!/bin/sh
+# Contrôles rapides avant chaque commit (FE-A-007). Contournement exceptionnel : git commit --no-verify.
+# Les tests unitaires, le build et les tests de bout en bout tournent en CI.
+set -e
+echo "pre-commit : types, lint, any, couleurs, liens…"
+npm run check --silent

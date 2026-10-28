@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '../api/queryKeys'
 import { API_ORIGIN } from '../api/apiBase'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
 import { track } from '../lib/analytics'
+import type { Bien } from '../types/api'
+import { imageDeCouverture } from '../utils/imageCouverture'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -21,7 +25,7 @@ function fmtAddedDate(iso: string) {
 }
 
 type Props = {
-  bien: any
+  bien: Bien
   favoriteIds?: Set<number>
   onFavoriteToggle?: (id: number, added: boolean) => void
   distanceKm?: number | null
@@ -35,16 +39,18 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
+  const queryClient = useQueryClient()
   const [isFav,     setIsFav]     = useState(favoriteIds?.has(bien.id) ?? false)
   const [toggling,  setToggling]  = useState(false)
   const [favPopped, setFavPopped] = useState(false)
+  const [favError, setFavError] = useState(false)
 
   useEffect(() => {
     setIsFav(favoriteIds?.has(bien.id) ?? false)
   }, [favoriteIds, bien.id])
 
-  const cover    = bien.photos?.find((p: any) => p.is_cover) || bien.photos?.[0]
-  const coverUrl = cover ? resolveUrl(cover.url) : null
+  // Vignette (480 px) si elle existe : l'image de la carte est l'élément le plus lourd de l'accueil (FE-D-002).
+  const couverture = imageDeCouverture(bien.photos, resolveUrl, '(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 300px')
 
   const isLocation = bien.transaction === 'location'
 
@@ -61,14 +67,14 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     studio:         'Studio',
     f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
   }
-  const sousType = bien.amenites?.sous_type
+  const sousType = typeof bien.amenites?.sous_type === 'string' ? bien.amenites.sous_type : undefined
   const label    = (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
   const title    = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
 
   /* ── Tokens thème ── */
   const textPrimary  = isDark ? '#E8E8EF'                : '#1D1D1F'
-  const textSecond   = isDark ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.62)'
-  const textMuted    = isDark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.38)'
+  const textSecond   = isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.70)'
+  const textMuted    = isDark ? 'rgba(255,255,255,0.58)' : 'rgba(0,0,0,0.58)'  // AA ≥ 4,5:1
   const iconMuted    = isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'
   const emptyBg      = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'
 
@@ -81,43 +87,47 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     }
     if (toggling) return
     setToggling(true)
+    setFavError(false)
     setFavPopped(true)
     setTimeout(() => setFavPopped(false), 400)
     try {
       const { isFavori } = await favoritesApi.toggle(bien.id)
       setIsFav(isFavori)
       if (isFavori) track('favori_ajoute', { type: bien.type })
-      onFavoriteToggle?.(bien.id, isFavori)
-    } catch (_) {}
+      // Sans gestionnaire (fiche, suggestions), le cache des favoris est relu ici : les cœurs des
+      // autres écrans et la page Favoris restent justes (FE-A-004).
+      if (onFavoriteToggle) onFavoriteToggle(bien.id, isFavori)
+      else void queryClient.invalidateQueries({ queryKey: queryKeys.favoris })
+    } catch {
+      // Le cœur garde son état réel ; la personne peut simplement recliquer.
+      setFavError(true)
+      setTimeout(() => setFavError(false), 3000)
+    }
     setToggling(false)
   }
 
   return (
-    <div
-      role="article"
-      onClick={() => navigate(`/biens/${bien.id}`)}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/biens/${bien.id}`) } }}
-      tabIndex={0}
-      aria-label={`${label}${bien.localisation?.quartier ? ` à ${bien.localisation.quartier}` : ''} — ${bien.transaction === 'location' ? 'à louer' : 'à vendre'}`}
-      className="glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2"
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- survol purement décoratif ; la carte contient de vrais liens focalisables
+    <article
+      className="relative glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-within:outline-2 focus-within:outline-brand focus-within:outline-offset-2"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
-        const el = e.currentTarget as HTMLDivElement
+        const el = e.currentTarget as HTMLElement
         el.style.transform = 'translateY(-6px)'
         el.style.boxShadow = isDark
           ? '0 20px 48px rgba(0,0,0,0.40), inset 0 1.5px 0 rgba(255,255,255,0.12)'
           : '0 20px 48px rgba(0,0,0,0.14), inset 0 1.5px 0 rgba(255,255,255,0.95)'
       }}
       onMouseLeave={e => {
-        const el = e.currentTarget as HTMLDivElement
+        const el = e.currentTarget as HTMLElement
         el.style.transform = ''
         el.style.boxShadow = ''
       }}
     >
       {/* ── Image ── */}
       <div className="relative h-44 sm:h-48 md:h-52 lg:h-56 img-zoom">
-        {coverUrl ? (
-          <img src={coverUrl} alt={label} className="w-full h-full object-cover" loading="lazy" />
+        {couverture ? (
+          <img src={couverture.src} srcSet={couverture.srcSet} sizes={couverture.sizes} alt={label} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: emptyBg }}>
             <svg className="w-12 h-12" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -143,9 +153,11 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
 
         {/* Bouton favori */}
         <button
+          type="button"
           onClick={handleFav}
-          aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-          className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
+          aria-pressed={isFav}
+          aria-label={`Favori : ${title}`}
+          className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
           style={{
             background: isDark ? 'rgba(30,30,44,0.80)' : 'rgba(255,255,255,0.80)',
             backdropFilter: 'blur(16px)',
@@ -156,28 +168,33 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           }}
         >
           <svg viewBox="0 0 24 24"
-            fill={isFav ? '#4B6BFF' : 'none'}
-            stroke={isFav ? '#4B6BFF' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)')}
+            fill={isFav ? 'var(--c-brand)' : 'none'}
+            stroke={isFav ? 'var(--c-brand)' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)')}
             strokeWidth={2}
             className="w-4 h-4 transition-colors duration-200"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
         </button>
+        {favError && (
+          <p role="alert" className="absolute top-12 right-3 z-10 px-2 py-1 rounded-lg text-micro font-semibold text-white" style={{ background: 'var(--c-danger)' }}>
+            Favori non enregistré
+          </p>
+        )}
 
         {/* Gradient bas pour lisibilité */}
         <div className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)' }} />
 
         {/* Badge nombre de photos */}
-        {showPhotoCount && bien.photos?.length > 0 && (
+        {showPhotoCount && (bien.photos?.length ?? 0) > 0 && (
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-white text-xs font-semibold"
             style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}>
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            {bien.photos.length}
+            {bien.photos?.length}
           </div>
         )}
       </div>
@@ -190,7 +207,13 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             FCFA{isLocation ? '/mois' : ''}
           </span>
         </p>
-        <p className="text-sm font-semibold mt-1 truncate" style={{ color: textSecond }}>{title}</p>
+        <h3 className="text-sm font-semibold mt-1 truncate" style={{ color: textSecond }}>
+          {/* Vrai lien (clavier, clic milieu, nouvel onglet) étendu à toute la carte */}
+          <Link to={`/biens/${bien.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
+            {title}
+            <span className="sr-only"> — {bien.transaction === 'location' ? 'à louer' : 'à vendre'}</span>
+          </Link>
+        </h3>
         <div className="flex items-center gap-1 mt-2">
           <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -211,6 +234,6 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           </p>
         )}
       </div>
-    </div>
+    </article>
   )
 }

@@ -19,10 +19,6 @@ const defaultContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 }
-const defaultItemVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-}
 
 const presetVariants: Record<PresetType, { container: Variants; item: Variants }> = {
   fade: {
@@ -69,13 +65,17 @@ const presetVariants: Record<PresetType, { container: Variants; item: Variants }
 
 export function AnimatedGroup({ children, className, variants, preset = 'blur-slide', stagger }: AnimatedGroupProps) {
   const selected = presetVariants[preset]
+  // Transition de l'état « visible » (les variantes fonctionnelles n'en portent pas)
+  const visibleVariant = selected.container.visible
+  const visibleTransition = typeof visibleVariant === 'object' ? visibleVariant.transition : undefined
+  const presetStagger = visibleTransition && 'staggerChildren' in visibleTransition ? visibleTransition.staggerChildren : undefined
   const containerVariants = variants?.container || {
     ...selected.container,
     visible: {
       ...selected.container.visible,
       transition: {
-        ...(selected.container.visible as any)?.transition,
-        staggerChildren: stagger ?? (selected.container.visible as any)?.transition?.staggerChildren ?? 0.1,
+        ...visibleTransition,
+        staggerChildren: stagger ?? presetStagger ?? 0.1,
       },
     },
   }

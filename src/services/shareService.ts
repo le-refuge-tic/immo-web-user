@@ -49,9 +49,9 @@ export async function shareBien(bien: ShareBien): Promise<boolean> {
   try {
     await navigator.share({ title: 'REFUGE', text, url })
     return true
-  } catch (e: any) {
+  } catch (e: unknown) {
     // AbortError = l'utilisateur a fermé le share sheet → ne pas ouvrir le fallback
-    if (e?.name === 'AbortError') return true
+    if (typeof e === 'object' && e !== null && 'name' in e && e.name === 'AbortError') return true
     return false
   }
 }

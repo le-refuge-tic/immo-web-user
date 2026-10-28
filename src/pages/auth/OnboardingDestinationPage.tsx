@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
 import sideImg from '../../assets/onboarding-side.webp'
 import logoUrl from '../../assets/REFUGE-ICON.webp'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 import { QUARTIERS as QUARTIERS_DB, VILLES_AVEC_QUARTIERS } from '../../data/quartiers'
 
 // Mêmes villes/quartiers que le reste de l'app (data/quartiers.ts, utilisé
@@ -26,12 +27,15 @@ export default function OnboardingDestinationPage() {
   usePageTitle('Ma destination – Inscription')
   const navigate = useNavigate()
   const location = useLocation()
-  const objectif: string = (location.state as any)?.objectif || 'louer'
+  // Inscription propriétaire uniquement : l'étape de choix est sautée, l'objectif est toujours propriétaire.
+  const objectif: string = PROPRIO_SEUL ? 'proprietaire' : ((location.state as { objectif?: string } | null)?.objectif || 'louer')
 
   const [ville, setVille] = useState('')
   const [quartier, setQuartier] = useState('')
 
   const dep = VILLE_DEP[ville] || ''
+  // Le parcours propriétaire se termine sur l'inscription.
+  const apresOnboarding = PROPRIO_SEUL ? '/register' : '/'
 
   const handleVilleChange = (v: string) => { setVille(v); setQuartier('') }
 
@@ -45,14 +49,14 @@ export default function OnboardingDestinationPage() {
     localStorage.setItem('rg_objectif', objectif)
     localStorage.setItem('rg_role_suggere', roleSuggere)
     localStorage.setItem('rg_onboarded', 'true')
-    navigate('/', { replace: true })
+    navigate(apresOnboarding, { replace: true })
   }
 
   const handleSkip = () => {
     localStorage.setItem('rg_objectif', objectif)
     localStorage.setItem('rg_role_suggere', roleSuggere)
     localStorage.setItem('rg_onboarded', 'true')
-    navigate('/', { replace: true })
+    navigate(apresOnboarding, { replace: true })
   }
 
   const isProprietaire = objectif === 'proprietaire'
@@ -73,12 +77,12 @@ export default function OnboardingDestinationPage() {
               style={{ background: 'rgba(255,255,255,0.94)', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
               <img loading="lazy" src={logoUrl} alt="REFUGE" style={{ width: 36, height: 36, objectFit: 'contain' }} />
             </div>
-            <span className="font-bold text-lg tracking-tight" style={{ color: '#00AEEF' }}>REFUGE</span>
+            <span className="font-bold text-lg tracking-tight" style={{ color: 'var(--c-cyan)' }}>REFUGE</span>
           </div>
           {/* Progress */}
           <div className="flex gap-1.5">
-            <div className="w-8 h-1 rounded-full" style={{ background: '#4B6BFF' }} />
-            <div className="w-8 h-1 rounded-full" style={{ background: '#4B6BFF' }} />
+            {!PROPRIO_SEUL && <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />}
+            <div className="w-8 h-1 rounded-full" style={{ background: 'var(--c-brand)' }} />
           </div>
         </div>
 
@@ -86,7 +90,7 @@ export default function OnboardingDestinationPage() {
 
         {/* Contenu bas */}
         <div className="px-6 md:px-16 pb-12 md:pb-16">
-          <p className="text-white/45 text-xs uppercase tracking-[2px] mb-3">Étape 2 sur 2</p>
+          <p className="text-white/45 text-xs uppercase tracking-[2px] mb-3">{PROPRIO_SEUL ? 'Étape 1 sur 1' : 'Étape 2 sur 2'}</p>
           <h2 className="text-white font-bold leading-[1.1] tracking-tight mb-2" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 3.2rem)' }}>
             {isProprietaire ? 'Où se trouve votre bien ?' : 'Où souhaitez-vous louer ?'}
           </h2>
@@ -113,7 +117,7 @@ export default function OnboardingDestinationPage() {
             />
             {dep && (
               <div>
-                <label className="block text-white/60 text-sm font-semibold mb-2">Département</label>
+                <p className="block text-white/60 text-sm font-semibold mb-2">Département</p>
                 <div
                   className="w-full px-4 py-3.5 rounded-xl text-sm text-white/50"
                   style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -129,7 +133,7 @@ export default function OnboardingDestinationPage() {
               onClick={handleNext}
               disabled={!ville}
               className="flex-1 h-14 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 20px rgba(75,107,255,0.4)' }}
             >
               Terminer
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
@@ -173,16 +177,16 @@ function DarkSelect({ label, placeholder, value, options, onChange, disabled }: 
           className="w-full appearance-none px-4 py-3.5 rounded-xl text-sm outline-none transition-all"
           style={{
             background: value ? 'rgba(75,107,255,0.15)' : 'rgba(255,255,255,0.07)',
-            border: value ? '1.5px solid #4B6BFF' : '1px solid rgba(255,255,255,0.15)',
+            border: value ? '1.5px solid var(--c-brand)' : '1px solid rgba(255,255,255,0.15)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            color: value ? '#fff' : 'rgba(255,255,255,0.4)',
+            color: value ? 'rgb(255,255,255)' : 'rgba(255,255,255,0.4)',
             opacity: disabled ? 0.5 : 1,
           }}
         >
           <option value="" disabled style={{ background: '#111', color: '#999' }}>{placeholder}</option>
           {options.map(opt => (
-            <option key={opt} value={opt} style={{ background: '#111', color: '#fff' }}>{opt}</option>
+            <option key={opt} value={opt} style={{ background: '#111', color: 'rgb(255,255,255)' }}>{opt}</option>
           ))}
         </select>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">

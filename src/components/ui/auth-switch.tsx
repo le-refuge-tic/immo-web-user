@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authApi } from '../../api/authApi'
 import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, type Transition } from 'framer-motion'
+import type { LoginPayload } from '../../types/session'
+import { estOtpRequise, type RegisterBody } from '../../types/auth'
 import { Eye, EyeOff, Search, Home, Check, ShieldCheck, AlertTriangle, Loader2, Lock, ChevronDown, Mail } from 'lucide-react'
 import { ImageSlider } from './image-slider'
 import { CountryFlag } from './auth/CountryFlag'
@@ -14,9 +16,13 @@ import slide2 from '../../assets/onboarding-2.webp'
 import slide3 from '../../assets/onboarding-3.webp'
 import slide4 from '../../assets/hero-interior.webp'
 import '../../pages/auth/authNew.css'
-import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
+import { validateBeninPhone, toInternationalPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
 import { track } from '../../lib/analytics'
+import { nameError, NAME_MAX_LENGTH } from '../../utils/nameRules'
+import { applyOtpInput } from '../../utils/otpInput'
 import { apiMessage } from '../../utils/apiMessage'
+import { POST_LOGIN_REDIRECT_KEY, isSessionExpired, clearSessionExpired, estDestinationInterne } from '../../utils/sessionExpiry'
+import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 
 /** Délai minimal entre l'affichage du formulaire et l'envoi (anti-robot). */
 const MIN_FORM_MS = 3000
@@ -44,6 +50,7 @@ function BrandSlide() {
     <div
       className="w-full h-full flex flex-col items-center justify-center"
       style={{
+        // couleur-libre : dégradé d'illustration du panneau de connexion, identique dans les deux thèmes
         background: 'linear-gradient(160deg, #0A0E1A 0%, #14192B 45%, #1E1533 100%)',
       }}
     >
@@ -87,8 +94,8 @@ export function SidePanel() {
       <ImageSlider slides={SLIDES} interval={4000} className="absolute inset-0" />
 
       {/* Overlay gradient pour lisibilité */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#1D1D1F]/80 via-[#1D1D1F]/20 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#4B6BFF]/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-text-dark/80 via-text-dark/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-brand/30 to-transparent" />
 
 
       {/* Contenu sur l'overlay */}
@@ -103,13 +110,13 @@ export function SidePanel() {
         <div>
           <p className="text-white text-3xl font-black leading-tight tracking-tight drop-shadow-lg mb-5">
             Trouvez votre<br />
-            <span className="text-[#FF6B35]">logement idéal</span><br />
+            <span className="text-secondary">logement idéal</span><br />
             au Bénin
           </p>
           <div className="flex flex-col gap-2">
             {PITCH_ITEMS.map(text => (
               <div key={text} className="flex items-center gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4B6BFF] shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
                 <span className="text-white/90 text-sm font-medium drop-shadow">{text}</span>
               </div>
             ))}
@@ -157,7 +164,7 @@ export function PrimaryButton({
       onClick={onClick}
       whileTap={{ scale: 0.985 }}
       className={cn(
-        'relative flex w-full items-center justify-center gap-2 rounded-xl h-10 text-[14px] font-bold bg-primary text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B6BFF] focus-visible:ring-offset-2',
+        'relative flex w-full items-center justify-center gap-2 rounded-xl h-10 text-[14px] font-bold bg-primary text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
         className,
       )}
     >
@@ -227,6 +234,9 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const [otpLoading, setOtpLoading] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+  // FE-B-002 : arrivée ici après expiration de la session (voir httpInterceptor)
+  const [sessionExpired] = useState(() => isSessionExpired())
+  useEffect(() => { clearSessionExpired() }, [])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -234,10 +244,13 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     return () => clearTimeout(t)
   }, [resendCooldown])
 
-  const completeLogin = (data: any) => {
+  const completeLogin = (data: LoginPayload) => {
     login(data)
-    const redirect = sessionStorage.getItem('post_login_redirect')
-    if (redirect) { sessionStorage.removeItem('post_login_redirect'); navigate(redirect, { replace: true }); return }
+    const redirect = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
+    if (redirect) {
+      sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+      if (estDestinationInterne(redirect)) { navigate(redirect, { replace: true }); return }
+    }
     const role = data.user?.role
     if (role === 'proprietaire') navigate('/proprietaire', { replace: true })
     else if (role === 'demarcheur') navigate('/demarcheur', { replace: true })
@@ -249,19 +262,19 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     if (!phone.trim() || !password) { setError('Remplissez tous les champs'); return }
     setLoading(true); setError('')
     try {
-      const fullPhone = countryCode + phone.trim()
+      const fullPhone = toInternationalPhone(countryCode, phone)
       const data = await withColdStartRetry(
         () => authApi.loginPhone(fullPhone, password),
         () => setError('Le serveur se réveille, nouvelle tentative…'),
       )
       setError('')
-      if (data.requires_otp && data.session_token) {
+      if (estOtpRequise(data)) {
         setSessionToken(data.session_token)
         setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
         setStepDir(1); setFormStep('otp')
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || 'Identifiants incorrects'))
     }
     setLoading(false)
@@ -271,11 +284,11 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     if (resendCooldown > 0) return
     setLoading(true); setOtpError('')
     try {
-      const fullPhone = countryCode + phone.trim()
+      const fullPhone = toInternationalPhone(countryCode, phone)
       const data = await withColdStartRetry(() => authApi.loginPhone(fullPhone, password), () => setOtpError('Le serveur se réveille…'))
       setOtpError('')
-      if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
-    } catch (err: any) {
+      if (estOtpRequise(data)) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setLoading(false)
@@ -287,7 +300,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     try {
       const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code incorrect'))
       setOtpDigits(Array(OTP_LENGTH).fill(''))
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
@@ -297,15 +310,10 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   // Saisie, collage ou remplissage automatique (SMS) : répartit les chiffres à partir de la case courante
   const applyOtpChars = (index: number, raw: string) => {
-    let chars = raw.replace(/\D/g, '')
-    if (chars.length === 2 && otpDigits[index]) chars = chars.slice(-1)
-    const next = [...otpDigits]
-    if (!chars) { next[index] = ''; setOtpDigits(next); return }
-    const chunk = chars.length > 1 ? chars.slice(0, OTP_LENGTH - index) : chars
-    chunk.split('').forEach((c, k) => { next[index + k] = c })
-    setOtpDigits(next)
-    otpRefs.current[Math.min(index + chunk.length, OTP_LENGTH - 1)]?.focus()
-    const code = next.join(''); if (code.length === OTP_LENGTH) verifyOtp(code)
+    const r = applyOtpInput(otpDigits, index, raw, OTP_LENGTH)
+    setOtpDigits(r.digits)
+    otpRefs.current[r.focusIndex]?.focus()
+    if (r.code) verifyOtp(r.code)
   }
   const handleOtpChange = (index: number, value: string) => applyOtpChars(index, value)
   const handleOtpPaste = (index: number, e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -317,14 +325,23 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   }
 
   const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
-  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as any }
+  const transition: Transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }
 
   return (
     <AnimatePresence mode="wait" custom={stepDir}>
       {formStep === 'credentials' ? (
         <motion.div key="creds" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
-          <h2 className="auth-title">Bienvenue</h2>
-          <p className="auth-sub">Connectez-vous pour accéder à votre espace</p>
+          {sessionExpired ? (
+            <>
+              <h1 className="auth-title">Session expirée</h1>
+              <p className="auth-sub" role="status">Reconnectez-vous pour reprendre là où vous en étiez.</p>
+            </>
+          ) : (
+            <>
+              <h1 className="auth-title">Bienvenue</h1>
+              <p className="auth-sub">Connectez-vous pour accéder à votre espace</p>
+            </>
+          )}
           <ErrorBanner message={error} id="login-error" />
           <form onSubmit={handleLogin} className="flex flex-col gap-2" aria-describedby={error ? 'login-error' : undefined}>
             <div className="auth-field">
@@ -334,13 +351,13 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             <div className="auth-field">
               <label htmlFor="login-password" className="auth-label">Mot de passe</label>
               <div className="relative">
-                <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                 <input id="login-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="auth-input pad-icon-left pad-icon-right w-full" />
-                <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer' : 'Afficher'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors">
+                <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              <button type="button" onClick={() => navigate('/mot-de-passe-oublie')} className="mt-1.5 text-right text-[13px] font-semibold text-[#4B6BFF] hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'block', width: '100%' }}>
+              <button type="button" onClick={() => navigate('/mot-de-passe-oublie')} className="mt-1.5 text-right text-[13px] font-semibold text-brand hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'block', width: '100%' }}>
                 Mot de passe oublié ?
               </button>
             </div>
@@ -348,10 +365,10 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           </form>
           <div className="auth-divider" />
           <p className="auth-footer">
-            Nouveau ici ?{' '}
-            <button type="button" onClick={onSwitch} className="auth-link">Créer un compte</button>
+            {PROPRIO_SEUL ? 'Vous êtes propriétaire ?' : 'Nouveau ici ?'}{' '}
+            <button type="button" onClick={onSwitch} className="auth-link">{PROPRIO_SEUL ? 'Créez votre compte' : 'Créer un compte'}</button>
           </p>
-          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour à l'accueil
           </button>
         </motion.div>
@@ -361,7 +378,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(75,107,255,0.12)]">
               <ShieldCheck size={22} className="text-brand" />
             </div>
-            <h2 className="auth-title">Vérification</h2>
+            <h1 className="auth-title">Vérification</h1>
             <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-text-dark">{maskedPhone}</strong></p>
           </div>
           <ErrorBanner message={otpError} />
@@ -370,7 +387,8 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
               <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                 onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                 inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
-                animate={{ borderColor: d ? '#4B6BFF' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                // couleur-libre : framer-motion interpole entre deux couleurs réelles, pas entre des variables CSS
+                animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                 transition={{ duration: 0.15 }}
                 className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                 aria-label={`Chiffre ${i + 1}`}
@@ -378,14 +396,14 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             ))}
           </div>
           <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
-          <div className="mt-3 text-sm text-[#6E6E73] text-center">
+          <div className="mt-3 text-sm text-ink-muted text-center">
             {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
               <button type="button" onClick={resendOtp} disabled={loading} className="font-semibold text-brand hover:underline disabled:opacity-60">
                 {loading ? 'Envoi…' : 'Renvoyer le code'}
               </button>
             )}
           </div>
-          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour
           </button>
         </motion.div>
@@ -399,14 +417,21 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const { login } = useAuth()
   const navigate = useNavigate()
   const prefersReduced = useReducedMotion()
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(PROPRIO_SEUL ? 2 : 1)
   const [stepDir, setStepDir] = useState(1)
   const [role, setRole] = useState(() => {
+    // Inscription web propriétaire uniquement : le rôle est fixé, ni suggestion ni paramètre d'URL.
+    if (PROPRIO_SEUL) return 'proprietaire'
     const suggere = localStorage.getItem('rg_role_suggere')
     return suggere === 'proprietaire' || suggere === 'prospect' ? suggere : ''
   })
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
+  const [nomTouched, setNomTouched] = useState(false)
+  const [prenomTouched, setPrenomTouched] = useState(false)
+  // L'erreur n'apparaît qu'une fois le champ quitté, puis se corrige au fil de la saisie.
+  const nomError = nomTouched ? nameError('Nom', nom) : null
+  const prenomError = prenomTouched ? nameError('Prénom', prenom) : null
   const [countryCode, setCountryCode] = useState('+229')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -427,7 +452,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resending, setResending] = useState(false)
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
-  const telephone = countryCode + phone.trim()
+  const telephone = toInternationalPhone(countryCode, phone)
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -435,8 +460,14 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     return () => clearTimeout(t)
   }, [resendCooldown])
 
-  const completeLogin = (data: any) => {
+  const completeLogin = (data: LoginPayload) => {
     login(data)
+    // Même retour à la page d'origine que LoginForm ; destination interne uniquement (jamais de redirection externe).
+    const redirect = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
+    if (redirect) {
+      sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+      if (estDestinationInterne(redirect)) { navigate(redirect, { replace: true }); return }
+    }
     const userRole = data.user?.role
     if (userRole === 'proprietaire') navigate('/proprietaire', { replace: true })
     else if (userRole === 'demarcheur') navigate('/demarcheur', { replace: true })
@@ -445,6 +476,9 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    setNomTouched(true); setPrenomTouched(true)
+    const identiteInvalide = nameError('Nom', nom) || nameError('Prénom', prenom)
+    if (identiteInvalide) { setError(identiteInvalide); return }
     if (phone.trim() && countryCode === '+229' && !validateBeninPhone(phone)) { setError(PHONE_FORMAT_HINT); return }
     if (password !== confirmPwd) { setError('Les mots de passe ne correspondent pas'); return }
     if (password.length < 8) { setError('Mot de passe trop court (8 caractères min.)'); return }
@@ -452,7 +486,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     if (Date.now() - formShownAtRef.current < MIN_FORM_MS) { setError('Vérifiez vos informations puis validez à nouveau.'); return }
     setLoading(true); setError('')
     try {
-      const body: any = { role, nom, prenom, password, site_web: siteWeb }
+      const body: RegisterBody = { role, nom: nom.trim(), prenom: prenom.trim(), password, site_web: siteWeb }
       if (phone.trim()) body.telephone = telephone
       if (email.trim()) body.email = email.trim()
       const registerData = await authApi.register(body)
@@ -465,13 +499,13 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         : () => authApi.loginEmail(email.trim(), password)
       const data = await withColdStartRetry(loginFn, () => setError('Le serveur se réveille, nouvelle tentative…'))
       setError('')
-      if (data.requires_otp && data.session_token) {
+      if (estOtpRequise(data)) {
         setSessionToken(data.session_token)
         setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
         setStepDir(1); setStep(3)
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || "Erreur lors de l'inscription"))
     }
     setLoading(false)
@@ -486,8 +520,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         : () => authApi.loginEmail(email.trim(), password)
       const data = await withColdStartRetry(resendFn, () => setOtpError('Le serveur se réveille…'))
       setOtpError('')
-      if (data.requires_otp && data.session_token) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
-    } catch (err: any) {
+      if (estOtpRequise(data)) { setSessionToken(data.session_token); setOtpDigits(Array(OTP_LENGTH).fill('')); setResendCooldown(RESEND_COOLDOWN) }
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "Impossible de renvoyer le code"))
     }
     setResending(false)
@@ -499,7 +533,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     try {
       const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code incorrect'))
       setOtpDigits(Array(OTP_LENGTH).fill(''))
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
@@ -509,15 +543,10 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
   // Saisie, collage ou remplissage automatique (SMS) : répartit les chiffres à partir de la case courante
   const applyOtpChars = (index: number, raw: string) => {
-    let chars = raw.replace(/\D/g, '')
-    if (chars.length === 2 && otpDigits[index]) chars = chars.slice(-1)
-    const next = [...otpDigits]
-    if (!chars) { next[index] = ''; setOtpDigits(next); return }
-    const chunk = chars.length > 1 ? chars.slice(0, OTP_LENGTH - index) : chars
-    chunk.split('').forEach((c, k) => { next[index + k] = c })
-    setOtpDigits(next)
-    otpRefs.current[Math.min(index + chunk.length, OTP_LENGTH - 1)]?.focus()
-    const code = next.join(''); if (code.length === OTP_LENGTH) verifyOtp(code)
+    const r = applyOtpInput(otpDigits, index, raw, OTP_LENGTH)
+    setOtpDigits(r.digits)
+    otpRefs.current[r.focusIndex]?.focus()
+    if (r.code) verifyOtp(r.code)
   }
   const handleOtpChange = (index: number, value: string) => applyOtpChars(index, value)
   const handleOtpPaste = (index: number, e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -530,13 +559,13 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
   const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
   const goTo = (s: number) => { setStepDir(s > step ? 1 : -1); setStep(s) }
-  const transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] as any }
+  const transition: Transition = { duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }
 
   return (
     <>
       {step !== 3 && (
         <div className="auth-step-dots">
-          {[1, 2, 3].map(s => (
+          {(PROPRIO_SEUL ? [2, 3] : [1, 2, 3]).map(s => (
             <div key={s} className={`auth-step-dot${s === step ? ' active' : s < step ? ' done' : ''}`} />
           ))}
         </div>
@@ -545,7 +574,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       <AnimatePresence mode="wait" custom={stepDir}>
         {step === 1 && (
           <motion.div key="r1" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
-            <h2 className="auth-title">Qui êtes-vous ?</h2>
+            <h1 className="auth-title">Qui êtes-vous ?</h1>
             <p className="auth-sub">Choisissez le profil qui vous correspond</p>
             <ErrorBanner message={error} />
             <div className="flex flex-col gap-2">
@@ -554,7 +583,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                   <div className="auth-role-icon">{r.icon}</div>
                   <div className="flex-1 text-left">
                     <p className="text-[15px] font-bold text-text-dark">{r.label}</p>
-                    <p className="text-xs text-[#6E6E73] mt-0.5">{r.desc}</p>
+                    <p className="text-xs text-ink-muted mt-0.5">{r.desc}</p>
                   </div>
                   <div className="auth-role-check">{role === r.key && <Check size={11} strokeWidth={3} />}</div>
                 </button>
@@ -563,24 +592,28 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             <PrimaryButton type="button" onClick={() => { if (!role) { setError('Choisissez un profil'); return } setError(''); goTo(2) }} className="mt-5">Continuer</PrimaryButton>
             <div className="auth-divider" />
             <p className="auth-footer">Déjà un compte ?{' '}<button type="button" onClick={onSwitch} className="auth-link">Se connecter</button></p>
-            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-[#6E6E73] hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
+            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
           </motion.div>
         )}
 
         {step === 2 && (
           <motion.div key="r2" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
-            <h2 className="auth-title">Vos informations</h2>
-            <p className="auth-sub">Quelques infos pour créer votre compte</p>
+            <h1 className="auth-title">{PROPRIO_SEUL ? 'Vous êtes propriétaire ?' : 'Vos informations'}</h1>
+            <p className="auth-sub">{PROPRIO_SEUL ? 'Créez votre compte propriétaire' : 'Quelques infos pour créer votre compte'}</p>
             <ErrorBanner message={error} id="register-error" />
             <form onSubmit={handleRegister} className="flex flex-col gap-2" aria-describedby={error ? 'register-error' : undefined}>
               <div className="flex gap-2">
                 <div className="auth-field flex-1">
                   <label htmlFor="reg-nom" className="auth-label">Nom</label>
-                  <input id="reg-nom" value={nom} onChange={e => setNom(e.target.value)} placeholder="Dupont" required className="auth-input" />
+                  <input id="reg-nom" value={nom} onChange={e => setNom(e.target.value)} onBlur={() => setNomTouched(true)} placeholder="Dupont" required maxLength={NAME_MAX_LENGTH}
+                    aria-invalid={!!nomError} aria-describedby={nomError ? 'reg-nom-error' : undefined} className="auth-input" />
+                  {nomError && <p id="reg-nom-error" className="mt-1 text-xs font-semibold text-red-600">{nomError}</p>}
                 </div>
                 <div className="auth-field flex-1">
                   <label htmlFor="reg-prenom" className="auth-label">Prénom</label>
-                  <input id="reg-prenom" value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Jean" required className="auth-input" />
+                  <input id="reg-prenom" value={prenom} onChange={e => setPrenom(e.target.value)} onBlur={() => setPrenomTouched(true)} placeholder="Jean" required maxLength={NAME_MAX_LENGTH}
+                    aria-invalid={!!prenomError} aria-describedby={prenomError ? 'reg-prenom-error' : undefined} className="auth-input" />
+                  {prenomError && <p id="reg-prenom-error" className="mt-1 text-xs font-semibold text-red-600">{prenomError}</p>}
                 </div>
               </div>
               <div className="auth-field">
@@ -588,18 +621,18 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <PhoneInput id="reg-phone" countryCode={countryCode} phone={phone} onCountryChange={setCountryCode} onPhoneChange={setPhone} />
               </div>
               <div className="auth-field">
-                <label htmlFor="reg-email" className="auth-label">Email <span className="normal-case font-normal text-[#6E6E73]">(optionnel)</span></label>
+                <label htmlFor="reg-email" className="auth-label">Email <span className="normal-case font-normal text-ink-muted">(optionnel)</span></label>
                 <div className="relative">
-                  <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   <input id="reg-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com" className="auth-input pad-icon-left w-full" />
                 </div>
               </div>
               <div className="auth-field">
                 <label htmlFor="reg-password" className="auth-label">Mot de passe</label>
                 <div className="relative">
-                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   <input id="reg-password" type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 caractères" required className="auth-input pad-icon-left pad-icon-right w-full" />
-                  <button type="button" onClick={() => setShowPwd(v => !v)} tabIndex={-1} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors">
+                  <button type="button" onClick={() => setShowPwd(v => !v)} aria-pressed={showPwd} aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
                     {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -607,9 +640,9 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               <div className="auth-field">
                 <label htmlFor="reg-confirm" className="auth-label">Confirmer</label>
                 <div className="relative">
-                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A8]" />
+                  <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   <input id="reg-confirm" type={showConfirm ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Répéter le mot de passe" required className="auth-input pad-icon-left pad-icon-right w-full" />
-                  <button type="button" onClick={() => setShowConfirm(v => !v)} tabIndex={-1} aria-label={showConfirm ? 'Masquer la confirmation' : 'Afficher la confirmation'} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-text-dark transition-colors">
+                  <button type="button" onClick={() => setShowConfirm(v => !v)} aria-pressed={showConfirm} aria-label={showConfirm ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'} className="absolute right-3 -mr-1.5 p-1.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-text-dark transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2">
                     {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -629,7 +662,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 </span>
               </label>
               <div className="flex gap-2 mt-1">
-                <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-text-dark hover:bg-black/5 transition-colors shrink-0">Retour</button>
+                {!PROPRIO_SEUL && <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-text-dark hover:bg-black/5 transition-colors shrink-0">Retour</button>}
                 <PrimaryButton loading={loading} loadingLabel="Création…" className="flex-1">S'inscrire</PrimaryButton>
               </div>
             </form>
@@ -644,7 +677,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[rgba(75,107,255,0.12)]">
                 <ShieldCheck size={28} className="text-brand" />
               </div>
-              <h2 className="auth-title">Vérification</h2>
+              <h1 className="auth-title">Vérification</h1>
               <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-text-dark">{maskedPhone}</strong></p>
             </div>
             <ErrorBanner message={otpError} />
@@ -653,7 +686,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <motion.input key={i} ref={el => { otpRefs.current[i] = el }} value={d}
                   onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)} onPaste={e => handleOtpPaste(i, e)}
                   inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? OTP_LENGTH : 1} disabled={otpLoading}
-                  animate={{ borderColor: d ? '#4B6BFF' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
+                  // couleur-libre : framer-motion interpole entre deux couleurs réelles, pas entre des variables CSS
+                  animate={{ borderColor: d ? '#4160F2' : otpError ? '#FF3B30' : 'rgba(0,0,0,0.12)', backgroundColor: d ? 'rgba(75,107,255,0.06)' : '#F5F5F7' }}
                   transition={{ duration: 0.15 }}
                   className="h-11 w-9 rounded-xl border-[1.5px] text-center text-lg font-bold text-text-dark outline-none disabled:opacity-50 focus:border-brand focus:shadow-[0_0_0_3px_rgba(75,107,255,0.15)] focus:bg-white"
                   aria-label={`Chiffre ${i + 1}`}
@@ -661,7 +695,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               ))}
             </div>
             <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
-            <div className="mt-3 text-sm text-[#6E6E73] text-center">
+            <div className="mt-3 text-sm text-ink-muted text-center">
               {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
                 <button type="button" onClick={resendOtp} disabled={resending} className="font-semibold text-brand hover:underline disabled:opacity-60">
                   {resending ? 'Envoi…' : 'Renvoyer le code'}
@@ -687,8 +721,8 @@ function ModeToggle({ mode, onChange }: { mode: 'login' | 'register'; onChange: 
           className={cn(
             'flex-1 h-8 rounded-[10px] text-[13px] font-bold transition-all duration-200',
             mode === m
-              ? 'bg-white text-brand shadow-sm'
-              : 'text-[#6E6E73] hover:text-text-dark'
+              ? 'bg-white text-brand dark:text-brand-soft shadow-sm'
+              : 'text-ink-muted hover:text-text-dark'
           )}
         >
           {m === 'login' ? 'Connexion' : 'Inscription'}
@@ -698,37 +732,7 @@ function ModeToggle({ mode, onChange }: { mode: 'login' | 'register'; onChange: 
   )
 }
 
-// ── Bulles décoratives d'arrière-plan (panneau formulaire) ─────────────────
-const BUBBLES = [
-  { size: 320, top: '-10%', left: '-14%', color1: 'rgba(75,107,255,0.28)',  color2: 'rgba(75,107,255,0.06)',  delay: 0   },
-  { size: 220, top: '62%',  left: '-10%', color1: 'rgba(255,107,53,0.22)',  color2: 'rgba(255,107,53,0.04)',  delay: 1.8 },
-  { size: 170, top: '8%',   left: '70%',  color1: 'rgba(168,85,247,0.20)',  color2: 'rgba(168,85,247,0.04)',  delay: 3.2 },
-  { size: 260, top: '72%',  left: '58%',  color1: 'rgba(75,107,255,0.18)',  color2: 'rgba(75,107,255,0.03)',  delay: 0.9 },
-  { size: 120, top: '35%',  left: '85%',  color1: 'rgba(255,107,53,0.16)',  color2: 'rgba(255,107,53,0.03)',  delay: 2.5 },
-  { size: 90,  top: '50%',  left: '16%',  color1: 'rgba(168,85,247,0.14)',  color2: 'rgba(168,85,247,0.02)',  delay: 4.1 },
-  { size: 70,  top: '20%',  left: '42%',  color1: 'rgba(75,107,255,0.12)',  color2: 'rgba(75,107,255,0.02)',  delay: 1.4 },
-]
 
-function PanelBubbles() {
-  return (
-    <div className="auth-bubbles" aria-hidden="true">
-      {BUBBLES.map((b, i) => (
-        <div
-          key={i}
-          className="auth-bubble"
-          style={{
-            width:  b.size,
-            height: b.size,
-            top:    b.top,
-            left:   b.left,
-            background: `radial-gradient(circle at 30% 30%, ${b.color1} 0%, ${b.color2} 55%, transparent 75%)`,
-            animationDelay: `${b.delay}s`,
-          }}
-        />
-      ))}
-    </div>
-  )
-}
 
 // ── Composant principal exporté ─────────────────────────────────────────────
 export function AuthSwitch({ defaultMode = 'login' }: { defaultMode?: 'login' | 'register' }) {

@@ -9,9 +9,12 @@ import VerificationCipModal from '../VerificationCipModal'
 import DelegationModal from '../DelegationModal'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { IcPayments, IcChevron, IcHandshake } from './icons'
-import { IcWallet, IcPerson, IcStar, IcShield, IcEdit, IcUpload, BLUE } from './shared'
+import { IcWallet, IcPerson, IcStar, IcShield, IcEdit, IcUpload, BLUE_TX } from './shared'
+import type { Bien, Visite } from '../../../types/api'
+import type { ProprioProfil } from '../../../types/proprietaire'
+import { withAlpha } from '../../../utils/color'
 
-export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onScrolled }: { user: any; biens: any[]; visites: any[]; onOpenTransactions: () => void; onOpenRoles: () => void; onScrolled?: (v: boolean) => void }) {
+export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onScrolled }: { user: ProprioProfil | null | undefined; biens: Bien[]; visites: Visite[]; onOpenTransactions: () => void; onOpenRoles: () => void; onScrolled?: (v: boolean) => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [editOpen, setEditOpen] = useState(false)
@@ -21,7 +24,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
   const [numeroRetraitOpen, setNumeroRetraitOpen] = useState(false)
   const [numeroRetrait, setNumeroRetrait] = useState<{ masque: string | null } | null>(null)
   const [hoveredEl, setHoveredEl] = useState<string | null>(null)
-  useEffect(() => { walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => {}) }, [])
+  useEffect(() => { walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }, [])
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const score = user?.score_credibilite ?? 100
 
@@ -39,19 +42,19 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
     : null
 
   const kpis = [
-    { label: 'Score', value: `${Math.round(score)}`, color: BLUE },
-    { label: 'Occupation', value: `${tauxOccupation}%`, color: '#16A34A' },
-    { label: 'Publiés', value: `${tauxPublication}%`, color: '#B45309' },
+    { label: 'Score', value: `${Math.round(score)}`, color: BLUE_TX },
+    { label: 'Occupation', value: `${tauxOccupation}%`, color: 'var(--tx-green)' },
+    { label: 'Publiés', value: `${tauxPublication}%`, color: 'var(--tx-amber)' },
   ]
 
   const menuItems = [
-    { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE, onClick: () => setEditOpen(true) },
-    { icon: <IcShield />, label: 'Changer le mot de passe', color: '#7B2FBE', onClick: () => setPasswordOpen(true) },
-    { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: '#0EA5E9', onClick: () => setCipOpen(true) },
+    { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE_TX, onClick: () => setEditOpen(true) },
+    { icon: <IcShield />, label: 'Changer le mot de passe', color: 'var(--c-purple-dark)', onClick: () => setPasswordOpen(true) },
+    { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: 'var(--c-sky)', onClick: () => setCipOpen(true) },
     { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
-    { icon: <IcPerson />, label: 'Gérer mes rôles', color: '#B45309', onClick: onOpenRoles },
-    { icon: <IcPayments />, label: 'Historique des transactions', color: '#16A34A', onClick: onOpenTransactions },
+    { icon: <IcPerson />, label: 'Gérer mes rôles', color: 'var(--tx-amber)', onClick: onOpenRoles },
+    { icon: <IcPayments />, label: 'Historique des transactions', color: 'var(--tx-green)', onClick: onOpenTransactions },
   ]
 
   return (
@@ -86,14 +89,14 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                     ? <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-2xl object-cover shadow-lg mb-3"
                         style={{ border: '3px solid rgba(255,255,255,0.9)' }} />
                     : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg"
-                        style={{ background: 'linear-gradient(135deg, #4B6BFF, #6366F1)', border: '3px solid rgba(255,255,255,0.9)' }}>
+                        style={{ background: 'linear-gradient(135deg, var(--c-brand), var(--c-indigo))', border: '3px solid rgba(255,255,255,0.9)' }}>
                         {initials}
                       </div>
                   }
                   <p className="font-black text-[19px] leading-tight" style={{ color: '#1E1B4B' }}>{user?.prenom} {user?.nom}</p>
                   <p className="text-[13px] mt-1" style={{ color: '#4338CA' }}>{user?.email || user?.telephone}</p>
                   {memberSince && (
-                    <p className="text-[12px] mt-2" style={{ color: '#6366F1' }}>Membre depuis {memberSince}</p>
+                    <p className="text-[12px] mt-2" style={{ color: 'var(--c-indigo)' }}>Membre depuis {memberSince}</p>
                   )}
                 </div>
               </div>
@@ -120,7 +123,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
                 onMouseEnter={() => setHoveredEl(`menu-${i}`)}
                 onMouseLeave={() => setHoveredEl(null)}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: item.color + '14', color: item.color }}>
+                  style={{ background: withAlpha(item.color, '14'), color: item.color }}>
                   {item.icon}
                 </div>
                 <p className="flex-1 text-[14px] font-semibold" style={{ color: 'var(--p-text)' }}>{item.label}</p>
@@ -134,10 +137,10 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] mb-4" style={{ color: 'var(--p-muted)' }}>MES RÉSERVATIONS</p>
             <div className="flex">
               {[
-                { label: 'Total', value: visites.length, color: BLUE },
-                { label: 'Confirmées', value: visitesConfirmees, color: '#16A34A' },
-                { label: 'En attente', value: visitesEnAttente, color: '#B45309' },
-                { label: 'Effectuées', value: visitesEffectuees, color: '#7B2FBE' },
+                { label: 'Total', value: visites.length, color: BLUE_TX },
+                { label: 'Confirmées', value: visitesConfirmees, color: 'var(--tx-green)' },
+                { label: 'En attente', value: visitesEnAttente, color: 'var(--tx-amber)' },
+                { label: 'Effectuées', value: visitesEffectuees, color: 'var(--c-purple-dark)' },
               ].map((s, i) => (
                 <div key={s.label} className="flex-1 min-w-0 flex flex-col items-center justify-center"
                   style={{ borderLeft: i > 0 ? '1px solid var(--p-border)' : 'none' }}>
@@ -153,12 +156,12 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] mb-4" style={{ color: 'var(--p-muted)' }}>MES BIENS</p>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Total', value: biens.length, color: BLUE },
-                { label: 'Publiés', value: approuves, color: '#16A34A' },
-                { label: 'Occupés', value: biensOccupes, color: '#B45309' },
+                { label: 'Total', value: biens.length, color: BLUE_TX },
+                { label: 'Publiés', value: approuves, color: 'var(--tx-green)' },
+                { label: 'Occupés', value: biensOccupes, color: 'var(--tx-amber)' },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center justify-center py-3 rounded-xl"
-                  style={{ background: s.color + '0E' }}>
+                  style={{ background: withAlpha(s.color, '0E') }}>
                   <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
                   <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: 'var(--p-muted)' }}>{s.label}</p>
                 </div>
@@ -183,7 +186,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
           {/* Déconnexion */}
           <button onClick={() => { logout(); navigate('/login') }}
             className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
-            style={{ background: hoveredEl === 'logout' ? 'rgba(239,68,68,0.16)' : 'rgba(239,68,68,0.08)', color: 'var(--tx-red)', border: '1px solid #EF444433' }}
+            style={{ background: hoveredEl === 'logout' ? 'rgba(239,68,68,0.16)' : 'rgba(239,68,68,0.08)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.2)' }}
             onMouseEnter={() => setHoveredEl('logout')}
             onMouseLeave={() => setHoveredEl(null)}>
             Se déconnecter
@@ -199,7 +202,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
         <NumeroRetraitModal
           current={numeroRetrait?.masque ?? null}
           onClose={() => setNumeroRetraitOpen(false)}
-          onSaved={() => { setNumeroRetraitOpen(false); walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => {}) }}
+          onSaved={() => { setNumeroRetraitOpen(false); walletApi.numeroRetrait().then(setNumeroRetrait).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }}
         />
       )}
     </div>

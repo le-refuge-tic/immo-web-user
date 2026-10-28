@@ -3,18 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { apiMessage } from '../../utils/apiMessage'
+import { ModalSheet } from '../../components/ui/ModalSheet'
+import type { HistoriquePaiement } from '../../types/paiement'
+import { withAlpha } from '../../utils/color'
 
 type Filter = 'Tous' | 'Visites' | 'Loyers' | 'Intégration'
 
-const isVisite = (t: any) => String(t.type ?? '').toLowerCase() === 'frais_visite'
-const isLoyer  = (t: any) => String(t.type ?? '').toLowerCase() === 'loyer'
-const isInteg  = (t: any) => String(t.type ?? '').toLowerCase() === 'integration'
-const isDepot  = (t: any) => String(t.type ?? '').toLowerCase() === 'depot_wallet'
+const isVisite = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'frais_visite'
+const isLoyer  = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'loyer'
+const isInteg  = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'integration'
+const isDepot  = (t: HistoriquePaiement) => String(t.type ?? '').toLowerCase() === 'depot_wallet'
 
-const typeLabel = (t: any) => {
+// FE-B-007 : le sens vient du payeur (fourni par le serveur) ; sans lui, on retombe sur l'ancienne règle par type.
+const isRecu = (t: HistoriquePaiement) => (t.sens ?? (isLoyer(t) ? 'recu' : 'paye')) === 'recu'
+
+const typeLabel = (t: HistoriquePaiement) => {
   switch (String(t.type ?? '').toLowerCase()) {
     case 'frais_visite': return 'Frais de visite'
-    case 'loyer':         return 'Loyer mensuel'
+    case 'loyer':         return isRecu(t) ? 'Loyer reçu' : 'Loyer mensuel'
     case 'integration':   return "Paiement d'intégration"
     case 'depot_wallet':  return t.wallet_label ? `Rechargement ${t.wallet_label}` : 'Rechargement wallet'
     case 'virement':      return 'Virement reçu'
@@ -32,9 +38,9 @@ const methodeLabel = (m?: string) => {
   }
 }
 
-const statutLabel = (t: any) => {
+const statutLabel = (t: HistoriquePaiement) => {
   switch (String(t.statut ?? '').toLowerCase()) {
-    case 'confirme':   return 'Payé'
+    case 'confirme':   return isRecu(t) ? 'Reçu' : 'Payé'
     case 'echoue':     return 'Échoué'
     case 'en_attente': return 'En attente'
     case 'rembourse':  return 'Remboursé'
@@ -42,9 +48,10 @@ const statutLabel = (t: any) => {
   }
 }
 
-const statutColor = (s: string) => s === 'Payé' ? '#15803D' : s === 'Échoué' ? '#DC2626' : (s === 'Remboursé' || s === 'En attente') ? '#B45309' : '#6B7280'
+// Couleurs de texte des statuts, lisibles sur leur pastille teintée en clair comme en sombre (FE-C-004).
+const statutColor = (s: string) => (s === 'Payé' || s === 'Reçu') ? 'var(--c-success)' : s === 'Échoué' ? 'var(--tx-red)' : (s === 'Remboursé' || s === 'En attente') ? 'var(--tx-amber)' : 'var(--tx-muted)'
 
-const iconFor = (t: any) => isVisite(t) ? (
+const iconFor = (t: HistoriquePaiement) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
 ) : isLoyer(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" /></svg>
@@ -54,7 +61,7 @@ const iconFor = (t: any) => isVisite(t) ? (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 012-2z" /></svg>
 )
 
-const colorFor = (t: any) => isVisite(t) ? '#FF6B35' : isLoyer(t) ? '#4B6BFF' : isInteg(t) ? '#7B4BFF' : '#6B7280'
+const colorFor = (t: HistoriquePaiement) => isVisite(t) ? 'var(--c-accent)' : isLoyer(t) ? 'var(--c-brand)' : isInteg(t) ? 'var(--c-violet)' : '#6B7280'
 
 const fmt = (v: number) => v <= 0 ? '0 FCFA' : `${Math.trunc(v).toLocaleString('fr-FR')} FCFA`
 const fmtDate = (raw?: string, withTime = false) => {
@@ -68,18 +75,18 @@ const fmtDate = (raw?: string, withTime = false) => {
 export default function HistoriquePaiementsPage() {
   const navigate = useNavigate()
   usePageTitle('Mes paiements')
-  const [transactions, setTransactions] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<HistoriquePaiement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<Filter>('Tous')
-  const [detail, setDetail] = useState<any>(null)
+  const [detail, setDetail] = useState<HistoriquePaiement | null>(null)
 
   const load = async () => {
     setLoading(true); setError('')
     try {
       const data = await paiementApi.historique()
       setTransactions(Array.isArray(data) ? data : data?.data || [])
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de charger vos paiements.')
     }
     setLoading(false)
@@ -91,24 +98,24 @@ export default function HistoriquePaiementsPage() {
     : filter === 'Intégration' ? transactions.filter(isInteg)
     : transactions
 
-  // Total = uniquement les paiements confirmés où l'utilisateur est payeur (exclut loyers reçus)
+  // « Payé » = confirmé et payé par l'utilisateur ; « Reçu » = confirmé et payé par un autre (ex. loyer d'un locataire)
   const totalPaye = transactions
-    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && !isLoyer(t))
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && !isRecu(t))
     .reduce((s, t) => s + Number(t.montant ?? 0), 0)
   const totalRecu = transactions
-    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && isLoyer(t))
+    .filter(t => String(t.statut ?? '').toLowerCase() === 'confirme' && isRecu(t))
     .reduce((s, t) => s + Number(t.montant ?? 0), 0)
   const visiteCount = transactions.filter(isVisite).length
   const loyerCount = transactions.filter(isLoyer).length
   const integCount = transactions.filter(isInteg).length
 
-  const bienLabel = (t: any) => {
+  const bienLabel = (t: HistoriquePaiement) => {
     if (!t.bien) return null
     const parts = [t.bien.quartier, t.bien.ville].filter(Boolean)
     return parts.length ? parts.join(', ') : null
   }
 
-  const ouvrirRecu = (t: any) => {
+  const ouvrirRecu = (t: HistoriquePaiement) => {
     if (!t.reference) return
     if (isVisite(t)) navigate(`/recu/visite/${t.reference}`)
     else if (isLoyer(t)) navigate(`/recu/loyer/${t.reference}`)
@@ -119,7 +126,7 @@ export default function HistoriquePaiementsPage() {
   return (
     <div className="min-h-full flex flex-col">
       <div className="flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-6"
-        style={{ background: 'linear-gradient(135deg,#1A1A2E,#0F3460)', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        style={{ background: 'linear-gradient(135deg,#1A1A2E,var(--c-navy-deep))', borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0"
@@ -141,7 +148,7 @@ export default function HistoriquePaiementsPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-5 pb-10">
           {loading ? (
-            <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /></div>
+            <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} /></div>
           ) : error ? (
             <div className="flex flex-col items-center text-center py-16">
               <p className="font-bold text-text-dark mb-2">Erreur de chargement</p>
@@ -152,7 +159,7 @@ export default function HistoriquePaiementsPage() {
             <>
               {/* Résumé */}
               <div className="rounded-2xl p-5 mt-4 mb-4 text-white flex items-center justify-between"
-                style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
+                style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 8px 24px rgba(75,107,255,0.25)' }}>
                 <div>
                   <p className="text-white/70 text-xs">Total payé (confirmé)</p>
                   <p className="text-xl font-bold mt-0.5">{fmt(totalPaye)}</p>
@@ -172,8 +179,8 @@ export default function HistoriquePaiementsPage() {
                   <button key={f} onClick={() => setFilter(f)}
                     className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors"
                     style={filter === f
-                      ? { background: '#4B6BFF', color: '#fff', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
-                      : { background: '#fff', color: '#6E6E73', border: '1px solid rgba(0,0,0,0.08)' }}>
+                      ? { background: 'var(--c-brand)', color: 'rgb(255,255,255)', boxShadow: '0 4px 12px rgba(75,107,255,0.3)' }
+                      : { background: 'rgb(255,255,255)', color: 'var(--c-grey-warm)', border: '1px solid rgba(0,0,0,0.08)' }}>
                     {f}
                   </button>
                 ))}
@@ -189,7 +196,7 @@ export default function HistoriquePaiementsPage() {
                 const statut = statutLabel(t)
                 const color = colorFor(t)
                 const bien = bienLabel(t)
-                const confirme = statut === 'Payé'
+                const confirme = statut === 'Payé' || statut === 'Reçu'
                 const showRecu = confirme && t.reference && (isVisite(t) || isLoyer(t) || isInteg(t) || isDepot(t))
                 return (
                   <div key={i}
@@ -197,9 +204,9 @@ export default function HistoriquePaiementsPage() {
                     onClick={() => setDetail(t)}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetail(t) } }}
                     aria-label={`${typeLabel(t)} — ${bien || ''} — ${t.montant ?? 0} FCFA`}
-                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-[#4B6BFF] focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
+                    className="p-4 rounded-2xl mb-2.5 cursor-pointer bg-white focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2" style={{ boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}1A`, color }}>
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${withAlpha(color, '1A')}`, color }}>
                         {iconFor(t)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -209,14 +216,14 @@ export default function HistoriquePaiementsPage() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-sm text-text-dark">{fmt(Number(t.montant ?? 0))}</p>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statut)}1F`, color: statutColor(statut) }}>{statut}</span>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${withAlpha(statutColor(statut), '1F')}`, color: statutColor(statut) }}>{statut}</span>
                       </div>
                     </div>
                     {showRecu && (
                       <div className="flex justify-end mt-2.5">
                         <button onClick={e => { e.stopPropagation(); ouvrirRecu(t) }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
-                          style={{ background: `${color}14`, color, border: `1px solid ${color}4D` }}>
+                          style={{ background: `${withAlpha(color, '14')}`, color, border: `1px solid ${withAlpha(color, '4D')}` }}>
                           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
                           Télécharger le reçu
                         </button>
@@ -232,14 +239,10 @@ export default function HistoriquePaiementsPage() {
 
       {/* Détail */}
       {detail && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }}
-          aria-hidden="true"
-          onClick={() => setDetail(null)}>
-          <div role="dialog" aria-modal="true" aria-label="Détail du paiement" className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white"
-            onClick={e => e.stopPropagation()}>
+        <ModalSheet open onClose={() => setDetail(null)} label="Détail du paiement" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+          <div className="w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto bg-white">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${colorFor(detail)}1A`, color: colorFor(detail) }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${withAlpha(colorFor(detail), '1A')}`, color: colorFor(detail) }}>
                 {iconFor(detail)}
               </div>
               <div className="flex-1 min-w-0">
@@ -248,7 +251,7 @@ export default function HistoriquePaiementsPage() {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-bold text-text-dark">{fmt(Number(detail.montant ?? 0))}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${statutColor(statutLabel(detail))}1F`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-micro font-bold" style={{ background: `${withAlpha(statutColor(statutLabel(detail)), '1F')}`, color: statutColor(statutLabel(detail)) }}>{statutLabel(detail)}</span>
               </div>
             </div>
             <div className="border-t border-divider pt-3 space-y-2.5">
@@ -269,7 +272,7 @@ export default function HistoriquePaiementsPage() {
                 {detail.date_visite && <div className="flex items-start gap-3"><span className="w-32 flex-shrink-0 text-xs text-text-grey">Date de visite</span><span className="text-xs font-semibold text-text-dark">{fmtDate(detail.date_visite)}</span></div>}
               </div>
             )}
-            {statutLabel(detail) === 'Payé' && detail.reference && (isVisite(detail) || isLoyer(detail) || isInteg(detail) || isDepot(detail)) && (
+            {['Payé', 'Reçu'].includes(statutLabel(detail)) && detail.reference && (isVisite(detail) || isLoyer(detail) || isInteg(detail) || isDepot(detail)) && (
               <button onClick={() => { const t = detail; setDetail(null); ouvrirRecu(t) }}
                 className="w-full mt-5 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2"
                 style={{ background: colorFor(detail) }}>
@@ -278,7 +281,7 @@ export default function HistoriquePaiementsPage() {
               </button>
             )}
           </div>
-        </div>
+        </ModalSheet>
       )}
     </div>
   )

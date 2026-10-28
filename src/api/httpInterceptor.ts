@@ -1,8 +1,10 @@
 import axios from 'axios'
 import { tokenStore } from '../utils/tokenStore'
 import { BASE } from './apiBase'
+import type { RefreshResponse } from '../types/auth'
 import { revokeSession } from './authApi'
-import { readStoredUser, writeStoredUser } from '../utils/storedUser'
+import { notifyStoredUserChanged, readStoredUser, writeStoredUser } from '../utils/storedUser'
+import { markSessionExpired } from '../utils/sessionExpiry'
 
 /**
  * Sans timeout, une requête lente (ex: réveil à froid du serveur) laisse
@@ -35,7 +37,7 @@ export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = tokenStore.getRefresh()
   if (!refreshToken) return null
   try {
-    const { data } = await axios.post(`${BASE}/auth/refresh`, { refresh_token: refreshToken })
+    const { data } = await axios.post<RefreshResponse>(`${BASE}/auth/refresh`, { refresh_token: refreshToken })
     tokenStore.setToken(data.access_token)
     if (data.refresh_token) tokenStore.setRefresh(data.refresh_token)
     if (data.user) {
@@ -49,6 +51,8 @@ export async function refreshAccessToken(): Promise<string | null> {
         }
       } catch {}
     }
+    // Le contexte React reprend les rôles du serveur sans attendre un rechargement de page (BUG-05).
+    notifyStoredUserChanged()
     return data.access_token as string
   } catch {
     // Un autre onglet a pu rafraîchir juste avant avec ce même refresh token
@@ -64,6 +68,9 @@ function forceLogout() {
   localStorage.removeItem('rg_user')
   localStorage.removeItem('rg_active_role')
   tokenStore.clearTokens()
+  // FE-B-002 : retour à la page en cours après reconnexion, avec un message
+  // « session expirée » plutôt qu'un écran de connexion muet.
+  markSessionExpired(location.pathname + location.search)
   if (location.pathname !== '/login') location.href = '/login'
 }
 

@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { biensApi } from '../../api/biensApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
+import type { Bien } from '../../types/api'
+import ErrorState from '../../components/ErrorState'
 
 function fmtFcfa(n: number) {
   if (!n) return '---'
@@ -14,13 +16,17 @@ export default function ContratBailPage() {
   const navigate = useNavigate()
   usePageTitle('Contrat de bail')
   const [accepted, setAccepted] = useState(false)
-  const [bien, setBien] = useState<any>(null)
+  const [bien, setBien] = useState<Bien | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
+  const chargerBien = () => {
     if (!bienId) return
-    biensApi.byId(Number(bienId)).then(setBien).catch(() => {}).finally(() => setLoading(false))
-  }, [bienId])
+    setLoading(true)
+    setLoadError(false)
+    biensApi.byId(Number(bienId)).then(setBien).catch(() => setLoadError(true)).finally(() => setLoading(false))
+  }
+  useEffect(chargerBien, [bienId])
 
   const bienType = bien ? bienTypeLabel(bien) : '...'
   const bienAdresse = bien
@@ -61,10 +67,10 @@ export default function ContratBailPage() {
   ]
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-dvh flex flex-col" style={{ background: 'var(--c-page-grey)' }}>
       {/* Header */}
       <div className="print:hidden flex-shrink-0 px-5 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-6 pb-5"
-        style={{ background: 'linear-gradient(135deg, #1A1A2E, #0F3460)', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
+        style={{ background: 'linear-gradient(135deg, #1A1A2E, var(--c-navy-deep))', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <button onClick={() => navigate(-1)} aria-label="Retour" className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0"
             style={{ background: 'rgba(255,255,255,0.12)' }}>
@@ -74,7 +80,7 @@ export default function ContratBailPage() {
             <h1 className="text-white font-bold text-lg">Contrat de bail</h1>
             <p className="text-white/60 text-xs mt-0.5">Lisez attentivement avant d'accepter</p>
           </div>
-          <button onClick={() => window.print()} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0"
+          <button aria-label="Télécharger ou imprimer" onClick={() => window.print()} className="w-10 h-10 flex items-center justify-center rounded-[11px] flex-shrink-0"
             style={{ background: 'rgba(255,255,255,0.12)' }} title="Télécharger / imprimer">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-12 0h12v7H6v-7z"/></svg>
           </button>
@@ -85,13 +91,15 @@ export default function ContratBailPage() {
       <div className="flex-1 overflow-y-auto print:overflow-visible print:h-auto">
         <div className="max-w-2xl mx-auto px-5 py-6 space-y-4 pb-32 print:pb-6">
           {loading ? (
-            <div className="flex justify-center py-10"><div className="w-7 h-7 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4B6BFF', borderTopColor: 'transparent' }} /></div>
+            <div className="flex justify-center py-10"><div className="w-7 h-7 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--c-brand)', borderTopColor: 'transparent' }} /></div>
+          ) : loadError && !bien ? (
+            <ErrorState title="Impossible de charger le contrat" hint="Les informations du bien ne sont pas disponibles. Vérifiez votre connexion et réessayez." onRetry={chargerBien} />
           ) : (
             <>
               {/* Info bien */}
               <div className="rounded-2xl p-4 flex items-start gap-3" style={{ background: 'rgba(75,107,255,0.08)', border: '1px solid rgba(75,107,255,0.18)' }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(75,107,255,0.15)' }}>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#4B6BFF" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="var(--c-brand)" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 </div>
                 <div className="flex-1">
                   <p className="font-bold text-text-dark text-sm">{bienType}</p>
@@ -103,7 +111,7 @@ export default function ContratBailPage() {
 
               {/* Articles */}
               {ARTICLES.map((a, i) => (
-                <div key={i} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                <div key={i} className="rounded-2xl p-4" style={{ background: 'var(--c-card-glass)', border: '1px solid rgba(0,0,0,0.06)' }}>
                   <p className="font-bold text-text-dark text-sm mb-2">{a.titre}</p>
                   <p className="text-sm text-text-grey leading-relaxed">{a.corps}</p>
                 </div>
@@ -112,9 +120,9 @@ export default function ContratBailPage() {
               {/* Acceptation */}
               <button onClick={() => setAccepted(!accepted)}
                 className="print:hidden w-full flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all"
-                style={{ borderColor: accepted ? '#4B6BFF' : 'rgba(0,0,0,0.10)', background: accepted ? 'rgba(75,107,255,0.06)' : 'rgba(255,255,255,0.85)' }}>
+                style={{ borderColor: accepted ? 'var(--c-brand)' : 'rgba(0,0,0,0.10)', background: accepted ? 'rgba(75,107,255,0.06)' : 'var(--c-card-glass)' }}>
                 <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-                  style={{ background: accepted ? '#4B6BFF' : 'transparent', border: accepted ? 'none' : '2px solid #D1D5DB' }}>
+                  style={{ background: accepted ? 'var(--c-brand)' : 'transparent', border: accepted ? 'none' : '2px solid var(--c-gray-300)' }}>
                   {accepted && <svg className="w-3 h-3 text-white" fill="none" stroke="white" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
                 </div>
                 <p className="text-sm font-semibold text-text-dark leading-relaxed">
@@ -127,12 +135,12 @@ export default function ContratBailPage() {
       </div>
 
       {/* CTA */}
-      <div className="print:hidden flex-shrink-0 px-5 py-4 border-t" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.07)' }}>
+      <div className="print:hidden flex-shrink-0 px-5 py-4 border-t" style={{ background: 'var(--c-bar-glass)', backdropFilter: 'blur(20px)', borderColor: 'rgba(0,0,0,0.07)' }}>
         <div className="max-w-2xl mx-auto">
           <button onClick={() => accepted && navigate(`/paiement-integration/${bienId}`)}
-            disabled={!accepted}
+            disabled={!accepted || (loadError && !bien)}
             className="w-full py-4 rounded-xl font-bold text-white text-sm disabled:opacity-40 transition-all"
-            style={{ background: accepted ? 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' : '#E5E7EB', boxShadow: accepted ? '0 4px 14px rgba(75,107,255,0.4)' : 'none' }}>
+            style={{ background: accepted ? 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' : 'var(--c-line)', boxShadow: accepted ? '0 4px 14px rgba(75,107,255,0.4)' : 'none' }}>
             Continuer vers le paiement
           </button>
           <p className="text-center text-xs text-text-grey mt-2">Vous devez accepter le contrat pour continuer</p>

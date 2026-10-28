@@ -1,5 +1,9 @@
 import axios from 'axios'
-import type { ChatSearchResponse, Conversation, ConversationResponse, ListResponse, Message, PlainteBody } from '../types/api'
+import type {
+  ChatSearchResponse, Conversation, ConversationResponse, ListResponse, Message, MessageSupprimeResponse,
+  PlainteBody, PlainteResponse, SuccesResponse,
+} from '../types/api'
+import type { ChatMessage } from '../types/chat-ui'
 import { BASE, auth } from './apiBase'
 
 export interface MessagesParams { limit?: number; before?: number | string; [cle: string]: string | number | undefined }
@@ -22,23 +26,23 @@ export const chatApi = {
       { contenu, reply_to_id: replyToId, reply_to_contenu: replyToContenu }, auth()).then(r => r.data),
 
   marquerLus: (convId: number) =>
-    axios.post(`${BASE}/chat/conversations/${convId}/lus`, {}, auth()).then(r => r.data),
+    axios.post<SuccesResponse>(`${BASE}/chat/conversations/${convId}/lus`, {}, auth()).then(r => r.data),
 
   togglePin: (convId: number, msgId: number | null) =>
-    axios.post(`${BASE}/chat/conversations/${convId}/pin`, { msgId }, auth()).then(r => r.data),
+    axios.post<SuccesResponse>(`${BASE}/chat/conversations/${convId}/pin`, { msgId }, auth()).then(r => r.data),
 
   modifierMessage: (msgId: number, contenu: string) =>
     axios.patch<Message>(`${BASE}/chat/messages/${msgId}`, { contenu }, auth()).then(r => r.data),
 
   supprimerMessage: (msgId: number) =>
-    axios.delete(`${BASE}/chat/messages/${msgId}`, auth()).then(r => r.data),
+    axios.delete<MessageSupprimeResponse>(`${BASE}/chat/messages/${msgId}`, auth()).then(r => r.data),
 
   proposerCreneau: (convId: number, proposedAt: string) =>
-    axios.post(`${BASE}/chat/conversations/${convId}/slot`, { proposed_at: proposedAt }, auth()).then(r => r.data),
+    axios.post<ChatMessage>(`${BASE}/chat/conversations/${convId}/slot`, { proposed_at: proposedAt }, auth()).then(r => r.data),
 
   repondreProposition: (messageId: number, response: 'accepted' | 'declined' | 'countered', proposedAt?: string) =>
-    axios.patch(`${BASE}/chat/slots/${messageId}`, { response, proposed_at: proposedAt }, auth()).then(r => r.data),
+    axios.patch<ChatMessage>(`${BASE}/chat/slots/${messageId}`, { response, proposed_at: proposedAt }, auth()).then(r => r.data),
 
   creerPlainte: (body: PlainteBody) =>
-    axios.post(`${BASE}/users/me/plainte`, body, auth()).then(r => r.data),
+    axios.post<PlainteResponse>(`${BASE}/users/me/plainte`, body, auth()).then(r => r.data),
 }

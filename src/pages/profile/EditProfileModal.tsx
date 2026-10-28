@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../api/userApi'
 import { apiMessage } from '../../utils/apiMessage'
 import VerifyPhoneSection from './VerifyPhoneSection'
+import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -43,12 +44,13 @@ export default function EditProfileModal({ open, onClose }: Props) {
       setError('')
       setSuccess(false)
     }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- le formulaire se réinitialise à l'ouverture seulement ; suivre user écraserait la saisie en cours
   }, [open])
 
   if (!open) return null
 
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
-  const currentPhone: string = (user as any)?.telephone || ''
+  const currentPhone: string = user?.telephone || ''
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,7 +66,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
       updateUser(data.user || data || { nom, prenom, email })
       setSuccess(true)
       setTimeout(onClose, 1000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiMessage(err) || 'Erreur de mise à jour')
     }
     setLoading(false)
@@ -84,18 +86,10 @@ export default function EditProfileModal({ open, onClose }: Props) {
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Modifier le profil"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-      onClick={onClose}
-    >
+    <ModalSheet open onClose={onClose} label="Modifier le profil" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.35}>
       <div
         className="w-full max-w-md rounded-2xl p-6"
         style={GLASS}
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -116,13 +110,13 @@ export default function EditProfileModal({ open, onClose }: Props) {
               <img loading="lazy" src={user.photo_profil} alt="" className="w-20 h-20 rounded-full object-cover" />
             ) : (
               <div className="w-20 h-20 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)' }}>
+                style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
                 <span className="text-white text-2xl font-bold">{initials}</span>
               </div>
             )}
             <button onClick={() => fileRef.current?.click()} aria-label="Modifier la photo de profil"
               className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white"
-              style={{ background: '#4B6BFF' }}>
+              style={{ background: 'var(--c-brand)' }}>
               {uploading ? (
                 <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
@@ -173,7 +167,7 @@ export default function EditProfileModal({ open, onClose }: Props) {
               <VerifyPhoneSection
                 currentPhone={currentPhone}
                 onVerified={tel => {
-                  updateUser({ telephone: tel } as any)
+                  updateUser({ telephone: tel })
                   setEditingPhone(false)
                   setSuccess(true)
                 }}
@@ -202,12 +196,12 @@ export default function EditProfileModal({ open, onClose }: Props) {
             </button>
             <button type="submit" disabled={loading}
               className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg,#4B6BFF,#7B4BFF)', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
+              style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))', boxShadow: '0 4px 16px rgba(75,107,255,0.35)' }}>
               {loading ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Enregistrement…</> : 'Sauvegarder'}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </ModalSheet>
   )
 }

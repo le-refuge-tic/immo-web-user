@@ -4,8 +4,11 @@ import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationsContext'
 import BienDetailPage from './BienDetailPage'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
+import { withAlpha } from '../../utils/color'
 
-const BLUE = '#4B6BFF'
+const BLUE = 'var(--c-brand)'
+// Bleu en couleur de texte : identique en clair, éclairci sur la palette marine (FE-B-024).
+const BLUE_TX = 'var(--tx-brand)'
 
 type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 
@@ -33,7 +36,7 @@ export default function ProprietaireBienWrapper() {
   const location = useLocation()
   const { user, logout } = useAuth()
   const { unreadMessages, unreadAlertesEspace: unreadAlertes } = useNotifications()
-  const fromDashboard = !!(location.state as any)?.fromDashboard
+  const fromDashboard = !!(location.state as { fromDashboard?: boolean } | null)?.fromDashboard
   const [isScrolled, setIsScrolled] = useState(fromDashboard)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -44,7 +47,7 @@ export default function ProprietaireBienWrapper() {
       requestAnimationFrame(() => setIsScrolled(false))
     })
     return () => cancelAnimationFrame(id)
-  }, [])
+  }, [fromDashboard])
 
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
 
@@ -80,7 +83,7 @@ export default function ProprietaireBienWrapper() {
             {/* Logo */}
             <button onClick={() => navigate('/proprietaire')} className="flex items-center gap-2 flex-shrink-0">
               <img src={logoUrl} alt="REFUGE" className="w-8 h-8 rounded-[8px] object-contain" />
-              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE }}>REFUGE</span>
+              <span className="hidden sm:block font-black text-[13px] tracking-tight" style={{ color: BLUE_TX }}>REFUGE</span>
             </button>
 
             {/* Retour Mes biens */}
@@ -102,12 +105,12 @@ export default function ProprietaireBienWrapper() {
                     onClick={() => goToTab(item.key)}
                     className="relative whitespace-nowrap text-caption font-semibold uppercase tracking-[0.1em] px-3 py-2 rounded-lg"
                     style={{
-                      ...(active ? { color: BLUE, background: BLUE + '14' } : { color: 'var(--p-muted)' }),
+                      ...(active ? { color: BLUE_TX, background: withAlpha(BLUE, '14') } : { color: 'var(--p-muted)' }),
                       minHeight: 36,
                       transition: 'color 0.2s ease, background 0.2s ease',
                     }}>
                     {item.label}
-                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: '#FF3B30' }} />}
+                    {badge > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
                   </button>
                 )
               })}
@@ -122,7 +125,7 @@ export default function ProprietaireBienWrapper() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: '#FF3B30' }} />}
+                {unreadAlertes > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: 'var(--c-red-ios)' }} />}
               </button>
 
               {/* Avatar → profil */}
@@ -140,7 +143,7 @@ export default function ProprietaireBienWrapper() {
               </button>
 
               {/* Déconnexion — desktop */}
-              <button onClick={() => { logout(); navigate('/login') }}
+              <button aria-label="Se déconnecter" onClick={() => { logout(); navigate('/login') }}
                 className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
@@ -149,7 +152,7 @@ export default function ProprietaireBienWrapper() {
               </button>
 
               {/* Hamburger — mobile (< md) */}
-              <button onClick={() => setMenuOpen(o => !o)}
+              <button aria-label="Ouvrir le menu" onClick={() => setMenuOpen(o => !o)}
                 className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center border"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--p-muted)' }}>
                 <div style={{ width: 18, height: 14, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -181,7 +184,7 @@ export default function ProprietaireBienWrapper() {
                     <button key={item.key}
                       onClick={() => { goToTab(item.key); setMenuOpen(false) }}
                       className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium transition-all"
-                      style={active ? { color: BLUE, background: BLUE + '14', fontWeight: 700 } : { color: 'var(--p-muted)' }}>
+                      style={active ? { color: BLUE_TX, background: withAlpha(BLUE, '14'), fontWeight: 700 } : { color: 'var(--p-muted)' }}>
                       <span className="truncate w-full text-center px-1">{item.label}</span>
                     </button>
                   )

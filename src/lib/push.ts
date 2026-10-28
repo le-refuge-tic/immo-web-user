@@ -53,3 +53,15 @@ export async function unsubscribeFromPush(): Promise<void> {
   await pushApi.unsubscribe(sub.endpoint, headers).catch(() => {})
   await sub.unsubscribe()
 }
+
+/** Moment opportun pour proposer les notifications : après une demande de visite ou un premier message (FE-B-016). */
+export const PUSH_MOMENT_EVENT = 'rg-push-moment'
+const SUGGESTED_KEY = 'rg_push_suggested'
+export const suggestPush = (): void => {
+  // Une seule suggestion par session : ni à chaque message envoyé, ni après un refus
+  try {
+    if (sessionStorage.getItem(SUGGESTED_KEY)) return
+    sessionStorage.setItem(SUGGESTED_KEY, '1')
+  } catch { /* stockage indisponible : on suggère quand même une fois par chargement */ }
+  window.dispatchEvent(new Event(PUSH_MOMENT_EVENT))
+}
