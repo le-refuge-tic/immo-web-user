@@ -9,11 +9,12 @@ import type {
 export const authApi = {
   // device_token : appareil déjà validé par OTP (30 jours) → le serveur peut
   // délivrer directement les jetons sans redemander de code.
+  // espace 'public' : le serveur refuse les comptes staff (403), qui passent par l'admin web.
   loginPhone: (telephone: string, password: string) =>
-    axios.post<LoginResponse>(`${BASE}/auth/login/phone`, { telephone, password, device_token: deviceTrust.get() }).then(r => r.data),
+    axios.post<LoginResponse>(`${BASE}/auth/login/phone`, { telephone, password, device_token: deviceTrust.get(), espace: 'public' }).then(r => r.data),
 
   loginEmail: (email: string, password: string) =>
-    axios.post<LoginResponse>(`${BASE}/auth/login`, { email, password, device_token: deviceTrust.get() }).then(r => r.data),
+    axios.post<LoginResponse>(`${BASE}/auth/login`, { email, password, device_token: deviceTrust.get(), espace: 'public' }).then(r => r.data),
 
   register: (body: RegisterBody) =>
     axios.post<RegisterResponse>(`${BASE}/auth/register`, body).then(r => r.data),
