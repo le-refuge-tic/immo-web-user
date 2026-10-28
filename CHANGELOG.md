@@ -11,6 +11,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Sécurité
+- Les comptes de l'équipe Refuge (admin, super admin, commercial) ne peuvent plus ouvrir de session
+  sur le site : la connexion envoie `espace: 'public'` et le serveur les refuse (403) ; une session
+  staff déjà présente dans le navigateur est fermée au chargement.
+
 ### Ajouté
 - Créneau de visite expiré : une proposition restée sans réponse après son heure s'affiche
   « Expiré » et invite à proposer un nouvel horaire ; la notification « Créneau expiré » ouvre la

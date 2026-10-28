@@ -9,6 +9,7 @@ import { clearFormDrafts } from '../utils/formDraft'
 import { clearMediaDrafts } from '../utils/mediaDraft'
 import { queryClient } from '../lib/queryClient'
 import type { LoginPayload, SessionUser } from '../types/session'
+import { CompteStaffRefuse, estCompteStaff } from '../utils/compteStaff'
 
 type AuthUser = SessionUser
 
@@ -42,7 +43,15 @@ const AuthContext = createContext<AuthCtx>({
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser<AuthUser>())
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const stocke = readStoredUser<AuthUser>()
+    if (!estCompteStaff(stocke)) return stocke
+    // Session staff ouverte avant le refus côté serveur : on la ferme.
+    revokeSession()
+    tokenStore.clearTokens()
+    localStorage.removeItem('rg_user')
+    return null
+  })
   const [token, setToken] = useState<string | null>(() =>
     tokenStore.getToken() || null
   )
@@ -56,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = (data: LoginPayload) => {
+    if (estCompteStaff(data.user)) throw new CompteStaffRefuse()
     // Nouveau compte : aucune donnée en cache d'une session précédente (favoris, visites…).
     queryClient.clear()
     const u: AuthUser = data.user
