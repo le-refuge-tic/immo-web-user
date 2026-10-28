@@ -74,7 +74,7 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
             <Section title="État du bien" />
             <div className="grid grid-cols-2 gap-2.5">
               <Chip label="Vide" active={!estMeuble} onClick={() => setEstMeuble(false)} />
-              <Chip label="Meublé / Guesthouse" active={estMeuble} onClick={() => setEstMeuble(true)} />
+              <Chip label="Meublé" active={estMeuble} onClick={() => setEstMeuble(true)} />
             </div>
           </Card>
         )}

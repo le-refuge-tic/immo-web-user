@@ -67,7 +67,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
             TYPES_BIEN.find(t => t.key === typeBien)?.label ?? typeBien,
             ...(finition ? [labelFinition(finition)] : []),
             ...(sanitaire ? [labelSanitaire(sanitaire)] : []),
-            ...(isMeuble ? ['Meublé / Guesthouse'] : []),
+            ...(isMeuble ? ['Meublé'] : []),
           ]} />
 
           <RecapSection title="Localisation" items={[
