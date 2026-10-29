@@ -17,6 +17,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   staff déjà présente dans le navigateur est fermée au chargement.
 
 ### Ajouté
+- Salles de fêtes : nouveau type de bien loué à l'heure. La carte affiche « 45 000 FCFA / 8 h · 300
+  personnes », la fiche détaille tarif, capacité, événements acceptés, équipements, parking et
+  horaires (fin après minuit = lendemain). La recherche filtre par événement, capacité, équipements
+  clés, parking et budget **à l'heure** ; budget et tri comparent le prix ramené à l'heure, jamais le
+  prix affiché. Une unité de prix inconnue n'est plus affichée « prix de vente ».
 - Vignettes des photos (FE-D-002) : les cartes d'annonces chargent la vignette de 480 px créée
   par le backend au téléversement (`srcset` vers l'original sur écran large ou haute densité) ;
   les photos plus anciennes gardent l'original jusqu'au rattrapage côté backend.
