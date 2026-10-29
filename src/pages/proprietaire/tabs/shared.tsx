@@ -60,7 +60,7 @@ export const NAV_ITEMS: { key: Tab; label: string; icon: React.ReactNode }[] = [
 ]
 
 export function typeLabel(t: string) {
-  const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse' }
+  const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse', salle_fete: 'Salle de fêtes' }
   return m[t] || t
 }
 const SOUS_TYPE_LABELS: Record<string, string> = {

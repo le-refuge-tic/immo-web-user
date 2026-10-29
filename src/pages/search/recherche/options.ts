@@ -2,6 +2,8 @@
 import type { SortKey } from '../../../utils/searchFilters'
 
 export const BUDGET_TOLERANCE = 10_000
+/** Écart toléré pour un budget à l'heure (salles de fêtes), où les prix sont bien plus bas. */
+export const BUDGET_TOLERANCE_HEURE = 2_000
 export const PROXIMITY_MAX_KM = 3
 
 export const TRANSACTIONS = [
@@ -17,6 +19,7 @@ export const TYPES = [
   { key: 'appart_meuble', label: 'Appart. meublé' },
   { key: 'terrain',       label: 'Terrain' },
   { key: 'guesthouse',    label: 'Guesthouse' },
+  { key: 'salle_fete',    label: 'Salle de fêtes' },
 ]
 
 export const SOUS_TYPES = [
@@ -67,3 +70,31 @@ export const BUDGET_PRESETS_NUIT = [
 
 /** Dernier cran du compteur de voyageurs (« 10+ »). */
 export const CAPACITE_MAX_FILTRE = 10
+
+/** Salle de fêtes : types d'événements proposés en filtre (codes du référentiel GET /evenements-types). */
+export const EVENEMENTS_CLES = [
+  { code: 'mariage',      label: 'Mariage' },
+  { code: 'anniversaire', label: 'Anniversaire' },
+  { code: 'bapteme',      label: 'Baptême' },
+  { code: 'conference',   label: 'Conférence' },
+  { code: 'seminaire',    label: 'Séminaire' },
+  { code: 'soiree',       label: 'Soirée' },
+]
+
+/** Salle de fêtes : équipements clés proposés en filtre (le parking est un champ, traité à part). */
+export const EQUIPEMENTS_CLES_SALLE = [
+  { code: 'sonorisation',       label: 'Sono' },
+  { code: 'climatisation',      label: 'Climatisation' },
+  { code: 'groupe_electrogene', label: 'Groupe électrogène' },
+]
+
+/** Salle de fêtes : capacités minimales rapides (personnes). */
+export const CAPACITES_SALLE = [50, 100, 200, 300, 500]
+
+/** Salle de fêtes : budgets rapides par heure. */
+export const BUDGET_PRESETS_HEURE = [
+  { label: '< 3K',  max: 3_000 },
+  { label: '< 5K',  max: 5_000 },
+  { label: '< 10K', max: 10_000 },
+  { label: '< 20K', max: 20_000 },
+]

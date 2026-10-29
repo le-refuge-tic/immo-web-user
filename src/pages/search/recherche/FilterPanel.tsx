@@ -1,4 +1,7 @@
-import { TRANSACTIONS, TYPES, SOUS_TYPES, BUDGET_PRESETS, BUDGET_PRESETS_NUIT, EQUIPEMENTS_CLES, CAPACITE_MAX_FILTRE } from './options'
+import {
+  TRANSACTIONS, TYPES, SOUS_TYPES, BUDGET_PRESETS, BUDGET_PRESETS_NUIT, BUDGET_PRESETS_HEURE,
+  EQUIPEMENTS_CLES, EQUIPEMENTS_CLES_SALLE, EVENEMENTS_CLES, CAPACITES_SALLE, CAPACITE_MAX_FILTRE,
+} from './options'
 import type { Tokens } from './tokens'
 import { PIECES_MAX } from '../../../utils/searchFilters'
 
@@ -18,6 +21,8 @@ type FilterPanelProps = {
   capaciteMin: string; setCapaciteMin: (v: string) => void
   equipements: string[]; setEquipements: (v: string[]) => void
   garage: boolean; setGarage: (v: boolean) => void
+  evenement: string; setEvenement: (v: string) => void
+  parking: boolean; setParking: (v: boolean) => void
 }
 
 export default function FilterPanel({
@@ -25,11 +30,15 @@ export default function FilterPanel({
   sousType, setSousType, pieces, setPieces,
   superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
   capaciteMin, setCapaciteMin, equipements, setEquipements, garage, setGarage,
+  evenement, setEvenement, parking, setParking,
 }: FilterPanelProps) {
   const showSuperficie = false // E8 : superficie masquée des critères (code conservé)
   // Guesthouse : pas de sous-type ni de pièces (critères d'appartement) ; capacité, équipements et garage à la place
   const isGuesthouse = type === 'guesthouse'
-  const presets = isGuesthouse ? BUDGET_PRESETS_NUIT : BUDGET_PRESETS
+  // Salle de fêtes : idem, avec événement, capacité en personnes, parking et budget à l'heure
+  const isSalleFete = type === 'salle_fete'
+  const critereDedie = isGuesthouse || isSalleFete
+  const presets = isSalleFete ? BUDGET_PRESETS_HEURE : isGuesthouse ? BUDGET_PRESETS_NUIT : BUDGET_PRESETS
   const basculerEquipement = (code: string) =>
     setEquipements(equipements.includes(code) ? equipements.filter(c => c !== code) : [...equipements, code])
 
@@ -102,8 +111,60 @@ export default function FilterPanel({
         </>
       )}
 
+      {isSalleFete && (
+        <>
+          <div>
+            <p id="filtre-evenement" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+              Événement
+            </p>
+            <div role="group" aria-labelledby="filtre-evenement" className="flex flex-wrap gap-1.5">
+              {EVENEMENTS_CLES.map(e => (
+                <button key={e.code} type="button" onClick={() => setEvenement(evenement === e.code ? '' : e.code)} aria-pressed={evenement === e.code}
+                  className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={evenement === e.code ? tk.pillActive : tk.pillIdle}>
+                  {e.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p id="filtre-capacite-salle" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+              Personnes (minimum)
+            </p>
+            <div role="group" aria-labelledby="filtre-capacite-salle" className="flex flex-wrap gap-1.5">
+              {CAPACITES_SALLE.map(n => (
+                <button key={n} type="button" onClick={() => setCapaciteMin(capaciteMin === String(n) ? '' : String(n))} aria-pressed={capaciteMin === String(n)}
+                  className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={capaciteMin === String(n) ? tk.pillActive : tk.pillIdle}>
+                  {n}+
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p id="filtre-equipements-salle" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
+              Équipements
+            </p>
+            <div role="group" aria-labelledby="filtre-equipements-salle" className="flex flex-wrap gap-1.5">
+              {EQUIPEMENTS_CLES_SALLE.map(e => (
+                <button key={e.code} type="button" onClick={() => basculerEquipement(e.code)} aria-pressed={equipements.includes(e.code)}
+                  className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={equipements.includes(e.code) ? tk.pillActive : tk.pillIdle}>
+                  {e.label}
+                </button>
+              ))}
+              <button type="button" onClick={() => setParking(!parking)} aria-pressed={parking}
+                className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                style={parking ? tk.pillActive : tk.pillIdle}>
+                Parking
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Sous-type */}
-      {!isGuesthouse && <div>
+      {!critereDedie && <div>
         <p id="filtre-sous-type" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Sous-type
         </p>
@@ -120,7 +181,7 @@ export default function FilterPanel({
       </div>}
 
       {/* Pièces */}
-      {!isGuesthouse && <div>
+      {!critereDedie && <div>
         <p id="filtre-pieces" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
           Nombre de pièces
         </p>
@@ -159,7 +220,7 @@ export default function FilterPanel({
       {/* Budget */}
       <div>
         <p id="filtre-budget" className="block text-caption font-bold uppercase tracking-wider mb-2" style={{ color: tk.labelClr }}>
-          {isGuesthouse ? 'Prix par nuit (FCFA)' : 'Budget (FCFA)'}
+          {isSalleFete ? 'Prix par heure (FCFA)' : isGuesthouse ? 'Prix par nuit (FCFA)' : 'Budget (FCFA)'}
         </p>
         <div role="group" aria-labelledby="filtre-budget" className="flex flex-wrap gap-1.5 pb-1 mb-3">
           {presets.map(p => {

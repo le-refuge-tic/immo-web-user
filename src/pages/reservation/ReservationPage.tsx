@@ -29,7 +29,7 @@ const DAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 
 const TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement vide',
-  appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain',
+  appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', salle_fete: 'Salle de fêtes', terrain: 'Terrain',
 }
 
 const SOUS_TYPE_LABELS: Record<string, string> = {

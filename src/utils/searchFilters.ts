@@ -18,12 +18,16 @@ export interface SearchFilters {
   superficieMin: string
   superficieMax: string
   sortBy: SortKey
-  /** Guesthouse : capacité d'accueil minimale ('' = indifférent). */
+  /** Guesthouse (voyageurs) ou salle de fêtes (personnes) : capacité d'accueil minimale ('' = indifférent). */
   capaciteMin: string
-  /** Guesthouse : codes d'équipements exigés (le bien doit tous les avoir). */
+  /** Guesthouse ou salle de fêtes : codes d'équipements exigés (le bien doit tous les avoir). */
   equipements: string[]
   /** Guesthouse : avec garage uniquement. */
   garage: boolean
+  /** Salle de fêtes : code d'un type d'événement accepté (« mariage »…), '' = indifférent. */
+  evenement: string
+  /** Salle de fêtes : avec parking uniquement. */
+  parking: boolean
 }
 
 /** Nombre maximal d'équipements combinables dans un filtre (borne côté API : 20). */
@@ -50,9 +54,11 @@ const isSortKey = (value: string | null): value is SortKey => SORT_KEYS.includes
 /** Codes d'équipements séparés par des virgules : assainis, dédoublonnés, bornés. */
 const equipements = (value: string | null) =>
   [...new Set((value ?? '').split(',').map(identifier).filter(Boolean))].slice(0, EQUIPEMENTS_MAX)
+/** Plafond de la capacité lue dans l'URL : celui de l'API (une salle accueille des centaines de personnes). */
+export const CAPACITE_MAX_URL = 5000
 const capacite = (value: string | null) => {
   const n = Number(digits(value))
-  return n >= 1 ? String(Math.min(n, 100)) : ''
+  return n >= 1 ? String(Math.min(n, CAPACITE_MAX_URL)) : ''
 }
 
 export function readSearchFilters(params: URLSearchParams): SearchFilters {
@@ -71,6 +77,8 @@ export function readSearchFilters(params: URLSearchParams): SearchFilters {
     capaciteMin: capacite(params.get('capacite_min')),
     equipements: equipements(params.get('equipements')),
     garage: ['1', 'true'].includes(params.get('garage') ?? ''),
+    evenement: identifier(params.get('evenement')),
+    parking: ['1', 'true'].includes(params.get('parking') ?? ''),
   }
 }
 
@@ -90,6 +98,8 @@ export function writeSearchFilters(filters: SearchFilters): Record<string, strin
     ['capacite_min', filters.capaciteMin],
     ['equipements', filters.equipements.join(',')],
     ['garage', filters.garage ? '1' : ''],
+    ['evenement', filters.evenement],
+    ['parking', filters.parking ? '1' : ''],
   ]
   return Object.fromEntries(entries.filter(([, value]) => value !== ''))
 }
