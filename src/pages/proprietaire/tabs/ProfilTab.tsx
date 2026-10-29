@@ -48,12 +48,12 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
   ]
 
   const menuItems = [
-    { icon: <IcEdit />, label: 'Modifier le profil', color: BLUE_TX, onClick: () => setEditOpen(true) },
+    { icon: <IcEdit />, label: 'Mes infos personnelles', color: BLUE_TX, onClick: () => setEditOpen(true) },
     { icon: <IcShield />, label: 'Changer le mot de passe', color: 'var(--c-purple-dark)', onClick: () => setPasswordOpen(true) },
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: 'var(--c-sky)', onClick: () => setCipOpen(true) },
-    { icon: <IcHandshake />, label: 'Déléguer la gestion', color: '#EC4899', onClick: () => setDelegationOpen(true) },
+    // « Déléguer la gestion » masqué : la délégation à un agent immobilier (démarcheur) est abandonnée (E13).
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
-    { icon: <IcPerson />, label: 'Gérer mes rôles', color: 'var(--tx-amber)', onClick: onOpenRoles },
+    { icon: <IcPerson />, label: 'Mes espaces', color: 'var(--tx-amber)', onClick: onOpenRoles },
     { icon: <IcPayments />, label: 'Historique des transactions', color: 'var(--tx-green)', onClick: onOpenTransactions },
   ]
 
