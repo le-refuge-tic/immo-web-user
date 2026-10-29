@@ -8,6 +8,13 @@ describe('bienTypeLabel', () => {
   it('gère un bien absent', () => expect(bienTypeLabel(null)).toBe('Bien'))
 })
 
+describe('bienTypeLabel — salle de fêtes', () => {
+  it('une salle de fêtes reste « Salle de fêtes », jamais un appartement', () => {
+    expect(bienTypeLabel({ type: 'salle_fete' })).toBe('Salle de fêtes')
+    expect(bienTypeLabel({ type: 'salle_fete', amenites: { sous_type: 'appartement' } })).toBe('Salle de fêtes')
+  })
+})
+
 describe('bienTypeLabel — guesthouse', () => {
   it('une guesthouse reste « Guesthouse » quel que soit son ancien sous-type', () => {
     expect(bienTypeLabel({ type: 'guesthouse', amenites: { sous_type: 'duplex' } })).toBe('Guesthouse')

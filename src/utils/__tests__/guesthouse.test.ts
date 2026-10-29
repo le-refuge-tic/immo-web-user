@@ -12,6 +12,11 @@ describe('nomEtDescription', () => {
   it('autre type : jamais de nom extrait (non-régression)', () => {
     expect(nomEtDescription({ type: 'appart_vide', description: 'Ligne 1\n\nLigne 2' })).toEqual({ nom: null, description: 'Ligne 1\n\nLigne 2' })
   })
+  it('salle de fêtes : même convention que la guesthouse', () => {
+    expect(nomEtDescription({ type: 'salle_fete', description: 'Salle Les Cocotiers\n\nClimatisée, scène équipée.' }))
+      .toEqual({ nom: 'Salle Les Cocotiers', description: 'Climatisée, scène équipée.' })
+    expect(nomEtDescription({ type: 'salle_fete', description: 'Salle sans nom' })).toEqual({ nom: null, description: 'Salle sans nom' })
+  })
 })
 
 describe('resumeCapacite / libelleLits', () => {
@@ -39,6 +44,16 @@ describe('grouperEquipements', () => {
   })
   it('liste vide ou absente : aucun groupe', () => {
     expect(grouperEquipements(undefined)).toEqual([])
+  })
+  it('salle de fêtes : ses catégories s’affichent, dans l’ordre du référentiel (rien n’est perdu)', () => {
+    const g = grouperEquipements([
+      { code: 'chaises', libelle: 'Chaises', categorie: 'mobilier', ordre: 1020 },
+      { code: 'clim', libelle: 'Climatisation', categorie: 'base', ordre: 20 },
+      { code: 'sono', libelle: 'Sonorisation', categorie: 'son_scene', ordre: 1000 },
+      { code: 'pmr', libelle: 'Accès PMR', categorie: 'confort_acces', ordre: 1130 },
+      { code: 'gardien', libelle: 'Gardien', categorie: 'autonomie_securite', ordre: 290 },
+    ])
+    expect(g.map(x => x.libelle)).toEqual(['Son, scène et projection', 'Mobilier', 'Base', 'Autonomie et sécurité', 'Confort et accès'])
   })
 })
 

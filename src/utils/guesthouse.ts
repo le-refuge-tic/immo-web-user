@@ -5,10 +5,13 @@
  */
 import type { DetailsGuesthouse, EquipementBien, LitGuesthouse } from '../types/api'
 
+/** Types dont le nom est la 1re ligne de la description (guesthouse, salle de fêtes). */
+const TYPES_AVEC_NOM = ['guesthouse', 'salle_fete']
+
 export function nomEtDescription(b: { type?: string; description?: string | null }): { nom: string | null; description: string } {
   const desc = (b.description ?? '').trim()
   const coupe = desc.indexOf('\n\n')
-  if (b.type !== 'guesthouse' || coupe <= 0) return { nom: null, description: desc }
+  if (!TYPES_AVEC_NOM.includes(b.type ?? '') || coupe <= 0) return { nom: null, description: desc }
   return { nom: desc.slice(0, coupe).trim(), description: desc.slice(coupe + 2).trim() }
 }
 
@@ -34,13 +37,17 @@ export function libelleLits(lits: LitGuesthouse[]): string {
   }).join(', ')
 }
 
+/** Ordre d'affichage : le même que `GET /equipements` (les 3 premières et « Confort et accès » sont celles des salles de fêtes). */
 const CATEGORIES: [string, string][] = [
+  ['son_scene', 'Son, scène et projection'],
+  ['mobilier', 'Mobilier'],
   ['base', 'Base'],
   ['cuisine', 'Cuisine'],
   ['linge_hygiene', 'Linge et hygiène'],
   ['exterieur', 'Extérieur'],
   ['parking', 'Parking'],
   ['autonomie_securite', 'Autonomie et sécurité'],
+  ['confort_acces', 'Confort et accès'],
   ['services', 'Services'],
 ]
 

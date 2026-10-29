@@ -60,7 +60,7 @@ export interface User {
 
 // ─── Biens ────────────────────────────────────────────────────────────────
 
-export type TypeBien = 'maison' | 'appart_vide' | 'appart_meuble' | 'guesthouse' | 'terrain'
+export type TypeBien = 'maison' | 'appart_vide' | 'appart_meuble' | 'guesthouse' | 'terrain' | 'salle_fete'
 export type TypeTransactionBien = 'vente' | 'location'
 export type StatutBien = 'actif' | 'occupe' | 'vendu' | 'loue' | 'archive'
 export type StatutModeration = 'en_attente' | 'approuve' | 'rejete' | 'conditionnel'
@@ -130,12 +130,49 @@ export interface Bien {
   video_url?: string | null
   /** Libellé exact du type (sous-type compris), calculé par le backend sur les reçus. */
   type_label?: string | null
-  /** Unité du prix calculée par l'API : par nuit (guesthouse), par mois (location), total (vente). */
-  unite_prix?: 'nuit' | 'mois' | 'total'
+  /** Unité du prix calculée par l'API : par nuit (guesthouse), à l'heure (salle de fêtes), par mois (location), total (vente). */
+  unite_prix?: 'nuit' | 'mois' | 'total' | 'heure'
   /** Détails d'une guesthouse ; null pour les autres types (et les anciennes guesthouses). */
   details_guesthouse?: DetailsGuesthouse | null
-  /** Équipements cochés (fiche détail d'une guesthouse). */
+  /** Détails d'une salle de fêtes ; null pour les autres types. */
+  details_salle_fete?: DetailsSalleFete | null
+  /** Équipements cochés (fiche détail d'une guesthouse ou d'une salle de fêtes). */
   equipements_liste?: EquipementBien[]
+  /** Types d'événements acceptés (fiche détail d'une salle de fêtes). */
+  evenements?: EvenementBien[]
+}
+
+export type ConfigurationSalle = 'interieur' | 'plein_air' | 'mixte'
+export type TraiteurSalle = 'libre' | 'impose' | 'inclus'
+
+/** Le prix couvre `duree_heures` heures (ex. 45 000 FCFA pour 8 h) ; `prix_par_heure` est calculé par le serveur. */
+export interface DetailsSalleFete {
+  prix: number
+  duree_heures: number
+  prix_par_heure?: number
+  heures_min: number
+  caution: number | null
+  frais_menage: number | null
+  capacite: number
+  superficie_m2: number | null
+  configuration: ConfigurationSalle
+  nb_tables: number | null
+  nb_chaises: number | null
+  parking: boolean
+  places_parking: number | null
+  /** Format HH:MM:SS ; la fin peut tomber après minuit (le lendemain) */
+  heure_ouverture: string
+  heure_fin_max: string
+  traiteur: TraiteurSalle
+  deco_autorisee: boolean
+  alcool_autorise: boolean
+  heure_fin_musique: string | null
+}
+
+export interface EvenementBien {
+  code: string
+  libelle: string
+  ordre?: number
 }
 
 export interface LitGuesthouse { type: string; nombre: number }

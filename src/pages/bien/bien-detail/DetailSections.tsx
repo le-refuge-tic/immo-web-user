@@ -8,6 +8,7 @@ import { fmtSlot, fmtDateLongue, fcfa, INFO_ROW_META } from './helpers'
 import { imageDeCouverture } from '../../../utils/imageCouverture'
 import { nomEtDescription } from '../../../utils/guesthouse'
 import { GuesthouseSections } from './GuesthouseSections'
+import { SalleFeteSections } from './SalleFeteSections'
 
 // ─── Contenu partagé (mobile & desktop) — sections empilées, sans onglets ────
 export function DetailContent({ bien, isOwnBien, isLocation, composition, logementRows, terrainRows, voisinageLabels, visitesPlanifiees, visitesConfirmees }: {
@@ -18,8 +19,10 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
   visitesConfirmees: { count: number; visites: { id: number; date: string | null }[] } | null
 }) {
   const am = bien.amenites as Amenites | null | undefined
-  // Guesthouse : sections dédiées ; les blocs d'appartement (composition, logement, conditions d'entrée) ne s'appliquent pas
+  // Guesthouse et salle de fêtes : sections dédiées ; les blocs d'appartement (composition, logement, conditions d'entrée) ne s'appliquent pas
   const isGuesthouse = bien.type === 'guesthouse'
+  const isSalleFete = bien.type === 'salle_fete'
+  const sectionsDediees = isGuesthouse || isSalleFete
   const description = nomEtDescription(bien).description
   const hasFeatureChips = ((bien.details_maison?.superficie ?? 0) > 0) ||
     ((bien.details_terrain?.superficie ?? 0) > 0) || bien.details_appart?.entree_personnelle ||
@@ -116,9 +119,10 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       )}
 
       {isGuesthouse && <GuesthouseSections bien={bien} />}
+      {isSalleFete && <SalleFeteSections bien={bien} />}
 
       {/* Composition */}
-      {!isGuesthouse && composition && composition.length > 0 && (
+      {!sectionsDediees && composition && composition.length > 0 && (
         <div>
           <SectionTitle title="Composition" />
           <div className="flex flex-wrap gap-2.5">
@@ -133,7 +137,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       )}
 
       {/* Infos logement */}
-      {!isGuesthouse && logementRows.length > 0 && (
+      {!sectionsDediees && logementRows.length > 0 && (
         <div>
           <SectionTitle title="Informations logement" />
           <InfoCard rows={logementRows} amenites={am} />
@@ -164,7 +168,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
       )}
 
       {/* Conditions à l'entrée (location uniquement) */}
-      {isLocation && !isGuesthouse && (
+      {isLocation && !sectionsDediees && (
         <div>
           <SectionTitle title="Conditions à l'entrée" />
           <IntegrationCard bien={bien} isOwnBien={isOwnBien} />

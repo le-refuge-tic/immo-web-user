@@ -11,6 +11,7 @@ import type { Bien } from '../types/api'
 import { imageDeCouverture } from '../utils/imageCouverture'
 import { suffixeUnite } from '../utils/prix'
 import { nomEtDescription, resumeCapacite } from '../utils/guesthouse'
+import { resumeSalle } from '../utils/salleFete'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -61,6 +62,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     appart_vide:    'Appartement vide',
     appart_meuble:  'Appartement meublé',
     guesthouse:     'Guesthouse',
+    salle_fete:     'Salle de fêtes',
     terrain:        'Terrain',
   }
   const sousTypeLabel: Record<string, string> = {
@@ -71,12 +73,15 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   }
   const sousType = typeof bien.amenites?.sous_type === 'string' ? bien.amenites.sous_type : undefined
   const isGuesthouse = bien.type === 'guesthouse'
-  // Guesthouse : son nom (1re ligne de la description) plutôt qu'un ancien sous-type d'appartement
-  const label    = isGuesthouse
-    ? (nomEtDescription(bien).nom ?? typeLabel.guesthouse)
+  const isSalleFete  = bien.type === 'salle_fete'
+  // Guesthouse et salle de fêtes : leur nom (1re ligne de la description) plutôt qu'un sous-type d'appartement
+  const label    = isGuesthouse || isSalleFete
+    ? (nomEtDescription(bien).nom ?? typeLabel[bien.type])
     : (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
   const title    = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
-  const capacite = isGuesthouse ? resumeCapacite(bien.details_guesthouse) : null
+  const capacite = isGuesthouse ? resumeCapacite(bien.details_guesthouse)
+    : isSalleFete ? resumeSalle(bien.details_salle_fete)
+    : null
 
   /* ── Tokens thème ── */
   const textPrimary  = isDark ? '#E8E8EF'                : '#1D1D1F'
@@ -160,6 +165,12 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             <span className="ml-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
               style={{ background: 'rgba(13,148,136,0.94)', border: '1px solid rgba(255,255,255,0.3)' }}>
               GUESTHOUSE
+            </span>
+          )}
+          {isSalleFete && (
+            <span className="ml-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
+              style={{ background: 'rgba(124,58,237,0.94)', border: '1px solid rgba(255,255,255,0.3)' }}>
+              SALLE DE FÊTES
             </span>
           )}
         </div>
