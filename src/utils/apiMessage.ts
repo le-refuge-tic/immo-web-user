@@ -1,3 +1,5 @@
+import { CompteStaffRefuse } from './compteStaff'
+
 /**
  * Message d'erreur à montrer à l'utilisateur à partir d'une erreur Axios.
  * Renvoie `undefined` quand rien d'utile n'est disponible : l'appelant garde
@@ -22,6 +24,7 @@ function delaiAttente(headers?: Record<string, string | undefined>): string {
 
 export function apiMessage(err: unknown): string | undefined {
   if (!err || typeof err !== 'object') return undefined
+  if (err instanceof CompteStaffRefuse) return err.message
   const { response, request } = err as ErreurHttp
   if (!response) {
     return request ? 'Connexion impossible. Vérifiez votre connexion Internet et réessayez.' : undefined
