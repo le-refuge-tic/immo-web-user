@@ -1,6 +1,6 @@
 
 
-import { BLUE, SANITAIRE_OPTS, FINITION_OPTS, CUISINE_OPTS, COUR_OPTS, COUR_DESC, EQUIPEMENTS_RESIDENTIEL, ALENTOURS_OPTS, parsePrix, formatFcfa, baseInputStyle } from '../options'
+import { BLUE, STANDING_OPTS, STANDING_AUTRE_MAX, CUISINE_OPTS, COUR_OPTS, COUR_DESC, EQUIPEMENTS_RESIDENTIEL, ALENTOURS_OPTS, parsePrix, formatFcfa, baseInputStyle } from '../options'
 import { Card, Section, ChoiceList, Chip, Counter, NumberPicker, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import { DisponibiliteCard } from './DisponibiliteCard'
@@ -14,7 +14,10 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
     setSanitaire,
     sanitaireAutre,
     setSanitaireAutre,
-    finition,
+    standing,
+    setStanding,
+    standingAutre,
+    setStandingAutre,
     chambres,
     setChambres,
     salons,
@@ -106,20 +109,15 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
 
         {!isSmallUnit && (
           <Card>
-            <Section title="Sanitaires" />
-            <ChoiceList options={SANITAIRE_OPTS} value={sanitaire} onChange={onSelectSanitaire} onDeselect={() => setSanitaire(null)} />
-            {sanitaire === 'autre' && (
-              <input value={sanitaireAutre} onChange={e => setSanitaireAutre(e.target.value)}
-                placeholder="Précisez la configuration des sanitaires"
-                className="mt-2 w-full rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors"
-                style={baseInputStyle}
-                onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
-                onBlur={e => (e.currentTarget.style.borderColor = 'var(--p-border)')} />
+            <Section title="Standing" />
+            <ChoiceList options={STANDING_OPTS} value={standing} onChange={setStanding} />
+            {standing === 'autre' && (
+              <input value={standingAutre} onChange={e => setStandingAutre(e.target.value.slice(0, STANDING_AUTRE_MAX))}
+                maxLength={STANDING_AUTRE_MAX}
+                placeholder="Précisez le standing (50 caractères max)"
+                className="mt-2 w-full rounded-xl px-4 py-2.5 text-sm outline-none border"
+                style={baseInputStyle} />
             )}
-            <div className="mt-5">
-              <Section title="Finition / Standing" />
-              <ChoiceList options={FINITION_OPTS} value={finition} onChange={onSelectFinition} />
-            </div>
           </Card>
         )}
 
@@ -298,7 +296,7 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
           </Card>
         )}
 
-        {(!isSmallUnit || finition === 'haut_standing') && (
+        {(!isSmallUnit || standing === 'haut_standing_vip') && (
           <>
             <button type="button" onClick={() => setShowMoreOptions(v => !v)}
               className="text-sm font-bold" style={{ color: BLUE }}>
@@ -317,7 +315,7 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
                     </div>
                   </Card>
                 )}
-                {finition === 'haut_standing' && (
+                {standing === 'haut_standing_vip' && (
                   <Card>
                     <Section title="À proximité du bien" />
                     <div className="flex flex-wrap gap-2">

@@ -24,6 +24,19 @@ export const SANITAIRE_OPTS = [
   { value: 'autre',     label: 'Autre à préciser', sub: '' },
 ]
 
+/** Standing : remplace les anciens champs Sanitaire et Finition (E7). Ordre d'affichage. */
+export const STANDING_OPTS = [
+  { value: 'ordinaire',             label: 'Ordinaire',             sub: '' },
+  { value: 'sanitaire',             label: 'Sanitaire',             sub: '' },
+  { value: 'semi_sanitaire',        label: 'Semi sanitaire',        sub: '' },
+  { value: 'sanitaire_semi_staffe', label: 'Sanitaire semi-staffé', sub: '' },
+  { value: 'sanitaire_staffe',      label: 'Sanitaire staffé',      sub: '' },
+  { value: 'haut_standing_vip',     label: 'Haut standing / VIP',   sub: '' },
+  { value: 'autre',                 label: 'Autre',                 sub: '' },
+]
+
+export const STANDING_AUTRE_MAX = 50
+
 export const FINITION_OPTS = [
   { value: 'ordinaire',     label: 'Ordinaire',           sub: '' },
   { value: 'semi_staffe',   label: 'Semi-Staffé',         sub: 'Salon staffé et carrelé ; chambre au plafond propre, sans carrelage.' },

@@ -76,6 +76,8 @@ export function useNouveauBienForm() {
   const [sanitaire, setSanitaire] = useDraftState<string | null>(draft, 'sanitaire', null)
   const [sanitaireAutre, setSanitaireAutre] = useDraftState(draft, 'sanitaireAutre', '')
   const [finition, setFinition] = useDraftState<string | null>(draft, 'finition', null)
+  const [standing, setStanding] = useDraftState<string | null>(draft, 'standing', null)
+  const [standingAutre, setStandingAutre] = useDraftState(draft, 'standingAutre', '')
   // Mutual exclusion (Flutter): sanitaire=interieur ↔ finition≠ordinaire
   const onSelectSanitaire = (v: string) => {
     setSanitaire(v)
@@ -271,10 +273,10 @@ export function useNouveauBienForm() {
       return a
     }
 
-    if (sanitaire === 'interieur') a.sanitaire = true
-    if (sanitaire === 'cour') a.sanitaire = false
-    if (sanitaire === 'autre' && sanitaireAutre.trim()) a.sanitaire_autre = sanitaireAutre.trim()
-    if (finition) a.finition = finition
+    if (standing) {
+      a.standing = standing
+      if (standing === 'autre' && standingAutre.trim()) a.standing_autre = standingAutre.trim().slice(0, 50)
+    }
     a.disponibilite = disponibilite
     if (equipementsBonus.length) a.equipements = equipementsBonus
     if (alentours.length) a.voisinage = alentours
@@ -461,6 +463,10 @@ export function useNouveauBienForm() {
     setSanitaireAutre,
     finition,
     setFinition,
+    standing,
+    setStanding,
+    standingAutre,
+    setStandingAutre,
     prixLongSejour,
     setPrixLongSejour,
     prixSejourRestreint,

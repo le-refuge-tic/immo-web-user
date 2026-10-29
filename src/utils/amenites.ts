@@ -124,12 +124,22 @@ export function infosLogementRows(a: Amenites): InfoRow[] {
     rows.push({ label: 'Maison à couloir', value: a.chambre_couloir ? 'Oui' : 'Non' })
   }
 
-  if (a.sanitaire != null) {
+  const standingLabels: Record<string, string> = {
+    ordinaire: 'Ordinaire', sanitaire: 'Sanitaire', semi_sanitaire: 'Semi sanitaire',
+    sanitaire_semi_staffe: 'Sanitaire semi-staffé', sanitaire_staffe: 'Sanitaire staffé',
+    haut_standing_vip: 'Haut standing / VIP',
+  }
+  const standing = a.standing === 'autre'
+    ? (a.standing_autre || 'Autre')
+    : (a.standing ? standingLabels[a.standing] : null)
+  if (standing) rows.push({ label: 'Standing', value: standing })
+
+  if (!standing && a.sanitaire != null) {
     const interne = a.sanitaire === true || a.sanitaire === 'interieur'
     rows.push({ label: 'Sanitaires', value: interne ? 'Intérieur' : 'Extérieur' })
   }
 
-  const finition = finitionLabel(a)
+  const finition = standing ? null : finitionLabel(a)
   if (finition) rows.push({ label: 'Finition', value: finition })
 
   if (a.echeance_mois != null && a.echeance_mois > 1) {

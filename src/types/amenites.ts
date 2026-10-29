@@ -34,6 +34,8 @@ export interface Amenites {
   chambre_couloir?: boolean | null
   sanitaire?: boolean | string | null
   finition?: string
+  standing?: string
+  standing_autre?: string
   echeance_mois?: number | null
   parking?: boolean
   voisinage?: string[]
