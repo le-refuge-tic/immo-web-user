@@ -26,7 +26,7 @@ export default function FilterPanel({
   superficieMin, setSuperficieMin, superficieMax, setSuperficieMax,
   capaciteMin, setCapaciteMin, equipements, setEquipements, garage, setGarage,
 }: FilterPanelProps) {
-  const showSuperficie = type === 'terrain' || sousType === 'terrain'
+  const showSuperficie = false // E8 : superficie masquée des critères (code conservé)
   // Guesthouse : pas de sous-type ni de pièces (critères d'appartement) ; capacité, équipements et garage à la place
   const isGuesthouse = type === 'guesthouse'
   const presets = isGuesthouse ? BUDGET_PRESETS_NUIT : BUDGET_PRESETS
