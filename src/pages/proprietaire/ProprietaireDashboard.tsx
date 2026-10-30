@@ -278,11 +278,12 @@ export default function ProprietaireDashboard() {
                   </div>
                 )}
               </div>
-              {/* Logout — desktop */}
+              {/* Déconnexion — desktop */}
               <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
-                className="hidden xl:flex w-8 h-8 rounded-lg items-center justify-center border transition-colors"
+                className="hidden xl:flex h-8 rounded-lg items-center justify-center gap-2 px-3 border transition-colors text-xs font-bold"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <IcLogout />
+                <span>Déconnexion</span>
               </button>
               {/* Hamburger — mobile */}
               <button onClick={() => setMenuOpen(o => !o)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
@@ -325,7 +326,7 @@ export default function ProprietaireDashboard() {
                       className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium"
                       style={{ color: 'var(--tx-red)' }}>
                       <IcLogout />
-                      <span>Quitter</span>
+                      <span>Déconnexion</span>
                     </button>
                   </div>
                 </div>

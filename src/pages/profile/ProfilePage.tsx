@@ -422,7 +422,7 @@ export default function ProfilePage() {
             <MesAvisBlock />
             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-[14px] rounded-2xl font-bold text-white" style={{ backgroundColor: 'var(--c-orange-dark)' }}>
               <LogoutIcon />
-              <span className="text-[15px]">Se déconnecter</span>
+              <span className="text-[15px]">Déconnexion</span>
             </button>
           </div>
         </div>

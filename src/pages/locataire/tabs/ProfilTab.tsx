@@ -44,7 +44,7 @@ export default function ProfilTab() {
         <button onClick={() => { logout(); navigate('/login') }}
           className="w-full mt-2 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2"
           style={{ color: 'var(--tx-red)', borderColor: 'rgba(239,68,68,0.188)', background: 'rgba(239,68,68,0.031)' }}>
-          <IcLogout /> Se déconnecter
+          <IcLogout /> Déconnexion
         </button>
       </div>
       {showNumeroModal && (

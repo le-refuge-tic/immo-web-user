@@ -189,7 +189,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
             style={{ background: hoveredEl === 'logout' ? 'rgba(239,68,68,0.16)' : 'rgba(239,68,68,0.08)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.2)' }}
             onMouseEnter={() => setHoveredEl('logout')}
             onMouseLeave={() => setHoveredEl(null)}>
-            Se déconnecter
+            Déconnexion
           </button>
           </div>{/* /space-y-3 */}
         </div>{/* /max-w-2xl */}
@@ -208,4 +208,3 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
     </div>
   )
 }
-
