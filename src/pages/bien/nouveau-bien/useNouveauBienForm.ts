@@ -366,6 +366,7 @@ export function useNouveauBienForm() {
           adresse: indicationAdresse.trim() || [quartier, arrondissement].filter(Boolean).join(', ') || quartier,
           ville: ville || quartier || undefined,
           quartier: quartier || undefined,
+          arrondissement: arrondissement || undefined,
           latitude: 6.3654,
           longitude: 2.4183,
         },

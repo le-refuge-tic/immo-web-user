@@ -70,6 +70,7 @@ export interface Localisation {
   adresse?: string
   ville?: string
   quartier?: string
+  arrondissement?: string
   latitude?: number | null
   longitude?: number | null
 }

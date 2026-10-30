@@ -164,7 +164,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-text-dark">
-                    {bien.localisation?.quartier && `${bien.localisation.quartier}, `}{bien.localisation?.ville}
+                    {bien.localisation?.quartier && `${bien.localisation.quartier}, `}{bien.localisation?.arrondissement && `${bien.localisation.arrondissement}, `}{bien.localisation?.ville}
                   </p>
                   {bien.localisation?.adresse && (
                     <p className="text-xs text-text-grey mt-0.5">{bien.localisation.adresse}</p>
@@ -242,7 +242,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
             <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-text-dark">{bien.localisation?.quartier && `${bien.localisation.quartier}, `}{bien.localisation?.ville}</p>
+            <p className="text-sm font-semibold text-text-dark">{bien.localisation?.quartier && `${bien.localisation.quartier}, `}{bien.localisation?.arrondissement && `${bien.localisation.arrondissement}, `}{bien.localisation?.ville}</p>
             {bien.localisation?.adresse && <p className="text-xs text-text-grey mt-0.5">{bien.localisation.adresse}</p>}
             {(chambres > 0 || superficie > 0 || isOwnBien) && (
               <div className="flex items-center gap-3 mt-1.5 text-xs text-text-grey">
