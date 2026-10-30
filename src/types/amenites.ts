@@ -51,6 +51,8 @@ export interface Amenites {
   autres_frais?: AutreFrais[]
   // Terrain
   document?: string | null
+  documents?: string[] | null
+  document_autre_detail?: string | null
   loti?: boolean | string | null
   titre_foncier?: boolean | null
   permission_construire?: boolean | null
