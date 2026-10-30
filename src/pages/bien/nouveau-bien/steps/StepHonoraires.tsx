@@ -1,11 +1,19 @@
 
-
 import { BLUE, formatFcfa, baseInputStyle } from '../options'
 import { Card, Section, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import { withAlpha } from '../../../../utils/color'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { BASE } from '../../../../api/apiBase'
 
 export function StepHonoraires({ form }: { form: NouveauBienForm }) {
+  const [fraisPromotionnels, setFraisPromotionnels] = useState(500)
+  useEffect(() => {
+    axios.get<{ montant: number }>(`${BASE}/configuration/frais-visite`)
+      .then(response => setFraisPromotionnels(response.data.montant))
+      .catch(() => setFraisPromotionnels(500))
+  }, [])
   const {
     typeTransaction,
     fraisVisite,
@@ -25,10 +33,26 @@ export function StepHonoraires({ form }: { form: NouveauBienForm }) {
   return (
       <div className="space-y-4">
         {isDemarcheur && (
+          <div
+            className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+            style={{
+              background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+              border: '1px solid #fdba74',
+              color: '#9a3412',
+            }}
+          >
+            <div>
+              <div className="text-[11px] font-black uppercase tracking-widest">Promotion visite</div>
+              <div className="text-sm font-bold">Frais standards réduits à {formatFcfa(fraisPromotionnels)}</div>
+            </div>
+            <div className="text-lg font-black whitespace-nowrap">{formatFcfa(fraisPromotionnels)}</div>
+          </div>
+        )}
+        {isDemarcheur && (
           <Card>
             <Section title="Frais de visite" />
             <p className="text-xs mb-3" style={{ color: 'var(--p-muted)' }}>
-              Montant payé par chaque client pour visiter ce bien. Laissé vide, le tarif standard s'applique ({isTerrain ? '5 000' : '500'} FCFA).
+              Montant payé par chaque client pour visiter ce bien. Laissé vide, le tarif standard s'applique ({isTerrain ? '5 000' : fraisPromotionnels.toLocaleString('fr-FR')} FCFA).
             </p>
             <label className="mb-3 flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer"
               style={{ borderColor: 'var(--p-border)', background: 'var(--p-deep)' }}>
