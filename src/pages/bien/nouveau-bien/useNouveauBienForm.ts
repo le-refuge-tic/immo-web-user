@@ -73,6 +73,8 @@ export function useNouveauBienForm() {
   const [typeTransaction, setTypeTransaction] = useDraftState<'location' | 'vente'>(draft, 'typeTransaction', 'location')
   const [prix, setPrix] = useDraftState(draft, 'prix', '')
   const [estMeuble, setEstMeuble] = useDraftState(draft, 'estMeuble', false)
+  const [etatMeubleMaison, setEtatMeubleMaison] = useDraftState<'non_meuble' | 'semi_meuble' | 'meuble'>(draft, 'etatMeubleMaison', 'non_meuble')
+  const [etatConstructionMaison, setEtatConstructionMaison] = useDraftState<'semi_construite' | 'totalement_construite' | null>(draft, 'etatConstructionMaison', null)
   const [sanitaire, setSanitaire] = useDraftState<string | null>(draft, 'sanitaire', null)
   const [sanitaireAutre, setSanitaireAutre] = useDraftState(draft, 'sanitaireAutre', '')
   const [finition, setFinition] = useDraftState<string | null>(draft, 'finition', null)
@@ -165,7 +167,7 @@ export function useNouveauBienForm() {
   const isBoutique = typeBien === 'boutique'
   const isSmallUnit = typeBien === 'entree_coucher' || typeBien === 'chambre_salon'
   const peutEtreMeuble = typeBien === 'appartement' || typeBien === 'villa' || typeBien === 'maison'
-  const isMeuble = peutEtreMeuble && estMeuble
+  const isMeuble = peutEtreMeuble && (typeBien === 'maison' ? etatMeubleMaison !== 'non_meuble' : estMeuble)
   const showPieces = ['appartement', 'villa', 'maison', 'chambre_salon'].includes(typeBien)
   // Nombre de pièces = chambres + salons (cuisines et douches non comptées) ; une entrée-coucher compte 1 pièce
   const nbPieces = showPieces ? chambres + salons : typeBien === 'entree_coucher' ? 1 : 0
@@ -276,6 +278,10 @@ export function useNouveauBienForm() {
     if (standing) {
       a.standing = standing
       if (standing === 'autre' && standingAutre.trim()) a.standing_autre = standingAutre.trim().slice(0, 50)
+    }
+    if (typeBien === 'maison') {
+      a.etat_meuble = etatMeubleMaison
+      if (etatConstructionMaison) a.etat_construction = etatConstructionMaison
     }
     a.disponibilite = disponibilite
     if (equipementsBonus.length) a.equipements = equipementsBonus
@@ -458,6 +464,10 @@ export function useNouveauBienForm() {
     setPrix,
     estMeuble,
     setEstMeuble,
+    etatMeubleMaison,
+    setEtatMeubleMaison,
+    etatConstructionMaison,
+    setEtatConstructionMaison,
     sanitaire,
     setSanitaire,
     sanitaireAutre,
