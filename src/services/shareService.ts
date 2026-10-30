@@ -27,7 +27,9 @@ function bienUrl(bien: ShareBien): string {
 /** Texte court adapté au marché béninois : type — prix FCFA — quartier, ville. */
 function bienShareText(bien: ShareBien): string {
   const typeLabel = (bien.type && TYPE_LABELS[bien.type]) || 'Bien immobilier'
-  const brut = bien.prix_promo != null && Number(bien.prix_promo) > 0 ? bien.prix_promo : bien.prix
+  const prixNormal = Number(bien.prix)
+  const prixPromo = bien.prix_promo != null ? Number(bien.prix_promo) : 0
+  const brut = prixPromo >= 100 && prixPromo < prixNormal ? prixPromo : bien.prix
   const prix = brut != null ? `${Number(brut).toLocaleString('fr-FR')} FCFA` : null
   const lieu = [bien.localisation?.quartier, bien.localisation?.ville].filter(Boolean).join(', ')
   return [typeLabel, prix, lieu].filter(Boolean).join(' — ')

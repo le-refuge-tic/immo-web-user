@@ -66,7 +66,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const prix = Number(bien.prix).toLocaleString('fr-FR')
   const accentColor = isLocation ? 'var(--c-brand)' : 'var(--c-orange-dark)'
   const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
-  const hasPromo = prixPromoNum != null && prixPromoNum > 0 && prixPromoNum < Number(bien.prix)
+  const hasPromo = prixPromoNum != null && prixPromoNum >= 100 && prixPromoNum < Number(bien.prix)
   const prixPromo = hasPromo ? prixPromoNum!.toLocaleString('fr-FR') : null
   const promoPct = hasPromo ? Math.round((1 - prixPromoNum! / Number(bien.prix)) * 100) : 0
 
