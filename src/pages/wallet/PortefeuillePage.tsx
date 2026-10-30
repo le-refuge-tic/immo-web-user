@@ -9,6 +9,8 @@ import { withAlpha } from '../../utils/color'
 import { apiMessage } from '../../utils/apiMessage'
 import ErrorState from '../../components/ErrorState'
 import { messageMontantRetrait } from '../../utils/retrait'
+import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
+import { avecCle } from '../../utils/paymentAttempt'
 
 const isLoyer = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -54,6 +56,7 @@ const W_LABEL: Record<WType, string> = { cotisation: 'Cotisation', epargne: 'Ép
 const W_COLOR: Record<WType, string> = { cotisation: 'var(--c-brand)', epargne: 'var(--c-violet)' }
 
 function ClientWalletView() {
+  const attempt = usePaymentAttempt()
   const navigate = useNavigate()
   usePageTitle('Mon portefeuille')
   const [tab, setTab] = useState<WType>('cotisation')
@@ -102,9 +105,11 @@ function ClientWalletView() {
     setSubmitting(true)
     setRetraitError('')
     try {
-      await walletApi.demandeRetrait(Number(montant), 'epargne')
+      await avecCle(attempt, `epargne:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'epargne', cle))
+      attempt.reset()
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
     } catch (e: unknown) {
+      attempt.fail(e)
       // Le bouton « Confirmer » redevient actif : la personne peut simplement renvoyer sa demande.
       setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
     }
@@ -248,6 +253,7 @@ function ClientWalletView() {
 
 // ─── Vue propriétaire / démarcheur : Commissions (revenus_locatifs) ────────────
 function WalletCommissionsView() {
+  const attempt = usePaymentAttempt()
   const navigate = useNavigate()
   usePageTitle('Mon portefeuille')
   const [wallet, setWallet]         = useState<Wallet | null>(null)
@@ -284,9 +290,11 @@ function WalletCommissionsView() {
     setSubmitting(true)
     setRetraitError('')
     try {
-      await walletApi.demandeRetrait(Number(montant))
+      await avecCle(attempt, `revenus_locatifs:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'revenus_locatifs', cle))
+      attempt.reset()
       setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
     } catch (e: unknown) {
+      attempt.fail(e)
       // Le bouton « Envoyer » redevient actif : la personne peut simplement renvoyer sa demande.
       setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
     }

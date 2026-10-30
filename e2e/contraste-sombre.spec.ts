@@ -44,6 +44,8 @@ async function mesurer(page: Page, theme: 'light' | 'dark', route: string, role:
   await mockApp(page, { role, theme, mocks: DONNEES })
   await page.goto(route)
   if (onglet) await page.locator('aside').getByRole('button', { name: onglet, exact: true }).first().click()
+  // Sans animations : axe mesurerait sinon des couleurs à mi-fondu (instable quand la machine est chargée).
+  await page.addStyleTag({ content: '*{animation:none!important;transition:none!important}' })
   await page.waitForTimeout(1500)
   return noeudsContraste(page)
 }

@@ -30,6 +30,36 @@ export function useNouveauBienForm() {
   const [error, setError] = useState('')
   const [createdId, setCreatedId] = useState<number | null>(null)
   const [created, setCreated] = useState(false)
+  // Fichiers dont l'envoi a échoué après la création du bien : gardés pour un nouvel essai depuis
+  // l'écran de confirmation (aucun autre écran ne permet d'ajouter des photos à un bien publié).
+  const [echecsEnvoi, setEchecsEnvoi] = useState<{ photos: File[]; video: File | null }>({ photos: [], video: null })
+  const [renvoiEnCours, setRenvoiEnCours] = useState(false)
+  const envoisEchoues = { photos: echecsEnvoi.photos.length, video: !!echecsEnvoi.video }
+
+  /** Envoie les fichiers au bien ; renvoie ceux qui ont encore échoué. */
+  const envoyerFichiers = async (bienId: number, aEnvoyer: File[], videoAEnvoyer: File | null, progression?: (fait: number) => void) => {
+    const photosRatees: File[] = []
+    for (let i = 0; i < aEnvoyer.length; i++) {
+      try {
+        await biensApi.uploadPhoto(bienId, aEnvoyer[i])
+      } catch {
+        photosRatees.push(aEnvoyer[i])
+      }
+      progression?.(i + 1)
+    }
+    let videoRatee: File | null = null
+    if (videoAEnvoyer) {
+      try { await biensApi.uploadVideo(bienId, videoAEnvoyer) } catch { videoRatee = videoAEnvoyer }
+    }
+    return { photos: photosRatees, video: videoRatee }
+  }
+
+  const renvoyerEchecs = async () => {
+    if (!createdId || renvoiEnCours) return
+    setRenvoiEnCours(true)
+    setEchecsEnvoi(await envoyerFichiers(createdId, echecsEnvoi.photos, echecsEnvoi.video))
+    setRenvoiEnCours(false)
+  }
   const [photos, setPhotos] = useState<File[]>([])
   const [video, setVideo] = useState<File | null>(null)
   // Photos et vidéo du brouillon, gardées à part dans IndexedDB (FE-B-002)
@@ -46,6 +76,8 @@ export function useNouveauBienForm() {
   const [sanitaire, setSanitaire] = useDraftState<string | null>(draft, 'sanitaire', null)
   const [sanitaireAutre, setSanitaireAutre] = useDraftState(draft, 'sanitaireAutre', '')
   const [finition, setFinition] = useDraftState<string | null>(draft, 'finition', null)
+  const [standing, setStanding] = useDraftState<string | null>(draft, 'standing', null)
+  const [standingAutre, setStandingAutre] = useDraftState(draft, 'standingAutre', '')
   // Mutual exclusion (Flutter): sanitaire=interieur ↔ finition≠ordinaire
   const onSelectSanitaire = (v: string) => {
     setSanitaire(v)
@@ -241,10 +273,10 @@ export function useNouveauBienForm() {
       return a
     }
 
-    if (sanitaire === 'interieur') a.sanitaire = true
-    if (sanitaire === 'cour') a.sanitaire = false
-    if (sanitaire === 'autre' && sanitaireAutre.trim()) a.sanitaire_autre = sanitaireAutre.trim()
-    if (finition) a.finition = finition
+    if (standing) {
+      a.standing = standing
+      if (standing === 'autre' && standingAutre.trim()) a.standing_autre = standingAutre.trim().slice(0, 50)
+    }
     a.disponibilite = disponibilite
     if (equipementsBonus.length) a.equipements = equipementsBonus
     if (alentours.length) a.voisinage = alentours
@@ -356,16 +388,9 @@ export function useNouveauBienForm() {
       setCreatedId(bien.id)
       track('annonce_publiee', { type: String(bien.type ?? '') })
 
-      if (photos.length > 0 && bien.id) {
-        for (let i = 0; i < photos.length; i++) {
-          try {
-            await biensApi.uploadPhoto(bien.id, photos[i])
-            setUploadProgress(Math.round(((i + 1) / photos.length) * 100))
-          } catch {}
-        }
-      }
-      if (video && bien.id) {
-        try { await biensApi.uploadVideo(bien.id, video) } catch {}
+      if (bien.id) {
+        setEchecsEnvoi(await envoyerFichiers(bien.id, photos, video,
+          fait => setUploadProgress(Math.round((fait / photos.length) * 100))))
       }
 
       draft.clear()
@@ -410,6 +435,9 @@ export function useNouveauBienForm() {
     createdId,
     setCreatedId,
     created,
+    envoisEchoues,
+    renvoyerEchecs,
+    renvoiEnCours,
     setCreated,
     photos,
     setPhotos,
@@ -435,6 +463,10 @@ export function useNouveauBienForm() {
     setSanitaireAutre,
     finition,
     setFinition,
+    standing,
+    setStanding,
+    standingAutre,
+    setStandingAutre,
     prixLongSejour,
     setPrixLongSejour,
     prixSejourRestreint,

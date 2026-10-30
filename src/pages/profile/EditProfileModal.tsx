@@ -7,6 +7,9 @@ import { ModalSheet } from '../../components/ui/ModalSheet'
 
 type Props = { open: boolean; onClose: () => void }
 
+/** Vrai nom : au moins 2 lettres, sans chiffres ni caractères spéciaux. */
+const NOM_REEL = /^(?=(?:[^\p{L}]*\p{L}){2})\p{L}[\p{L}\s'’-]*$/u
+
 const GLASS = {
   background: 'rgba(255,255,255,0.82)',
   backdropFilter: 'blur(48px) saturate(180%)',
@@ -54,8 +57,12 @@ export default function EditProfileModal({ open, onClose }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
+    if (!NOM_REEL.test(nom.trim()) || !NOM_REEL.test(prenom.trim())) {
+      setError('Saisissez votre vrai nom et prénom : lettres uniquement, 2 minimum (tiret, apostrophe et espace permis).')
+      return
+    }
+    setLoading(true)
     try {
       // `telephone` est exclu volontairement : il ne change que par le flux
       // vérifié par SMS (VerifyPhoneSection), jamais par ce PATCH.
@@ -156,8 +163,9 @@ export default function EditProfileModal({ open, onClose }: Props) {
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
           </div>
+          <p className="text-xs text-text-grey -mt-1">Votre nom et votre prénom doivent correspondre à votre pièce d'identité.</p>
           <div>
-            <label htmlFor="ep-email" className="text-sm font-semibold text-text-dark mb-1.5 block">Email</label>
+            <label htmlFor="ep-email" className="text-sm font-semibold text-text-dark mb-1.5 block">Email (facultatif)</label>
             <input id="ep-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemple.com"
               className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
           </div>

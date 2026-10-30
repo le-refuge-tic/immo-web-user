@@ -8,7 +8,7 @@
 
 const TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appartement meublé',
-  guesthouse: 'Guesthouse', terrain: 'Terrain',
+  guesthouse: 'Guesthouse', salle_fete: 'Salle de fêtes', terrain: 'Terrain',
 }
 
 export interface ShareBien {

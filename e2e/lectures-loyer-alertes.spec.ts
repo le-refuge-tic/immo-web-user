@@ -70,8 +70,8 @@ test.describe('Paiement du loyer : onglet Activité', () => {
     expect(suivis.length).toBeGreaterThan(0)
     expect(suivis.every(c => c.path === '/paiements/loyer/LOY-REF-1/statut')).toBe(true)
     expect(calls.some(c => c.path.includes('undefined'))).toBe(false)
-    // Pas de clé d'idempotence : une demande rejouée renverrait la transaction sans url_paiement (voir paiementApi).
-    expect(initiations(calls)[0].headers['idempotency-key']).toBeUndefined()
+    // Clé d'idempotence : une demande rejouée retrouve la transaction et son url_paiement (FE-B-006, backend ed22ff6).
+    expect(initiations(calls)[0].headers['idempotency-key']).toMatch(/.{8,}/)
   })
 
   test('paiement FedaPay : ouvre la page de paiement, puis affiche l’échec annoncé par le suivi', async ({ page }) => {
@@ -189,7 +189,7 @@ test.describe('Paiement du loyer : onglet Logement', () => {
     expect(statutAppels(calls).every(c => c.path === '/paiements/loyer/LOY-REF-4/statut')).toBe(true)
     expect(calls.some(c => c.path.includes('undefined'))).toBe(false)
     await expect.poll(() => calls.filter(c => c.path === '/loyers/mon-logement').length).toBeGreaterThan(1)
-    expect(initiations(calls)[0].headers['idempotency-key']).toBeUndefined()
+    expect(initiations(calls)[0].headers['idempotency-key']).toMatch(/.{8,}/)
   })
 
   test('une réponse sans référence affiche une erreur au lieu de suivre /undefined/statut', async ({ page }) => {

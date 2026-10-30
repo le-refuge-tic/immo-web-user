@@ -118,6 +118,28 @@ test.describe('P5 portefeuille du client', () => {
     expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 3000, wallet_type: 'epargne' })
   })
 
+  test('un retrait renvoyé après une panne de passerelle garde sa clé d’idempotence (FE-B-006)', async ({ page }) => {
+    let essais = 0
+    const calls = await mockApp(page, {
+      role: 'locataire',
+      mocks: clientMocks({
+        demandeRetrait: () => (++essais === 1
+          ? { status: 502, body: { message: 'Bad Gateway' } }
+          : { status: 201, body: { id: 5, statut: 'en_attente' } }),
+      }),
+    })
+    const dialog = await ouvrirRetraitEpargne(page)
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByRole('button', { name: 'Confirmer' }).click()
+    await expect(dialog.getByRole('alert')).toBeVisible()
+    await dialog.getByRole('button', { name: 'Confirmer' }).click()
+
+    await expect(page.getByText('Demande de retrait envoyée — en attente de validation.')).toBeVisible()
+    const [premier, second] = posts(calls, '/retraits/me').map(c => c.headers['idempotency-key'])
+    expect(premier).toMatch(/.{8,}/)
+    expect(second).toBe(premier)
+  })
+
   test('un double clic sur « Confirmer » ne crée qu’une seule demande de retrait', async ({ page }) => {
     const calls = await mockApp(page, {
       role: 'locataire',

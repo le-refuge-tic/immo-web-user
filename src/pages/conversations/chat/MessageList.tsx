@@ -89,7 +89,7 @@ export function MessageList({
 
                   {isSupprime ? (
                     <div className="px-2.5 py-1.5 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', border: `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}` }}>
-                      <p className="text-[12.5px] italic" style={{ color: tm }}>Message supprimé</p>
+                      <p className="text-[12.5px] italic" style={{ color: tm }}>{msg.supprime_par_admin ? 'Ce message a été supprimé par l\'administrateur' : 'Ce message a été supprimé'}</p>
                       <button onClick={e => { e.stopPropagation(); onComplain(msg) }}
                         className="text-caption underline mt-0.5 cursor-pointer" style={{ color: 'var(--tx-blue)' }}>En savoir plus</button>
                       <p className="text-micro mt-0.5" style={{ color: tm }}>{timeLabel(msg.created_at)}</p>

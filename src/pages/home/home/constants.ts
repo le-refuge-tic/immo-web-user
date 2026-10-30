@@ -35,6 +35,7 @@ export const CATEGORIES: Category[] = [
   { key: 'appartement', label: 'Appartement', transaction: '',         type: 'appart_vide' },
   { key: 'terrain',     label: 'Terrain',     transaction: '',         type: 'terrain' },
   { key: 'guesthouse',  label: 'Guesthouse',  transaction: '',         type: 'guesthouse' },
+  { key: 'salle_fete',  label: 'Salle de fêtes', transaction: '',      type: 'salle_fete' },
 ]
 
 export const TRANSACTIONS = [
@@ -51,6 +52,7 @@ export const TYPES = [
   { key: 'chambre_salon', label: 'Chambre-Salon' },
   { key: 'terrain',       label: 'Terrain' },
   { key: 'guesthouse',    label: 'Guesthouse' },
+  { key: 'salle_fete',    label: 'Salle de fêtes' },
 ]
 
 export const isSousType = (t: string) => t === 'chambre_salon'

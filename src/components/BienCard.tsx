@@ -8,6 +8,10 @@ import { useTheme } from '../context/ThemeContext'
 import { favoritesApi } from '../api/favoritesApi'
 import { track } from '../lib/analytics'
 import type { Bien } from '../types/api'
+import { imageDeCouverture } from '../utils/imageCouverture'
+import { suffixeUnite } from '../utils/prix'
+import { nomEtDescription, resumeCapacite } from '../utils/guesthouse'
+import { resumeSalle } from '../utils/salleFete'
 
 const BACKEND = API_ORIGIN + '/'
 
@@ -48,8 +52,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     setIsFav(favoriteIds?.has(bien.id) ?? false)
   }, [favoriteIds, bien.id])
 
-  const cover    = bien.photos?.find(p => p.is_cover) || bien.photos?.[0]
-  const coverUrl = cover ? resolveUrl(cover.url) : null
+  // Vignette (480 px) si elle existe : l'image de la carte est l'élément le plus lourd de l'accueil (FE-D-002).
+  const couverture = imageDeCouverture(bien.photos, resolveUrl, '(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 300px')
 
   const isLocation = bien.transaction === 'location'
 
@@ -58,6 +62,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     appart_vide:    'Appartement vide',
     appart_meuble:  'Appartement meublé',
     guesthouse:     'Guesthouse',
+    salle_fete:     'Salle de fêtes',
     terrain:        'Terrain',
   }
   const sousTypeLabel: Record<string, string> = {
@@ -67,8 +72,16 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
   }
   const sousType = typeof bien.amenites?.sous_type === 'string' ? bien.amenites.sous_type : undefined
-  const label    = (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
+  const isGuesthouse = bien.type === 'guesthouse'
+  const isSalleFete  = bien.type === 'salle_fete'
+  // Guesthouse et salle de fêtes : leur nom (1re ligne de la description) plutôt qu'un sous-type d'appartement
+  const label    = isGuesthouse || isSalleFete
+    ? (nomEtDescription(bien).nom ?? typeLabel[bien.type])
+    : (sousType && sousTypeLabel[sousType]) || typeLabel[bien.type] || bien.type
   const title    = bien.localisation?.quartier ? `${label} — ${bien.localisation.quartier}` : label
+  const capacite = isGuesthouse ? resumeCapacite(bien.details_guesthouse)
+    : isSalleFete ? resumeSalle(bien.details_salle_fete)
+    : null
 
   /* ── Tokens thème ── */
   const textPrimary  = isDark ? '#E8E8EF'                : '#1D1D1F'
@@ -125,8 +138,8 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     >
       {/* ── Image ── */}
       <div className="relative h-44 sm:h-48 md:h-52 lg:h-56 img-zoom">
-        {coverUrl ? (
-          <img src={coverUrl} alt={label} className="w-full h-full object-cover" loading="lazy" />
+        {couverture ? (
+          <img src={couverture.src} srcSet={couverture.srcSet} sizes={couverture.sizes} alt={label} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: emptyBg }}>
             <svg className="w-12 h-12" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -148,6 +161,18 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           >
             {isLocation ? 'À LOUER' : 'À VENDRE'}
           </span>
+          {isGuesthouse && (
+            <span className="ml-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
+              style={{ background: 'rgba(13,148,136,0.94)', border: '1px solid rgba(255,255,255,0.3)' }}>
+              GUESTHOUSE
+            </span>
+          )}
+          {isSalleFete && (
+            <span className="ml-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
+              style={{ background: 'rgba(124,58,237,0.94)', border: '1px solid rgba(255,255,255,0.3)' }}>
+              SALLE DE FÊTES
+            </span>
+          )}
         </div>
 
         {/* Bouton favori */}
@@ -203,7 +228,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
         <p className="text-lg md:text-xl font-bold leading-tight tracking-tight" style={{ color: textPrimary }}>
           {Number(bien.prix).toLocaleString('fr-FR')}{' '}
           <span className="text-sm font-medium" style={{ color: textMuted }}>
-            FCFA{isLocation ? '/mois' : ''}
+            FCFA{suffixeUnite(bien)}
           </span>
         </p>
         <h3 className="text-sm font-semibold mt-1 truncate" style={{ color: textSecond }}>
@@ -213,6 +238,9 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
             <span className="sr-only"> — {bien.transaction === 'location' ? 'à louer' : 'à vendre'}</span>
           </Link>
         </h3>
+        {capacite && (
+          <p className="text-xs mt-1 font-medium" style={{ color: textSecond }}>{capacite}</p>
+        )}
         <div className="flex items-center gap-1 mt-2">
           <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

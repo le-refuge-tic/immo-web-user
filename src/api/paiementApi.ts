@@ -40,11 +40,9 @@ export const paiementApi = {
     axios.get<Recu>(`${BASE}/paiements/integration/${refId}/recu`, auth()).then(r => r.data),
 
   // Paiement loyer
-  // Pas de clé d'idempotence ici : le backend accepte l'en-tête, mais une demande rejouée renvoie la transaction
-  // existante SANS url_paiement (FedaPay resterait bloqué). Sans clé, il annule l'ancienne tentative en attente et
-  // en crée une nouvelle, ce qui est le comportement voulu d'une relance ; le double clic est gardé côté écran.
-  initierLoyer: (body: { loyer_id: number; methode_paiement: MethodePaiement; telephone_paiement: string }) =>
-    axios.post<InitiationLoyerReponse>(`${BASE}/paiements/loyer`, body, auth()).then(r => r.data),
+  /** Rejouer la même clé renvoie la transaction existante avec son URL de paiement (FE-B-006). */
+  initierLoyer: (body: { loyer_id: number; methode_paiement: MethodePaiement; telephone_paiement: string }, idempotencyKey: string) =>
+    axios.post<InitiationLoyerReponse>(`${BASE}/paiements/loyer`, body, authIdempotent(idempotencyKey)).then(r => r.data),
 
   statutLoyer: (refId: string) =>
     axios.get<StatutPaiementLoyer>(`${BASE}/paiements/loyer/${refId}/statut`, auth()).then(r => r.data),

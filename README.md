@@ -23,7 +23,7 @@ Modèle complet dans `.env.example`. Les variables `VITE_*` sont embarquées dan
 | `VITE_API_URL` | oui | URL de base de l'API, ex. `https://<backend>/api/v1`. En développement, repli sur `http://localhost:3000/api/v1`. **En production, le build échoue si elle est absente ou non HTTPS.** |
 | `VITE_SITE_URL` | production | Domaine public (`https://…`) pour les URL absolues (`og:image`, `canonical`, `sitemap.xml`). |
 | `VITE_ALLOW_INDEXING` | non | `true` **uniquement en production**. Sinon `robots.txt` interdit tout et chaque page porte `noindex` (staging, aperçus). |
-| `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT` | non | `true` par défaut : l'inscription web ne crée que des comptes propriétaires. `false` rouvre le choix du rôle. Restriction d'interface : l'API accepte toujours les inscriptions de l'application mobile. |
+| `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT` | non | `false` par défaut : l'inscription web est ouverte à tous, avec le choix du rôle (prospect, propriétaire…). `true` la restreint aux comptes propriétaires. Restriction d'interface : l'API accepte toujours les inscriptions de l'application mobile. |
 | `VITE_SENTRY_DSN` | non | Active le suivi d'erreurs Sentry (chargé à la demande). Vide = aucun envoi. |
 | `VITE_RELEASE` | non | Identifiant de version associé aux erreurs Sentry. Par défaut `immo-web-user@<version de package.json>`, suivi du commit sur Vercel. |
 | `VITE_UMAMI_WEBSITE_ID` | non | Mesure d'audience Umami sans cookie. Vide = aucun script chargé. |
@@ -75,6 +75,8 @@ Texte ou fond : une couleur de texte s'éclaircit en sombre (`--tx-*`, et dans l
 Illustrations : les couleurs qui ne sont pas des couleurs d'interface (drapeaux, visages de notation, dégradés d'avatars dans `src/theme/illustrations.ts`, couleurs de marque comme Facebook, couleurs animées par framer-motion, qui n'interpole pas des variables CSS) ne passent pas par les jetons. `check:colors` les compte à part : fichiers listés dans `scripts/couleurs-en-dur.mjs`, ou ligne précédée d'un commentaire `// couleur-libre : <raison>`. Les commentaires ne comptent pas.
 
 ## Déploiement (Vercel)
+
+**Variables par environnement** : `VITE_API_URL` doit être définie séparément pour **Production** (API de production) et pour **Preview, toutes les branches** (API du staging). Ne jamais la limiter à une branche : les autres previews retomberaient sur la valeur de production. Un build de preview qui vise l'API de production échoue volontairement (`scripts/garde-api-preview.mjs`, hôtes supplémentaires dans `PROD_API_HOSTS`, dérogation `VITE_AUTORISER_API_PROD_EN_PREVIEW=true`).
 
 1. Définir `VITE_API_URL` dans Project Settings > Environment Variables (Production et Preview).
 2. Chaque push sur la branche de production déclenche un déploiement ; commande de build `npm run build`, dossier `dist`.

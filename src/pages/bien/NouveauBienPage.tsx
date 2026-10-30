@@ -13,6 +13,7 @@ import { StepHonoraires } from './nouveau-bien/steps/StepHonoraires'
 import { StepPhotos } from './nouveau-bien/steps/StepPhotos'
 import { withAlpha } from '../../utils/color'
 import { resumeMedias } from '../../hooks/useMediaDraft'
+import { messageEnvoisEchoues } from '../../utils/envoisEchoues'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
@@ -27,6 +28,9 @@ export default function NouveauBienPage() {
     error,
     createdId,
     created,
+    envoisEchoues,
+    renvoyerEchecs,
+    renvoiEnCours,
     navigate,
     draft,
     medias,
@@ -53,6 +57,18 @@ export default function NouveauBienPage() {
         <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--p-muted)' }}>
           En attente de validation par l'administrateur. Vous serez notifié une fois approuvé.
         </p>
+        {messageEnvoisEchoues(envoisEchoues.photos, envoisEchoues.video) && (
+          <div className="mb-6 max-w-xs">
+            <p role="alert" className="text-sm font-semibold" style={{ color: 'var(--tx-amber)' }}>
+              {messageEnvoisEchoues(envoisEchoues.photos, envoisEchoues.video)}
+            </p>
+            <button type="button" onClick={renvoyerEchecs} disabled={renvoiEnCours}
+              className="mt-2 px-5 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
+              style={{ background: withAlpha(BLUE, '18'), color: 'var(--tx-brand)' }}>
+              {renvoiEnCours ? 'Envoi…' : "Réessayer l'envoi"}
+            </button>
+          </div>
+        )}
         <button onClick={() => navigate(createdId ? `/proprietaire/biens/${createdId}` : '/proprietaire')}
           className="px-8 py-4 rounded-xl font-bold"
           style={{ background: BLUE, color: 'white', boxShadow: `0 4px 24px ${withAlpha(BLUE, '44')}` }}>

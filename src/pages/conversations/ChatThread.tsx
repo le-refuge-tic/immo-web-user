@@ -180,7 +180,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     setMenuId(null)
     try {
       await chatApi.supprimerMessage(m.id)
-      setMessages(p => p.map(x => x.id === m.id ? { ...x, contenu: 'Message supprimé', supprime_pour_tous: true, epingle: false } : x))
+      setMessages(p => p.map(x => x.id === m.id ? { ...x, contenu: 'Ce message a été supprimé', supprime_pour_tous: true, supprime_par_admin: false, epingle: false } : x))
     } catch (e) { showError(e) }
   }
 

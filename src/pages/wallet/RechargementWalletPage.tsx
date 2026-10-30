@@ -8,6 +8,7 @@ import { validateBeninPhone, normaliseBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACE
 import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
+import { avecCle } from '../../utils/paymentAttempt'
 import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 import { withAlpha } from '../../utils/color'
 
@@ -67,10 +68,11 @@ export default function RechargementWalletPage() {
     rechargeEnCoursRef.current = true
     setState('loading'); setError('')
     try {
-      const res = await paiementApi.initierRechargementWallet({
+      // Signature : un autre montant, opérateur ou numéro est une autre demande, donc une autre clé.
+      const res = await avecCle(attempt, `${type}:${m}:${op.methode}:${tel}`, cle => paiementApi.initierRechargementWallet({
         wallet_type: type, montant: m, methode_paiement: op.methode,
         ...(op.needsPhone ? { telephone: normaliseBeninPhone(tel) } : {}),
-      }, attempt.key())
+      }, cle))
       if (res.statut === 'confirme') { attempt.reset(); setState('success'); return }
       const refId = res.reference || res.referenceId || res.reference_id
       if (res.url_paiement) {

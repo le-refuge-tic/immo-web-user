@@ -17,6 +17,19 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   staff déjà présente dans le navigateur est fermée au chargement.
 
 ### Ajouté
+- Salles de fêtes : nouveau type de bien loué à l'heure. La carte affiche « 45 000 FCFA / 8 h · 300
+  personnes », la fiche détaille tarif, capacité, événements acceptés, équipements, parking et
+  horaires (fin après minuit = lendemain). La recherche filtre par événement, capacité, équipements
+  clés, parking et budget **à l'heure** ; budget et tri comparent le prix ramené à l'heure, jamais le
+  prix affiché. Une unité de prix inconnue n'est plus affichée « prix de vente ».
+- Vignettes des photos (FE-D-002) : les cartes d'annonces chargent la vignette de 480 px créée
+  par le backend au téléversement (`srcset` vers l'original sur écran large ou haute densité) ;
+  les photos plus anciennes gardent l'original jusqu'au rattrapage côté backend.
+- Vidéo d'annonce : affichée sur la fiche (rien n'est téléchargé avant la lecture), format MP4 et
+  30 Mo vérifiés au choix ; un envoi de photo ou de vidéo qui échoue après la publication est
+  signalé au lieu d'être ignoré.
+- Statut de vérification des pièces d'identité (CIP/IFU) dans le profil propriétaire et démarcheur :
+  en cours, validé, ou refusé avec son motif.
 - Créneau de visite expiré : une proposition restée sans réponse après son heure s'affiche
   « Expiré » et invite à proposer un nouvel horaire ; la notification « Créneau expiré » ouvre la
   conversation (tâche serveur associée côté backend).
@@ -29,6 +42,30 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   du cache ; cœurs des favoris partagés entre l'accueil, la recherche et la page Favoris.
 
 ### Corrigé
+- Une preview Vercel ne peut plus être construite contre l'API de production : le build échoue avec
+  la marche à suivre (garde `scripts/garde-api-preview.mjs`). Une preview de la branche
+  recette/integration affichait les données de production parce que `VITE_API_URL` n'y était pas
+  réservée au staging.
+- Inscription web ouverte à tous, prospects compris : l'en-tête propose « S'inscrire » et le
+  parcours demande le profil (je cherche un bien / je suis propriétaire). La restriction aux
+  propriétaires (PR #4) reste disponible avec `VITE_INSCRIPTION_PROPRIETAIRES_UNIQUEMENT=true`.
+- Accueil, « Emplacements » : avec moins de 8 quartiers, des pastilles fixes au lieu d'un bandeau
+  défilant qui laissait des vides et faisait sortir les pastilles de l'écran.
+- Correctifs de la recette (branche recette/integration) repris dans l'écran découpé : un message
+  supprimé par un administrateur est signalé comme tel (B9) ; le reçu affiche le type de bien
+  calculé par le serveur (B10) ; la vérification CIP / IFU passe en lecture seule tant que les
+  documents sont en attente ou validés, pour qu'un renvoi ne remette pas une identité validée en
+  attente (C1) ; les notifications « documents validés / rejetés » ont leur icône (C1).
+- Photos ou vidéo dont l'envoi échoue après la publication : conservées, signalées sur l'écran de
+  confirmation avec un bouton « Réessayer l'envoi » (aucun autre écran ne permet d'ajouter un
+  fichier à une annonce publiée).
+- Une clé d'idempotence déjà servie (paiement précédent expiré ou refusé) ne bloque plus un nouvel
+  essai : nouvelle clé et un seul renvoi automatique, sur le loyer, la recharge et le retrait.
+- Le bandeau de vérification des pièces d'identité suit le statut du serveur après un envoi ; la
+  vidéo de la fiche affiche la photo de couverture avant la lecture.
+- Paiement du loyer et demande de retrait envoyés avec une clé d'idempotence (FE-B-006) : un
+  renvoi après une coupure ne crée pas de seconde transaction et retrouve le lien de paiement ;
+  la clé change dès que la demande change (montant, portefeuille, opérateur).
 - Tableaux de bord propriétaire et démarcheur rechargés à chaque changement d'espace (BUG-04).
 - Un rafraîchissement du jeton qui change les rôles est repris tout de suite par l'interface,
   sans rechargement de page (BUG-05).

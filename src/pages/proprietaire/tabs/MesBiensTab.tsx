@@ -14,6 +14,8 @@ import { withAlpha } from '../../../utils/color'
 import { apiMessage } from '../../../utils/apiMessage'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
+import { imageDeCouverture } from '../../../utils/imageCouverture'
+import { suffixeUnite } from '../../../utils/prix'
 
 // ─── Tab: Mes Biens ───────────────────────────────────────────────────────────
 export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void }) {
@@ -108,7 +110,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                     >
                       <div className="relative overflow-hidden" style={{ height: 160 }}>
                         {cover?.url
-                          ? <img loading="lazy" src={cover.url} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          ? <img loading="lazy" {...imageDeCouverture([cover], undefined, '(max-width: 768px) 85vw, 400px')} alt={bienLabel(b)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, #1a2a4a, ${withAlpha(BLUE, '30')})` }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth={1.2} className="w-10 h-10 opacity-40"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             </div>
@@ -120,7 +122,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         </span>
                         <div className="absolute bottom-3 left-3 right-3">
                           <p className="text-white font-black text-[15px] leading-none drop-shadow">
-                            {fmtPrix(b.prix)}{b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70"> /mois</span>}
+                            {fmtPrix(b.prix)}{suffixeUnite(b) && <span className="text-[11px] font-normal text-white/70"> {suffixeUnite(b)}</span>}
                           </p>
                         </div>
                       </div>
@@ -280,7 +282,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                       {/* Photo */}
                       <div className="relative overflow-hidden" style={{ height: 192 }}>
                         {cover?.url
-                          ? <img loading="lazy" src={cover.url} alt={bienLabel(b)}
+                          ? <img loading="lazy" {...imageDeCouverture([cover], undefined, '(max-width: 768px) 85vw, 400px')} alt={bienLabel(b)}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           : <div className="w-full h-full flex items-center justify-center"
                               style={{ background: `linear-gradient(135deg, #EEF1FB, ${withAlpha(BLUE, '18')})` }}>
@@ -303,7 +305,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                           <p className="text-white font-black text-[17px] leading-none drop-shadow">
                             {fmtPrix(b.prix)}
-                            {b.transaction === 'location' && <span className="text-[11px] font-normal text-white/70">/mois</span>}
+                            {suffixeUnite(b) && <span className="text-[11px] font-normal text-white/70">{suffixeUnite(b)}</span>}
                           </p>
                           {(b.nb_consultations ?? 0) > 0 && (
                             <span className="flex items-center gap-1 text-[10px] text-white/80">

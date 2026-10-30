@@ -294,10 +294,13 @@ test.describe('P2 annulation d’un changement de numéro', () => {
 interface Saisie { nom: string; prenom: string; telephone: string; motDePasse: string; confirmation: string; conditions: boolean }
 const VALIDE: Saisie = { nom: 'Dupont', prenom: 'Jean', telephone: NUMERO, motDePasse: MOT_DE_PASSE, confirmation: MOT_DE_PASSE, conditions: true }
 
-/** Ouvre l'inscription (restriction « propriétaires uniquement » active par défaut). */
-async function ouvrirInscription(page: Page, mocks: Mocks = {}) {
+/** Ouvre l'inscription (ouverte à tous) puis choisit le profil, jusqu'au formulaire « Vos informations ». */
+async function ouvrirInscription(page: Page, mocks: Mocks = {}, profil: RegExp = /Je suis propriétaire/) {
   const calls = await ouvrir(page, '/register', mocks)
-  await expect(page.getByRole('heading', { name: 'Vous êtes propriétaire ?' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Qui êtes-vous ?' })).toBeVisible()
+  await page.getByRole('button', { name: profil }).click()
+  await page.getByRole('button', { name: 'Continuer' }).click()
+  await expect(page.getByRole('heading', { name: 'Vos informations' })).toBeVisible()
   return calls
 }
 
@@ -323,15 +326,33 @@ async function sInscrire(page: Page, saisie: Saisie = VALIDE) {
 }
 
 test.describe('P2 inscription propriétaire', () => {
-  test('affiche le formulaire propriétaire, sans choix de profil, avec des champs reliés à leur libellé', async ({ page }) => {
-    await ouvrirInscription(page)
+  test('propose le choix du profil (prospect ou propriétaire), puis un formulaire aux champs reliés à leur libellé', async ({ page }) => {
+    const calls = await ouvrir(page, '/register', {})
+    await expect(page.getByRole('heading', { name: 'Qui êtes-vous ?' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Je cherche un bien/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Je suis propriétaire/ })).toBeVisible()
+    // Continuer sans profil choisi est refusé.
+    await page.getByRole('button', { name: 'Continuer' }).click()
+    await expect(page.getByText('Choisissez un profil')).toBeVisible()
+    expect(posts(calls, '/auth/register')).toHaveLength(0)
 
-    await expect(page.getByText('Créez votre compte propriétaire')).toBeVisible()
-    await expect(page.getByText('Je cherche un bien')).toHaveCount(0)
+    await page.getByRole('button', { name: /Je suis propriétaire/ }).click()
+    await page.getByRole('button', { name: 'Continuer' }).click()
+    await expect(page.getByText('Quelques infos pour créer votre compte')).toBeVisible()
     for (const libelle of ['Nom', 'Prénom', 'Téléphone', 'Mot de passe', 'Confirmer']) {
       await expect(page.getByLabel(libelle, { exact: true })).toBeVisible()
     }
     await expect(page.getByLabel(/Email/)).toBeVisible()
+  })
+
+  test('un prospect peut s’inscrire : le rôle prospect est envoyé', async ({ page }) => {
+    const calls = await ouvrirInscription(page,
+      { register: { status: 201, body: { access_token: 'a.e30.b', refresh_token: 'r-3', user: userOf('prospect') } } },
+      /Je cherche un bien/)
+    await sInscrire(page)
+
+    await expect.poll(() => posts(calls, '/auth/register').length).toBe(1)
+    expect(bodyOf(posts(calls, '/auth/register')[0])).toMatchObject({ role: 'prospect', nom: 'Dupont', prenom: 'Jean' })
   })
 
   test('une inscription réussie envoie le rôle propriétaire et ouvre le tableau de bord', async ({ page }) => {
@@ -455,6 +476,8 @@ test.describe('P2 inscription propriétaire', () => {
     await mockApp(page, { loggedIn: false, mocks: { register: { status: 201, body: { access_token: 'a.e30.b', refresh_token: 'r-3', user: userOf('proprietaire') } } } })
     await page.addInitScript(() => sessionStorage.setItem('post_login_redirect', '/nouveau-bien'))
     await page.goto('/register')
+    await page.getByRole('button', { name: /Je suis propriétaire/ }).click()
+    await page.getByRole('button', { name: 'Continuer' }).click()
     await sInscrire(page)
 
     await page.waitForURL('**/nouveau-bien')
@@ -465,6 +488,8 @@ test.describe('P2 inscription propriétaire', () => {
     await mockApp(page, { loggedIn: false, mocks: { register: { status: 201, body: { access_token: 'a.e30.b', refresh_token: 'r-3', user: userOf('proprietaire') } } } })
     await page.addInitScript(() => sessionStorage.setItem('post_login_redirect', 'https://exemple.test/piege'))
     await page.goto('/register')
+    await page.getByRole('button', { name: /Je suis propriétaire/ }).click()
+    await page.getByRole('button', { name: 'Continuer' }).click()
     await sInscrire(page)
 
     await page.waitForURL('**/proprietaire')

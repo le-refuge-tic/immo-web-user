@@ -12,6 +12,7 @@ import type { BienGestion, Contrat, ContratResume, Loyer, LoyersDashboard, Loyer
 import { withAlpha } from '../../../utils/color'
 import { apiMessage } from '../../../utils/apiMessage'
 import ErrorState from '../../../components/ErrorState'
+import { suffixeUnite } from '../../../utils/prix'
 
 // ─── Tab: Loyers ──────────────────────────────────────────────────────────────
 // Statut d'un loyer — couvre les 4 valeurs réelles du backend (`en_attente`,
@@ -261,7 +262,7 @@ export function LoyersTab({ onScrolled }: { onScrolled?: (v: boolean) => void })
                         <p className="font-bold text-sm truncate" style={{ color: 'var(--p-text)' }}>{bienLabel(b)}</p>
                         <p className="text-xs truncate" style={{ color: 'var(--p-muted)' }}>{b.localisation?.quartier ? `${b.localisation.quartier}, ` : ''}{b.localisation?.ville || '—'}</p>
                       </div>
-                      <span className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE_TX }}>{fmtPrix(b.prix)}<span className="font-normal opacity-70">/mois</span></span>
+                      <span className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE_TX }}>{fmtPrix(b.prix)}<span className="font-normal opacity-70">{suffixeUnite(b)}</span></span>
                     </div>
 
                     {b.locataire ? (

@@ -14,6 +14,7 @@ import { fraisVisiteBien, libelleFraisVisite } from '../../utils/fraisVisite'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import ErrorState from '../../components/ErrorState'
 import type { Bien } from '../../types/api'
+import { suffixeUnite } from '../../utils/prix'
 
 /** Bien affiché : la photo de couverture peut aussi arriver à plat (`photo_couverture`). */
 type BienReservation = Bien & { photo_couverture?: string }
@@ -28,7 +29,7 @@ const DAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 
 const TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement vide',
-  appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', terrain: 'Terrain',
+  appart_meuble: 'Appartement meublé', guesthouse: 'Guesthouse', salle_fete: 'Salle de fêtes', terrain: 'Terrain',
 }
 
 const SOUS_TYPE_LABELS: Record<string, string> = {
@@ -218,7 +219,7 @@ export default function ReservationPage() {
       </div>
       <div className="flex flex-col items-end justify-center flex-shrink-0">
         <p className="text-sm font-bold text-primary">{Number(bien.prix).toLocaleString('fr-FR')} FCFA</p>
-        {bien.transaction === 'location' && <p className="text-micro text-text-grey">/mois</p>}
+        {suffixeUnite(bien) && <p className="text-micro text-text-grey">{suffixeUnite(bien)}</p>}
       </div>
     </div>
   ) : null

@@ -11,6 +11,8 @@ import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_L
 import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
+import { useTentativesParCle } from '../../../hooks/usePaymentAttempt'
+import { avecCle } from '../../../utils/paymentAttempt'
 import { GREEN, TEAL, OPERATEURS, GREEN_TX, TEAL_TX } from '../shared'
 import { IcHome, IcCheck, IcPin } from '../icons'
 import OperateurChips from '../OperateurChips'
@@ -38,6 +40,8 @@ export default function MonLogementTab() {
   const [chatError, setChatError] = useState('')
   const [loadError, setLoadError] = useState(false)
   const polling                 = usePaymentPolling()
+  // Une clé d'idempotence par loyer : un renvoi retrouve la transaction et son lien de paiement (FE-B-006).
+  const tentativeLoyer          = useTentativesParCle()
   const initiationEnCoursRef    = useRef(false)
 
   const load = async () => {
@@ -125,11 +129,14 @@ export default function MonLogementTab() {
       for (let i = 0; i < selected.length; i++) {
         setPayProgress(selected.length > 1 ? `Paiement ${i + 1}/${selected.length}…` : '')
         loyerCourant = selected[i]
-        const res = await paiementApi.initierLoyer({ loyer_id: loyerCourant, methode_paiement: operateur, telephone_paiement: tel })
+        const loyerId = loyerCourant
+        const res = await avecCle(tentativeLoyer(loyerId), `${operateur}:${tel}`, cle =>
+          paiementApi.initierLoyer({ loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel }, cle))
         const hasUrl = !!res.url_paiement
         if (res.url_paiement) {
           // Lien refusé par la liste de domaines autorisés : on ne suit rien et on n'annonce pas d'onglet ouvert.
           if (!openPaymentUrl(res.url_paiement)) {
+            tentativeLoyer(loyerId).reset()
             setPayUrl('')
             setPayState('error'); setPayMsg('Le lien de paiement reçu est invalide. Vérifiez votre historique avant de réessayer.')
             setPayProgress(''); setPaying(false); initiationEnCoursRef.current = false
@@ -143,12 +150,15 @@ export default function MonLogementTab() {
         // Le backend renvoie `reference` : sans elle, aucun suivi ne peut partir.
         const refId = referenceLoyer(res)
         if (!refId) {
+          tentativeLoyer(loyerId).reset()
           setPayState('error'); setPayMsg('Référence de paiement manquante. Vérifiez votre historique avant de réessayer.')
           setPayProgress(''); setPaying(false); initiationEnCoursRef.current = false
           load()
           return
         }
         const issue = await attendreConfirmation(refId, hasUrl)
+        // Confirmé ou refusé : affaire réglée, nouvelle clé au prochain paiement. Délai : on garde la clé.
+        if (issue !== 'delai') tentativeLoyer(loyerCourant).reset()
         if (issue !== 'ok') {
           // Délai dépassé : le paiement est peut-être encore en cours chez l'opérateur, ne pas inviter à relancer à l'aveugle.
           const suite = issue === 'delai'
@@ -163,6 +173,7 @@ export default function MonLogementTab() {
       setPayProgress('')
       setPayState('success'); setSelected([]); load()
     } catch (e: unknown) {
+      if (loyerCourant !== null) tentativeLoyer(loyerCourant).fail(e)
       setPayState('error'); setPayMsg(apiMessage(e) || 'Erreur de paiement')
     }
     setPaying(false)

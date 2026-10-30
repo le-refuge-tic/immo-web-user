@@ -3,6 +3,8 @@ import { userApi } from '../../api/userApi'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { ProprioProfil } from '../../types/proprietaire'
 import { apiMessage } from '../../utils/apiMessage'
+import StatutVerificationDocuments from '../../components/StatutVerificationDocuments'
+import { useStatutDocuments } from '../../hooks/useStatutDocuments'
 
 type Props = { user: ProprioProfil | null | undefined; onClose: () => void }
 
@@ -51,7 +53,28 @@ function DocUploader({ label, existingUrl, onUpload }: { label: string; existing
   )
 }
 
+/** Document déjà transmis, non modifiable (C1) : pas de renvoi tant que la demande n'est pas rejetée. */
+function DocLectureSeule({ label }: { label: string }) {
+  return (
+    <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: 'var(--p-deep)', border: '1px solid var(--p-border)' }}>
+      <span aria-hidden="true" className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold" style={{ background: 'rgba(22,163,74,0.094)', color: 'var(--tx-green)' }}>✓</span>
+      <p className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{label}</p>
+    </div>
+  )
+}
+
 export default function VerificationCipModal({ user, onClose }: Props) {
+  // Un document envoyé repasse la demande « en attente » côté serveur : on l'affiche tout de suite.
+  const [statut, marquerEnvoye] = useStatutDocuments(user?.statut_verification_documents)
+  const [envoyes, setEnvoyes] = useState({ cip: false, ifu: false })
+  const envoyer = (doc: 'cip' | 'ifu', envoi: (f: File) => Promise<unknown>) => async (f: File) => {
+    await envoi(f)
+    setEnvoyes(e => ({ ...e, [doc]: true }))
+    marquerEnvoye()
+  }
+  // Lecture seule tant que la demande est en attente ou déjà validée : seul un rejet (ou l'absence
+  // de toute soumission) permet de (re)soumettre. Renvoyer un document validé le remettrait en attente.
+  const lectureSeule = statut === 'en_attente' || statut === 'valide'
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handleEscape)
@@ -74,8 +97,18 @@ export default function VerificationCipModal({ user, onClose }: Props) {
             Une pièce d'identité vérifiée renforce la confiance des locataires et démarcheurs qui interagissent avec vos annonces. Envoyez votre CIP (Carte d'Identité Personnelle) ou votre IFU.
           </p>
 
-          <DocUploader label="CIP (Carte d'Identité Personnelle)" existingUrl={user?.cip_url} onUpload={f => userApi.uploadCip(f)} />
-          <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={f => userApi.uploadIfu(f)} />
+          <StatutVerificationDocuments statut={statut} motif={statut === 'rejete' ? user?.motif_rejet_documents : null} />
+          {lectureSeule ? (
+            <>
+              {(user?.cip_url || envoyes.cip) && <DocLectureSeule label="CIP (Carte d'Identité Personnelle)" />}
+              {(user?.ifu_url || envoyes.ifu) && <DocLectureSeule label="IFU (Identifiant Fiscal Unique)" />}
+            </>
+          ) : (
+            <>
+              <DocUploader label="CIP (Carte d'Identité Personnelle)" existingUrl={user?.cip_url} onUpload={envoyer('cip', f => userApi.uploadCip(f))} />
+              <DocUploader label="IFU (Identifiant Fiscal Unique)" existingUrl={user?.ifu_url} onUpload={envoyer('ifu', f => userApi.uploadIfu(f))} />
+            </>
+          )}
         </div>
       </div>
     </ModalSheet>

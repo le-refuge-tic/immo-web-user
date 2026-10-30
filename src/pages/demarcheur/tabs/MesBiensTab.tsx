@@ -12,6 +12,7 @@ import { withAlpha } from '../../../utils/color'
 import { apiMessage } from '../../../utils/apiMessage'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
+import { suffixeUnite } from '../../../utils/prix'
 
 export default function MesBiensTab() {
   const [biens, setBiens] = useState<Bien[]>([])
@@ -105,7 +106,7 @@ export default function MesBiensTab() {
                   className="focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 card-soft rounded-2xl overflow-hidden mb-3 sm:mb-0 cursor-pointer transition-transform hover:-translate-y-0.5">
                   <div className="relative h-32">
                     {cover?.url
-                      ? <img loading="lazy" src={cover.url} className="w-full h-full object-cover" alt="" />
+                      ? <img loading="lazy" src={cover.thumbnail_url || cover.url} className="w-full h-full object-cover" alt="" />
                       : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${withAlpha(DARK_PURPLE, 'cc')}, ${withAlpha(PURPLE, 'aa')})` }}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.5} className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
                     }
                     <div className="absolute inset-0 bg-black/20" />
@@ -121,7 +122,7 @@ export default function MesBiensTab() {
                         <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteBienId(b.id) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}><IcTrash /></button>
                       )}
                     </div>
-                    <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{b.transaction === 'location' ? '/mois' : ''}</span>
+                    <span className="absolute bottom-3 left-3 text-white text-sm font-bold">{fmtPrix(b.prix)}{suffixeUnite(b)}</span>
                   </div>
                   <div className="p-3.5">
                     <p className="font-bold text-text-dark text-sm">{bienTypeLabel(b)}</p>

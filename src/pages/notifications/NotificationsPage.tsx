@@ -62,7 +62,6 @@ const BienRejeteIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 )
-
 const SwapIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -86,6 +85,8 @@ const TYPE_CONFIG: Record<string, TypeCfg> = {
   bien_rejete:   { icon: <BienRejeteIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
   proposition:   { icon: <SwapIcon />,         color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.10)' },
   paiement:      { icon: <PaiementIcon />,     color: '#7C3AED', bg: 'rgba(124,58,237,0.08)' },
+  documents_valides: { icon: <BienApprouveIcon />, color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.08)' },
+  documents_rejetes: { icon: <BienRejeteIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
 }
 
 // Types réellement émis par l'API → style, aligné sur _styleForType du mobile.
@@ -132,7 +133,7 @@ const VISITE_TYPES = new Set([
   'visite_demande', 'visite_confirmee', 'visite_contre_proposee',
   'visite_client_recontrepropose', 'visite_proposition_envoyee',
   'visite_effectuee', 'visite_echouee', 'visite_annulee',
-  'rappel_visite', 'paiement_visite',
+  'rappel_visite', 'paiement_visite', 'paiement_visite_recu',
 ])
 const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 

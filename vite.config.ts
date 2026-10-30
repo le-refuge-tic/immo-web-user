@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { apiProdEnPreview } from './scripts/garde-api-preview.mjs'
 
 /**
  * Version rattachée aux erreurs Sentry (FE-F-007) : VITE_RELEASE si renseignée, sinon
@@ -60,6 +61,14 @@ export default defineConfig(({ mode }) => {
       throw new Error('VITE_API_URL doit être définie en HTTPS pour un build de production (ex: https://api.example.com/api/v1).')
     }
   }
+  // Une preview Vercel ne se construit jamais contre l'API de production (elle écrirait dans la vraie base).
+  const refus = apiProdEnPreview({
+    apiUrl: env.VITE_API_URL,
+    vercelEnv: process.env.VERCEL_ENV,
+    hotesSupplementaires: (process.env.PROD_API_HOSTS ?? '').split(','),
+    autorise: env.VITE_AUTORISER_API_PROD_EN_PREVIEW === 'true',
+  })
+  if (refus) throw new Error(refus)
   return {
     plugins: [react(), seo(env.VITE_SITE_URL ?? '', env.VITE_ALLOW_INDEXING === 'true')],
     // Constante dédiée : Vite remplace `import.meta.env` avant `define`, qui ne peut donc pas la compléter.

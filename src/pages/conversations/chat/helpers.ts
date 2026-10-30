@@ -6,7 +6,7 @@ type Interlocuteur = Pick<ChatUser, 'prenom' | 'pseudonyme' | 'nom' | 'role'> | 
 
 export const BIEN_TYPE_LABELS: Record<string, string> = {
   maison: 'Maison', appart_vide: 'Appartement', appart_meuble: 'Appt. meublé',
-  guesthouse: 'Guesthouse', terrain: 'Terrain',
+  guesthouse: 'Guesthouse', salle_fete: 'Salle de fêtes', terrain: 'Terrain',
 }
 export const SOUS_TYPE_LABELS: Record<string, string> = {
   villa: 'Villa', maison_individuelle: 'Maison indiv.', appartement: 'Appartement',

@@ -12,6 +12,8 @@ import { messageMontantRetrait } from '../../../utils/retrait'
 import type { MouvementWallet, RetraitProprio, WalletProprio } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
+import { usePaymentAttempt } from '../../../hooks/usePaymentAttempt'
+import { avecCle } from '../../../utils/paymentAttempt'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -28,6 +30,7 @@ function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
 }
 
 function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: () => void; onSuccess: () => void }) {
+  const attempt = usePaymentAttempt()
   const [montant, setMontant] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -48,10 +51,12 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
     setError('')
     setSubmitting(true)
     try {
-      await walletApi.demandeRetrait(montantNum, 'revenus_locatifs')
+      await avecCle(attempt, `revenus_locatifs:${montantNum}`, cle => walletApi.demandeRetrait(montantNum, 'revenus_locatifs', cle))
+      attempt.reset()
       setSuccessMsg(true)
       onSuccess()
     } catch (e: unknown) {
+      attempt.fail(e)
       setError(apiMessage(e) || "Impossible d'envoyer la demande. Réessayez.")
     }
     setSubmitting(false)
