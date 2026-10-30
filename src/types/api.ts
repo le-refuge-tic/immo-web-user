@@ -166,6 +166,7 @@ export interface DetailsSalleFete {
   traiteur: TraiteurSalle
   deco_autorisee: boolean
   alcool_autorise: boolean
+  insonorisee?: boolean
   heure_fin_musique: string | null
 }
 

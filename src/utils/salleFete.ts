@@ -76,6 +76,7 @@ export function reglesSalle(d: DetailsSalleFete): string[] {
     TRAITEURS[d.traiteur] ?? d.traiteur,
     d.deco_autorisee ? 'Décoration autorisée' : 'Décoration interdite',
     d.alcool_autorise ? 'Alcool autorisé' : 'Alcool interdit',
+    d.insonorisee === true ? 'Salle insonorisée' : 'Salle non insonorisée',
     ...(d.heure_fin_musique ? [`Musique jusqu’à ${hhmm(d.heure_fin_musique)}`] : []),
   ]
 }
