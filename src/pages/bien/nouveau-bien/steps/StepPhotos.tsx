@@ -20,6 +20,8 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     typeBien,
     typeTransaction,
     prix,
+    etatMeubleMaison,
+    etatConstructionMaison,
     sanitaire,
     finition,
     ville,
@@ -68,6 +70,12 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
             ...(finition ? [labelFinition(finition)] : []),
             ...(sanitaire ? [labelSanitaire(sanitaire)] : []),
             ...(isMeuble ? ['Meublé'] : []),
+            ...(typeBien === 'maison' ? [
+              etatMeubleMaison === 'non_meuble' ? 'Maison non meublée' :
+              etatMeubleMaison === 'semi_meuble' ? 'Maison semi-meublée' : 'Maison meublée',
+              etatConstructionMaison === 'semi_construite' ? 'Maison semi-construite' :
+              etatConstructionMaison === 'totalement_construite' ? 'Maison totalement construite' : '',
+            ].filter(Boolean) : []),
           ]} />
 
           <RecapSection title="Localisation" items={[

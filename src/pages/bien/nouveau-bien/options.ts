@@ -79,11 +79,13 @@ export const EQUIPEMENTS_RESIDENTIEL = [
 ]
 
 export const EQUIPEMENTS_BOUTIQUE = [
-  { value: 'toilette_interne', label: 'Toilette interne' },
+  { value: 'sanitaire', label: 'Sanitaire' },
   { value: 'arriere_boutique', label: 'Arrière-boutique / Stock' },
-  { value: 'sol_carele', label: 'Sol carrelé' },
-  { value: 'plafond_staffe', label: 'Plafond staffé' },
   { value: 'climatisation', label: 'Climatisation' },
+  { value: 'brasseur', label: 'Brasseur / Ventilateur' },
+  { value: 'eau_courante', label: 'Eau courante' },
+  { value: 'compteur_electrique', label: 'Compteur électrique' },
+  { value: 'rideau_metallique', label: 'Rideau métallique' },
 ]
 
 export const ALENTOURS_OPTS = [

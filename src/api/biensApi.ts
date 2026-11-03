@@ -100,7 +100,7 @@ export const biensApi = {
   uploadVideo: (bienId: number, file: File) => {
     const form = new FormData()
     form.append('video', file)
-    // POST /biens/:id/video : MP4, 30 Mo au plus (remplace la vidéo précédente).
+    // POST /biens/:id/video : MP4, 50 Mo au plus (remplace la vidéo précédente).
     return axios.post<unknown>(`${BASE}/biens/${bienId}/video`, form, {
       headers: {
         Authorization: `Bearer ${tokenStore.getToken()}`,

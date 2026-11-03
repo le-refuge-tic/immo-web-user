@@ -14,6 +14,10 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
     setPrix,
     estMeuble,
     setEstMeuble,
+    etatMeubleMaison,
+    setEtatMeubleMaison,
+    etatConstructionMaison,
+    setEtatConstructionMaison,
     sanitaire,
     setSanitaire,
     sanitaireAutre,
@@ -71,10 +75,28 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
 
         {peutEtreMeuble && (
           <Card>
-            <Section title="État du bien" />
-            <div className="grid grid-cols-2 gap-2.5">
-              <Chip label="Vide" active={!estMeuble} onClick={() => setEstMeuble(false)} />
-              <Chip label="Meublé" active={estMeuble} onClick={() => setEstMeuble(true)} />
+            <Section title={typeBien === 'maison' ? 'État du meuble' : 'État du bien'} />
+            {typeBien === 'maison' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <Chip label="Non meublée" active={etatMeubleMaison === 'non_meuble'} onClick={() => setEtatMeubleMaison('non_meuble')} />
+                <Chip label="Semi-meublée" active={etatMeubleMaison === 'semi_meuble'} onClick={() => setEtatMeubleMaison('semi_meuble')} />
+                <Chip label="Meublée" active={etatMeubleMaison === 'meuble'} onClick={() => setEtatMeubleMaison('meuble')} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2.5">
+                <Chip label="Vide" active={!estMeuble} onClick={() => setEstMeuble(false)} />
+                <Chip label="Meublé" active={estMeuble} onClick={() => setEstMeuble(true)} />
+              </div>
+            )}
+          </Card>
+        )}
+
+        {typeBien === 'maison' && (
+          <Card>
+            <Section title="État de construction" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <Chip label="Semi-construite" active={etatConstructionMaison === 'semi_construite'} onClick={() => setEtatConstructionMaison('semi_construite')} />
+              <Chip label="Totalement construite" active={etatConstructionMaison === 'totalement_construite'} onClick={() => setEtatConstructionMaison('totalement_construite')} />
             </div>
           </Card>
         )}

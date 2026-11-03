@@ -128,7 +128,7 @@ export default function ProfilTab({ user, onOpenDelegations }: { user: ProfilDem
         </button>
         <div className="w-full card-soft rounded-xl"><AppearanceSetting /></div>
         <button onClick={() => { logout(); navigate('/login') }} className="w-full mt-2 py-3.5 rounded-xl text-danger font-bold text-sm border border-danger/20 bg-danger/5">
-          Se déconnecter
+          Déconnexion
         </button>
       </div>
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />

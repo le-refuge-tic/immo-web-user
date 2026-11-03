@@ -70,6 +70,7 @@ export interface Localisation {
   adresse?: string
   ville?: string
   quartier?: string
+  arrondissement?: string
   latitude?: number | null
   longitude?: number | null
 }
@@ -166,6 +167,7 @@ export interface DetailsSalleFete {
   traiteur: TraiteurSalle
   deco_autorisee: boolean
   alcool_autorise: boolean
+  insonorisee?: boolean
   heure_fin_musique: string | null
 }
 

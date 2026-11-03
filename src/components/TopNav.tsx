@@ -306,7 +306,7 @@ export default function TopNav() {
                     <div className="py-1.5 mt-1.5" style={{ borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') }}>
                       <button onClick={handleLogout} role="menuitem"
                         className="menu-item-hover w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-left" style={{ color: 'var(--c-red-ios)' }}>
-                        <LogOutIcon /> Se déconnecter
+                        <LogOutIcon /> Déconnexion
                       </button>
                     </div>
                   </div>

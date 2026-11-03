@@ -41,6 +41,11 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
+    if (prixPromo.trim() && Number(prixPromo) < 100) {
+      setError('Le prix promotionnel doit être d’au moins 100 FCFA')
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
     setSaving(true)
     setError('')
     try {

@@ -153,8 +153,19 @@ export function infosLogementRows(a: Amenites): InfoRow[] {
 export function infosTerrainRows(a: Amenites): InfoRow[] {
   const rows: InfoRow[] = []
 
-  if (a.document != null) {
-    rows.push({ label: 'Document disponible', value: DOCUMENT_TERRAIN_LABELS[a.document] ?? a.document })
+  if (a.documents?.length) {
+    const documents = a.documents.map(document => {
+      if (document === 'autre' && a.document_autre_detail?.trim()) {
+        return `Autre : ${a.document_autre_detail.trim()}`
+      }
+      return DOCUMENT_TERRAIN_LABELS[document] ?? document
+    })
+    rows.push({ label: 'Documents disponibles', value: documents.join(', ') })
+  } else if (a.document != null) {
+    const document = a.document === 'autre' && a.document_autre_detail?.trim()
+      ? `Autre : ${a.document_autre_detail.trim()}`
+      : DOCUMENT_TERRAIN_LABELS[a.document] ?? a.document
+    rows.push({ label: 'Document disponible', value: document })
   }
   if (a.loti != null) {
     const val = typeof a.loti === 'boolean'
@@ -180,4 +191,3 @@ export function infosTerrainRows(a: Amenites): InfoRow[] {
 
   return rows
 }
-
