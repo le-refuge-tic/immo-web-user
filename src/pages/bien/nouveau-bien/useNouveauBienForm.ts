@@ -14,6 +14,7 @@ import { suggestPush } from '../../../lib/push'
 
 import { normalizeStr, parsePrix } from './options'
 import type { TarifCustom, DetailCustom } from './options'
+import { PHOTOS_MIN } from './photosRegles'
 export function useNouveauBienForm() {
   usePageTitle('Publier une annonce')
   const navigate = useNavigate()
@@ -244,6 +245,9 @@ export function useNouveauBienForm() {
     }
     if (step === 2 && isTerrain && !titreTerrain.trim()) { setError('Veuillez donner un nom à ce bien'); return }
     if (step === 2 && isTerrain && !superficieM2) { setError('Veuillez indiquer la superficie du terrain'); return }
+    if (step === 4 && photos.length < PHOTOS_MIN) {
+      setError(`Ajoutez au moins ${PHOTOS_MIN} photos (${photos.length} pour l’instant)`); return
+    }
     setError('')
     if (step === 4) { handleCreate(); return }
     setStep(s => s + 1)

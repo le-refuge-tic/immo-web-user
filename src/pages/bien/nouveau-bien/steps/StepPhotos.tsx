@@ -6,6 +6,7 @@ import type { NouveauBienForm } from '../useNouveauBienForm'
 import { withAlpha } from '../../../../utils/color'
 import { erreurVideo, TAILLE_MAX_VIDEO_MO } from '../../../../utils/videoAnnonce'
 import { useState } from 'react'
+import { PHOTOS_MAX, PHOTOS_MIN } from '../photosRegles'
 
 export function StepPhotos({ form }: { form: NouveauBienForm }) {
   const {
@@ -156,10 +157,10 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
         <Card>
           <p className="text-sm font-bold mb-1" style={{ color: 'var(--p-text)' }}>Photos du bien</p>
           <p className="text-xs mb-4" style={{ color: 'var(--p-muted)' }}>
-            Maximum 5 photos (PNG, JPEG, WEBP) — les photos augmentent les visites de 3×
+            Entre {PHOTOS_MIN} et {PHOTOS_MAX} photos (PNG, JPEG, WEBP) — les photos augmentent les visites de 3×
           </p>
 
-          {photos.length < 5 && (
+          {photos.length < PHOTOS_MAX && (
             // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- zone de dépôt : le glisser-déposer s'ajoute au champ fichier, qui reste utilisable au clavier
             <label className="block border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors"
               style={{ borderColor: hoveredDropzone === 'photos' ? BLUE : 'var(--p-border)' }}
@@ -172,11 +173,11 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
                 </svg>
               </div>
               <p className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>Choisir des photos</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--p-muted)' }}>JPG, PNG, WEBP (max 5 photos)</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--p-muted)' }}>JPG, PNG, WEBP ({PHOTOS_MIN} à {PHOTOS_MAX} photos)</p>
               <input type="file" multiple accept="image/png,image/jpeg,image/webp" className="hidden"
                 onChange={e => {
-                  const files = Array.from(e.target.files || []).slice(0, 5 - photos.length)
-                  setPhotos(p => [...p, ...files].slice(0, 5))
+                  const files = Array.from(e.target.files || []).slice(0, PHOTOS_MAX - photos.length)
+                  setPhotos(p => [...p, ...files].slice(0, PHOTOS_MAX))
                 }} />
             </label>
           )}
@@ -197,7 +198,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
                 ))}
               </div>
               <p className="text-caption mt-2" style={{ color: 'var(--p-muted)' }}>
-                {photos.length}/5 photo{photos.length > 1 ? 's' : ''} — encore {5 - photos.length} possible{5 - photos.length > 1 ? 's' : ''}
+                {photos.length}/{PHOTOS_MAX} photo{photos.length > 1 ? 's' : ''} — encore {PHOTOS_MAX - photos.length} possible{PHOTOS_MAX - photos.length > 1 ? 's' : ''}
               </p>
             </>
           )}
