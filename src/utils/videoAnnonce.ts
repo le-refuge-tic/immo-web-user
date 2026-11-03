@@ -1,5 +1,5 @@
 /** Taille maximale d'une vidéo d'annonce, alignée sur la limite du backend (POST /biens/:id/video). */
-export const TAILLE_MAX_VIDEO_MO = 30
+export const TAILLE_MAX_VIDEO_MO = 50
 
 /** Message d'erreur si la vidéo choisie ne sera pas acceptée par le serveur, sinon null. */
 export function erreurVideo(fichier: Pick<File, 'type' | 'size'>): string | null {
