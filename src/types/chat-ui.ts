@@ -14,6 +14,9 @@ export interface CreneauMetadata {
   status?: string
   /** Date ISO du créneau proposé. */
   proposed_at?: string
+  /** Visite annulée (status `declined`) : côté qui l'a annulée et son identifiant. */
+  annule_par?: 'client' | 'gestionnaire' | 'admin'
+  annule_par_id?: number
   [cle: string]: unknown
 }
 

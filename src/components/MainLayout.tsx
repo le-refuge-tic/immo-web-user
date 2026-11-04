@@ -1,5 +1,5 @@
-import { useRef, useCallback } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { useRef, useCallback, useLayoutEffect } from 'react'
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom'
 import TopNav from './TopNav'
 import BottomNav from './BottomNav'
 import PushPrompt from './PushPrompt'
@@ -23,6 +23,16 @@ export default function MainLayout() {
   const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
   const hideTopNav = hideChrome || HIDE_TOPNAV_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
   const ownScroll  = OWN_SCROLL_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
+  const navigationType = useNavigationType()
+
+  // Le conteneur de défilement est partagé par toutes les pages : sans remise à zéro, une nouvelle
+  // page s'ouvrait à la position de la précédente (contenu coupé sous l'en-tête). Le retour
+  // arrière (POP) est laissé à useScrollRestoration ; un changement de filtres (?…) ne remonte pas.
+  useLayoutEffect(() => {
+    if (navigationType === 'POP') return
+    scrollRef.current?.scrollTo({ top: 0 })
+    setScrolled(false)
+  }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setScrolled(e.currentTarget.scrollTop > 40)

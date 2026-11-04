@@ -1,4 +1,4 @@
-import { fmtSlot, statutCreneau, timeLabel } from './helpers'
+import { fmtSlot, libelleAnnulation, statutCreneau, timeLabel } from './helpers'
 import type { ChatMessage } from '../../../types/chat-ui'
 import { withAlpha } from '../../../utils/color'
 
@@ -31,13 +31,14 @@ export function SlotBubble({ m, userId, isDark, tp, tm, bienId, isClientRole, pa
     pending:   { bg: isMe ? 'rgba(75,107,255,0.12)' : (isDark ? 'rgba(32,32,48,0.9)' : 'rgba(255,255,255,0.9)'), accent: 'var(--tx-brand)', label: isMe ? 'En attente…' : 'Créneau proposé' },
   }
   const pal = p[status] || p.pending
+  const libelle = libelleAnnulation(m.metadata, userId) ?? pal.label
   return (
     <div className={`flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
       <div className="rounded-2xl overflow-hidden max-w-[270px]" style={{ background: pal.bg, border: `1.5px solid ${withAlpha(pal.accent, '44')}` }}>
         <div className="px-3 pt-2.5 pb-0.5">
           <p className="text-micro font-bold uppercase tracking-widest mb-1.5" style={{ color: pal.accent }}>Créneau de visite</p>
           <p className="text-[13.5px] font-bold leading-snug" style={{ color: tp }}>{dt ? fmtSlot(dt) : '—'}</p>
-          <p className="text-caption mt-1 font-medium" style={{ color: pal.accent }}>{pal.label}</p>
+          <p className="text-caption mt-1 font-medium" style={{ color: pal.accent }}>{libelle}</p>
         </div>
         {!isMe && status === 'pending' && (
           <div className="px-3 pb-2.5 pt-2 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${withAlpha(pal.accent, '22')}` }}>

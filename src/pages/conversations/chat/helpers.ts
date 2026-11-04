@@ -41,6 +41,14 @@ export function statutCreneau(meta: CreneauMetadata | null | undefined, maintena
   const t = new Date(meta.proposed_at).getTime()
   return !isNaN(t) && t <= maintenant.getTime() ? 'expired' : status
 }
+/** « Annulé par … » quand le créneau refusé vient en fait d'une visite annulée, sinon null. */
+export function libelleAnnulation(meta: CreneauMetadata | null | undefined, userId: number | undefined): string | null {
+  if (meta?.status !== 'declined' || !meta.annule_par) return null
+  if (userId != null && meta.annule_par_id === userId) return 'Annulé par vous'
+  if (meta.annule_par === 'client') return 'Annulé par le client'
+  if (meta.annule_par === 'gestionnaire') return 'Annulé par l’annonceur'
+  return 'Annulé par l’équipe Refuge'
+}
 export function displayName(o: Interlocuteur) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 export function roleLabel(o: Interlocuteur) {
   if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
