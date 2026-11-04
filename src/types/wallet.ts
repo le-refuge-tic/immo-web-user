@@ -46,11 +46,24 @@ export interface RechargementWalletResponse {
   url_paiement?: string
 }
 
+/** Opérateur Mobile Money du numéro de retrait. */
+export type OperateurRetrait = 'mtn' | 'moov'
+
 /** Réponse de `GET /wallets/me/numero-retrait`. */
 export interface NumeroRetraitInfo {
   numero_retrait: string | null
   masque: string | null
   source: string
+  /** Absent tant que la personne n'a pas choisi MTN ou Moov : aucun retrait possible. */
+  operateur_retrait?: OperateurRetrait | null
+  /** Retraits suspendus 48 h après un changement de numéro ou d'opérateur (date ISO), sinon null. */
+  retraits_suspendus_jusqu_a?: string | null
+}
+
+/** Réponse de `GET /retraits/limites` (XOF, variables d'environnement du serveur). */
+export interface LimitesRetrait {
+  min: number
+  max: number
 }
 
 /** Réponse de `POST /wallets/me/numero-retrait/initier`. */
@@ -58,10 +71,13 @@ export interface InitierChangementNumeroResponse {
   session_token: string
   expires_in: number
   nouveau_numero: string
+  operateur?: OperateurRetrait
 }
 
 /** Réponse de `POST /wallets/me/numero-retrait/confirmer`. */
 export interface ConfirmerChangementNumeroResponse {
   message?: string
   numero_retrait?: string
+  operateur_retrait?: OperateurRetrait
+  retraits_suspendus?: boolean
 }

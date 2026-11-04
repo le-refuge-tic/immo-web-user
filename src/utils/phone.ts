@@ -9,7 +9,7 @@ export const PHONE_PLACEHOLDER = '01 97 00 00 00'
 export const PHONE_FORMAT_HINT = 'Numéro invalide : saisissez 10 chiffres commençant par 01 (ex. 01 97 00 00 00).'
 
 /** Ramène la saisie à 10 chiffres (retire l'indicatif 229 éventuel). */
-function localBeninDigits(raw: string): string {
+export function localBeninDigits(raw: string): string {
   const digits = raw.replace(/\D/g, '')
   return digits.length === 13 && digits.startsWith('229') ? digits.slice(3) : digits
 }

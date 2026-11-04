@@ -139,6 +139,7 @@ export interface DelegationEmise {
 
 /** Wallet renvoyé par `GET /wallets/me/solde`. */
 export interface WalletProprio {
+  id?: number
   balance?: number | string
   updated_at?: IsoDate
 }
@@ -168,6 +169,14 @@ export interface MouvementWallet {
 export interface RetraitProprio {
   id: number
   montant: number | string
+  /** en_attente, en_cours, en_attente_fonds, envoye, echoue, rejete (ou approuve : anciennes demandes). */
   statut: string
   created_at: IsoDate
+  updated_at?: IsoDate
+  wallet_id?: number
+  operateur?: string | null
+  /** Numéro de destination, masqué par le serveur. */
+  numero_masque?: string
+  /** Phrase prête à afficher (échec remboursé, attente…), sans détail technique. */
+  message?: string | null
 }

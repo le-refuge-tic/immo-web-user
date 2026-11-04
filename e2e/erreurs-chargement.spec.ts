@@ -48,15 +48,20 @@ test.describe('erreurs de chargement : portefeuille', () => {
   test('une demande de retrait refusée affiche un message et laisse le bouton actif', async ({ page }) => {
     await mockApp(page, {
       role: 'proprietaire',
-      mocks: { solde: { status: 200, body: { balance: 50000 } }, demandeRetrait: PANNE },
+      mocks: {
+        solde: { status: 200, body: { balance: 50000 } },
+        numeroRetrait: { status: 200, body: { numero_retrait: '0197123456', masque: '••••••3456', source: 'numero_retrait', operateur_retrait: 'mtn', retraits_suspendus_jusqu_a: null } },
+        demandeRetrait: PANNE,
+      },
     })
     await page.goto('/portefeuille')
     await page.getByRole('button', { name: 'Demander un retrait' }).click()
     await page.getByPlaceholder('Ex: 50000').fill('1000')
-    await page.getByRole('button', { name: 'Envoyer' }).click()
+    await page.getByRole('button', { name: 'Continuer' }).click()
+    await page.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
     await expect(page.getByRole('alert').filter({ hasText: 'momentanément indisponible' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Envoyer' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Envoyer maintenant' })).toBeEnabled()
   })
 })
 

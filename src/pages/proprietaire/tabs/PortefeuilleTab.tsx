@@ -8,8 +8,12 @@ import { categorieTransaction, TransactionDetailModal } from './TransactionsTab'
 import { svgMaskUrl } from './RolesTab'
 import { apiMessage } from '../../../utils/apiMessage'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
-import { messageMontantRetrait } from '../../../utils/retrait'
-import type { MouvementWallet, RetraitProprio, WalletProprio } from '../../../types/proprietaire'
+import { RETRAIT_MINIMUM, libelleOperateur, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait } from '../../../utils/retrait'
+import { useInfoRetrait } from '../../../hooks/useInfoRetrait'
+import { useSuiviRetraits } from '../../../hooks/useSuiviRetraits'
+import RetraitConfirmModal from '../../../components/wallet/RetraitConfirmModal'
+import SuiviRetraits from '../../../components/wallet/SuiviRetraits'
+import type { MouvementWallet, WalletProprio } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
 import { usePaymentAttempt } from '../../../hooks/usePaymentAttempt'
@@ -34,26 +38,29 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
   const [montant, setMontant] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [successMsg, setSuccessMsg] = useState(false)
-  const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [resultat, setResultat] = useState<{ ok: boolean; texte: string } | null>(null)
+  const { info: numeroInfo, limites, recharger: rechargerInfo } = useInfoRetrait()
   const [showNumeroModal, setShowNumeroModal] = useState(false)
 
-  useEffect(() => { walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }, [])
-
   const montantNum = Number(montant)
-  const montantValide = montantNum >= 500 && montantNum <= solde
   const fcfa = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`
   // Message dès la saisie (et non seulement au clic sur Confirmer) : B-015
-  const montantMessage = messageMontantRetrait(montant, solde)
+  const montantMessage = messageMontantRetrait(montant, solde, limites)
+  const montantValide = !!montant && !montantMessage
+  const blocage = raisonBlocageRetrait(numeroInfo)
+  const min = limites.min ?? RETRAIT_MINIMUM
+  const aideMontant = `Minimum ${fcfa(min)}${limites.max && Number.isFinite(limites.max) ? ` · maximum ${fcfa(limites.max)}` : ''} · 3 retraits maximum / 24h vers le même numéro.`
 
-  const confirmer = async () => {
-    if (!montant || !montantValide) { setError(montantNum > solde ? 'Montant supérieur à votre solde disponible.' : 'Montant minimum : 500 FCFA.'); return }
+  // L'argent part immédiatement : l'envoi n'a lieu qu'après la confirmation (RetraitConfirmModal).
+  const envoyer = async () => {
     setError('')
     setSubmitting(true)
     try {
-      await avecCle(attempt, `revenus_locatifs:${montantNum}`, cle => walletApi.demandeRetrait(montantNum, 'revenus_locatifs', cle))
+      const retrait = await avecCle(attempt, `revenus_locatifs:${montantNum}`, cle => walletApi.demandeRetrait(montantNum, 'revenus_locatifs', cle))
       attempt.reset()
-      setSuccessMsg(true)
+      setConfirmOpen(false)
+      setResultat(messageApresDemande(retrait))
       onSuccess()
     } catch (e: unknown) {
       attempt.fail(e)
@@ -62,17 +69,21 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
     setSubmitting(false)
   }
 
-  if (successMsg) {
+  if (resultat) {
     return (
-      <ModalSheet open onClose={onClose} label="Demande de retrait envoyée" placement="center" panelClassName="w-full max-w-sm" backdropOpacity={0.45}>
+      <ModalSheet open onClose={onClose} label={resultat.ok ? 'Demande de retrait envoyée' : 'Retrait échoué'} placement="center" panelClassName="w-full max-w-sm" backdropOpacity={0.45}>
         <div className="bg-p-surface rounded-2xl w-full p-7 text-center border border-p-border">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-            style={{ background: 'linear-gradient(135deg, var(--c-green-material), #2E7D32)', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }}>
-            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+            style={resultat.ok
+              ? { background: 'linear-gradient(135deg, var(--c-green-material), var(--c-success))', boxShadow: '0 8px 20px rgba(76,175,80,0.35)' }
+              : { background: 'var(--c-danger)' }}>
+            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              {resultat.ok ? <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />}
+            </svg>
           </div>
-          <p className="font-bold text-p-text text-lg mb-2">Demande envoyée !</p>
+          <p className="font-bold text-p-text text-lg mb-2">{resultat.ok ? 'Demande envoyée !' : 'Retrait échoué'}</p>
           <p className="text-sm text-p-muted leading-relaxed mb-6">
-            Retrait de {montantNum.toLocaleString('fr-FR')} FCFA en attente de validation. Vous serez notifié dès l'envoi.
+            {fcfa(montantNum)} — {resultat.texte}
           </p>
           <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-sm" style={{ background: BLUE, color: '#060D1A' }}>Fermer</button>
         </div>
@@ -93,35 +104,35 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
         </div>
 
         <div className="p-5 space-y-5">
-          <div role="alert" aria-live="assertive" aria-atomic="true">
-            {error && (
-              <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.078)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.188)' }}>
-                {error}
-              </div>
-            )}
-          </div>
-
           <div>
             <label htmlFor="portefeuille-tab-97" className="text-xs font-bold text-p-text uppercase tracking-wide mb-2 block">Montant à retirer</label>
             <div className="relative">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-p-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
-              <input id="portefeuille-tab-97" type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={500} max={solde}
+              <input id="portefeuille-tab-97" type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={min} max={solde}
                 aria-invalid={!!montantMessage} aria-describedby="retrait-montant-aide"
                 className="w-full bg-p-card border border-p-border rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none text-p-text focus:border-brand" />
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-p-muted">FCFA</span>
             </div>
             <p id="retrait-montant-aide" aria-live="polite" className="text-[11px] mt-1.5" style={{ color: montantMessage ? 'var(--tx-red)' : '#8A9BB5', fontWeight: montantMessage ? 600 : 400 }}>
-              {montantMessage || 'Minimum 500 FCFA · maximum 3 retraits / 24h vers le même numéro.'}
+              {montantMessage || aideMontant}
             </p>
           </div>
 
           <div className="p-3.5 rounded-xl flex items-center justify-between gap-3" style={{ background: '#112440', border: '1px solid #1A3355' }}>
             <div className="min-w-0">
               <p className="text-[10px] font-bold text-p-muted uppercase tracking-wide mb-0.5">Envoyé sur</p>
-              <p className="font-semibold text-sm text-p-text truncate">{numeroInfo?.masque || '—'}</p>
+              <p className="font-semibold text-sm text-p-text truncate">
+                {numeroInfo?.masque || '—'}{numeroInfo?.operateur_retrait ? ` · ${libelleOperateur(numeroInfo.operateur_retrait)}` : ''}
+              </p>
             </div>
-            <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE_TX }}>Changer</button>
+            <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE_TX }}>
+              {numeroInfo && !numeroInfo.operateur_retrait ? 'Choisir mon opérateur' : 'Changer'}
+            </button>
           </div>
+
+          {blocage && (
+            <p role="alert" className="text-xs rounded-xl px-3.5 py-2.5" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--c-amber-dark)', border: '1px solid rgba(245,158,11,0.3)' }}>{blocage}</p>
+          )}
 
           {montantValide && (
             <div className="p-3.5 rounded-xl text-sm space-y-1" style={{ background: '#112440', border: '1px solid #1A3355' }} aria-label="Récapitulatif du retrait">
@@ -131,26 +142,24 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             </div>
           )}
 
-          <button onClick={confirmer} disabled={submitting}
+          <button onClick={() => { setError(''); setConfirmOpen(true) }} disabled={!montantValide || !!blocage}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60"
             style={{ background: BLUE }}>
-            {submitting ? (
-              <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                Confirmer le retrait
-              </>
-            )}
+            Continuer
           </button>
         </div>
       </div>
 </ModalSheet>
+    {confirmOpen && (
+      <RetraitConfirmModal variant="sombre" montant={montantNum} numeroMasque={numeroInfo?.masque} operateur={numeroInfo?.operateur_retrait}
+        soldeApres={solde - montantNum} submitting={submitting} error={error}
+        onCancel={() => { setConfirmOpen(false); setError('') }} onConfirm={envoyer} />
+    )}
     {showNumeroModal && (
       <NumeroRetraitModal
         current={numeroInfo?.masque ?? null}
         onClose={() => setShowNumeroModal(false)}
-        onSaved={() => { setShowNumeroModal(false); walletApi.numeroRetrait().then(setNumeroInfo).catch(() => { /* information secondaire : la ligne reste « non défini » */ }) }}
+        onSaved={() => { setShowNumeroModal(false); rechargerInfo() }}
       />
     )}
     </>
@@ -160,7 +169,6 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: () => void }) {
   const [wallet, setWallet] = useState<WalletProprio | null>(null)
   const [transactions, setTrans] = useState<MouvementWallet[]>([])
-  const [retraits, setRetraits] = useState<RetraitProprio[]>([])
   const [loading, setLoading] = useState(true)
   const [showRetrait, setShowRetrait] = useState(false)
   const [detailTx, setDetailTx] = useState<MouvementWallet | null>(null)
@@ -171,8 +179,8 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
     setLoading(true)
     setLoadError(false)
     try {
-      const [w, t, r] = await Promise.all([walletApi.me(), walletApi.transactions(), walletApi.mesRetraits()])
-      setWallet(w); setTrans(Array.isArray(t) ? t : t.data || []); setRetraits(Array.isArray(r) ? r : r.data || [])
+      const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
+      setWallet(w); setTrans(Array.isArray(t) ? t : t.data || [])
     } catch {
       setLoadError(true)
     }
@@ -180,9 +188,17 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
   }
   useEffect(() => { load() }, [])
 
-  const noData = loadError && !wallet
+  // Un virement qui échoue rend le montant au portefeuille : relecture silencieuse du solde.
+  const rafraichirSolde = async () => {
+    try {
+      const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
+      setWallet(w); setTrans(Array.isArray(t) ? t : t.data || [])
+    } catch { /* le solde affiché reste celui d'avant */ }
+  }
+  const { retraits, recharger: rechargerRetraits } = useSuiviRetraits(rafraichirSolde)
+  const retraitsWallet = retraits.filter(r => !wallet?.id || r.wallet_id === wallet.id)
 
-  const retraitsEnCours = retraits.filter(r => r.statut === 'en_attente' || r.statut === 'approuve')
+  const noData = loadError && !wallet
 
   const solde = Number(wallet?.balance || 0)
 
@@ -249,26 +265,8 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
           </div>
         </div>
 
-        {/* Retraits en cours */}
-        {retraitsEnCours.length > 0 && (
-          <div className="mb-6">
-            <p className="font-bold text-p-text mb-3">Retraits en cours</p>
-            {retraitsEnCours.map(r => {
-              const approuve = r.statut === 'approuve'
-              const color = approuve ? 'var(--c-amber-dark)' : '#8A9BB5'
-              return (
-                <div key={r.id} className="flex items-center gap-3 p-3.5 rounded-xl mb-2" style={{ background: '#112440', border: `1px solid ${withAlpha(color, '40')}` }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} className="w-5 h-5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm text-p-text">{Number(r.montant).toLocaleString('fr-FR')} FCFA</p>
-                    <p className="text-xs" style={{ color }}>{approuve ? 'Approuvé — envoi en cours' : 'En attente de validation'}</p>
-                  </div>
-                  <p className="text-[11px] text-p-muted flex-shrink-0">{new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        {/* Suivi des retraits : statut en direct, remboursement en cas d'échec */}
+        <SuiviRetraits retraits={retraitsWallet} variant="sombre" />
 
         {/* Transactions récentes */}
         <div className="flex items-center justify-between mb-3">
@@ -308,7 +306,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
         })}
       </div>
       {showRetrait && (
-        <RetraitModal solde={solde} onClose={() => setShowRetrait(false)} onSuccess={load} />
+        <RetraitModal solde={solde} onClose={() => setShowRetrait(false)} onSuccess={() => { load(); rechargerRetraits() }} />
       )}
       {detailTx && <TransactionDetailModal t={detailTx} onClose={() => setDetailTx(null)} />}
     </div>

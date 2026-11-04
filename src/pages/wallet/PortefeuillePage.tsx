@@ -8,7 +8,12 @@ import type { Wallet, WalletTransaction } from '../../types/wallet'
 import { withAlpha } from '../../utils/color'
 import { apiMessage } from '../../utils/apiMessage'
 import ErrorState from '../../components/ErrorState'
-import { messageMontantRetrait } from '../../utils/retrait'
+import { RETRAIT_MINIMUM, libelleOperateur, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait } from '../../utils/retrait'
+import { useInfoRetrait } from '../../hooks/useInfoRetrait'
+import { useSuiviRetraits } from '../../hooks/useSuiviRetraits'
+import RetraitConfirmModal from '../../components/wallet/RetraitConfirmModal'
+import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
+import SuiviRetraits from '../../components/wallet/SuiviRetraits'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { avecCle } from '../../utils/paymentAttempt'
 
@@ -66,8 +71,11 @@ function ClientWalletView() {
   const [showRetrait, setShowRetrait] = useState(false)
   const [montant, setMontant] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [retraitOk, setRetraitOk] = useState(false)
+  const [resultat, setResultat] = useState<{ ok: boolean; texte: string } | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [showNumeroModal, setShowNumeroModal] = useState(false)
   const [retraitError, setRetraitError] = useState('')
+  const { info: numeroInfo, limites, recharger: rechargerInfo } = useInfoRetrait()
   // Échec du chargement : n'écrase jamais des soldes déjà affichés (rafraîchissement après un retrait).
   const [loadError, setLoadError] = useState(false)
 
@@ -91,6 +99,17 @@ function ClientWalletView() {
   }
   useEffect(() => { load() }, [])
 
+  // Un virement qui échoue rend le montant à l'épargne : relecture silencieuse du solde.
+  const rafraichirSolde = async () => {
+    try {
+      const [we, te] = await Promise.all([walletApi.me('epargne'), walletApi.transactions('epargne')])
+      setWallets(w => ({ ...w, epargne: we }))
+      setTxs(t => ({ ...t, epargne: Array.isArray(te) ? te : te?.data || [] }))
+    } catch { /* le solde affiché reste celui d'avant */ }
+  }
+  const { retraits, recharger: rechargerRetraits } = useSuiviRetraits(rafraichirSolde)
+  const retraitsEpargne = retraits.filter(r => !wallets.epargne?.id || r.wallet_id === wallets.epargne.id)
+
   const noData = loadError && !wallets.cotisation && !wallets.epargne
   const solde = Number(wallets[tab]?.balance || 0)
   const color = W_COLOR[tab]
@@ -98,19 +117,22 @@ function ClientWalletView() {
 
   // Le minimum (500 FCFA) et le plafond (solde) sont vérifiés dès la saisie, comme côté serveur (FE-B-015).
   const soldeEpargne = Number(wallets.epargne?.balance || 0)
-  const montantMessage = messageMontantRetrait(montant, soldeEpargne)
+  const montantMessage = messageMontantRetrait(montant, soldeEpargne, limites)
+  const blocage = raisonBlocageRetrait(numeroInfo)
+  const min = limites.min ?? RETRAIT_MINIMUM
+  const aideMontant = `Minimum ${min.toLocaleString('fr-FR')} FCFA${limites.max && Number.isFinite(limites.max) ? ` · maximum ${limites.max.toLocaleString('fr-FR')} FCFA` : ''} · 3 retraits maximum / 24h.`
 
-  const demanderRetrait = async () => {
-    if (!montant || montantMessage) return
+  // L'argent part immédiatement : l'envoi n'a lieu qu'après la confirmation (RetraitConfirmModal).
+  const envoyerRetrait = async () => {
     setSubmitting(true)
     setRetraitError('')
     try {
-      await avecCle(attempt, `epargne:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'epargne', cle))
+      const retrait = await avecCle(attempt, `epargne:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'epargne', cle))
       attempt.reset()
-      setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
+      setResultat(messageApresDemande(retrait)); setConfirmOpen(false); setShowRetrait(false); setMontant(''); load(); rechargerRetraits()
     } catch (e: unknown) {
       attempt.fail(e)
-      // Le bouton « Confirmer » redevient actif : la personne peut simplement renvoyer sa demande.
+      // Le bouton « Envoyer maintenant » redevient actif : la personne peut simplement renvoyer sa demande.
       setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
     }
     setSubmitting(false)
@@ -185,10 +207,13 @@ function ClientWalletView() {
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-5 py-6 pb-10">
-          {retraitOk && (
-            <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée — en attente de validation.</p>
+          {resultat && (
+            <div role="status" className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2"
+              style={resultat.ok ? { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' } : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={resultat.ok ? 'var(--c-green)' : 'var(--c-danger)'} strokeWidth={2.5}>
+                {resultat.ok ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/> : <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18"/>}
+              </svg>
+              <p className="text-sm font-semibold" style={{ color: resultat.ok ? 'var(--tx-green)' : 'var(--c-danger)' }}>{resultat.texte}</p>
             </div>
           )}
 
@@ -196,27 +221,55 @@ function ClientWalletView() {
             <ModalSheet open onClose={() => setShowRetrait(false)} label="Demander un retrait — Épargne" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
               <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}>
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demander un retrait — Épargne</h3>
-                <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{Number(wallets.epargne?.balance || 0).toLocaleString('fr-FR')} FCFA</strong></p>
-                <p className="text-xs text-text-grey mb-3">Minimum 500 FCFA · Max 3 retraits / 24h</p>
+                <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{soldeEpargne.toLocaleString('fr-FR')} FCFA</strong></p>
+                <p className="text-xs text-text-grey mb-3">{aideMontant}</p>
                 <label htmlFor="portefeuille-page-178" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={soldeEpargne}
+                <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={min} max={soldeEpargne}
                   aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 5000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
                 <p id="retrait-montant-message" aria-live="polite" className={montantMessage ? '-mt-2 mb-3 text-sm font-semibold' : 'sr-only'} style={montantMessage ? { color: 'var(--c-danger)' } : undefined}>{montantMessage}</p>
-                {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
+
+                <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-divider mb-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-text-grey">Envoyé sur</p>
+                    <p className="text-sm font-semibold text-text-dark truncate">
+                      {numeroInfo?.masque || '—'}{numeroInfo?.operateur_retrait ? ` · ${libelleOperateur(numeroInfo.operateur_retrait)}` : ''}
+                    </p>
+                  </div>
+                  <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: 'var(--c-brand)' }}>
+                    {numeroInfo && !numeroInfo.operateur_retrait ? 'Choisir mon opérateur' : 'Changer'}
+                  </button>
+                </div>
+                {blocage && (
+                  <p role="alert" className="text-xs rounded-xl px-3.5 py-2.5 mb-3" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--c-amber-dark)', border: '1px solid rgba(245,158,11,0.3)' }}>{blocage}</p>
+                )}
+
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={demanderRetrait} disabled={submitting || !montant || !!montantMessage}
+                  <button onClick={() => { setRetraitError(''); setConfirmOpen(true) }} disabled={!montant || !!montantMessage || !!blocage}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
                     style={{ background: W_COLOR.epargne }}>
-                    {submitting ? 'Envoi…' : 'Confirmer'}
+                    Continuer
                   </button>
                 </div>
               </div>
             </ModalSheet>
           )}
+
+          {confirmOpen && (
+            <RetraitConfirmModal variant="clair" montant={Number(montant)} numeroMasque={numeroInfo?.masque} operateur={numeroInfo?.operateur_retrait}
+              soldeApres={soldeEpargne - Number(montant)} submitting={submitting} error={retraitError}
+              onCancel={() => { setConfirmOpen(false); setRetraitError('') }} onConfirm={envoyerRetrait} />
+          )}
+
+          {showNumeroModal && (
+            <NumeroRetraitModal current={numeroInfo?.masque ?? null} onClose={() => setShowNumeroModal(false)}
+              onSaved={() => { setShowNumeroModal(false); rechargerInfo() }} />
+          )}
+
+          {tab === 'epargne' && <SuiviRetraits retraits={retraitsEpargne} variant="clair" titre="Mes retraits d'épargne" />}
 
           <p className="font-bold text-text-dark mb-4">Historique</p>
           {loading ? (
@@ -262,7 +315,10 @@ function WalletCommissionsView() {
   const [showRetrait, setShowRetrait] = useState(false)
   const [montant, setMontant]       = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [retraitOk, setRetraitOk]  = useState(false)
+  const [resultat, setResultat]  = useState<{ ok: boolean; texte: string } | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [showNumeroModal, setShowNumeroModal] = useState(false)
+  const { info: numeroInfo, limites, recharger: rechargerInfo } = useInfoRetrait()
   const [filter, setFilter]         = useState<'Tous' | 'Loyers' | 'Visites'>('Tous')
   const [detailTx, setDetailTx]     = useState<WalletTransaction | null>(null)
   const [retraitError, setRetraitError] = useState('')
@@ -283,26 +339,40 @@ function WalletCommissionsView() {
   }
   useEffect(() => { load() }, [])
 
+  // Un virement qui échoue rend le montant au portefeuille : relecture silencieuse du solde.
+  const rafraichirSolde = async () => {
+    try {
+      const [w, t] = await Promise.all([walletApi.me(), walletApi.transactions()])
+      setWallet(w)
+      setTrans(Array.isArray(t) ? t : t.data || [])
+    } catch { /* le solde affiché reste celui d'avant */ }
+  }
+  const { retraits, recharger: rechargerRetraits } = useSuiviRetraits(rafraichirSolde)
+  const retraitsWallet = retraits.filter(r => !wallet?.id || r.wallet_id === wallet.id)
+
   const noData = loadError && !wallet
 
-  const demanderRetrait = async () => {
-    if (!montant || montantMessage) return
+  // L'argent part immédiatement : l'envoi n'a lieu qu'après la confirmation (RetraitConfirmModal).
+  const envoyerRetrait = async () => {
     setSubmitting(true)
     setRetraitError('')
     try {
-      await avecCle(attempt, `revenus_locatifs:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'revenus_locatifs', cle))
+      const retrait = await avecCle(attempt, `revenus_locatifs:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'revenus_locatifs', cle))
       attempt.reset()
-      setRetraitOk(true); setShowRetrait(false); setMontant(''); load()
+      setResultat(messageApresDemande(retrait)); setConfirmOpen(false); setShowRetrait(false); setMontant(''); load(); rechargerRetraits()
     } catch (e: unknown) {
       attempt.fail(e)
-      // Le bouton « Envoyer » redevient actif : la personne peut simplement renvoyer sa demande.
+      // Le bouton « Envoyer maintenant » redevient actif : la personne peut simplement renvoyer sa demande.
       setRetraitError(apiMessage(e) || 'La demande de retrait a échoué. Réessayez.')
     }
     setSubmitting(false)
   }
 
   const solde = Number(wallet?.balance || 0)
-  const montantMessage = messageMontantRetrait(montant, solde)
+  const montantMessage = messageMontantRetrait(montant, solde, limites)
+  const blocage = raisonBlocageRetrait(numeroInfo)
+  const min = limites.min ?? RETRAIT_MINIMUM
+  const aideMontant = `Minimum ${min.toLocaleString('fr-FR')} FCFA${limites.max && Number.isFinite(limites.max) ? ` · maximum ${limites.max.toLocaleString('fr-FR')} FCFA` : ''} · 3 retraits maximum / 24h.`
   const loyerCount = transactions.filter(isLoyer).length
   const visiteCount = transactions.filter(isVisite).length
   const filteredTx = filter === 'Loyers' ? transactions.filter(isLoyer) : filter === 'Visites' ? transactions.filter(isVisite) : transactions
@@ -341,39 +411,69 @@ function WalletCommissionsView() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-5 py-6 pb-10">
 
-          {/* Confirmation retrait */}
-          {retraitOk && (
-            <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <p className="text-sm font-semibold" style={{ color: 'var(--tx-green)' }}>Demande de retrait envoyée avec succès.</p>
+          {resultat && (
+            <div role="status" className="mb-4 px-4 py-3 rounded-xl flex items-center gap-2"
+              style={resultat.ok ? { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' } : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke={resultat.ok ? 'var(--c-green)' : 'var(--c-danger)'} strokeWidth={2.5}>
+                {resultat.ok ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/> : <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18"/>}
+              </svg>
+              <p className="text-sm font-semibold" style={{ color: resultat.ok ? 'var(--tx-green)' : 'var(--c-danger)' }}>{resultat.texte}</p>
             </div>
           )}
 
-          {/* Modal retrait */}
           {showRetrait && (
             <ModalSheet open onClose={() => setShowRetrait(false)} label="Demande de retrait" placement="responsive" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
               <div className="w-full max-w-md rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(40px)' }}>
                 <h3 className="font-bold text-text-dark text-lg mb-4">Demande de retrait</h3>
-                <p className="text-sm text-text-grey mb-3">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
+                <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
+                <p className="text-xs text-text-grey mb-3">{aideMontant}</p>
                 <label htmlFor="portefeuille-page-317" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={500} max={solde}
+                <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={min} max={solde}
                   aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 50000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
-                <p id="retrait-montant-message" aria-live="polite" className={montantMessage ? '-mt-2 mb-3 text-sm font-semibold' : 'text-xs text-text-grey -mt-2 mb-3'} style={montantMessage ? { color: 'var(--c-danger)' } : undefined}>{montantMessage || 'Minimum 500 FCFA.'}</p>
-                {retraitError && <p role="alert" className="text-sm font-semibold mb-3" style={{ color: 'var(--c-danger)' }}>{retraitError}</p>}
+                <p id="retrait-montant-message" aria-live="polite" className={montantMessage ? '-mt-2 mb-3 text-sm font-semibold' : 'sr-only'} style={montantMessage ? { color: 'var(--c-danger)' } : undefined}>{montantMessage}</p>
+
+                <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-divider mb-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-text-grey">Envoyé sur</p>
+                    <p className="text-sm font-semibold text-text-dark truncate">
+                      {numeroInfo?.masque || '—'}{numeroInfo?.operateur_retrait ? ` · ${libelleOperateur(numeroInfo.operateur_retrait)}` : ''}
+                    </p>
+                  </div>
+                  <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: 'var(--c-brand)' }}>
+                    {numeroInfo && !numeroInfo.operateur_retrait ? 'Choisir mon opérateur' : 'Changer'}
+                  </button>
+                </div>
+                {blocage && (
+                  <p role="alert" className="text-xs rounded-xl px-3.5 py-2.5 mb-3" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--c-amber-dark)', border: '1px solid rgba(245,158,11,0.3)' }}>{blocage}</p>
+                )}
+
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={demanderRetrait} disabled={submitting || !montant || !!montantMessage}
+                  <button onClick={() => { setRetraitError(''); setConfirmOpen(true) }} disabled={!montant || !!montantMessage || !!blocage}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
                     style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
-                    {submitting ? 'Envoi…' : 'Envoyer'}
+                    Continuer
                   </button>
                 </div>
               </div>
             </ModalSheet>
           )}
+
+          {confirmOpen && (
+            <RetraitConfirmModal variant="clair" montant={Number(montant)} numeroMasque={numeroInfo?.masque} operateur={numeroInfo?.operateur_retrait}
+              soldeApres={solde - Number(montant)} submitting={submitting} error={retraitError}
+              onCancel={() => { setConfirmOpen(false); setRetraitError('') }} onConfirm={envoyerRetrait} />
+          )}
+
+          {showNumeroModal && (
+            <NumeroRetraitModal current={numeroInfo?.masque ?? null} onClose={() => setShowNumeroModal(false)}
+              onSaved={() => { setShowNumeroModal(false); rechargerInfo() }} />
+          )}
+
+          <SuiviRetraits retraits={retraitsWallet} variant="clair" />
 
           {/* Modal détail transaction */}
           {detailTx && (

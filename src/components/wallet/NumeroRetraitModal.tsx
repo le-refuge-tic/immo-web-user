@@ -1,28 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ModalSheet } from '../ui/ModalSheet'
 import { walletApi } from '../../api/walletApi'
-import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { validateBeninPhone, localBeninDigits, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
+import { OPERATEURS } from '../../utils/retrait'
+import type { OperateurRetrait } from '../../types/wallet'
 
 /**
- * Changement du numéro de retrait Mobile Money (flow OTP en 2 étapes),
- * partagé entre l'espace propriétaire et l'espace locataire.
+ * Changement du numéro et de l'opérateur de retrait Mobile Money (flow OTP en 2 étapes),
+ * partagé entre tous les espaces. Le numéro et l'opérateur sont préremplis depuis le compte :
+ * un compte existant sans opérateur n'a qu'à choisir MTN ou Moov. Tout changement de
+ * destination suspend les retraits 48 h (décidé par le serveur).
  */
 export default function NumeroRetraitModal({ current, onClose, onSaved, accent = 'var(--c-brand)' }: { current: string | null; onClose: () => void; onSaved: (numero: string) => void; accent?: string }) {
   const [step, setStep] = useState<'form' | 'otp'>('form')
   const [numero, setNumero] = useState('')
+  const [operateur, setOperateur] = useState<OperateurRetrait | null>(null)
   const [motDePasse, setMotDePasse] = useState('')
   const [otp, setOtp] = useState('')
   const [sessionToken, setSessionToken] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Préremplissage : sans effet si la personne a déjà commencé à saisir.
+  useEffect(() => {
+    let actif = true
+    walletApi.numeroRetrait().then(info => {
+      if (!actif) return
+      setNumero(prev => prev || localBeninDigits(info.numero_retrait ?? ''))
+      setOperateur(prev => prev ?? info.operateur_retrait ?? null)
+    }).catch(() => { /* la personne saisit à la main */ })
+    return () => { actif = false }
+  }, [])
+
   const initier = async () => {
     if (!validateBeninPhone(numero)) { setError(PHONE_FORMAT_HINT); return }
+    if (!operateur) { setError('Choisissez l\'opérateur de ce numéro : MTN ou Moov.'); return }
     if (!motDePasse) { setError('Entrez votre mot de passe pour confirmer.'); return }
     setError(''); setSubmitting(true)
     try {
-      const res = await walletApi.initierChangementNumeroRetrait(numero.trim(), motDePasse)
+      const res = await walletApi.initierChangementNumeroRetrait(localBeninDigits(numero), operateur, motDePasse)
       setSessionToken(res.session_token)
       setStep('otp')
     } catch (e: unknown) {
@@ -33,9 +50,10 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
 
   const confirmer = async () => {
     if (!otp.trim()) { setError('Entrez le code reçu par SMS.'); return }
+    if (!operateur) return
     setError(''); setSubmitting(true)
     try {
-      await walletApi.confirmerChangementNumeroRetrait(sessionToken, otp.trim(), numero.trim())
+      await walletApi.confirmerChangementNumeroRetrait(sessionToken, otp.trim(), localBeninDigits(numero), operateur)
       onSaved(numero.trim())
     } catch (e: unknown) {
       setError(apiMessage(e) || 'Code invalide ou expiré.')
@@ -44,10 +62,10 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
   }
 
   return (
-    <ModalSheet open onClose={onClose} label="Numéro de retrait" placement="center" panelClassName="w-full max-w-sm" backdropOpacity={0.5} zIndex={60}>
+    <ModalSheet open onClose={onClose} label="Numéro et opérateur de retrait" placement="center" panelClassName="w-full max-w-sm" backdropOpacity={0.5} zIndex={60}>
       <div className="bg-navy-900 rounded-2xl w-full border border-navy-700">
         <div className="flex items-center justify-between px-5 py-4 border-b border-navy-700">
-          <h2 className="font-bold text-proprio-text">Numéro de retrait</h2>
+          <h2 className="font-bold text-proprio-text">Numéro et opérateur de retrait</h2>
           <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-navy-900 text-proprio-muted flex-shrink-0">✕</button>
         </div>
         <div className="p-5 space-y-4">
@@ -55,23 +73,38 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
             <p className="text-xs text-proprio-muted">Numéro actuel : <span className="font-semibold text-proprio-text">{current}</span></p>
           )}
           {error && (
-            <div className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.078)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.188)' }}>{error}</div>
+            <div role="alert" className="px-3.5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.078)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.188)' }}>{error}</div>
           )}
 
           {step === 'form' ? (
             <>
               <div>
-                <label htmlFor="numero-retrait-modal-64" className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Nouveau numéro Mobile Money</label>
+                <label htmlFor="numero-retrait-modal-64" className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Numéro Mobile Money</label>
                 <input id="numero-retrait-modal-64" type="tel" value={numero} onChange={e => setNumero(e.target.value.replace(/\D/g, ''))} placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national"
                   className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm outline-none text-proprio-text focus:border-brand" />
+              </div>
+              <div role="radiogroup" aria-label="Opérateur Mobile Money">
+                <p className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2">Opérateur de ce numéro</p>
+                <div className="flex gap-2">
+                  {OPERATEURS.map(o => {
+                    const choisi = operateur === o.value
+                    return (
+                      <button key={o.value} type="button" role="radio" aria-checked={choisi} onClick={() => { setOperateur(o.value); setError('') }}
+                        className="flex-1 py-3 rounded-xl text-sm font-bold border transition-colors"
+                        style={choisi ? { background: accent, borderColor: accent, color: 'white' } : { background: 'transparent', borderColor: 'var(--c-border)', color: 'inherit' }}>
+                        {o.label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
               <div>
                 <label htmlFor="numero-retrait-modal-69" className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Mot de passe (confirmation)</label>
                 <input id="numero-retrait-modal-69" type="password" value={motDePasse} onChange={e => setMotDePasse(e.target.value)} placeholder="••••••••"
                   className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm outline-none text-proprio-text focus:border-brand" />
               </div>
-              <p className="text-caption text-proprio-muted">Un code sera envoyé par SMS sur le numéro principal de votre compte pour confirmer ce changement.</p>
-              {current && <p className="text-caption text-proprio-muted">L'ancien numéro recevra un SMS avec un lien pour annuler ce changement pendant 7 jours.</p>}
+              <p className="text-caption text-proprio-muted">Un code sera envoyé par SMS sur le numéro principal de votre compte pour confirmer ce changement. Par sécurité, les retraits sont ensuite suspendus 48 h si le numéro ou l&apos;opérateur change.</p>
+              {current && <p className="text-caption text-proprio-muted">L&apos;ancien numéro recevra un SMS avec un lien pour annuler ce changement pendant 7 jours.</p>}
               <button onClick={initier} disabled={submitting}
                 className="w-full py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60" style={{ background: accent }}>
                 {submitting ? 'Vérification…' : 'Recevoir le code'}
@@ -79,8 +112,8 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
             </>
           ) : (
             <>
-              <p className="text-sm text-proprio-muted">Entrez le code reçu par SMS pour confirmer le nouveau numéro <span className="font-semibold text-proprio-text">{numero}</span>.</p>
-              <input type="text" inputMode="numeric" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Code à 6 chiffres"
+              <p className="text-sm text-proprio-muted">Entrez le code reçu par SMS pour confirmer le numéro <span className="font-semibold text-proprio-text">{numero}</span> ({OPERATEURS.find(o => o.value === operateur)?.label}).</p>
+              <input type="text" inputMode="numeric" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Code à 6 chiffres" aria-label="Code reçu par SMS"
                 className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm text-center tracking-[0.3em] font-bold outline-none text-proprio-text focus:border-brand" />
               <button onClick={confirmer} disabled={submitting}
                 className="w-full py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60" style={{ background: accent }}>
