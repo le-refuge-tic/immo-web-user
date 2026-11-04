@@ -5,7 +5,6 @@ import { NotificationsProvider } from './context/NotificationsContext'
 import { BannerProvider } from './context/BannerContext'
 import { ScrollProvider } from './context/ScrollContext'
 import MainLayout from './components/MainLayout'
-import SplashPage from './pages/splash/SplashPage'
 import { AuthSwitch } from './components/ui/auth-switch'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import CookieBanner from './components/CookieBanner'
@@ -94,7 +93,7 @@ function HomeGuard() {
   }
 
   if (!isLoggedIn && !isOnboarded) {
-    return <Navigate to="/splash" replace />
+    return <Navigate to="/onboarding" replace />
   }
 
   return <HomePage />
@@ -112,7 +111,7 @@ function App() {
       <Routes>
         {/* Pages sans layout (standalone) */}
         <Route element={<StandaloneLayout />}>
-        <Route path="/splash" element={<SplashPage />} />
+        <Route path="/splash" element={<Navigate to="/onboarding" replace />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/onboarding/projet" element={<OnboardingProjetPage />} />
         <Route path="/onboarding/destination" element={<OnboardingDestinationPage />} />

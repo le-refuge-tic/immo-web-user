@@ -8,7 +8,7 @@ test.describe('P2 inscription ouverte à tous', () => {
   test("l'en-tête propose « S'inscrire », pas « Je suis propriétaire »", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await mockApp(page, { loggedIn: false })
-    // Visiteur qui a déjà vu l'écran de présentation : sans cela, l'accueil le renvoie sur /splash.
+    // Visiteur qui a déjà vu l'écran de présentation : sans cela, l'accueil le renvoie sur /onboarding.
     await page.addInitScript(() => localStorage.setItem('rg_onboarded', 'true'))
     await page.goto('/')
 

@@ -5,7 +5,7 @@ import { BIEN, mockApp } from './support/mockApi'
 // avec beaucoup, le défilement horizontal (sinon la boucle laissait des vides et les pastilles
 // sortaient de l'écran).
 
-/** Visiteur qui a déjà vu l'écran de présentation : sinon l'accueil le renvoie sur /splash. */
+/** Visiteur qui a déjà vu l'écran de présentation : sinon l'accueil le renvoie sur /onboarding. */
 const dejaOnboarde = (page: import('@playwright/test').Page) =>
   page.addInitScript(() => localStorage.setItem('rg_onboarded', 'true'))
 
