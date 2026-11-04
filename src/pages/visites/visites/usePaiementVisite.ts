@@ -26,10 +26,15 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
   const attempt = usePaymentAttempt()
   // Incrémenté à chaque fermeture de la modale : une réponse arrivée après coup est ignorée.
   const payGenerationRef = useRef(0)
+  // Relance du suivi au retour sur l'onglet, tenue à jour à chaque rendu.
+  const reprendreSuiviRef = useRef<() => void>(() => {})
 
   useEffect(() => {
+    // Onglet masqué (ex. page FedaPay ouverte à part) : on suspend le suivi,
+    // puis on le reprend au retour, sinon la modale reste figée sur l'attente.
     const onVisibility = () => {
       if (document.hidden) polling.stop()
+      else reprendreSuiviRef.current()
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => document.removeEventListener('visibilitychange', onVisibility)
@@ -67,6 +72,14 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
   // FedaPay se paie sur une page hébergée ouverte à part — l'utilisateur a
   // besoin de bien plus de temps que pour valider un push USSD MoMo.
   const maxTentatives = (urlPaiement?: string) => (urlPaiement ? 100 : 20)
+
+  useEffect(() => {
+    reprendreSuiviRef.current = () => {
+      if (payState !== 'waiting' || !payRefId) return
+      const url = payUrl || undefined
+      suivrePaiement(payRefId, url, maxTentatives(url))
+    }
+  })
 
   const handlePayer = async () => {
     if (!showPay) return
