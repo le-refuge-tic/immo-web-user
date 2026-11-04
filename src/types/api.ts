@@ -299,6 +299,8 @@ export interface Conversation {
   gestionnaire_id?: number
   code_visite?: string | null
   numeros_partages?: boolean
+  /** Mode silencieux de l'utilisateur courant sur cette conversation. */
+  silencieux?: boolean
   participants?: User[]
   dernierMessage?: Message | null
   /** Nombre de messages non lus pour l'utilisateur courant. */

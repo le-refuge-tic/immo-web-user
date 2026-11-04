@@ -43,6 +43,10 @@ export const chatApi = {
   repondreProposition: (messageId: number, response: 'accepted' | 'declined' | 'countered', proposedAt?: string) =>
     axios.patch<ChatMessage>(`${BASE}/chat/slots/${messageId}`, { response, proposed_at: proposedAt }, auth()).then(r => r.data),
 
+  /** Mode silencieux : plus d'alerte ni de push pour les nouveaux messages de cette conversation. */
+  definirSilencieux: (convId: number, actif: boolean) =>
+    axios.post<{ silencieux: boolean }>(`${BASE}/chat/conversations/${convId}/silencieux`, { actif }, auth()).then(r => r.data),
+
   creerPlainte: (body: PlainteBody) =>
     axios.post<PlainteResponse>(`${BASE}/users/me/plainte`, body, auth()).then(r => r.data),
 }

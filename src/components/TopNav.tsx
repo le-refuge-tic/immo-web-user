@@ -7,12 +7,13 @@ import { useScrolled } from '../context/ScrollContext'
 import { useTheme } from '../context/ThemeContext'
 import logoUrl from '../assets/REFUGE-LOGO.webp'
 
-// Liens texte : 4 entrées max. Alertes et Messages passent en boutons icône
-// (avec badge) à droite, Profil et Mes visites dans le menu de l'avatar.
+// Liens texte : 4 entrées sur tablette, 5 dès 1024 px (« Mes visites », aussi dans le menu
+// de l'avatar). Alertes et Messages passent en boutons icône (avec badge) à droite.
 const NAV_ITEMS = [
   { path: '/',             label: 'Accueil',         authRequired: false },
   { path: '/search',       label: 'Rechercher',      authRequired: false },
   { path: '/favoris',      label: 'Favoris',         authRequired: true  },
+  { path: '/mes-visites',  label: 'Mes visites',     authRequired: true, largeOnly: true },
   { path: '/nouveau-bien', label: 'Publier un bien', authRequired: true  },
 ]
 
@@ -140,7 +141,7 @@ export default function TopNav() {
                 <button
                   key={item.path}
                   onClick={() => handleNav(item)}
-                  className={`relative flex items-center gap-1.5 lg:gap-2 px-2.5 lg:px-4 py-2 rounded-xl text-[13px] lg:text-sm font-medium transition-all whitespace-nowrap ${!active ? 'nav-link' : ''}`}
+                  className={`relative ${'largeOnly' in item && item.largeOnly ? 'hidden lg:flex' : 'flex'} items-center gap-1.5 lg:gap-2 px-2.5 lg:px-4 py-2 rounded-xl text-[13px] lg:text-sm font-medium transition-all whitespace-nowrap ${!active ? 'nav-link' : ''}`}
                   style={{
                     color:      active ? 'var(--c-brand)' : (isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'),
                     background: active ? 'rgba(75,107,255,0.12)' : 'transparent',

@@ -75,13 +75,17 @@ self.addEventListener('notificationclick', (event) => {
   const data = event.notification.data || {}
   const type = data.type
   let path = '/notifications'
-  if (type === 'NOUVELLE_VISITE' || type === 'visite_demande' || type === 'visite_confirmee' ||
-      type === 'visite_contre_proposee' || type === 'visite_annulee') {
-    path = '/mes-visites'
-  } else if (type === 'nouveau_message' || type === 'NOUVEAU_MESSAGE') {
+  if (type === 'nouveau_message' || type === 'NOUVEAU_MESSAGE') {
     // Même route que le clic sur une alerte "nouveau message" dans
     // NotificationsPage — ouvre directement le fil concerné.
     path = data.conversation_id ? `/conversations/${data.conversation_id}` : '/conversations'
+  } else if (data.alerte_id) {
+    // La page Alertes rouvre cette alerte et mène à la page dédiée (conversation,
+    // visite à payer…), avec la même logique qu'un clic dans la liste.
+    path = `/notifications?alerte=${encodeURIComponent(data.alerte_id)}`
+  } else if (type === 'NOUVELLE_VISITE' || type === 'visite_demande' || type === 'visite_confirmee' ||
+      type === 'visite_contre_proposee' || type === 'visite_annulee') {
+    path = '/mes-visites'
   }
 
   event.waitUntil(

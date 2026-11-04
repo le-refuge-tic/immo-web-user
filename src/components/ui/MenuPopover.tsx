@@ -1,8 +1,10 @@
-import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type ReactNode } from 'react'
 
 const ITEM_SELECTOR = '[role="menuitem"]:not([disabled])'
 
-interface MenuPopoverProps {
+type AttributsLibres = Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'tabIndex' | 'aria-label' | 'onKeyDown' | 'onClick' | 'children'>
+
+interface MenuPopoverProps extends AttributsLibres {
   /** Nom accessible du menu (ex. « Options de la conversation »). */
   label: string
   onClose: () => void
@@ -17,7 +19,7 @@ interface MenuPopoverProps {
  * au bouton d'origine à la fermeture, sauf si une action l'a déjà déplacé ailleurs
  * (ex. le champ de saisie après « Répondre »).
  */
-export function MenuPopover({ label, onClose, children, className = '', style }: MenuPopoverProps) {
+export function MenuPopover({ label, onClose, children, className = '', style, ...attributs }: MenuPopoverProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -58,6 +60,9 @@ export function MenuPopover({ label, onClose, children, className = '', style }:
 
   return (
     <div
+      // Attributs libres (ex. data-headermenu, repéré par le « clic en dehors » du parent) : sans eux,
+      // un mousedown dans le menu le fermait avant le clic et aucune entrée ne fonctionnait.
+      {...attributs}
       ref={menuRef}
       role="menu"
       tabIndex={-1}

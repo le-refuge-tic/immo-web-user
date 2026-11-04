@@ -38,18 +38,22 @@ export default function MesVisitesPage() {
   const [actionError, setActionError] = useState('')
   const echecAction = (e: unknown, repli: string) => setActionError(apiMessage(e) || repli)
   const avis = useAvisVisite({ loadVisites })
+  // Visite mise en avant quand on arrive depuis une alerte.
+  const [focusId, setFocusId] = useState<number | null>(null)
 
-  // Ouverture directe du paiement quand on arrive depuis "Payer maintenant"
-  // dans le chat (comme sur mobile) — au lieu de laisser l'utilisateur
-  // rechercher lui-même la visite dans la liste.
+  // Arrivée depuis "Payer maintenant" (chat) ou une alerte : ouvre le paiement s'il reste dû,
+  // sinon fait défiler jusqu'à la visite, au lieu de laisser l'utilisateur la chercher.
   useEffect(() => {
-    const targetId = (location.state as { openPayForVisiteId?: number } | null)?.openPayForVisiteId
+    const navState = location.state as { openPayForVisiteId?: number; focusVisiteId?: number } | null
+    const targetId = navState?.openPayForVisiteId ?? navState?.focusVisiteId
     if (!targetId || visites.length === 0) return
     const v = visites.find(x => x.id === targetId)
-    if (v) {
-      setShowPay(v)
-      navigate(location.pathname, { replace: true, state: {} })
-    }
+    if (!v) return
+    navigate(location.pathname, { replace: true, state: {} })
+    if (navState?.openPayForVisiteId && !v.paiement_effectue) { setShowPay(v); return }
+    setTab(0)
+    setFocusId(v.id)
+    requestAnimationFrame(() => document.getElementById(`visite-${v.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate et le chemin courant ne servent qu'à effacer l'état de navigation une fois consommé
   }, [visites, location.state])
 
@@ -162,9 +166,11 @@ export default function MesVisitesPage() {
     <div className="min-h-full">
 
       {/* ── Header (mobile sticky + desktop glass bar) ── */}
-      <div className="sticky top-0 md:top-[72px] z-10 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(15,15,20,0.88)] border-b border-black/[0.07] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
+      {/* top-0 : le <main> du layout porte déjà le décalage de la TopNav (md:pt-[72px]) ; un top de 72 px
+          s'y ajoutait et laissait une bande vide entre la barre et le titre. */}
+      <div className="sticky top-0 z-10 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(15,15,20,0.88)] border-b border-black/[0.07] dark:border-white/[0.08]" style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
         <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="flex items-center gap-3 pt-6 md:pt-5 pb-3">
+          <div className="flex items-center gap-3 pt-4 md:pt-3 pb-2">
             <button onClick={() => navigate(-1)} aria-label="Retour"
               className="glass-btn w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0">
               <svg className="w-5 h-5 text-text-dark" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -212,7 +218,7 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <VisiteCard key={v.id} visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(bienId) => openChat(bienId)} onContacterEchouee={handleContacterEchouee} onFeedback={avis.openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} />)}
+            {filtered.map(v => <div key={v.id} id={`visite-${v.id}`} className={`rounded-2xl scroll-mt-40 ${focusId === v.id ? 'ring-2 ring-brand ring-offset-2 ring-offset-transparent' : ''}`}><VisiteCard visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(bienId) => openChat(bienId)} onContacterEchouee={handleContacterEchouee} onFeedback={avis.openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} /></div>)}
           </div>
         )}
       </div>

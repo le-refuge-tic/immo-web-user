@@ -12,6 +12,7 @@ import { suggestPush } from '../../lib/push'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import { MenuPopover, MenuItem } from '../../components/ui/MenuPopover'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { estCompteStaff } from '../../utils/compteStaff'
 import { asChatConversations, asChatMessage, asChatMessages, type ChatConversation, type ChatMessage } from '../../types/chat-ui'
 
 import { SlotModal, type SlotColors } from './chat/SlotModal'
@@ -48,6 +49,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const [codeCopied, setCodeCopied] = useState(false)
   const [confirmDeleteForAllId, setConfirmDeleteForAllId] = useState<number | null>(null)
   const [complainMsg, setComplainMsg] = useState<ChatMessage | null>(null)
+  const [signalerConv, setSignalerConv] = useState(false)
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
   const [headerMenuPos, setHeaderMenuPos] = useState<{ top: number; right: number } | null>(null)
   const [showProfile, setShowProfile] = useState(false)
@@ -142,7 +144,12 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const otherName = displayName(other)
   usePageTitle(otherName !== 'Contact' ? `Conversation – ${otherName}` : 'Conversation')
   const role = roleLabel(other)
-  const isClientRole = other?.role === 'demarcheur' || other?.role === 'proprietaire'
+  // Seul le client de la conversation paie la visite. Ancien serveur sans client_id : déduit du rôle de l'interlocuteur.
+  const isClientRole = conv?.client_id != null
+    ? conv.client_id === user?.id
+    : ['demarcheur', 'proprietaire', 'commercial', 'admin', 'super_admin'].includes(other?.role ?? '')
+  // Les coordonnées d'un contact sont réservées à l'équipe Refuge (admin, commercial).
+  const peutVoirContact = estCompteStaff(user)
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
   const bienLoc = conv?.bien?.localisation ? (conv.bien.localisation.quartier || conv.bien.localisation.ville) : null
   const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
@@ -215,13 +222,22 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     const bienId = conv.bien.id
     try {
       const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
-      const v = l.find(x => x.bien?.id === bienId)
+      const v = l.find(x => conv.visite_id ? x.id === conv.visite_id : x.bien?.id === bienId)
       if (!v) { showError({ response: { data: { message: 'Aucune visite trouvée.' } } }); setPaying(false); return }
       if (v.paiement_effectue) { showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
       if (!(Number(v.frais_visite) > 0)) { showError({ response: { data: { message: 'Cette visite est gratuite.' } } }); setPaying(false); return }
       navigate('/mes-visites', { state: { openPayForVisiteId: v.id } })
     } catch { showError({ response: { data: { message: 'Une erreur est survenue.' } } }) }
     setPaying(false)
+  }
+
+  const basculerSilencieux = async () => {
+    setShowHeaderMenu(false); setHeaderMenuPos(null)
+    const actif = !conv?.silencieux
+    try {
+      await chatApi.definirSilencieux(convId, actif)
+      setConv(c => c ? { ...c, silencieux: actif } : c)
+    } catch (e) { showError(e) }
   }
 
   const canEdit = (m: ChatMessage) => m.sender_id === user?.id && !m.supprime_pour_tous && Date.now() - new Date(m.created_at).getTime() <= 15 * 60_000
@@ -252,7 +268,8 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
             </button>
 
             {/* Avatar cliquable → ouvre profil */}
-            <button onClick={() => setShowProfile(p => !p)} className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer group">
+            <button onClick={peutVoirContact ? () => setShowProfile(p => !p) : undefined} disabled={!peutVoirContact}
+              className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer disabled:cursor-default group">
               <div className="relative flex-shrink-0">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105"
                   style={{ background: avatarGrad(other?.id ?? 0) }}>
@@ -421,14 +438,14 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
       </div>
 
       {/* ═══ PANNEAU PROFIL — desktop côté droit ═══ */}
-      {showProfile && (
+      {showProfile && peutVoirContact && (
         <div className="hidden md:block w-[280px] xl:w-[300px] flex-shrink-0 h-full anim-slide-left">
           {renderProfilePanel({ onClose: () => setShowProfile(false) })}
         </div>
       )}
 
       {/* ═══ PANNEAU PROFIL — mobile drawer (modale : focus piégé, Échap) ═══ */}
-      {isMobileViewport && (
+      {isMobileViewport && peutVoirContact && (
         <ModalSheet open={showProfile} onClose={() => setShowProfile(false)} label="Profil" placement="right" panelClassName="w-[85%] max-w-sm h-full anim-slide-left" backdropOpacity={0.4}>
           {renderProfilePanel({ onClose: () => setShowProfile(false) })}
         </ModalSheet>
@@ -440,12 +457,11 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           className="fixed z-[130] rounded-2xl overflow-hidden py-1 min-w-[200px] anim-fade-down"
           style={{ top: headerMenuPos.top, right: headerMenuPos.right, background: menuBg, border: `1px solid ${menuBdr}`, boxShadow: isDark ? '0 16px 48px rgba(0,0,0,0.50)' : '0 8px 32px rgba(0,0,0,0.12)', '--menu-hover': menuHov } as CSSProperties}
           data-headermenu>
-          <MenuItem color={tp} label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />
+          {peutVoirContact && <MenuItem color={tp} label="Infos du contact" onClick={() => { setShowProfile(true); setShowHeaderMenu(false) }} />}
           {convBienId && <MenuItem color={tp} label="Voir le bien" onClick={() => { navigate(`/biens/${convBienId}`); setShowHeaderMenu(false) }} />}
           <div className="h-px mx-2 my-1" style={{ background: divider }} />
-          <MenuItem color={tp} label="Mode silencieux" onClick={() => setShowHeaderMenu(false)} />
-          <MenuItem color={tp} label="Bloquer" onClick={() => setShowHeaderMenu(false)} danger />
-          <MenuItem color={tp} label="Signaler" onClick={() => setShowHeaderMenu(false)} danger />
+          <MenuItem color={tp} label={conv?.silencieux ? 'Réactiver les notifications' : 'Mode silencieux'} onClick={basculerSilencieux} />
+          <MenuItem color={tp} label="Signaler" onClick={() => { setSignalerConv(true); setShowHeaderMenu(false); setHeaderMenuPos(null) }} danger />
         </MenuPopover>
       )}
 
@@ -484,6 +500,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
 
       {/* Modal plainte */}
       {complainMsg && <ComplaintModal msg={complainMsg} convId={convId} colors={colors} onClose={() => setComplainMsg(null)} onError={showError} />}
+      {signalerConv && <ComplaintModal convId={convId} colors={colors} onClose={() => setSignalerConv(false)} onError={showError} />}
     </div>
   )
 }

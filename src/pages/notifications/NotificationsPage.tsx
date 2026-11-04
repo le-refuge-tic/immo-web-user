@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { notificationsApi } from '../../api/notificationsApi'
 import { visitesApi } from '../../api/visitesApi'
@@ -94,7 +94,7 @@ const TYPE_ALIAS: Record<string, string> = {
   visite_demande: 'visite', rappel_visite: 'visite', visite_effectuee: 'confirmation',
   visite_confirmee: 'confirmation', visite_contre_proposee: 'proposition',
   visite_client_recontrepropose: 'proposition', visite_proposition_envoyee: 'proposition',
-  visite_annulee: 'annulation', visite_echouee: 'annulation',
+  visite_annulee: 'annulation', visite_echouee: 'annulation', visite_creneau_refuse: 'annulation',
   paiement_visite: 'paiement', nouveau_message: 'message', creneau_expire: 'proposition',
   bien_occupe: 'bien_rejete', bien_disponible: 'bien_approuve',
 }
@@ -133,7 +133,12 @@ const VISITE_TYPES = new Set([
   'visite_demande', 'visite_confirmee', 'visite_contre_proposee',
   'visite_client_recontrepropose', 'visite_proposition_envoyee',
   'visite_effectuee', 'visite_echouee', 'visite_annulee',
-  'rappel_visite', 'paiement_visite', 'paiement_visite_recu',
+  'rappel_visite', 'paiement_visite', 'paiement_visite_recu', 'visite_creneau_refuse',
+])
+// La réponse à ces alertes se donne dans la conversation (proposer, accepter, refuser une date).
+const CONVERSATION_TYPES = new Set([
+  'nouveau_message', 'creneau_expire', 'visite_contre_proposee',
+  'visite_client_recontrepropose', 'visite_creneau_refuse',
 ])
 const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
 
@@ -141,6 +146,7 @@ const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien
 function chipLabel(n: Notification): string | null {
   const meta = n.meta || {}
   if (BIEN_TYPES.has(n.type) && meta.bien_id) return 'Voir le bien'
+  if (n.type === 'visite_contre_proposee' || n.type === 'visite_client_recontrepropose') return 'Répondre'
   if (VISITE_TYPES.has(n.type)) return 'Voir la visite'
   if (meta.action === 'feedback') return 'Donner mon avis'
   if (n.type === 'nouveau_message') return 'Voir le message'
@@ -156,6 +162,7 @@ export default function NotificationsPage() {
   usePageTitle('Alertes')
   const { isLoggedIn, user, activeRole, setActiveRole } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   // Chargement annulable, sans réponse périmée (FE-A-004) ; les mises à jour
   // locales (lu / tout lu) passent par setNotifsData.
   const { data: notifsData, setData: setNotifsData, loading, error: loadError, refetch } = useApiQuery(
@@ -206,10 +213,28 @@ export default function NotificationsPage() {
     } catch { return false }
   }
 
+  // Visite dont l'utilisateur est le client : page « Mes visites », paiement ouvert s'il reste dû.
+  const ouvrirMaVisite = async (visiteId: number): Promise<boolean> => {
+    if (!user) return false
+    try {
+      const visites = unwrapList(await visitesApi.mesVisites())
+      const v = visites.find(x => x.id === visiteId)
+      if (!v || v.client?.id !== user.id) return false
+      const aPayer = v.statut === 'confirmee' && !v.paiement_effectue && Number(v.frais_visite) > 0
+      navigate('/mes-visites', { state: aPayer ? { openPayForVisiteId: v.id } : { focusVisiteId: v.id } })
+      return true
+    } catch { return false }
+  }
+
   const openNotif = async (n: Notification) => {
     if (!n.lu) markRead(n.id)
     const meta = n.meta || {}
-    if ((n.type === 'nouveau_message' || n.type === 'creneau_expire') && meta.conversation_id) {
+    if (CONVERSATION_TYPES.has(n.type) && meta.conversation_id) {
+      navigate(`/conversations/${meta.conversation_id}`)
+      return
+    }
+    if (VISITE_TYPES.has(n.type) && meta.visite_id && await ouvrirMaVisite(meta.visite_id)) return
+    if (VISITE_TYPES.has(n.type) && meta.conversation_id) {
       navigate(`/conversations/${meta.conversation_id}`)
       return
     }
@@ -230,6 +255,19 @@ export default function NotificationsPage() {
       navigate(`/biens/${meta.bien_id}`)
     }
   }
+
+  // Clic sur une notification push du navigateur : /notifications?alerte=<id> rouvre l'alerte visée.
+  const alerteDemandee = Number(searchParams.get('alerte')) || null
+  const alerteOuverte = useRef<number | null>(null)
+  useEffect(() => {
+    if (!alerteDemandee || alerteOuverte.current === alerteDemandee) return
+    const n = notifs.find(x => x.id === alerteDemandee)
+    if (!n) return
+    alerteOuverte.current = alerteDemandee
+    setSearchParams({}, { replace: true })
+    openNotif(n)
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- openNotif et setSearchParams changent à chaque rendu ; seule l'arrivée de la liste compte
+  }, [alerteDemandee, notifs])
 
   const unreadList = notifs.filter(n => !n.lu)
   const readList = notifs.filter(n => n.lu)
