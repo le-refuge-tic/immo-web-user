@@ -38,6 +38,7 @@ const SOUS_TYPE_LABELS: Record<string, string> = {
   entree_coucher: 'Entrée-Coucher',
   studio: 'Studio',
   boutique: 'Boutique',
+  bureau: 'Bureau',
   terrain: 'Terrain',
   f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
 }

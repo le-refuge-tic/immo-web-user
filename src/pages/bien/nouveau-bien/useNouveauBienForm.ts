@@ -165,7 +165,8 @@ export function useNouveauBienForm() {
 
   // ── Getters dérivés ────────────────────────────────────────────────────────
   const isTerrain = typeBien === 'terrain'
-  const isBoutique = typeBien === 'boutique'
+  // Local professionnel : le bureau suit le même parcours que la boutique.
+  const isBoutique = typeBien === 'boutique' || typeBien === 'bureau'
   const isSmallUnit = typeBien === 'entree_coucher' || typeBien === 'chambre_salon'
   const peutEtreMeuble = typeBien === 'appartement' || typeBien === 'villa' || typeBien === 'maison'
   const isMeuble = peutEtreMeuble && (typeBien === 'maison' ? etatMeubleMaison !== 'non_meuble' : estMeuble)
@@ -196,7 +197,7 @@ export function useNouveauBienForm() {
     return loyer * (avanceMois + loyerPrepayeMois) + cEau + cElec + autres
   })()
 
-  const STEP_LABELS = ['Type & Prix', 'Localisation', isTerrain ? 'Terrain' : isBoutique ? 'Boutique' : 'Confort', 'Honoraires', 'Photos']
+  const STEP_LABELS = ['Type & Prix', 'Localisation', isTerrain ? 'Terrain' : typeBien === 'bureau' ? 'Bureau' : isBoutique ? 'Boutique' : 'Confort', 'Honoraires', 'Photos']
 
   // Quartier search
   const filteredQuartiers = quartierSearch.trim()

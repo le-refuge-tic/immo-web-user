@@ -30,6 +30,7 @@ export const SOUS_TYPES = [
   { key: 'villa',               label: 'Villa' },
   { key: 'maison_individuelle', label: 'Maison individuelle' },
   { key: 'boutique',            label: 'Boutique' },
+  { key: 'bureau',              label: 'Bureau' },
   { key: 'terrain',             label: 'Terrain' },
 ]
 

@@ -21,3 +21,9 @@ describe('bienTypeLabel — guesthouse', () => {
     expect(bienTypeLabel({ type: 'guesthouse', amenites: { sous_type: 'appartement' } })).toBe('Guesthouse')
   })
 })
+
+describe('bienTypeLabel — bureau', () => {
+  it('un bureau (type maison, sous-type bureau) s’affiche « Bureau »', () => {
+    expect(bienTypeLabel({ type: 'maison', amenites: { sous_type: 'bureau' } })).toBe('Bureau')
+  })
+})

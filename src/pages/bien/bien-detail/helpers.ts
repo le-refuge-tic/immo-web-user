@@ -67,7 +67,7 @@ function pluralPiece(nom: string, n: number) {
 export function buildComposition(bien: Bien): { icon: IconType; label: string }[] | null {
   const sousType = (bien.amenites as Amenites | null | undefined)?.sous_type
   const pieces: Piece[] = bien.pieces || []
-  if (sousType === 'boutique' || sousType === 'terrain' || pieces.length === 0) return null
+  if (sousType === 'boutique' || sousType === 'bureau' || sousType === 'terrain' || pieces.length === 0) return null
 
   const counts: Record<string, number> = {}
   for (const p of pieces) counts[p.nom] = (counts[p.nom] || 0) + 1

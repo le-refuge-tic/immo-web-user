@@ -16,6 +16,7 @@ const TYPES_BIEN = [
   { key: 'maison', label: 'Maison' },
   { key: 'terrain', label: 'Terrain / Parcelle' },
   { key: 'boutique', label: 'Boutique' },
+  { key: 'bureau', label: 'Bureau' },
 ]
 
 const PEUT_ETRE_MEUBLE = new Set(['appartement', 'villa', 'maison'])
@@ -42,7 +43,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
   const estMeuble = peutEtreMeuble && meuble
 
   const typeBackend = typeBien === 'terrain' ? 'terrain'
-    : (typeBien === 'villa' || typeBien === 'maison' || typeBien === 'boutique') ? 'maison'
+    : (typeBien === 'villa' || typeBien === 'maison' || typeBien === 'boutique' || typeBien === 'bureau') ? 'maison'
     : estMeuble ? 'appart_meuble' : 'appart_vide'
 
   const sousType = typeBien === 'appartement' ? (estMeuble ? 'appart_meuble' : 'appartement') : typeBien

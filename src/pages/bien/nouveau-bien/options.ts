@@ -16,6 +16,7 @@ export const TYPES_BIEN = [
   { key: 'maison', label: 'Maison' },
   { key: 'terrain', label: 'Terrain / Parcelle' },
   { key: 'boutique', label: 'Boutique' },
+  { key: 'bureau', label: 'Bureau' },
 ]
 
 export const SANITAIRE_OPTS = [
