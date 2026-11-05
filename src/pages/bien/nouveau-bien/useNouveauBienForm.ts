@@ -250,8 +250,6 @@ export function useNouveauBienForm() {
         return
       }
     }
-    if (step === 2 && isTerrain && !titreTerrain.trim()) { setError('Veuillez donner un nom à ce bien'); return }
-    if (step === 2 && isTerrain && !superficieM2) { setError('Veuillez indiquer la superficie du terrain'); return }
     if (step === 4 && photos.length < PHOTOS_MIN) {
       setError(`Ajoutez au moins ${PHOTOS_MIN} photos (${photos.length} pour l’instant)`); return
     }
@@ -366,7 +364,8 @@ export function useNouveauBienForm() {
       const prixFinal = prixPrincipal
 
       const notes = description.trim()
-      const titre = isTerrain ? titreTerrain.trim() : ''
+      // Nom et superficie d'un terrain facultatifs : sans nom, « Terrain à <quartier> ».
+      const titre = isTerrain ? (titreTerrain.trim() || (quartier.trim() ? `Terrain à ${quartier.trim()}` : 'Terrain')) : ''
       const descFull = titre ? (notes ? `${titre}\n\n${notes}` : titre) : notes
 
       const body: BienPayload = {

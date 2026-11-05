@@ -103,9 +103,12 @@ describe('reglesSalle', () => {
     expect(r).toEqual(['Pas de parking', 'De 08:00 à 02:00 (le lendemain)', 'Traiteur imposé', 'Décoration interdite', 'Alcool autorisé', 'Salle insonorisée'])
     expect(reglesSalle(details({ traiteur: 'inclus' }))[2]).toBe('Traiteur inclus')
   })
-  it('insonorisation absente ou refusée : « Salle non insonorisée »', () => {
+  it('insonorisation refusée : « Salle non insonorisée »', () => {
     expect(reglesSalle(details({ insonorisee: false }))).toContain('Salle non insonorisée')
-    expect(reglesSalle(details({ insonorisee: undefined }))).toContain('Salle non insonorisée')
+  })
+  it('règles non précisées (null ou absentes) : rien n’est affiché', () => {
+    const r = reglesSalle(details({ traiteur: null, deco_autorisee: null, alcool_autorise: null, insonorisee: undefined }))
+    expect(r).toEqual(['Parking : 40 places', 'De 08:00 à 02:00 (le lendemain)', 'Musique jusqu’à 23:00'])
   })
   it('1 place : singulier', () => {
     expect(reglesSalle(details({ places_parking: 1 }))[0]).toBe('Parking : 1 place')

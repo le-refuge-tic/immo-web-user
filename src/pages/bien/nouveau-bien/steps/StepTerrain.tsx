@@ -33,7 +33,7 @@ export function StepTerrain({ form }: { form: NouveauBienForm }) {
   return (
       <div className="space-y-4">
         <Card>
-          <Section title="Nom du bien" required />
+          <Section title="Nom du bien (facultatif)" />
           <textarea value={titreTerrain} onChange={e => setTitreTerrain(e.target.value)} rows={2} maxLength={120}
             placeholder="Ex: Parcelle bâtie à vendre en angle de rue à Cotonou Saint Jean"
             className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none border transition-colors"
@@ -43,7 +43,7 @@ export function StepTerrain({ form }: { form: NouveauBienForm }) {
         </Card>
 
         <Card>
-          <Section title="Superficie" required />
+          <Section title="Superficie (facultatif)" />
           <div className="flex gap-2.5">
             <input type="number" value={superficieTerrain} onChange={e => setSuperficieTerrain(e.target.value)}
               placeholder={superficieUnite === 'ha' ? 'Ex: 2.5' : 'Ex: 25000'}

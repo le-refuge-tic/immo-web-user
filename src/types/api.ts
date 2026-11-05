@@ -164,10 +164,11 @@ export interface DetailsSalleFete {
   /** Format HH:MM:SS ; la fin peut tomber après minuit (le lendemain) */
   heure_ouverture: string
   heure_fin_max: string
-  traiteur: TraiteurSalle
-  deco_autorisee: boolean
-  alcool_autorise: boolean
-  insonorisee?: boolean
+  // Traiteur, décoration, alcool, insonorisation : null = non précisé
+  traiteur: TraiteurSalle | null
+  deco_autorisee: boolean | null
+  alcool_autorise: boolean | null
+  insonorisee?: boolean | null
   heure_fin_musique: string | null
 }
 

@@ -38,7 +38,7 @@ const CONFIGURATIONS: Record<ConfigurationSalle, string> = {
 }
 export const libelleConfiguration = (c: ConfigurationSalle) => CONFIGURATIONS[c] ?? c
 
-const TRAITEURS: Record<DetailsSalleFete['traiteur'], string> = {
+const TRAITEURS: Record<NonNullable<DetailsSalleFete['traiteur']>, string> = {
   libre: 'Traiteur libre',
   impose: 'Traiteur imposé',
   inclus: 'Traiteur inclus',
@@ -68,15 +68,19 @@ export function detailsPrix(d: DetailsSalleFete): LigneTarif[] {
   return lignes
 }
 
+const siPrecise = <T,>(v: T | null | undefined, libelle: (v: T) => string): string[] =>
+  v == null ? [] : [libelle(v)]
+
 /** Parking, horaires et règles de la salle, en phrases courtes. */
 export function reglesSalle(d: DetailsSalleFete): string[] {
   return [
     d.parking ? `Parking : ${pluriel(d.places_parking ?? 0, 'place')}` : 'Pas de parking',
     libelleHoraires(d),
-    TRAITEURS[d.traiteur] ?? d.traiteur,
-    d.deco_autorisee ? 'Décoration autorisée' : 'Décoration interdite',
-    d.alcool_autorise ? 'Alcool autorisé' : 'Alcool interdit',
-    d.insonorisee === true ? 'Salle insonorisée' : 'Salle non insonorisée',
+    // Règles facultatives : rien n'est affiché quand elles ne sont pas précisées.
+    ...siPrecise(d.traiteur, t => TRAITEURS[t] ?? t),
+    ...siPrecise(d.deco_autorisee, v => (v ? 'Décoration autorisée' : 'Décoration interdite')),
+    ...siPrecise(d.alcool_autorise, v => (v ? 'Alcool autorisé' : 'Alcool interdit')),
+    ...siPrecise(d.insonorisee, v => (v ? 'Salle insonorisée' : 'Salle non insonorisée')),
     ...(d.heure_fin_musique ? [`Musique jusqu’à ${hhmm(d.heure_fin_musique)}`] : []),
   ]
 }
