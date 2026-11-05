@@ -57,6 +57,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     labelCour,
     labelElec,
     labelEau,
+    prixPrincipal,
   } = form
   const [videoErreur, setVideoErreur] = useState<string | null>(null)
   return (
@@ -94,9 +95,9 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
             ]} />
           )}
 
-          {!isTerrain && (parsePrix(prix) ?? 0) > 0 && (
+          {!isTerrain && prixPrincipal > 0 && (
             <RecapSection title="Prix" items={[
-              `${typeTransaction === 'location' ? 'Loyer mensuel' : 'Prix de vente'} : ${formatFcfa(parsePrix(prix) ?? 0)}`
+              `${typeTransaction === 'location' ? 'Loyer mensuel' : 'Prix de vente'} : ${formatFcfa(prixPrincipal)}`
             ]} />
           )}
 
@@ -104,7 +105,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
             <>
               <RecapSection title="Conditions d'entrée" items={[
                 avanceMois > 0
-                  ? `Avance : ${avanceMois} mois × ${formatFcfa(parsePrix(prix) ?? 0)} = ${formatFcfa((parsePrix(prix) ?? 0) * avanceMois)}`
+                  ? `Avance : ${avanceMois} mois × ${formatFcfa(prixPrincipal)} = ${formatFcfa(prixPrincipal * avanceMois)}`
                   : 'Avance : Aucune',
                 ...(loyerPrepayeMois > 0 ? [`Loyer prépayé : ${loyerPrepayeMois} mois`] : []),
                 ...((parsePrix(cautionEau) ?? 0) > 0 ? [`Caution eau : ${formatFcfa(parsePrix(cautionEau) ?? 0)}`] : []),

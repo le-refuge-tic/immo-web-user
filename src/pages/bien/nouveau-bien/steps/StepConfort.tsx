@@ -85,6 +85,7 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
     isSmallUnit,
     showPieces,
     nbPieces,
+    prixPrincipal,
   } = form
   return (
       <div className="space-y-4">
@@ -186,9 +187,9 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
             customText={avanceAutreText}
             onCustomText={t => { setAvanceAutreText(t); setAvanceMois(Number(t) || 0) }}
           />
-          {(parsePrix(prix) ?? 0) > 0 && avanceMois > 0 && (
+          {prixPrincipal > 0 && avanceMois > 0 && (
             <p className="text-sm font-bold mt-2" style={{ color: BLUE }}>
-              = {formatFcfa((parsePrix(prix) ?? 0) * avanceMois)}
+              = {formatFcfa(prixPrincipal * avanceMois)}
             </p>
           )}
         </Card>

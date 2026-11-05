@@ -189,8 +189,14 @@ export function useNouveauBienForm() {
     : typeBien === 'maison' ? 'maison_individuelle'
     : typeBien
 
+  // Prix principal : premier tarif meublé (mois, nuit, heure, personnalisé) ou champ Prix.
+  const prixPrincipal = isMeuble
+    ? (parsePrix(prixLongSejour) ?? parsePrix(prixSejourRestreint) ?? parsePrix(prixHeure)
+      ?? (tarifsAutres.length ? parsePrix(tarifsAutres[0].prix) : undefined) ?? 0)
+    : (parsePrix(prix) ?? 0)
+
   const montantBrut = (() => {
-    const loyer = parsePrix(prix) ?? 0
+    const loyer = prixPrincipal
     const cEau = parsePrix(cautionEau) ?? 0
     const cElec = parsePrix(cautionElec) ?? 0
     const autres = autresFrais.reduce((a, f) => a + (parsePrix(f.prix) ?? 0), 0)
@@ -310,10 +316,12 @@ export function useNouveauBienForm() {
       if (loyerPrepayeMois > 0) a.loyer_prepaye_mois = loyerPrepayeMois
       if (typeTransaction === 'location') {
         a.echeance_mois = echeanceMois
-        a.commission_agence = isDemarcheur ? (parsePrix(commissionMontant) ?? 0) : (parsePrix(prix) ?? 0) * 0.5
+        a.commission_agence = isDemarcheur ? (parsePrix(commissionMontant) ?? 0) : prixPrincipal * 0.5
       }
       if (cEau > 0) a.caution_eau = cEau
       if (cElec > 0) a.caution_elec = cElec
+      // Le backend classe l'appartement (2 pièces ou 3+) d'après amenites.chambres.
+      if (showPieces) a.chambres = chambres
       a.electricite = electricite
       if (electricite === 'decompteur' && parsePrix(prixKwh) !== undefined) a.prix_kwh = parsePrix(prixKwh)
       a.eau = eau
@@ -355,13 +363,7 @@ export function useNouveauBienForm() {
     setSubmitting(true)
     setError('')
     try {
-      let prixFinal: number
-      if (isMeuble) {
-        prixFinal = parsePrix(prixLongSejour) ?? parsePrix(prixSejourRestreint) ?? parsePrix(prixHeure)
-          ?? (tarifsAutres.length ? parsePrix(tarifsAutres[0].prix) : undefined) ?? 0
-      } else {
-        prixFinal = parsePrix(prix) ?? 0
-      }
+      const prixFinal = prixPrincipal
 
       const notes = description.trim()
       const titre = isTerrain ? titreTerrain.trim() : ''
@@ -625,6 +627,7 @@ export function useNouveauBienForm() {
     typeBackend,
     sousType,
     montantBrut,
+    prixPrincipal,
     STEP_LABELS,
     filteredQuartiers,
     selectQuartier,

@@ -15,7 +15,7 @@ const details = (surcharge: Partial<DetailsSalleFete> = {}): DetailsSalleFete =>
   prix: 45000, duree_heures: 8, prix_par_heure: 5625, heures_min: 4, caution: 50000, frais_menage: 15000,
   capacite: 300, superficie_m2: 400, configuration: 'mixte', nb_tables: 30, nb_chaises: 300,
   parking: true, places_parking: 40, heure_ouverture: '08:00:00', heure_fin_max: '02:00:00',
-  traiteur: 'libre', deco_autorisee: true, alcool_autorise: false, heure_fin_musique: '23:00:00',
+  traiteur: 'libre', deco_autorisee: true, alcool_autorise: false, insonorisee: true, heure_fin_musique: '23:00:00',
   ...surcharge,
 })
 
@@ -94,13 +94,18 @@ describe('reglesSalle', () => {
       'Traiteur libre',
       'Décoration autorisée',
       'Alcool interdit',
+      'Salle insonorisée',
       'Musique jusqu’à 23:00',
     ])
   })
   it('sans parking ni musique limitée ; traiteur imposé ou inclus', () => {
     const r = reglesSalle(details({ parking: false, places_parking: null, heure_fin_musique: null, traiteur: 'impose', deco_autorisee: false, alcool_autorise: true }))
-    expect(r).toEqual(['Pas de parking', 'De 08:00 à 02:00 (le lendemain)', 'Traiteur imposé', 'Décoration interdite', 'Alcool autorisé'])
+    expect(r).toEqual(['Pas de parking', 'De 08:00 à 02:00 (le lendemain)', 'Traiteur imposé', 'Décoration interdite', 'Alcool autorisé', 'Salle insonorisée'])
     expect(reglesSalle(details({ traiteur: 'inclus' }))[2]).toBe('Traiteur inclus')
+  })
+  it('insonorisation absente ou refusée : « Salle non insonorisée »', () => {
+    expect(reglesSalle(details({ insonorisee: false }))).toContain('Salle non insonorisée')
+    expect(reglesSalle(details({ insonorisee: undefined }))).toContain('Salle non insonorisée')
   })
   it('1 place : singulier', () => {
     expect(reglesSalle(details({ places_parking: 1 }))[0]).toBe('Parking : 1 place')
