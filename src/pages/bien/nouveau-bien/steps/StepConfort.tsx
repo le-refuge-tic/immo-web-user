@@ -1,6 +1,6 @@
 
 
-import { BLUE, STANDING_OPTS, STANDING_AUTRE_MAX, CUISINE_OPTS, COUR_OPTS, COUR_DESC, EQUIPEMENTS_RESIDENTIEL, ALENTOURS_OPTS, parsePrix, formatFcfa, baseInputStyle } from '../options'
+import { BLUE, STANDING_OPTS, STANDING_AUTRE_MAX, CUISINE_OPTS, COUR_OPTS, COUR_DESC, EQUIPEMENTS_RESIDENTIEL, ALENTOURS_OPTS, formatFcfa, baseInputStyle } from '../options'
 import { Card, Section, ChoiceList, Chip, Counter, NumberPicker, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import { DisponibiliteCard } from './DisponibiliteCard'
@@ -9,7 +9,6 @@ export function StepConfort({ form }: { form: NouveauBienForm }) {
   const {
     typeBien,
     typeTransaction,
-    prix,
     sanitaire,
     setSanitaire,
     sanitaireAutre,

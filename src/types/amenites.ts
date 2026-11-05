@@ -49,6 +49,13 @@ export interface Amenites {
   caution_elec?: number | string | null
   commission_agence?: number | string | null
   autres_frais?: AutreFrais[]
+  // Meublé : tarifs par durée (le prix principal est le premier renseigné)
+  tarifs_meuble?: {
+    prix_long_sejour?: number | string | null
+    prix_sejour_restreint?: number | string | null
+    prix_heure?: number | string | null
+    autres?: { label?: string; prix?: number | string | null }[]
+  } | null
   // Terrain
   document?: string | null
   documents?: string[] | null

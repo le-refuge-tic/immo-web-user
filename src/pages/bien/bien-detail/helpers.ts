@@ -106,3 +106,16 @@ export const INFO_ROW_META: Record<string, { icon: IconType; color: string }> = 
   'Position': { icon: 'map', color: '#2980B9' },
   'Construction existante': { icon: 'homework', color: '#5D6D7E' },
 }
+
+/** Tarifs d'un meublé, dans l'ordre du prix principal : mois, nuit, heure, puis personnalisés. */
+export function lignesTarifsMeuble(amenites: Amenites | null | undefined): { label: string; montant: number; unite: string }[] {
+  const t = amenites?.tarifs_meuble
+  if (!t) return []
+  const lignes = [
+    { label: 'Long séjour', montant: Number(t.prix_long_sejour ?? 0), unite: '/mois' },
+    { label: 'Court séjour', montant: Number(t.prix_sejour_restreint ?? 0), unite: '/nuit' },
+    { label: "À l'heure", montant: Number(t.prix_heure ?? 0), unite: '/heure' },
+    ...(t.autres ?? []).map(a => ({ label: a.label?.trim() || 'Autre tarif', montant: Number(a.prix ?? 0), unite: '' })),
+  ]
+  return lignes.filter(l => l.montant > 0)
+}

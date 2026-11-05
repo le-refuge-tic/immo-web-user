@@ -20,7 +20,6 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     setHoveredDropzone,
     typeBien,
     typeTransaction,
-    prix,
     etatMeubleMaison,
     etatConstructionMaison,
     sanitaire,

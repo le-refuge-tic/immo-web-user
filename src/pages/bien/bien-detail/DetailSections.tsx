@@ -4,7 +4,7 @@ import type { InfoRow } from '../../../utils/amenites'
 import logoSbee from '../../../assets/logo-SBEE.png'
 import logoSoneb from '../../../assets/logo-SONEB.webp'
 import { Icon, type IconType } from './Icon'
-import { fmtSlot, fmtDateLongue, fcfa, INFO_ROW_META } from './helpers'
+import { fmtSlot, fmtDateLongue, fcfa, INFO_ROW_META, lignesTarifsMeuble } from './helpers'
 import { imageDeCouverture } from '../../../utils/imageCouverture'
 import { nomEtDescription } from '../../../utils/guesthouse'
 import { GuesthouseSections } from './GuesthouseSections'
@@ -19,6 +19,7 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
   visitesConfirmees: { count: number; visites: { id: number; date: string | null }[] } | null
 }) {
   const am = bien.amenites as Amenites | null | undefined
+  const tarifsMeuble = lignesTarifsMeuble(am)
   // Guesthouse et salle de fêtes : sections dédiées ; les blocs d'appartement (composition, logement, conditions d'entrée) ne s'appliquent pas
   const isGuesthouse = bien.type === 'guesthouse'
   const isSalleFete = bien.type === 'salle_fete'
@@ -120,6 +121,21 @@ export function DetailContent({ bien, isOwnBien, isLocation, composition, logeme
 
       {isGuesthouse && <GuesthouseSections bien={bien} />}
       {isSalleFete && <SalleFeteSections bien={bien} />}
+
+      {/* Tarifs d'un meublé (le prix affiché en tête est le premier de la liste) */}
+      {!sectionsDediees && tarifsMeuble.length > 0 && (
+        <div>
+          <SectionTitle title="Tarifs" />
+          <div className="rounded-2xl bg-white border border-divider shadow-sm divide-y divide-divider">
+            {tarifsMeuble.map(t => (
+              <div key={t.label} className="flex items-center justify-between gap-3 px-4 py-3">
+                <span className="text-sm text-text-dark">{t.label}</span>
+                <span className="text-sm font-bold text-text-dark whitespace-nowrap">{fcfa(t.montant)}{t.unite}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Composition */}
       {!sectionsDediees && composition && composition.length > 0 && (
@@ -244,7 +260,8 @@ function InfoCard({ rows, amenites }: { rows: InfoRow[]; amenites?: Amenites | n
 
 function IntegrationCard({ bien, isOwnBien }: { bien: Bien; isOwnBien: boolean }) {
   const a: Amenites = (bien.amenites as Amenites | null | undefined) || {}
-  const avanceMois = a.avance_mois ?? 2
+  // Pas d'avance inventée : seule celle saisie à l'enregistrement est affichée.
+  const avanceMois = a.avance_mois ?? 0
   const prepayeMois = a.loyer_prepaye_mois ?? 0
   const cautionEau = Number(a.caution_eau ?? 0)
   const cautionElec = Number(a.caution_elec ?? 0)
