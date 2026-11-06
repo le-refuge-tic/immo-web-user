@@ -7,7 +7,7 @@ import { useAuth } from '../../../context/AuthContext'
 import { QUARTIERS } from '../../../data/quartiers'
 
 import { track } from '../../../lib/analytics'
-import { apiMessage } from '../../../utils/apiMessage'
+import { apiMessage, apiMessageDetail } from '../../../utils/apiMessage'
 import { useFormDraft, useDraftState } from '../../../hooks/useFormDraft'
 import { useMediaDraft } from '../../../hooks/useMediaDraft'
 import { suggestPush } from '../../../lib/push'
@@ -413,7 +413,7 @@ export function useNouveauBienForm() {
       suggestPush()
       setCreated(true)
     } catch (err: unknown) {
-      setError(apiMessage(err) || 'Erreur lors de la création')
+      setError(apiMessage(err) || apiMessageDetail(err) || 'Erreur lors de la création')
     }
     setSubmitting(false)
   }

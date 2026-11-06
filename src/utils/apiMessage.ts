@@ -33,7 +33,26 @@ export function apiMessage(err: unknown): string | undefined {
   if (status === 429) return `Trop de tentatives. Réessayez ${delaiAttente(response.headers)}.`
   if (status === 413) return 'Fichier trop volumineux. Choisissez une image plus légère.'
   if (status >= 500) return 'Le service est momentanément indisponible. Réessayez dans quelques instants.'
-  const msg = response.data?.message
-  if (typeof msg === 'string' && msg.trim() && !TECHNIQUE.test(msg)) return msg.trim()
-  return undefined
+  // class-validator renvoie `message` en tableau : on garde les phrases lisibles, une par ligne
+  const lisibles = messagesServeur(response.data?.message).filter(m => !TECHNIQUE.test(m))
+  return lisibles.length ? lisibles.join(' ') : undefined
+}
+
+/** `message` du serveur sous forme de liste de textes non vides (chaîne ou tableau). */
+function messagesServeur(msg: unknown): string[] {
+  const liste = Array.isArray(msg) ? msg : [msg]
+  return liste.filter((m): m is string => typeof m === 'string' && m.trim() !== '').map(m => m.trim())
+}
+
+/**
+ * Message brut du serveur pour une erreur 4xx (y compris les messages de validation en anglais),
+ * à utiliser en dernier recours à la place d'un message de repli opaque. Renvoie `undefined`
+ * pour les pannes (réseau, 5xx) et quand le serveur ne dit rien.
+ */
+export function apiMessageDetail(err: unknown): string | undefined {
+  const { response } = (err ?? {}) as ErreurHttp
+  const status = response?.status ?? 0
+  if (status < 400 || status >= 500) return undefined
+  const msgs = messagesServeur(response?.data?.message)
+  return msgs.length ? msgs.join(' ; ') : undefined
 }

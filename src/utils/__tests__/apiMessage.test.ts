@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { apiMessage } from '../apiMessage'
+import { apiMessage, apiMessageDetail } from '../apiMessage'
 
 const httpError = (status: number, data?: unknown, headers: Record<string, string> = {}) => ({ response: { status, data, headers } })
 
@@ -13,6 +13,23 @@ describe('apiMessage', () => {
     expect(apiMessage(httpError(400, { message: ['telephone must be a string'] }))).toBeUndefined()
     expect(apiMessage(httpError(400, { message: 'property website should not exist' }))).toBeUndefined()
     expect(apiMessage(httpError(403, { message: 'Forbidden resource' }))).toBeUndefined()
+  })
+
+  it('affiche les messages français d’un tableau de validation, sans les messages techniques', () => {
+    expect(apiMessage(httpError(400, { message: ['Précisez le standing quand « Autre » est choisi', 'prix must be a number'] })))
+      .toBe('Précisez le standing quand « Autre » est choisi')
+  })
+
+  it('apiMessageDetail renvoie le vrai message d’un 400, tableau compris', () => {
+    expect(apiMessageDetail(httpError(400, { message: ['amenites.property chambres should not exist'] })))
+      .toBe('amenites.property chambres should not exist')
+    expect(apiMessageDetail(httpError(400, { message: ['a', 'b'] }))).toBe('a ; b')
+  })
+
+  it('apiMessageDetail ne dit rien pour une panne ou une réponse vide', () => {
+    expect(apiMessageDetail(httpError(503, { message: 'x' }))).toBeUndefined()
+    expect(apiMessageDetail(httpError(400, {}))).toBeUndefined()
+    expect(apiMessageDetail(new Error('boom'))).toBeUndefined()
   })
 
   it('annonce le délai quand il y a trop de tentatives', () => {
