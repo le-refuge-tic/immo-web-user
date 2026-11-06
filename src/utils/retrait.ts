@@ -88,15 +88,14 @@ export function formaterFinSuspension(iso: string | null | undefined): string | 
 }
 
 /**
- * Pourquoi aucun retrait n'est possible pour l'instant (numéro ou opérateur manquant, suspension
- * de 48 h après un changement), ou `null`. Le serveur refuse de toute façon ; ceci évite à la
+ * Pourquoi aucun retrait n'est possible pour l'instant (numéro manquant, suspension de 48 h après
+ * un changement de NUMÉRO), ou `null`. L'opérateur n'en fait pas partie : il se choisit dans le formulaire. Le serveur refuse de toute façon ; ceci évite à la
  * personne de saisir un montant pour rien. Tant que l'information n'est pas chargée : `null`.
  */
-export function raisonBlocageRetrait(info: { numero_retrait: string | null; operateur_retrait?: string | null; retraits_suspendus_jusqu_a?: string | null } | null): string | null {
+export function raisonBlocageRetrait(info: { numero_retrait: string | null; retraits_suspendus_jusqu_a?: string | null } | null): string | null {
   if (!info) return null
   if (!info.numero_retrait) return 'Ajoutez un numéro Mobile Money de retrait pour pouvoir retirer.'
-  if (!info.operateur_retrait) return 'Choisissez votre opérateur Mobile Money (MTN ou Moov) pour pouvoir retirer.'
   const fin = formaterFinSuspension(info.retraits_suspendus_jusqu_a)
-  if (fin) return `Par sécurité, les retraits sont suspendus jusqu'au ${fin} (changement récent de numéro ou d'opérateur).`
+  if (fin) return `Par sécurité, les retraits sont suspendus jusqu'au ${fin} (changement récent de numéro).`
   return null
 }

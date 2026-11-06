@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { walletApi } from '../api/walletApi'
 import { RETRAIT_MINIMUM } from '../utils/retrait'
-import type { LimitesRetrait, NumeroRetraitInfo } from '../types/wallet'
+import type { LimitesRetrait, NumeroRetraitInfo, OperateurRetrait } from '../types/wallet'
 
 /**
- * Destination des retraits (numéro masqué, opérateur, suspension éventuelle) et limites
- * du serveur. Ce sont des informations secondaires : en cas d'échec, l'écran reste
+ * Destination des retraits (numéro masqué, suspension éventuelle), limites du serveur et opérateur
+ * du retrait en cours de saisie : celui du dernier retrait tant que la personne n'a rien choisi,
+ * modifiable librement (un choix de formulaire, jamais d'OTP ni de suspension). Ce sont des informations secondaires : en cas d'échec, l'écran reste
  * utilisable (numéro « — », minimum par défaut) et le serveur tranche à la demande.
  */
 export function useInfoRetrait() {
   const [info, setInfo] = useState<NumeroRetraitInfo | null>(null)
   const [limites, setLimites] = useState<Partial<LimitesRetrait>>({ min: RETRAIT_MINIMUM })
+  const [operateurSaisi, setOperateur] = useState<OperateurRetrait | null>(null)
+  const operateur = operateurSaisi ?? info?.operateur_retrait ?? null
 
   const recharger = useCallback(() => {
     walletApi.numeroRetrait().then(setInfo).catch(() => { /* la ligne reste « non défini » */ })
@@ -21,5 +24,5 @@ export function useInfoRetrait() {
     walletApi.limitesRetrait().then(setLimites).catch(() => { /* minimum par défaut */ })
   }, [recharger])
 
-  return { info, limites, recharger }
+  return { info, limites, recharger, operateur, setOperateur }
 }

@@ -8,11 +8,12 @@ import { categorieTransaction, TransactionDetailModal } from './TransactionsTab'
 import { svgMaskUrl } from './RolesTab'
 import { apiMessage } from '../../../utils/apiMessage'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
-import { RETRAIT_MINIMUM, libelleOperateur, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait } from '../../../utils/retrait'
+import { RETRAIT_MINIMUM, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait } from '../../../utils/retrait'
 import { useInfoRetrait } from '../../../hooks/useInfoRetrait'
 import { useSuiviRetraits } from '../../../hooks/useSuiviRetraits'
 import RetraitConfirmModal from '../../../components/wallet/RetraitConfirmModal'
 import SuiviRetraits from '../../../components/wallet/SuiviRetraits'
+import SelecteurOperateur from '../../../components/wallet/SelecteurOperateur'
 import type { MouvementWallet, WalletProprio } from '../../../types/proprietaire'
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
@@ -40,7 +41,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
   const [error, setError] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [resultat, setResultat] = useState<{ ok: boolean; texte: string } | null>(null)
-  const { info: numeroInfo, limites, recharger: rechargerInfo } = useInfoRetrait()
+  const { info: numeroInfo, limites, recharger: rechargerInfo, operateur, setOperateur } = useInfoRetrait()
   const [showNumeroModal, setShowNumeroModal] = useState(false)
 
   const montantNum = Number(montant)
@@ -54,10 +55,11 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
 
   // L'argent part immédiatement : l'envoi n'a lieu qu'après la confirmation (RetraitConfirmModal).
   const envoyer = async () => {
+    if (!operateur) return
     setError('')
     setSubmitting(true)
     try {
-      const retrait = await avecCle(attempt, `revenus_locatifs:${montantNum}`, cle => walletApi.demandeRetrait(montantNum, 'revenus_locatifs', cle))
+      const retrait = await avecCle(attempt, `revenus_locatifs:${montantNum}`, cle => walletApi.demandeRetrait(montantNum, 'revenus_locatifs', operateur, cle))
       attempt.reset()
       setConfirmOpen(false)
       setResultat(messageApresDemande(retrait))
@@ -122,13 +124,15 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             <div className="min-w-0">
               <p className="text-[10px] font-bold text-p-muted uppercase tracking-wide mb-0.5">Envoyé sur</p>
               <p className="font-semibold text-sm text-p-text truncate">
-                {numeroInfo?.masque || '—'}{numeroInfo?.operateur_retrait ? ` · ${libelleOperateur(numeroInfo.operateur_retrait)}` : ''}
+                {numeroInfo?.masque || '—'}
               </p>
             </div>
             <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: BLUE_TX }}>
-              {numeroInfo && !numeroInfo.operateur_retrait ? 'Choisir mon opérateur' : 'Changer'}
+              Changer
             </button>
           </div>
+
+          <SelecteurOperateur variant="sombre" valeur={operateur} onChange={setOperateur} disabled={submitting} />
 
           {blocage && (
             <p role="alert" className="text-xs rounded-xl px-3.5 py-2.5" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--c-amber-dark)', border: '1px solid rgba(245,158,11,0.3)' }}>{blocage}</p>
@@ -142,7 +146,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             </div>
           )}
 
-          <button onClick={() => { setError(''); setConfirmOpen(true) }} disabled={!montantValide || !!blocage}
+          <button onClick={() => { setError(''); setConfirmOpen(true) }} disabled={!montantValide || !!blocage || !operateur}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-60"
             style={{ background: BLUE }}>
             Continuer
@@ -151,7 +155,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
       </div>
 </ModalSheet>
     {confirmOpen && (
-      <RetraitConfirmModal variant="sombre" montant={montantNum} numeroMasque={numeroInfo?.masque} operateur={numeroInfo?.operateur_retrait}
+      <RetraitConfirmModal variant="sombre" montant={montantNum} numeroMasque={numeroInfo?.masque} operateur={operateur}
         soldeApres={solde - montantNum} submitting={submitting} error={error}
         onCancel={() => { setConfirmOpen(false); setError('') }} onConfirm={envoyer} />
     )}

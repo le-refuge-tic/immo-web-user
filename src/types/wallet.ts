@@ -54,9 +54,9 @@ export interface NumeroRetraitInfo {
   numero_retrait: string | null
   masque: string | null
   source: string
-  /** Absent tant que la personne n'a pas choisi MTN ou Moov : aucun retrait possible. */
+  /** Dernier opérateur utilisé pour un retrait : pré-remplit le choix, modifiable à chaque demande. */
   operateur_retrait?: OperateurRetrait | null
-  /** Retraits suspendus 48 h après un changement de numéro ou d'opérateur (date ISO), sinon null. */
+  /** Retraits suspendus 48 h après un changement de NUMÉRO (date ISO), sinon null. */
   retraits_suspendus_jusqu_a?: string | null
 }
 
@@ -71,13 +71,12 @@ export interface InitierChangementNumeroResponse {
   session_token: string
   expires_in: number
   nouveau_numero: string
-  operateur?: OperateurRetrait
 }
 
 /** Réponse de `POST /wallets/me/numero-retrait/confirmer`. */
 export interface ConfirmerChangementNumeroResponse {
   message?: string
   numero_retrait?: string
-  operateur_retrait?: OperateurRetrait
+  /** Vrai seulement si le numéro a réellement changé (suspension de 48 h). */
   retraits_suspendus?: boolean
 }

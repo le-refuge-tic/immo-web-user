@@ -108,8 +108,9 @@ describe('raisonBlocageRetrait', () => {
     expect(raisonBlocageRetrait(null)).toBeNull()
   })
 
-  it('demande l\'opérateur aux comptes qui n\'en ont pas encore', () => {
-    expect(raisonBlocageRetrait({ ...ok, operateur_retrait: null })).toMatch(/MTN ou Moov/)
+  it('l\'opérateur n\'est jamais un motif de blocage : il se choisit dans le formulaire', () => {
+    const sansOperateur = { ...ok, operateur_retrait: null }
+    expect(raisonBlocageRetrait(sansOperateur)).toBeNull()
   })
 
   it('demande un numéro quand il n\'y en a aucun', () => {

@@ -8,12 +8,13 @@ import type { Wallet, WalletTransaction } from '../../types/wallet'
 import { withAlpha } from '../../utils/color'
 import { apiMessage } from '../../utils/apiMessage'
 import ErrorState from '../../components/ErrorState'
-import { RETRAIT_MINIMUM, libelleOperateur, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait } from '../../utils/retrait'
+import { RETRAIT_MINIMUM, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait } from '../../utils/retrait'
 import { useInfoRetrait } from '../../hooks/useInfoRetrait'
 import { useSuiviRetraits } from '../../hooks/useSuiviRetraits'
 import RetraitConfirmModal from '../../components/wallet/RetraitConfirmModal'
 import NumeroRetraitModal from '../../components/wallet/NumeroRetraitModal'
 import SuiviRetraits from '../../components/wallet/SuiviRetraits'
+import SelecteurOperateur from '../../components/wallet/SelecteurOperateur'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { avecCle } from '../../utils/paymentAttempt'
 
@@ -75,7 +76,7 @@ function ClientWalletView() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [showNumeroModal, setShowNumeroModal] = useState(false)
   const [retraitError, setRetraitError] = useState('')
-  const { info: numeroInfo, limites, recharger: rechargerInfo } = useInfoRetrait()
+  const { info: numeroInfo, limites, recharger: rechargerInfo, operateur, setOperateur } = useInfoRetrait()
   // Échec du chargement : n'écrase jamais des soldes déjà affichés (rafraîchissement après un retrait).
   const [loadError, setLoadError] = useState(false)
 
@@ -124,10 +125,11 @@ function ClientWalletView() {
 
   // L'argent part immédiatement : l'envoi n'a lieu qu'après la confirmation (RetraitConfirmModal).
   const envoyerRetrait = async () => {
+    if (!operateur) return
     setSubmitting(true)
     setRetraitError('')
     try {
-      const retrait = await avecCle(attempt, `epargne:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'epargne', cle))
+      const retrait = await avecCle(attempt, `epargne:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'epargne', operateur, cle))
       attempt.reset()
       setResultat(messageApresDemande(retrait)); setConfirmOpen(false); setShowRetrait(false); setMontant(''); load(); rechargerRetraits()
     } catch (e: unknown) {
@@ -234,13 +236,14 @@ function ClientWalletView() {
                   <div className="min-w-0">
                     <p className="text-xs text-text-grey">Envoyé sur</p>
                     <p className="text-sm font-semibold text-text-dark truncate">
-                      {numeroInfo?.masque || '—'}{numeroInfo?.operateur_retrait ? ` · ${libelleOperateur(numeroInfo.operateur_retrait)}` : ''}
+                      {numeroInfo?.masque || '—'}
                     </p>
                   </div>
                   <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: 'var(--c-brand)' }}>
-                    {numeroInfo && !numeroInfo.operateur_retrait ? 'Choisir mon opérateur' : 'Changer'}
+                    Changer
                   </button>
                 </div>
+                <div className="mb-3"><SelecteurOperateur variant="clair" valeur={operateur} onChange={setOperateur} disabled={submitting} /></div>
                 {blocage && (
                   <p role="alert" className="text-xs rounded-xl px-3.5 py-2.5 mb-3" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--c-amber-dark)', border: '1px solid rgba(245,158,11,0.3)' }}>{blocage}</p>
                 )}
@@ -248,7 +251,7 @@ function ClientWalletView() {
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={() => { setRetraitError(''); setConfirmOpen(true) }} disabled={!montant || !!montantMessage || !!blocage}
+                  <button onClick={() => { setRetraitError(''); setConfirmOpen(true) }} disabled={!montant || !!montantMessage || !!blocage || !operateur}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
                     style={{ background: W_COLOR.epargne }}>
                     Continuer
@@ -259,7 +262,7 @@ function ClientWalletView() {
           )}
 
           {confirmOpen && (
-            <RetraitConfirmModal variant="clair" montant={Number(montant)} numeroMasque={numeroInfo?.masque} operateur={numeroInfo?.operateur_retrait}
+            <RetraitConfirmModal variant="clair" montant={Number(montant)} numeroMasque={numeroInfo?.masque} operateur={operateur}
               soldeApres={soldeEpargne - Number(montant)} submitting={submitting} error={retraitError}
               onCancel={() => { setConfirmOpen(false); setRetraitError('') }} onConfirm={envoyerRetrait} />
           )}
@@ -318,7 +321,7 @@ function WalletCommissionsView() {
   const [resultat, setResultat]  = useState<{ ok: boolean; texte: string } | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [showNumeroModal, setShowNumeroModal] = useState(false)
-  const { info: numeroInfo, limites, recharger: rechargerInfo } = useInfoRetrait()
+  const { info: numeroInfo, limites, recharger: rechargerInfo, operateur, setOperateur } = useInfoRetrait()
   const [filter, setFilter]         = useState<'Tous' | 'Loyers' | 'Visites'>('Tous')
   const [detailTx, setDetailTx]     = useState<WalletTransaction | null>(null)
   const [retraitError, setRetraitError] = useState('')
@@ -354,10 +357,11 @@ function WalletCommissionsView() {
 
   // L'argent part immédiatement : l'envoi n'a lieu qu'après la confirmation (RetraitConfirmModal).
   const envoyerRetrait = async () => {
+    if (!operateur) return
     setSubmitting(true)
     setRetraitError('')
     try {
-      const retrait = await avecCle(attempt, `revenus_locatifs:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'revenus_locatifs', cle))
+      const retrait = await avecCle(attempt, `revenus_locatifs:${montant}`, cle => walletApi.demandeRetrait(Number(montant), 'revenus_locatifs', operateur, cle))
       attempt.reset()
       setResultat(messageApresDemande(retrait)); setConfirmOpen(false); setShowRetrait(false); setMontant(''); load(); rechargerRetraits()
     } catch (e: unknown) {
@@ -438,13 +442,14 @@ function WalletCommissionsView() {
                   <div className="min-w-0">
                     <p className="text-xs text-text-grey">Envoyé sur</p>
                     <p className="text-sm font-semibold text-text-dark truncate">
-                      {numeroInfo?.masque || '—'}{numeroInfo?.operateur_retrait ? ` · ${libelleOperateur(numeroInfo.operateur_retrait)}` : ''}
+                      {numeroInfo?.masque || '—'}
                     </p>
                   </div>
                   <button onClick={() => setShowNumeroModal(true)} className="flex-shrink-0 text-xs font-bold" style={{ color: 'var(--c-brand)' }}>
-                    {numeroInfo && !numeroInfo.operateur_retrait ? 'Choisir mon opérateur' : 'Changer'}
+                    Changer
                   </button>
                 </div>
+                <div className="mb-3"><SelecteurOperateur variant="clair" valeur={operateur} onChange={setOperateur} disabled={submitting} /></div>
                 {blocage && (
                   <p role="alert" className="text-xs rounded-xl px-3.5 py-2.5 mb-3" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--c-amber-dark)', border: '1px solid rgba(245,158,11,0.3)' }}>{blocage}</p>
                 )}
@@ -452,7 +457,7 @@ function WalletCommissionsView() {
                 <div className="flex gap-3">
                   <button onClick={() => setShowRetrait(false)}
                     className="flex-1 py-3.5 rounded-xl border border-divider font-bold text-sm text-text-grey">Annuler</button>
-                  <button onClick={() => { setRetraitError(''); setConfirmOpen(true) }} disabled={!montant || !!montantMessage || !!blocage}
+                  <button onClick={() => { setRetraitError(''); setConfirmOpen(true) }} disabled={!montant || !!montantMessage || !!blocage || !operateur}
                     className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
                     style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
                     Continuer
@@ -463,7 +468,7 @@ function WalletCommissionsView() {
           )}
 
           {confirmOpen && (
-            <RetraitConfirmModal variant="clair" montant={Number(montant)} numeroMasque={numeroInfo?.masque} operateur={numeroInfo?.operateur_retrait}
+            <RetraitConfirmModal variant="clair" montant={Number(montant)} numeroMasque={numeroInfo?.masque} operateur={operateur}
               soldeApres={solde - Number(montant)} submitting={submitting} error={retraitError}
               onCancel={() => { setConfirmOpen(false); setRetraitError('') }} onConfirm={envoyerRetrait} />
           )}
