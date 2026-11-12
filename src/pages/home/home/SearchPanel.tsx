@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { RefObject } from 'react'
-import { BUDGET_PRESETS, TRANSACTIONS, TYPES } from './constants'
+import { BUDGET_PRESETS, TRANSACTIONS } from './constants'
+import { FILTRES_TYPE } from '../../../shared/biens/referentielTypes'
 import { PinIcon, SearchIcon, XIcon } from './icons'
 import { panelColors, type Tokens } from './tokens'
 import type { HomeSearch } from './useHomeSearch'
@@ -52,7 +53,7 @@ export default function SearchPanel({ s, isDark, tk, searchOpen, setSearchOpen, 
             <p className="text-caption text-white/55 truncate">
               {[
                 transaction && (transaction === 'location' ? 'Location' : 'Vente'),
-                type && TYPES.find(t => t.key === type)?.label,
+                type && FILTRES_TYPE.find(t => t.cle === type)?.libelle,
                 prixMin && !prixMax && `≥ ${Number(prixMin).toLocaleString('fr-FR')} F`,
                 prixMax && !prixMin && `≤ ${Number(prixMax).toLocaleString('fr-FR')} F`,
                 prixMin && prixMax && `${Number(prixMin).toLocaleString('fr-FR')}–${Number(prixMax).toLocaleString('fr-FR')} F`,
@@ -153,11 +154,11 @@ export default function SearchPanel({ s, isDark, tk, searchOpen, setSearchOpen, 
             <div>
               <p className="text-micro font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Type de bien</p>
               <div className="flex flex-wrap gap-1.5">
-                {TYPES.slice(0, 5).map(t => (
-                  <button key={t.key} onClick={() => setType(t.key)}
+                {FILTRES_TYPE.map(t => (
+                  <button key={t.cle || 'tous'} onClick={() => setType(t.cle)}
                     className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    style={type === t.key ? panelPillActive : panelPillIdle}>
-                    {t.label}
+                    style={type === t.cle ? panelPillActive : panelPillIdle}>
+                    {t.libelle}
                   </button>
                 ))}
               </div>

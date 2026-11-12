@@ -12,8 +12,9 @@ import { useFormDraft, useDraftState } from '../../../hooks/useFormDraft'
 import { useMediaDraft } from '../../../hooks/useMediaDraft'
 import { suggestPush } from '../../../lib/push'
 
-import { normalizeStr, parsePrix, TYPES_BIEN } from './options'
+import { normalizeStr, parsePrix } from './options'
 import { useGestionEnvois } from '../../../shared/uploads/useGestionEnvois'
+import { coupleBackend, sousTypeParCle } from '../../../shared/biens/referentielTypes'
 import { useToast } from '../../../context/useToast'
 import type { TarifCustom, DetailCustom } from './options'
 import { PHOTOS_MIN } from './photosRegles'
@@ -135,13 +136,15 @@ export function useNouveauBienForm() {
   const [autresFrais, setAutresFrais] = useDraftState<TarifCustom[]>(draft, 'autresFrais', [])
 
   // ── Getters dérivés ────────────────────────────────────────────────────────
+  // Lot 2 : le choix vient du référentiel unique (src/shared/biens) : catégorie puis sous-type.
+  const sousTypeChoisi = sousTypeParCle(typeBien)
   const isTerrain = typeBien === 'terrain'
-  // Local professionnel : le bureau suit le même parcours que la boutique.
-  const isBoutique = typeBien === 'boutique' || typeBien === 'bureau'
+  // Local professionnel (boutique, bureau, local commercial) : même parcours.
+  const isBoutique = sousTypeChoisi?.categorie === 'commercial'
   const isSmallUnit = typeBien === 'entree_coucher' || typeBien === 'chambre_salon'
-  const peutEtreMeuble = typeBien === 'appartement' || typeBien === 'villa' || typeBien === 'maison'
+  const peutEtreMeuble = !!sousTypeChoisi?.meuble
   const isMeuble = peutEtreMeuble && (typeBien === 'maison' ? etatMeubleMaison !== 'non_meuble' : estMeuble)
-  const showPieces = ['appartement', 'villa', 'maison', 'chambre_salon'].includes(typeBien)
+  const showPieces = ['appartement', 'villa', 'duplex', 'maison', 'chambre_salon'].includes(typeBien)
   // Nombre de pièces = chambres + salons (cuisines et douches non comptées) ; une entrée-coucher compte 1 pièce
   const nbPieces = showPieces ? chambres + salons : typeBien === 'entree_coucher' ? 1 : 0
   const hasAtLeastOneTarif = !!(parsePrix(prixLongSejour) || parsePrix(prixSejourRestreint) || parsePrix(prixHeure) || tarifsAutres.some(t => parsePrix(t.prix)))
@@ -152,13 +155,9 @@ export function useNouveauBienForm() {
     return Math.round(superficieUnite === 'ha' ? n * 10000 : n)
   })()
 
-  const typeBackend = isTerrain ? 'terrain'
-    : (typeBien === 'villa' || typeBien === 'maison' || isBoutique) ? 'maison'
-    : isMeuble ? 'appart_meuble' : 'appart_vide'
-
-  const sousType = typeBien === 'appartement' ? (isMeuble ? 'appart_meuble' : 'appartement')
-    : typeBien === 'maison' ? 'maison_individuelle'
-    : typeBien
+  const couple = coupleBackend({ cle: typeBien, meuble: isMeuble })
+  const typeBackend = couple?.type ?? 'appart_vide'
+  const sousType = couple?.sous_type ?? typeBien
 
   // Prix principal : premier tarif meublé (mois, nuit, heure, personnalisé) ou champ Prix.
   const prixPrincipal = isMeuble
@@ -373,7 +372,7 @@ export function useNouveauBienForm() {
 
       // Lot 1 : photos et vidéo partent en arrière-plan ; retour immédiat à « Mes biens ».
       if (bien.id && (photos.length || video)) {
-        const typeLibelle = TYPES_BIEN.find(t => t.key === typeBien)?.label ?? 'Mon bien'
+        const typeLibelle = sousTypeChoisi?.libelle ?? 'Mon bien'
         demarrer({
           bienId: bien.id,
           libelle: titre || [typeLibelle, quartier.trim()].filter(Boolean).join(' '),
