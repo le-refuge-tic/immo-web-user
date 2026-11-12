@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../../utils/usePageTitle'
 import { biensApi, type BienPayload } from '../../../api/biensApi'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import { QUARTIERS } from '../../../data/quartiers'
 
 import { track } from '../../../lib/analytics'

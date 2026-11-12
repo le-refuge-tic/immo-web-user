@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
+import { AuthProvider } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
 import { NotificationsProvider } from './context/NotificationsContext'
 import { BannerProvider } from './context/BannerContext'
 import { ScrollProvider } from './context/ScrollContext'

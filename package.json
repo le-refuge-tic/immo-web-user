@@ -11,7 +11,7 @@
     "prepare": "git config core.hooksPath .githooks || exit 0",
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint --max-warnings 26",
+    "lint": "oxlint --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
     "check:links": "node scripts/check-links.mjs",

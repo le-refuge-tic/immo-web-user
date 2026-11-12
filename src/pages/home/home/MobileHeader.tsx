@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import logoUrl from '../../../assets/REFUGE-ICON.webp'
 import { HERO_IMG } from './constants'
 import { PersonIcon } from './icons'

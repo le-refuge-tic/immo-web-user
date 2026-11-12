@@ -22,6 +22,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   `src/shared/dialogues`) ; `npm run check:no-native-dialogs` refuse `window.confirm`, `alert`
   et `prompt`.
 
+### Maintenance
+- `npm run check` repasse au vert : les 40 avertissements de lint sont corrigés (variables
+  inutilisées ; constantes et hooks sortis des fichiers de composants : `tabs/outils.ts`,
+  `tabs/navigation.tsx`, `context/useAuth.ts`…) et le plafond passe de 26 à 0 avertissement.
+
 ### Supprimé
 - Écran « Bien soumis ! » avec « Réessayer l'envoi » : remplacé par le suivi des envois.
 

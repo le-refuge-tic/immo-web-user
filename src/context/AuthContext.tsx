@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { tokenStore } from '../utils/tokenStore'
 import { readStoredUser, writeStoredUser, STORED_USER_SYNC_EVENT } from '../utils/storedUser'
@@ -8,40 +8,10 @@ import { userApi } from '../api/userApi'
 import { clearFormDrafts } from '../utils/formDraft'
 import { clearMediaDrafts } from '../utils/mediaDraft'
 import { queryClient } from '../lib/queryClient'
-import type { LoginPayload, SessionUser } from '../types/session'
+import type { LoginPayload } from '../types/session'
 import { CompteStaffRefuse, estCompteStaff } from '../utils/compteStaff'
 import { viderLots } from '../shared/uploads/stockageEnvoi'
-
-type AuthUser = SessionUser
-
-type AuthCtx = {
-  user: AuthUser | null
-  token: string | null
-  isLoggedIn: boolean
-  login: (data: LoginPayload) => void
-  logout: () => void
-  updateUser: (u: Partial<AuthUser>) => void
-  hasRole: (role: string) => boolean
-  rolesActifs: string[]
-  /** Rôle "espace" actuellement parcouru (peut différer du rôle principal
-   *  quand un propriétaire/démarcheur a activé le rôle prospect pour
-   *  naviguer côté client). */
-  activeRole: string
-  setActiveRole: (role: string) => void
-}
-
-const AuthContext = createContext<AuthCtx>({
-  user: null,
-  token: null,
-  isLoggedIn: false,
-  login: () => {},
-  logout: () => {},
-  updateUser: () => {},
-  hasRole: () => false,
-  rolesActifs: [],
-  activeRole: '',
-  setActiveRole: () => {},
-})
+import { AuthContext, type AuthUser } from './useAuth'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -156,5 +126,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   )
 }
-
-export const useAuth = () => useContext(AuthContext)

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { IcChat, BLUE, bienLabel, fmtPrix, statutVisite, BLUE_TX } from './shared'
+import { IcChat } from './shared'
+import { BLUE, bienLabel, fmtPrix, statutVisite, BLUE_TX } from './outils'
 import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import type { Visite } from '../../../types/api'

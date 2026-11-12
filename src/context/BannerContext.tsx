@@ -1,29 +1,8 @@
-import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useTheme } from './ThemeContext'
-
-export interface BannerData {
-  id: number
-  title: string
-  message: string
-  /** Route vers laquelle naviguer au tap (optionnel). */
-  to?: string
-  /** State React Router à passer lors de la navigation. */
-  toState?: Record<string, unknown>
-  /** Avatar : initiale + dégradé, ou icône. */
-  initial?: string
-  gradient?: string
-  variant?: 'message' | 'notif'
-}
-
-type BannerInput = Omit<BannerData, 'id'>
-
-interface BannerCtx {
-  showBanner: (b: BannerInput) => void
-}
-
-const BannerContext = createContext<BannerCtx>({ showBanner: () => {} })
+import { useTheme } from './useTheme'
+import { BannerContext, type BannerData, type BannerInput } from './useBanner'
 
 const DISPLAY_MS = 3000
 const EXIT_MS = 280
@@ -146,5 +125,3 @@ export function BannerProvider({ children }: { children: ReactNode }) {
     </BannerContext.Provider>
   )
 }
-
-export const useBanner = () => useContext(BannerContext)

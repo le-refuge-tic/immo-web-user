@@ -5,8 +5,8 @@ import BottomNav from './BottomNav'
 import PushPrompt from './PushPrompt'
 import { ErrorBoundary } from './ErrorBoundary'
 import ScrollFloatButtons from './ScrollFloatButtons'
-import { useScrolled } from '../context/ScrollContext'
-import { useTheme } from '../context/ThemeContext'
+import { useScrolled } from '../context/useScrolled'
+import { useTheme } from '../context/useTheme'
 
 const HIDE_CHROME_PATHS = ['/nouveau-bien']
 const HIDE_TOPNAV_PREFIXES: string[] = []

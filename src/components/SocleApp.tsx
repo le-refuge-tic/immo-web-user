@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useToast } from '../context/useToast'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { ConfirmProvider } from '../shared/dialogues/confirmation'
 import { GestionEnvoisProvider } from '../shared/uploads/GestionEnvois'
 import type { Envoyeur } from '../shared/uploads/fileEnvoi'

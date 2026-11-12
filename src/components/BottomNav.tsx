@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useNotifications } from '../context/NotificationsContext'
-import { useTheme } from '../context/ThemeContext'
+import { useAuth } from '../context/useAuth'
+import { useNotifications } from '../context/useNotifications'
+import { useTheme } from '../context/useTheme'
 
 const HomeIcon = ({ active }: { active: boolean }) => (
   <svg viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 0 : 2} className="w-6 h-6">

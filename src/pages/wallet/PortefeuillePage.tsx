@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { walletApi } from '../../api/walletApi'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { Wallet, WalletTransaction } from '../../types/wallet'
