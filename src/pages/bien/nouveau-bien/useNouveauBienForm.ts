@@ -12,7 +12,8 @@ import { useFormDraft, useDraftState } from '../../../hooks/useFormDraft'
 import { useMediaDraft } from '../../../hooks/useMediaDraft'
 import { suggestPush } from '../../../lib/push'
 
-import { normalizeStr, parsePrix } from './options'
+import { normalizeStr, parsePrix, TYPES_BIEN } from './options'
+import { useGestionEnvois } from '../../../shared/uploads/useGestionEnvois'
 import type { TarifCustom, DetailCustom } from './options'
 import { PHOTOS_MIN } from './photosRegles'
 export function useNouveauBienForm() {
@@ -29,43 +30,11 @@ export function useNouveauBienForm() {
   const [draftBannerDismissed, setDraftBannerDismissed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [createdId, setCreatedId] = useState<number | null>(null)
-  const [created, setCreated] = useState(false)
-  // Fichiers dont l'envoi a échoué après la création du bien : gardés pour un nouvel essai depuis
-  // l'écran de confirmation (aucun autre écran ne permet d'ajouter des photos à un bien publié).
-  const [echecsEnvoi, setEchecsEnvoi] = useState<{ photos: File[]; video: File | null }>({ photos: [], video: null })
-  const [renvoiEnCours, setRenvoiEnCours] = useState(false)
-  const envoisEchoues = { photos: echecsEnvoi.photos.length, video: !!echecsEnvoi.video }
-
-  /** Envoie les fichiers au bien ; renvoie ceux qui ont encore échoué. */
-  const envoyerFichiers = async (bienId: number, aEnvoyer: File[], videoAEnvoyer: File | null, progression?: (fait: number) => void) => {
-    const photosRatees: File[] = []
-    for (let i = 0; i < aEnvoyer.length; i++) {
-      try {
-        await biensApi.uploadPhoto(bienId, aEnvoyer[i])
-      } catch {
-        photosRatees.push(aEnvoyer[i])
-      }
-      progression?.(i + 1)
-    }
-    let videoRatee: File | null = null
-    if (videoAEnvoyer) {
-      try { await biensApi.uploadVideo(bienId, videoAEnvoyer) } catch { videoRatee = videoAEnvoyer }
-    }
-    return { photos: photosRatees, video: videoRatee }
-  }
-
-  const renvoyerEchecs = async () => {
-    if (!createdId || renvoiEnCours) return
-    setRenvoiEnCours(true)
-    setEchecsEnvoi(await envoyerFichiers(createdId, echecsEnvoi.photos, echecsEnvoi.video))
-    setRenvoiEnCours(false)
-  }
+  const { demarrer } = useGestionEnvois()
   const [photos, setPhotos] = useState<File[]>([])
   const [video, setVideo] = useState<File | null>(null)
   // Photos et vidéo du brouillon, gardées à part dans IndexedDB (FE-B-002)
   const medias = useMediaDraft(draftKey, photos, video, setPhotos, setVideo)
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [hoveredDropzone, setHoveredDropzone] = useState<string | null>(null)
   const [hoveredQuartierIdx, setHoveredQuartierIdx] = useState<number | null>(null)
 
@@ -398,19 +367,25 @@ export function useNouveauBienForm() {
 
       const data = await biensApi.create(body)
       const bien = data.data || data.bien || data
-      setCreatedId(bien.id)
       track('annonce_publiee', { type: String(bien.type ?? '') })
 
+      // Lot 1 : photos et vidéo partent en arrière-plan ; retour immédiat à « Mes biens ».
       if (bien.id) {
-        setEchecsEnvoi(await envoyerFichiers(bien.id, photos, video,
-          fait => setUploadProgress(Math.round((fait / photos.length) * 100))))
+        const typeLibelle = TYPES_BIEN.find(t => t.key === typeBien)?.label ?? 'Mon bien'
+        demarrer({
+          bienId: bien.id,
+          libelle: titre || [typeLibelle, quartier.trim()].filter(Boolean).join(' '),
+          lien: isDemarcheur ? '/demarcheur' : `/proprietaire/biens/${bien.id}`,
+          photos,
+          video,
+        })
       }
 
       draft.clear()
-      // Sans attendre : le bien est créé, un stockage lent ne doit pas retarder la confirmation.
+      // Sans attendre : le bien est créé, un stockage lent ne doit pas retarder la suite.
       void medias.clear()
       suggestPush()
-      setCreated(true)
+      navigate(isDemarcheur ? '/demarcheur' : '/proprietaire', { state: { tab: 'biens' } })
     } catch (err: unknown) {
       setError(apiMessage(err) || apiMessageDetail(err) || 'Erreur lors de la création')
     }
@@ -445,19 +420,10 @@ export function useNouveauBienForm() {
     setSubmitting,
     error,
     setError,
-    createdId,
-    setCreatedId,
-    created,
-    envoisEchoues,
-    renvoyerEchecs,
-    renvoiEnCours,
-    setCreated,
     photos,
     setPhotos,
     video,
     setVideo,
-    uploadProgress,
-    setUploadProgress,
     hoveredDropzone,
     setHoveredDropzone,
     hoveredQuartierIdx,

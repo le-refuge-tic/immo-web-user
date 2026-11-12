@@ -10,6 +10,7 @@ import { clearMediaDrafts } from '../utils/mediaDraft'
 import { queryClient } from '../lib/queryClient'
 import type { LoginPayload, SessionUser } from '../types/session'
 import { CompteStaffRefuse, estCompteStaff } from '../utils/compteStaff'
+import { viderLots } from '../shared/uploads/stockageEnvoi'
 
 type AuthUser = SessionUser
 
@@ -92,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenStore.clearTokens()
     clearFormDrafts()
     void clearMediaDrafts()
+    // Photos en attente d'envoi (lot 1) : elles ne restent pas sur l'appareil.
+    void viderLots()
     // Données du compte en cache (favoris, visites…) : rien ne doit passer au compte suivant.
     queryClient.clear()
   }

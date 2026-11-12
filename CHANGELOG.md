@@ -11,6 +11,20 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 1 — socle)
+- Envoi des photos en arrière-plan : après « Publier le bien », retour immédiat à « Mes biens » ;
+  la couverture part d'abord, puis 2 photos en parallèle, puis la vidéo, avec 2 réessais
+  automatiques. Un indicateur suit l'envoi sur toutes les pages, la fermeture de l'onglet est
+  signalée, et un envoi interrompu par un rechargement est proposé à la reprise (fichiers gardés
+  dans IndexedDB, effacés à la déconnexion). En cas d'échec : « Réessayer » ou « Compléter les
+  photos ». Le bien n'entre en validation qu'avec toutes ses photos (backend).
+- Toasts de session (`useToast`) et boîtes de confirmation communes (`useConfirm`,
+  `src/shared/dialogues`) ; `npm run check:no-native-dialogs` refuse `window.confirm`, `alert`
+  et `prompt`.
+
+### Supprimé
+- Écran « Bien soumis ! » avec « Réessayer l'envoi » : remplacé par le suivi des envois.
+
 ### Sécurité
 - Les comptes de l'équipe Refuge (admin, super admin, commercial) ne peuvent plus ouvrir de session
   sur le site : la connexion envoie `espace: 'public'` et le serveur les refuse (403) ; une session

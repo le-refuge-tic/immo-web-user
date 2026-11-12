@@ -8,6 +8,8 @@ import MainLayout from './components/MainLayout'
 import { AuthSwitch } from './components/ui/auth-switch'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import CookieBanner from './components/CookieBanner'
+import { ToastProvider } from './context/ToastContext'
+import SocleApp from './components/SocleApp'
 
 /* Pages légères chargées immédiatement (premier rendu critique) */
 import HomePage from './pages/home/HomePage'
@@ -105,6 +107,8 @@ function App() {
     <ScrollProvider>
     <BannerProvider>
     <NotificationsProvider>
+    <ToastProvider>
+    <SocleApp>
       <ErrorBoundary>
       <RouteAnnouncer />
       <Suspense fallback={<PageLoader />}>
@@ -197,6 +201,8 @@ function App() {
       </Suspense>
       <CookieBanner />
       </ErrorBoundary>
+    </SocleApp>
+    </ToastProvider>
     </NotificationsProvider>
     </BannerProvider>
     </ScrollProvider>
