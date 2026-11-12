@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/useTheme'
 import { ModalSheet } from './ui/ModalSheet'
 import { shareLinks, type ShareBien } from '../services/shareService'
 

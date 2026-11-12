@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockApp } from './support/mockApi'
+import { ajouterPhotos, mockApp } from './support/mockApi'
 
 // P4 — Propriétaire / démarcheur : publication d'une annonce, brouillon (FE-B-002).
 
@@ -43,8 +43,9 @@ test.describe("P4 publication d'annonce", () => {
     // Étape 5 — récapitulatif puis publication
     await expect(page.getByText('Récapitulatif de votre annonce')).toBeVisible()
     await expect(page.getByText('Quartier : Akpakpa')).toBeVisible()
+    await ajouterPhotos(page)
     await page.getByRole('button', { name: 'Publier le bien' }).click()
-    await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
+    await expect(page.getByText('Votre annonce est enregistrée.', { exact: false }).first()).toBeVisible()
   })
 
   test('« En finition / Bientôt » propose une date de disponibilité, envoyée à la publication', async ({ page }) => {
@@ -67,8 +68,9 @@ test.describe("P4 publication d'annonce", () => {
     await continuer.click()
 
     await expect(page.getByText('Disponible à partir du 15/03/2030')).toBeVisible()
+    await ajouterPhotos(page)
     await page.getByRole('button', { name: 'Publier le bien' }).click()
-    await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
+    await expect(page.getByText('Votre annonce est enregistrée.', { exact: false }).first()).toBeVisible()
 
     const creation = calls.find(c => c.method === 'POST' && c.path === '/biens')
     const body = JSON.parse(creation?.body ?? '{}') as { disponible_a?: string; amenites?: { disponibilite?: string } }
@@ -101,8 +103,9 @@ test.describe("P4 publication d'annonce", () => {
     await continuer.click()
 
     await expect(page.getByText('5 pièces : 3 chambres + 2 salons')).toBeVisible()
+    await ajouterPhotos(page)
     await page.getByRole('button', { name: 'Publier le bien' }).click()
-    await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
+    await expect(page.getByText('Votre annonce est enregistrée.', { exact: false }).first()).toBeVisible()
 
     const creation = calls.find(c => c.method === 'POST' && c.path === '/biens')
     const pieces = (JSON.parse(creation?.body ?? '{}') as { pieces?: { nom: string }[] }).pieces ?? []

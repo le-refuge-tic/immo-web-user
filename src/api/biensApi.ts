@@ -86,9 +86,11 @@ export const biensApi = {
   delete: (id: number) =>
     axios.delete<unknown>(`${BASE}/biens/${id}`, auth()).then(r => { invaliderBiens(id); return r.data }),
 
-  uploadPhoto: async (bienId: number, file: File) => {
+  /** `cleEnvoi` : clé d'idempotence (une reprise après rechargement ne crée pas de doublon). */
+  uploadPhoto: async (bienId: number, file: File, cleEnvoi?: string) => {
     const form = new FormData()
     form.append('photo', await compressImage(file))
+    if (cleEnvoi) form.append('cle_envoi', cleEnvoi)
     return axios.post<Photo>(`${BASE}/biens/${bienId}/photos`, form, {
       headers: {
         Authorization: `Bearer ${tokenStore.getToken()}`,

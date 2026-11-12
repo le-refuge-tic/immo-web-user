@@ -39,20 +39,20 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
     await allerAuxPhotos(page)
     await champPhotos(page).setInputFiles([photo('salon.png'), photo('chambre.png')])
     await champVideo(page).setInputFiles(VIDEO)
-    await expect(page.getByText('2/5 photos')).toBeVisible()
+    await expect(page.getByText('2/8 photos')).toBeVisible()
     await page.waitForTimeout(ATTENTE_ECRITURE_MS)
 
     await page.reload()
     await expect(page.getByText('Votre saisie précédente a été retrouvée, avec 2 photos et la vidéo.')).toBeVisible()
     await allerAuxPhotos(page)
-    await expect(page.getByText('2/5 photos')).toBeVisible()
+    await expect(page.getByText('2/8 photos')).toBeVisible()
     await expect(page.getByText('visite.mp4')).toBeVisible()
 
     await page.getByRole('button', { name: 'Tout effacer' }).click()
     await page.waitForLoadState('load')
     await expect(page.getByText('Votre saisie précédente a été retrouvée')).toHaveCount(0)
     await allerAuxPhotos(page)
-    await expect(page.getByText(/\/5 photo/)).toHaveCount(0)
+    await expect(page.getByText(/\/8 photo/)).toHaveCount(0)
     await expect(page.getByText('visite.mp4')).toHaveCount(0)
   })
 
@@ -62,12 +62,12 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
     await allerAuxPhotos(page)
     await champPhotos(page).setInputFiles([photo('salon.png'), photo('chambre.png')])
     await page.getByRole('button', { name: 'Retirer la photo' }).first().click()
-    await expect(page.getByText('1/5 photo')).toBeVisible()
+    await expect(page.getByText('1/8 photo')).toBeVisible()
     await page.waitForTimeout(ATTENTE_ECRITURE_MS)
 
     await page.reload()
     await allerAuxPhotos(page)
-    await expect(page.getByText('1/5 photo —')).toBeVisible()
+    await expect(page.getByText('1/8 photo —')).toBeVisible()
   })
 
   test('la déconnexion supprime les photos du brouillon (appareil partagé)', async ({ page }) => {
@@ -81,7 +81,7 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
 
     // L'assistant de publication est plein écran : la déconnexion se fait depuis le profil.
     await page.goto('/profil')
-    await page.getByRole('button', { name: 'Se déconnecter' }).locator('visible=true').first().click()
+    await page.getByRole('button', { name: /^(Se déconnecter|Déconnexion)$/ }).locator('visible=true').first().click()
     await expect.poll(baseMedias).toBe(false)
   })
 
@@ -89,14 +89,16 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
     await mockApp(page, { role: 'demarcheur' })
     await page.goto('/nouveau-bien')
     await allerAuxPhotos(page)
-    await champPhotos(page).setInputFiles([photo('salon.png')])
+    await champPhotos(page).setInputFiles([photo('salon.png'), photo('chambre.png')])
     await page.waitForTimeout(ATTENTE_ECRITURE_MS)
     await page.getByRole('button', { name: 'Publier le bien' }).click()
-    await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
+    // Lot 1 : retour immédiat au tableau de bord, la photo part en arrière-plan.
+    await expect(page).toHaveURL(/\/demarcheur$/)
+    await expect(page.getByText(/Toutes les photos de .* sont en ligne/)).toBeVisible()
 
     await page.goto('/nouveau-bien')
     await expect(page.getByText('Votre saisie précédente a été retrouvée')).toHaveCount(0)
     await allerAuxPhotos(page)
-    await expect(page.getByText(/\/5 photo/)).toHaveCount(0)
+    await expect(page.getByText(/\/8 photo/)).toHaveCount(0)
   })
 })

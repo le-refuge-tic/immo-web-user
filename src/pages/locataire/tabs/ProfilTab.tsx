@@ -1,7 +1,7 @@
 import AppearanceSetting from '../../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import { walletApi } from '../../../api/walletApi'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { GREEN, GREEN_TX } from '../shared'

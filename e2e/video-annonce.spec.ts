@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { BIEN, mockApp, type MockResponse } from './support/mockApi'
+import { ajouterPhotos, BIEN, mockApp, type MockResponse } from './support/mockApi'
 
 // Vidéo d'annonce : affichée sur la fiche sans téléchargement préalable ; format vérifié au choix ;
 // un envoi qui échoue après la publication est signalé au lieu d'être ignoré.
@@ -46,8 +46,8 @@ test('une vidéo qui n’est pas en MP4 est refusée dès le choix', async ({ pa
 
 test('un envoi de vidéo qui échoue après la publication est signalé et peut être relancé', async ({ page }) => {
   let envois = 0
-  // Premier envoi en panne, le second réussit.
-  const video = (): MockResponse => (++envois === 1
+  // Les 3 essais automatiques échouent (1 + 2 réessais), « Réessayer » réussit.
+  const video = (): MockResponse => (++envois <= 3
     ? { status: 500, body: { message: 'stockage indisponible' } }
     : { status: 201, body: { video_url: 'https://cdn.test/videos/v1.mp4' } })
   await mockApp(page, {
@@ -57,14 +57,16 @@ test('un envoi de vidéo qui échoue après la publication est signalé et peut 
   await page.goto('/nouveau-bien')
   await allerAuxPhotos(page)
   await champVideo(page).setInputFiles({ name: 'visite.mp4', mimeType: 'video/mp4', buffer: Buffer.from('fausse video') })
+  await ajouterPhotos(page)
   await page.getByRole('button', { name: 'Publier le bien' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Bien soumis !' })).toBeVisible()
-  const alerte = page.getByRole('alert').filter({ hasText: "La vidéo n'a pas pu être envoyée" })
-  await expect(alerte).toBeVisible()
+  // Lot 1 : retour au tableau de bord ; l'échec est signalé par l'indicateur d'envoi.
+  await expect(page).toHaveURL(/\/demarcheur$/)
+  await expect(page.getByText(/1 fichier non envoyé/)).toBeVisible({ timeout: 20_000 })
+  expect(envois).toBe(3)
 
-  // Nouvel essai depuis l'écran de confirmation : la vidéo part, l'avertissement disparaît.
-  await page.getByRole('button', { name: "Réessayer l'envoi" }).click()
-  await expect(alerte).toHaveCount(0)
-  expect(envois).toBe(2)
+  await page.getByRole('button', { name: 'Réessayer' }).click()
+  await expect(page.getByText(/Toutes les photos de .* sont en ligne/)).toBeVisible()
+  await expect(page.getByText(/1 fichier non envoyé/)).toHaveCount(0)
+  expect(envois).toBe(4)
 })

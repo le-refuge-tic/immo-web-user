@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../config/inscription'
-import { useNotifications } from '../context/NotificationsContext'
-import { useScrolled } from '../context/ScrollContext'
-import { useTheme } from '../context/ThemeContext'
+import { useNotifications } from '../context/useNotifications'
+import { useScrolled } from '../context/useScrolled'
+import { useTheme } from '../context/useTheme'
 import logoUrl from '../assets/REFUGE-LOGO.webp'
 
 // Liens texte : 4 entrées sur tablette, 5 dès 1024 px (« Mes visites », aussi dans le menu

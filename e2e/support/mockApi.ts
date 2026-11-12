@@ -198,7 +198,10 @@ export async function mockApp(page: Page, { role = 'prospect', mocks = {}, logge
       result = typeof route === 'function' ? route(req, calls) : route
     }
 
-    const fallback = path === '/visites' || path === '/biens' ? { data: [] } : {}
+    // Création d'annonce : un bien avec un identifiant, pour que l'envoi des photos démarre.
+    const fallback = method === 'POST' && path === '/biens'
+      ? { id: 1, type: 'appart_vide' }
+      : path === '/visites' || path === '/biens' ? { data: [] } : {}
     if (result?.delayMs) await new Promise(resolve => setTimeout(resolve, result.delayMs))
     return route.fulfill({
       status: result?.status ?? 200,
@@ -207,4 +210,14 @@ export async function mockApp(page: Page, { role = 'prospect', mocks = {}, logge
     })
   })
   return calls
+}
+
+/** PNG 1×1 valide, pour les champs photo. */
+const PNG_1PX = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')
+
+/** Ajoute `n` photos à l'étape « Photos » de l'assistant de publication (2 au minimum pour publier). */
+export async function ajouterPhotos(page: Page, n = 2): Promise<void> {
+  await page.locator('input[type="file"][accept^="image"]').setInputFiles(
+    Array.from({ length: n }, (_, i) => ({ name: `photo-${i + 1}.png`, mimeType: 'image/png', buffer: PNG_1PX })),
+  )
 }

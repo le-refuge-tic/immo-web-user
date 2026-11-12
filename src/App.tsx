@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
+import { AuthProvider } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
 import { NotificationsProvider } from './context/NotificationsContext'
 import { BannerProvider } from './context/BannerContext'
 import { ScrollProvider } from './context/ScrollContext'
@@ -8,6 +9,8 @@ import MainLayout from './components/MainLayout'
 import { AuthSwitch } from './components/ui/auth-switch'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import CookieBanner from './components/CookieBanner'
+import { ToastProvider } from './context/ToastContext'
+import SocleApp from './components/SocleApp'
 
 /* Pages légères chargées immédiatement (premier rendu critique) */
 import HomePage from './pages/home/HomePage'
@@ -105,6 +108,8 @@ function App() {
     <ScrollProvider>
     <BannerProvider>
     <NotificationsProvider>
+    <ToastProvider>
+    <SocleApp>
       <ErrorBoundary>
       <RouteAnnouncer />
       <Suspense fallback={<PageLoader />}>
@@ -197,6 +202,8 @@ function App() {
       </Suspense>
       <CookieBanner />
       </ErrorBoundary>
+    </SocleApp>
+    </ToastProvider>
     </NotificationsProvider>
     </BannerProvider>
     </ScrollProvider>

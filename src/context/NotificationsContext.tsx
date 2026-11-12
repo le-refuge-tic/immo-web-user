@@ -1,33 +1,15 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { avatarGradient } from '../theme/illustrations'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import type { Socket } from 'socket.io-client'
-import { useAuth } from './AuthContext'
-import { useBanner } from './BannerContext'
+import { useAuth } from './useAuth'
+import { useBanner } from './useBanner'
 import { notificationsApi } from '../api/notificationsApi'
 import { chatApi } from '../api/chatApi'
 import { API_ORIGIN } from '../api/apiBase'
 import { tokenStore } from '../utils/tokenStore'
-
-type NotifCtx = {
-  /** Alertes non lues, tous rôles confondus (barre de navigation principale). */
-  unreadAlertes: number
-  /** Alertes non lues de l'espace actif (même filtre que la liste de cet espace). */
-  unreadAlertesEspace: number
-  unreadMessages: number
-  refresh: () => void
-  /** Décrément immédiat après une lecture, avant la confirmation serveur. */
-  markAlertesRead: (n?: number) => void
-}
-
-const NotificationsContext = createContext<NotifCtx>({
-  unreadAlertes: 0,
-  unreadAlertesEspace: 0,
-  unreadMessages: 0,
-  refresh: () => {},
-  markAlertesRead: () => {},
-})
+import { NotificationsContext } from './useNotifications'
 
 // Filet de sécurité si le WebSocket est coupé ; les mises à jour normales
 // arrivent par les événements alertes:maj / messages:maj.
@@ -175,5 +157,3 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     </NotificationsContext.Provider>
   )
 }
-
-export const useNotifications = () => useContext(NotificationsContext)

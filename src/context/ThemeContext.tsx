@@ -1,20 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-
-type Theme = 'light' | 'dark'
-export type ThemePreference = Theme | 'system'
-
-interface ThemeContextValue {
-  /** Thème réellement appliqué (après résolution de « system »). */
-  theme: Theme
-  /** Choix de l'utilisateur, réglable uniquement depuis Paramètres → Apparence. */
-  preference: ThemePreference
-  setPreference: (p: ThemePreference) => void
-}
+import { useEffect, useState } from 'react'
+import { ThemeContext, type Theme, type ThemePreference } from './useTheme'
 
 const STORAGE_KEY = 'rg_theme'
 const DARK_QUERY = '(prefers-color-scheme: dark)'
-
-const ThemeContext = createContext<ThemeContextValue>({ theme: 'light', preference: 'system', setPreference: () => {} })
 
 function readPreference(): ThemePreference {
   try {
@@ -55,5 +43,3 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return <ThemeContext.Provider value={{ theme, preference, setPreference }}>{children}</ThemeContext.Provider>
 }
-
-export const useTheme = () => useContext(ThemeContext)
