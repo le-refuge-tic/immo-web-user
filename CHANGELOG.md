@@ -22,6 +22,20 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
   `src/shared/dialogues`) ; `npm run check:no-native-dialogs` refuse `window.confirm`, `alert`
   et `prompt`.
 
+### Corrigé
+- Étape « Honoraires » de « Nouveau bien » : une réponse inattendue de `/configuration/frais-visite`
+  (corps vide, autre format) faisait planter l'étape (`toLocaleString` sur `undefined`) ; le tarif
+  standard s'affiche désormais.
+- Publication sans fichier : un toast confirme l'enregistrement et rappelle d'ajouter des photos.
+- Photos envoyées avec une clé d'idempotence (`cle_envoi`) : une reprise après rechargement ne crée
+  plus de doublon.
+
+### Tests
+- Nouveau parcours Playwright `envois-arriere-plan` : retour immédiat, indicateur, avertissement à la
+  fermeture, reprise après rechargement sans doublon, « Ignorer ».
+- Parcours de publication, brouillon et vidéo remis à jour (2 photos minimum, 8 au maximum, bouton
+  « Déconnexion », suivi des envois) : ils échouaient déjà sur staging.
+
 ### Maintenance
 - `npm run check` repasse au vert : les 40 avertissements de lint sont corrigés (variables
   inutilisées ; constantes et hooks sortis des fichiers de composants : `tabs/outils.ts`,

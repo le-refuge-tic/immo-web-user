@@ -14,6 +14,7 @@ import { suggestPush } from '../../../lib/push'
 
 import { normalizeStr, parsePrix, TYPES_BIEN } from './options'
 import { useGestionEnvois } from '../../../shared/uploads/useGestionEnvois'
+import { useToast } from '../../../context/useToast'
 import type { TarifCustom, DetailCustom } from './options'
 import { PHOTOS_MIN } from './photosRegles'
 export function useNouveauBienForm() {
@@ -31,6 +32,7 @@ export function useNouveauBienForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const { demarrer } = useGestionEnvois()
+  const toast = useToast()
   const [photos, setPhotos] = useState<File[]>([])
   const [video, setVideo] = useState<File | null>(null)
   // Photos et vidéo du brouillon, gardées à part dans IndexedDB (FE-B-002)
@@ -370,7 +372,7 @@ export function useNouveauBienForm() {
       track('annonce_publiee', { type: String(bien.type ?? '') })
 
       // Lot 1 : photos et vidéo partent en arrière-plan ; retour immédiat à « Mes biens ».
-      if (bien.id) {
+      if (bien.id && (photos.length || video)) {
         const typeLibelle = TYPES_BIEN.find(t => t.key === typeBien)?.label ?? 'Mon bien'
         demarrer({
           bienId: bien.id,
@@ -380,6 +382,9 @@ export function useNouveauBienForm() {
           video,
         })
       }
+
+      // Sans fichier, le gestionnaire d'envois ne dit rien : la confirmation vient d'ici.
+      else toast('Votre annonce est enregistrée. Ajoutez des photos pour qu’elle parte en validation.', 'info')
 
       draft.clear()
       // Sans attendre : le bien est créé, un stockage lent ne doit pas retarder la suite.
