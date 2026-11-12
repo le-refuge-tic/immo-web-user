@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import type { Visite } from '../../../types/api'
 import { fmtVisiteDate } from './helpers'
+import { AnnulationVisiteDialog } from '../../../components/AnnulationVisiteDialog'
+import type { ChoixAnnulation } from '../../../utils/annulationVisite'
 
 // ─── Barre d'action (bottom bar mobile fixe / panneau desktop) ─────────────
 export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibilite, visiteActive, visiteCancellee, visiteEchouee, onAnnuler, annulerBusy, onProposerVisite, onModifier, fraisVisite }: {
   isOwnBien: boolean; isOccupeLocal: boolean; togglingStatut: boolean; onToggleDisponibilite: () => void
   fraisVisite?: number | string | null
   visiteActive: Visite | null; visiteCancellee: Visite | null; visiteEchouee: Visite | null
-  onAnnuler: () => void; annulerBusy: boolean
+  onAnnuler: (choix: ChoixAnnulation) => Promise<void>; annulerBusy: boolean
   onProposerVisite: () => void
   onModifier: () => void
 }) {
@@ -51,27 +53,21 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
             Visite {visiteActive.statut === 'confirmee' ? 'confirmée' : 'en attente'} · {fmtVisiteDate(visiteActive.date_contre_proposee || visiteActive.date_souhaitee)}
           </p>
         </div>
-        {confirmAnnuler ? (
-          <div className="flex gap-2.5">
-            <button onClick={() => { onAnnuler(); setConfirmAnnuler(false) }} disabled={annulerBusy}
-              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: 'var(--c-danger)' }}>
-              {annulerBusy ? '…' : 'Confirmer l\'annulation'}
-            </button>
-            <button onClick={() => setConfirmAnnuler(false)}
-              className="flex-1 py-3 rounded-xl border text-sm font-bold text-text-dark border-divider">
-              Retour
-            </button>
+        <div className="flex gap-2.5">
+          <div className="flex-1 py-3 rounded-xl border text-sm font-bold text-primary border-primary flex items-center justify-center">
+            {fmtVisiteDate(visiteActive.date_contre_proposee || visiteActive.date_souhaitee)}
           </div>
-        ) : (
-          <div className="flex gap-2.5">
-            <div className="flex-1 py-3 rounded-xl border text-sm font-bold text-primary border-primary flex items-center justify-center">
-              {fmtVisiteDate(visiteActive.date_contre_proposee || visiteActive.date_souhaitee)}
-            </div>
-            <button onClick={() => setConfirmAnnuler(true)} disabled={annulerBusy}
-              className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: 'var(--c-danger)' }}>
-              Annuler la visite
-            </button>
-          </div>
+          <button onClick={() => setConfirmAnnuler(true)} disabled={annulerBusy}
+            className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60" style={{ background: 'var(--c-danger)' }}>
+            Annuler la visite
+          </button>
+        </div>
+        {confirmAnnuler && (
+          <AnnulationVisiteDialog
+            visite={visiteActive} busy={annulerBusy}
+            onClose={() => { if (!annulerBusy) setConfirmAnnuler(false) }}
+            onConfirm={async choix => { await onAnnuler(choix); setConfirmAnnuler(false) }}
+          />
         )}
       </div>
     )

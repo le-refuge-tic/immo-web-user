@@ -253,6 +253,12 @@ export interface Visite {
   statut: StatutVisite
   frais_visite?: number | string
   paiement_effectue?: boolean
+  /** Réglée sans paiement propre : `report` (visite annulée ≥ 24 h avant) ou `bonus` (visite offerte le même jour). */
+  couverture?: 'report' | 'bonus' | null
+  /** Visite dont le paiement couvre celle-ci. */
+  visite_payante_id?: number | null
+  /** Visite annulée avec report : date limite pour réserver à nouveau ce bien sans payer. */
+  report_jusquau?: IsoDate | null
   client_decision_integration?: boolean | null
   paiement_integration_effectue?: boolean
   numeros_partages?: boolean

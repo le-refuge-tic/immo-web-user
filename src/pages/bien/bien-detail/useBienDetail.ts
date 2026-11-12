@@ -6,6 +6,7 @@ import { biensApi } from '../../../api/biensApi'
 import { queryKeys } from '../../../api/queryKeys'
 import { unwrapList } from '../../../utils/unwrapList'
 import { visitesApi } from '../../../api/visitesApi'
+import type { ChoixAnnulation } from '../../../utils/annulationVisite'
 import { shareBien } from '../../../services/shareService'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { usePageTitle } from '../../../utils/usePageTitle'
@@ -154,13 +155,13 @@ export function useBienDetail() {
     setTogglingStatut(false)
   }
 
-  const annulerVisite = async () => {
+  const annulerVisite = async (choix?: ChoixAnnulation) => {
     if (!visiteActive) return
     setConfirmAnnulerVisite(false)
     setAnnulerBusy(true)
     setActionError('')
     try {
-      await visitesApi.annuler(visiteActive.id)
+      await visitesApi.annuler(visiteActive.id, choix)
       setVisiteCancellee(visiteActive); setVisiteActive(null)
     } catch (e: unknown) {
       setActionError(apiMessage(e) || "L'annulation de la visite a échoué. Réessayez.")

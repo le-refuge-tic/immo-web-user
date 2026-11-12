@@ -19,6 +19,8 @@ import { useAvisVisite } from './visites/useAvisVisite'
 import { PaiementModal } from './visites/PaiementModal'
 import { FeedbackModal } from './visites/FeedbackModal'
 import { ConfirmDialog } from './visites/ConfirmDialog'
+import { AnnulationVisiteDialog } from '../../components/AnnulationVisiteDialog'
+import type { ChoixAnnulation } from '../../utils/annulationVisite'
 
 export default function MesVisitesPage() {
   usePageTitle('Mes visites')
@@ -34,6 +36,9 @@ export default function MesVisitesPage() {
   const pay = usePaiementVisite({ loadVisites })
   const { setShowPay } = pay
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
+  // Annulation (ou refus d'une contre-proposition) : remboursement ou report selon la grille.
+  const [annulation, setAnnulation] = useState<{ visite: Visite; echec: string; titre?: string; texte?: string } | null>(null)
+  const [annulationBusy, setAnnulationBusy] = useState(false)
   // Échec d'une action (annuler, confirmer…) : le bouton de la carte reste utilisable pour recommencer.
   const [actionError, setActionError] = useState('')
   const echecAction = (e: unknown, repli: string) => setActionError(apiMessage(e) || repli)
@@ -67,21 +72,20 @@ export default function MesVisitesPage() {
     return true
   })
 
-  const handleAnnuler = (v: Visite) => {
-    const body = v.statut === 'confirmee'
-      ? 'Cette visite est déjà confirmée. Voulez-vous vraiment l\'annuler ?'
-      : 'Voulez-vous vraiment annuler cette demande de visite ?'
-    setConfirmDialog({
-      title: 'Annuler la visite ?',
-      body,
-      onConfirm: async () => {
-        setConfirmDialog(null)
-        // Recharger même en cas d'erreur réseau — le serveur a peut-être traité
-        // la demande (cold start Render) et l'état affiché doit refléter la réalité.
-        setActionError('')
-        try { await visitesApi.annuler(v.id) } catch (e: unknown) { echecAction(e, "L'annulation de la visite a échoué. Réessayez.") } finally { loadVisites() }
-      },
-    })
+  const handleAnnuler = (v: Visite) => setAnnulation({ visite: v, echec: "L'annulation de la visite a échoué. Réessayez." })
+
+  const confirmerAnnulation = async (choix: ChoixAnnulation) => {
+    if (!annulation) return
+    const { visite, echec } = annulation
+    setAnnulationBusy(true)
+    setActionError('')
+    // Recharger même en cas d'erreur réseau — le serveur a peut-être traité
+    // la demande (cold start Render) et l'état affiché doit refléter la réalité.
+    try { await visitesApi.annuler(visite.id, choix) } catch (e: unknown) { echecAction(e, echec) } finally {
+      setAnnulationBusy(false)
+      setAnnulation(null)
+      loadVisites()
+    }
   }
 
   const handleMarquerEffectuee = (v: Visite) => {
@@ -106,17 +110,12 @@ export default function MesVisitesPage() {
     }
   }
 
-  const handleRefuserCP = (v: Visite) => {
-    setConfirmDialog({
-      title: 'Refuser le créneau proposé ?',
-      body: 'La visite sera annulée. Vous pouvez faire une nouvelle demande si vous le souhaitez.',
-      onConfirm: async () => {
-        setConfirmDialog(null)
-        setActionError('')
-        try { await visitesApi.annuler(v.id) } catch (e: unknown) { echecAction(e, 'Le refus du créneau a échoué. Réessayez.') } finally { loadVisites() }
-      },
-    })
-  }
+  const handleRefuserCP = (v: Visite) => setAnnulation({
+    visite: v,
+    titre: 'Refuser le créneau proposé ?',
+    texte: 'La visite sera annulée. Vous pouvez faire une nouvelle demande si vous le souhaitez.',
+    echec: 'Le refus du créneau a échoué. Réessayez.',
+  })
 
   const handleReproposer = async (id: number, isoDate: string) => {
     setActionError('')
@@ -231,6 +230,12 @@ export default function MesVisitesPage() {
 
       {/* Confirm dialog */}
       {confirmDialog && <ConfirmDialog dialog={confirmDialog} onClose={() => setConfirmDialog(null)} />}
+      {annulation && (
+        <AnnulationVisiteDialog
+          visite={annulation.visite} titre={annulation.titre} texte={annulation.texte} busy={annulationBusy}
+          onClose={() => { if (!annulationBusy) setAnnulation(null) }} onConfirm={confirmerAnnulation}
+        />
+      )}
     </div>
   )
 }

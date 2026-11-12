@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { FeedbackVisiteBody, ListResponse, Visite, VisitesConfirmeesResponse } from '../types/api'
 import { BASE, auth } from './apiBase'
+import type { ChoixAnnulation } from '../utils/annulationVisite'
 
 export interface ReserverVisiteBody { bien_id: number; date_souhaitee?: string; creneau_id?: number }
 
@@ -11,8 +12,9 @@ export const visitesApi = {
   reserver: (body: ReserverVisiteBody) =>
     axios.post<Visite>(`${BASE}/visites`, body, auth()).then(r => r.data),
 
-  annuler: (id: number) =>
-    axios.patch<Visite>(`${BASE}/visites/${id}/annuler`, {}, auth()).then(r => r.data),
+  /** `choix` : visite payée annulée par le prospect — remboursement (défaut) ou report gratuit (≥ 24 h avant). */
+  annuler: (id: number, choix?: ChoixAnnulation) =>
+    axios.patch<Visite>(`${BASE}/visites/${id}/annuler`, choix ? { choix } : {}, auth()).then(r => r.data),
 
   // propriétaire / démarcheur
   reservationsRecues: () =>

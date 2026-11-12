@@ -14,6 +14,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import type { User } from '../../types/api'
 import ErrorState from '../../components/ErrorState'
 import { dateEffectiveVisite } from '../../utils/dateVisite'
+import { AnnulationVisiteDialog } from '../../components/AnnulationVisiteDialog'
+import type { ChoixAnnulation } from '../../utils/annulationVisite'
 
 const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
@@ -235,13 +237,13 @@ export default function ProfilePage() {
     requestAnimationFrame(() => requestAnimationFrame(logout))
   }
 
-  const handleAnnuler = async () => {
+  const handleAnnuler = async (choix: ChoixAnnulation) => {
     if (!visiteActive) return
     setConfirmAnnulerVisite(false)
     // Recharger même en cas d'erreur réseau — le serveur a peut-être traité la
     // demande (cold start Render) et l'état affiché doit refléter la réalité.
     try {
-      await visitesApi.annuler(visiteActive.id)
+      await visitesApi.annuler(visiteActive.id, choix)
     } catch {
     } finally {
       try {
@@ -372,18 +374,14 @@ export default function ProfilePage() {
             </svg>
           )}
         </button>
-        {confirmAnnulerVisite ? (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button onClick={handleAnnuler} className="text-caption font-bold text-white px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--c-danger)' }}>Confirmer</button>
-            <button onClick={() => setConfirmAnnulerVisite(false)} className="text-caption font-bold px-2 py-1.5 rounded-[8px]" style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--c-grey)' }}>✕</button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmAnnulerVisite(true)}
-            className="text-caption font-bold text-[color:var(--tx-red)] px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
-            style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
-            Annuler
-          </button>
+        <button
+          onClick={() => setConfirmAnnulerVisite(true)}
+          className="text-caption font-bold text-[color:var(--tx-red)] px-2.5 py-1.5 rounded-[8px] flex-shrink-0"
+          style={{ background: 'rgba(244,67,54,0.08)', border: '1px solid rgba(244,67,54,0.3)' }}>
+          Annuler
+        </button>
+        {confirmAnnulerVisite && (
+          <AnnulationVisiteDialog visite={visiteActive} onClose={() => setConfirmAnnulerVisite(false)} onConfirm={handleAnnuler} />
         )}
       </div>
     )

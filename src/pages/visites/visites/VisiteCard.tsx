@@ -6,6 +6,7 @@ import { fmtDate, isDatePasseeVisite, isEchoueeVisite } from './helpers'
 import { dateEffectiveVisite } from '../../../utils/dateVisite'
 import { apiMessage } from '../../../utils/apiMessage'
 import type { Visite } from '../../../types/api'
+import { CouvertureVisite } from './CouvertureVisite'
 
 type VisiteCardProps = {
   visite: Visite
@@ -104,6 +105,8 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
           <span>{v.statut === 'confirmee' ? 'Prévue' : 'Souhaitée'} : {fmtDate(dateEffectiveVisite(v))}</span>
         </div>
       )}
+
+      <CouvertureVisite visite={v} />
 
       {/* Contact partagé — visible ~30 min avant une visite confirmée */}
       {!isEchouee && v.statut === 'confirmee' && v.numeros_partages && (
