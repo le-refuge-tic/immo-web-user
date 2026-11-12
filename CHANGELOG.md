@@ -11,6 +11,16 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 2 — référentiel des types)
+- Référentiel unique des types de biens (`src/shared/biens/referentielTypes.ts`, copie de
+  `GET /referentiels/types-biens`) : catégories (résidentiel, terrain, commercial, court séjour,
+  événementiel) puis sous-types, avec type et sous-type en base, transactions, photos minimum.
+- « Nouveau bien » : choix du type en deux temps, catégorie en grandes cartes puis sous-type en
+  puces. Nouveaux sous-types : duplex / grande propriété (meublable) et local commercial / showroom.
+- Accueil : la transaction (Tous · À louer · À vendre) et le type de bien sont sur deux lignes
+  distinctes. « Appartement » couvre les appartements vides et meublés ; nouveaux filtres
+  « Chambre-salon » et « Commerce » ; « Maison / Villa » n'inclut plus les locaux commerciaux.
+
 ### Ajouté (lot 1 — socle)
 - Envoi des photos en arrière-plan : après « Publier le bien », retour immédiat à « Mes biens » ;
   la couverture part d'abord, puis 2 photos en parallèle, puis la vidéo, avec 2 réessais

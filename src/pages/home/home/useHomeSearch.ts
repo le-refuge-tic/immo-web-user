@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { rechercherQuartiers, type Quartier } from '../../../data/quartiers'
 import { track } from '../../../lib/analytics'
-import { isSousType } from './constants'
+import { parametresFiltre } from '../../../shared/biens/referentielTypes'
 
 /** État de la recherche (champ ville/quartier, opération, type, budget) et navigation vers /search. */
 export function useHomeSearch() {
@@ -23,7 +23,8 @@ export function useHomeSearch() {
     const params = new URLSearchParams()
     if (search.trim()) params.set('q', search.trim())
     if (transaction) params.set('transaction', transaction)
-    if (type) { params.set(isSousType(type) ? 'sous_type' : 'type', type) }
+    // Lot 2 : un filtre peut couvrir plusieurs types (« Appartement » = vide et meublé).
+    for (const [cle, valeur] of Object.entries(parametresFiltre(type))) if (valeur) params.set(cle, valeur)
     if (minVal != null) params.set('prix_min', String(minVal))
     if (maxVal != null) params.set('prix_max', String(maxVal))
     const qs = params.toString()

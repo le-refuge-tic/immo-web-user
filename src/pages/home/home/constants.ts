@@ -26,36 +26,11 @@ export function matchLoc(bien: BienLocalisable, query: string) {
   return fields.some(f => f.includes(q))
 }
 
-type Category = { key: string; label: string; transaction: string; type: string }
-export const CATEGORIES: Category[] = [
-  { key: 'Tous',        label: 'Tous',        transaction: '',         type: '' },
-  { key: 'location',    label: 'À louer',     transaction: 'location', type: '' },
-  { key: 'vente',       label: 'À vendre',    transaction: 'vente',    type: '' },
-  { key: 'maison',      label: 'Maison',      transaction: '',         type: 'maison' },
-  { key: 'appartement', label: 'Appartement', transaction: '',         type: 'appart_vide' },
-  { key: 'terrain',     label: 'Terrain',     transaction: '',         type: 'terrain' },
-  { key: 'guesthouse',  label: 'Guesthouse',  transaction: '',         type: 'guesthouse' },
-  { key: 'salle_fete',  label: 'Salle de fêtes', transaction: '',      type: 'salle_fete' },
-]
-
 export const TRANSACTIONS = [
   { key: '',         label: 'Tous' },
   { key: 'location', label: 'À louer' },
   { key: 'vente',    label: 'À vendre' },
 ]
-
-export const TYPES = [
-  { key: '',              label: 'Tous les types' },
-  { key: 'maison',        label: 'Maison' },
-  { key: 'appart_vide',   label: 'Appart. vide' },
-  { key: 'appart_meuble', label: 'Appart. meublé' },
-  { key: 'chambre_salon', label: 'Chambre-Salon' },
-  { key: 'terrain',       label: 'Terrain' },
-  { key: 'guesthouse',    label: 'Guesthouse' },
-  { key: 'salle_fete',    label: 'Salle de fêtes' },
-]
-
-export const isSousType = (t: string) => t === 'chambre_salon'
 
 export const BUDGET_PRESETS = [
   { label: '< 50K',  max: 50_000 },

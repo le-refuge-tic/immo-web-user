@@ -2,7 +2,8 @@ import { useAuth } from '../../context/useAuth'
 import { useTheme } from '../../context/useTheme'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { useCarouselAutoplay } from '../../hooks/useCarouselAutoplay'
-import { isSousType, matchLoc } from './home/constants'
+import { matchLoc } from './home/constants'
+import { correspondAuFiltre } from '../../shared/biens/referentielTypes'
 import { useTokens } from './home/tokens'
 import { useHomeSearch } from './home/useHomeSearch'
 import { useHomeListings } from './home/useHomeListings'
@@ -27,7 +28,7 @@ export default function HomePage() {
 
   const displayedBiens = biens
     .filter(b => !transaction || b.transaction === transaction)
-    .filter(b => !type || (isSousType(type) ? b.amenites?.sous_type === type : b.type === type))
+    .filter(b => correspondAuFiltre(type, b))
     .filter(b => !search.trim() || matchLoc(b, search.trim()))
     .filter(b => minVal == null || Number(b.prix) >= minVal)
     .filter(b => maxVal == null || Number(b.prix) <= maxVal)

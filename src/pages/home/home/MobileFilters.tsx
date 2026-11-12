@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Reveal from '../../../components/Reveal'
-import { BUDGET_PRESETS, TRANSACTIONS, TYPES } from './constants'
+import { BUDGET_PRESETS, TRANSACTIONS } from './constants'
+import { FILTRES_TYPE } from '../../../shared/biens/referentielTypes'
 import { PinIcon, XIcon } from './icons'
 import { panelColors, type Tokens } from './tokens'
 import type { HomeSearch } from './useHomeSearch'
@@ -85,11 +86,11 @@ export default function MobileFilters({ s, isDark, tk }: MobileFiltersProps) {
       <div className="mb-4">
         <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: tk.textMuted }}>Type de bien</p>
         <div className="flex flex-wrap gap-2">
-          {TYPES.map(t => (
-            <button key={t.key} onClick={() => setType(t.key)}
+          {FILTRES_TYPE.map(t => (
+            <button key={t.cle || 'tous'} onClick={() => setType(t.cle)}
               className="px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-              style={type === t.key ? tk.pillActive : tk.pillIdle}>
-              {t.label}
+              style={type === t.cle ? tk.pillActive : tk.pillIdle}>
+              {t.libelle}
             </button>
           ))}
         </div>

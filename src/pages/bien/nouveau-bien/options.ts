@@ -8,16 +8,6 @@ export const BLUE = '#4160F2'
 export type TarifCustom = { label: string; prix: string }
 export type DetailCustom = { label: string; valeur: string }
 
-export const TYPES_BIEN = [
-  { key: 'entree_coucher', label: 'Entrée-Coucher' },
-  { key: 'chambre_salon', label: 'Chambre-Salon' },
-  { key: 'appartement', label: 'Appartement' },
-  { key: 'villa', label: 'Villa' },
-  { key: 'maison', label: 'Maison' },
-  { key: 'terrain', label: 'Terrain / Parcelle' },
-  { key: 'boutique', label: 'Boutique' },
-  { key: 'bureau', label: 'Bureau' },
-]
 
 export const SANITAIRE_OPTS = [
   { value: 'interieur', label: 'Sanitaire',        sub: 'Douche intérieure au logement' },
