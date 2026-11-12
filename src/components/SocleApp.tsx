@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useToast } from '../context/useToast'
+import { useAuth } from '../context/AuthContext'
 import { ConfirmProvider } from '../shared/dialogues/confirmation'
 import { GestionEnvoisProvider } from '../shared/uploads/GestionEnvois'
 import type { Envoyeur } from '../shared/uploads/fileEnvoi'
@@ -16,9 +17,11 @@ const envoyerMedia: Envoyeur = async (bienId, el) => {
 /** Lot 1 — dialogues de confirmation et envois en arrière-plan, communs à toutes les pages. */
 export default function SocleApp({ children }: { children: ReactNode }) {
   const toast = useToast()
+  const { user } = useAuth()
+  const utilisateurId = user?.id ?? null
   return (
     <ConfirmProvider Rendu={ConfirmDialog}>
-      <GestionEnvoisProvider envoyer={envoyerMedia} notifier={toast}>
+      <GestionEnvoisProvider envoyer={envoyerMedia} notifier={toast} utilisateurId={utilisateurId}>
         {children}
         <IndicateurEnvois />
       </GestionEnvoisProvider>
