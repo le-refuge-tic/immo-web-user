@@ -183,11 +183,11 @@ export default function ReservationPage() {
 
       setConfirmation({ dateLabel: dateTimeLabel() })
     } catch (e: unknown) {
-      // Fallback si le 403 passe malgré le garde-fou (token pas encore à jour) :
-      // message explicite au lieu du « Forbidden resource » brut du backend.
-      const msg = (e as { response?: { status?: number } } | null)?.response?.status === 403
-        ? 'Activez le profil prospect pour proposer une visite.'
-        : (apiMessage(e) || 'Erreur lors de la réservation')
+      // Un refus motivé par l'API (ex. « votre propre bien ») est affiché tel quel ;
+      // seul le 403 générique du contrôle de rôle invite à activer le profil prospect.
+      const est403 = (e as { response?: { status?: number } } | null)?.response?.status === 403
+      const msg = apiMessage(e)
+        || (est403 ? 'Activez le profil prospect pour proposer une visite.' : 'Erreur lors de la réservation')
       setError(msg)
       setSubmitting(false)
     }
