@@ -284,7 +284,8 @@ export function useNouveauBienForm() {
       if (loyerPrepayeMois > 0) a.loyer_prepaye_mois = loyerPrepayeMois
       if (typeTransaction === 'location') {
         a.echeance_mois = echeanceMois
-        a.commission_agence = isDemarcheur ? (parsePrix(commissionMontant) ?? 0) : prixPrincipal * 0.5
+        // Lot 4 : la commission d'agence du propriétaire est fixée par le serveur (50 % du loyer).
+        if (isDemarcheur) a.commission_agence = parsePrix(commissionMontant) ?? 0
       }
       if (cEau > 0) a.caution_eau = cEau
       if (cElec > 0) a.caution_elec = cElec

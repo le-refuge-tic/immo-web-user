@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   categoriesAvec, sousTypeParCle, sousTypesDe,
-  type CategorieBien, type FormulaireBien,
+  type CategorieBien, type FormulaireBien, type SousTypeReferentiel,
 } from '../shared/biens/referentielTypes'
 
 const ICONES: Record<string, string> = {
@@ -18,13 +18,15 @@ interface SelecteurTypeBienProps {
   onChange: (cle: string) => void
   /** Formulaires proposés (défaut : tous). */
   formulaires?: readonly FormulaireBien[]
+  /** Sous-type géré par un autre formulaire (guesthouse, salle) : l'appelant confirme et navigue. */
+  onFormulaireDedie?: (sousType: SousTypeReferentiel) => void
 }
 
 /**
  * Lot 2 — choix du type en deux temps : la catégorie (grandes cartes), puis le sous-type
  * (puces). Types et sous-types ne sont jamais mélangés sur la même ligne.
  */
-export default function SelecteurTypeBien({ valeur, onChange, formulaires }: SelecteurTypeBienProps) {
+export default function SelecteurTypeBien({ valeur, onChange, formulaires, onFormulaireDedie }: SelecteurTypeBienProps) {
   const categories = categoriesAvec(formulaires)
   const [categorie, setCategorie] = useState<CategorieBien>(
     () => sousTypeParCle(valeur)?.categorie ?? categories[0]?.cle ?? 'residentiel',
@@ -32,6 +34,12 @@ export default function SelecteurTypeBien({ valeur, onChange, formulaires }: Sel
   const sousTypes = sousTypesDe(categorie, formulaires)
 
   const choisirCategorie = (cle: CategorieBien) => {
+    const liste = sousTypesDe(cle, formulaires)
+    // Formulaire dédié : l'appelant confirme et navigue ; une annulation laisse le choix intact.
+    if (liste.length === 1 && liste[0].formulaire !== 'classique' && onFormulaireDedie) {
+      onFormulaireDedie(liste[0])
+      return
+    }
     setCategorie(cle)
     // Un sous-type d'une autre catégorie n'a plus de sens : on prend le premier de la nouvelle.
     const premiers = sousTypesDe(cle, formulaires)
