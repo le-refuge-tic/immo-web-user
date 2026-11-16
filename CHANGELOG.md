@@ -11,6 +11,13 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 7 — modération)
+- « Mes biens » : une annonce en attente indique ce qui manque pour être publiée (photos du bien
+  et des pièces, minimum du référentiel), le motif d'un retrait de publication et les conditions
+  d'une publication conditionnelle.
+- `src/shared/biens/approbation.ts` (partagé) : un seul comptage des photos, comme l'API.
+- Parcours Playwright `moderation-proprietaire`.
+
 ### Ajouté (lot 6 — brouillons sur tous les appareils)
 - Brouillons de publication (bien, guesthouse, salle de fêtes) gardés sur le serveur
   (`/brouillons-biens`) : repris sur un autre appareil, la saisie la plus récente l'emporte, une
