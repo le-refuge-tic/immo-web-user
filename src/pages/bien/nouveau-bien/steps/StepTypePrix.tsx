@@ -4,9 +4,13 @@ import { BLUE, STANDING_OPTS, STANDING_AUTRE_MAX, baseInputStyle } from '../opti
 import { Card, Section, ChoiceList, Chip, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import SelecteurTypeBien from '../../../../components/SelecteurTypeBien'
+import { useConfirm } from '../../../../shared/dialogues/useConfirm'
 
 export function StepTypePrix({ form }: { form: NouveauBienForm }) {
+  const { confirmer } = useConfirm()
   const {
+    isDemarcheur,
+    navigate,
     typeBien,
     setTypeBien,
     typeTransaction,
@@ -39,7 +43,17 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
       <div className="space-y-4">
         <Card>
           <Section title="Type de bien" />
-          <SelecteurTypeBien valeur={typeBien} onChange={setTypeBien} formulaires={['classique']} />
+          <SelecteurTypeBien valeur={typeBien} onChange={setTypeBien}
+            formulaires={isDemarcheur ? ['classique'] : undefined}
+            onFormulaireDedie={async st => {
+              // Lot 4 : guesthouse et salle de fêtes ont leur propre formulaire.
+              const ok = await confirmer({
+                titre: `Publier une ${st.libelle.toLowerCase()} ?`,
+                message: 'Ce type a son propre formulaire. Votre saisie actuelle reste en brouillon sur cet appareil.',
+                confirmer: 'Ouvrir le formulaire',
+              })
+              if (ok) navigate(st.formulaire === 'guesthouse' ? '/nouveau-bien/guesthouse' : '/nouveau-bien/salle-fete')
+            }} />
         </Card>
 
         {isSmallUnit && (

@@ -35,6 +35,7 @@ const ProprietaireDashboard  = lazy(() => import('./pages/proprietaire/Proprieta
 const DemarcheurDashboard    = lazy(() => import('./pages/demarcheur/DemarcheurDashboard'))
 const LocataireDashboard     = lazy(() => import('./pages/locataire/LocataireDashboard'))
 const NouveauBienPage        = lazy(() => import('./pages/bien/NouveauBienPage'))
+const NouveauBienDediePage   = lazy(() => import('./pages/bien/dedie/NouveauBienDediePage'))
 const ProprietaireBienWrapper = lazy(() => import('./pages/bien/ProprietaireBienWrapper'))
 const ReservationPage        = lazy(() => import('./pages/reservation/ReservationPage'))
 const ContratBailPage        = lazy(() => import('./pages/integration/ContratBailPage'))
@@ -184,6 +185,13 @@ function App() {
           } />
           <Route path="reservation/:bienId" element={
             <PrivateRoute><ReservationPage /></PrivateRoute>
+          } />
+          {/* Lot 4 : guesthouse et salle de fêtes publiées par le propriétaire (mêmes règles que le commercial) */}
+          <Route path="nouveau-bien/guesthouse" element={
+            <RoleRoute role="proprietaire" redirectTo="/mes-roles"><NouveauBienDediePage famille="guesthouse" /></RoleRoute>
+          } />
+          <Route path="nouveau-bien/salle-fete" element={
+            <RoleRoute role="proprietaire" redirectTo="/mes-roles"><NouveauBienDediePage famille="salle_fete" /></RoleRoute>
           } />
           <Route path="nouveau-bien" element={
             <RoleRoute anyOf={['proprietaire', 'demarcheur']} redirectTo="/mes-roles"><NouveauBienPage /></RoleRoute>

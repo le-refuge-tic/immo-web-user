@@ -11,6 +11,21 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 4 — mêmes formulaires pour tous)
+- Le propriétaire publie une **guesthouse** et une **salle de fêtes** (`/nouveau-bien/guesthouse`,
+  `/nouveau-bien/salle-fete`), ouvertes depuis « Court séjour » et « Événementiel » du choix du type
+  (après confirmation). Mêmes étapes, champs, règles, totaux et récapitulatif que le commercial :
+  logique partagée dans `src/shared/biens/formulaires`. Le bloc « Propriétaire » est celui du compte
+  connecté, en lecture seule ; sans téléphone dans le profil, la publication est bloquée avec un
+  lien vers le profil. 4 photos minimum (référentiel), envoi en arrière-plan.
+- Parcours Playwright `proprietaire-guesthouse` (blocage sans téléphone, publication complète,
+  salle de fêtes).
+
+### Modifié
+- « Ajouter un bien en gestion » : types du référentiel et sélecteur en deux temps ; précise que
+  ce bien privé n'a pas besoin de photos (il n'est jamais public, backend).
+- La commission d'agence n'est plus calculée par le navigateur : le serveur la fixe (lot 4).
+
 ### Ajouté (lot 2 — référentiel des types)
 - Référentiel unique des types de biens (`src/shared/biens/referentielTypes.ts`, copie de
   `GET /referentiels/types-biens`) : catégories (résidentiel, terrain, commercial, court séjour,

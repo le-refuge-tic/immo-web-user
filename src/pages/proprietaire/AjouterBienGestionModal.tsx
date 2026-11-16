@@ -5,21 +5,11 @@ import { trouverQuartierExact } from '../../data/quartiers'
 import { apiMessage } from '../../utils/apiMessage'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { Bien } from '../../types/api'
+import SelecteurTypeBien from '../../components/SelecteurTypeBien'
+import { coupleBackend, sousTypeParCle } from '../../shared/biens/referentielTypes'
 
 type Props = { onClose: () => void; onCreated: (bien: Bien) => void }
 
-const TYPES_BIEN = [
-  { key: 'entree_coucher', label: 'Entrée-Coucher' },
-  { key: 'chambre_salon', label: 'Chambre-Salon' },
-  { key: 'appartement', label: 'Appartement' },
-  { key: 'villa', label: 'Villa' },
-  { key: 'maison', label: 'Maison' },
-  { key: 'terrain', label: 'Terrain / Parcelle' },
-  { key: 'boutique', label: 'Boutique' },
-  { key: 'bureau', label: 'Bureau' },
-]
-
-const PEUT_ETRE_MEUBLE = new Set(['appartement', 'villa', 'maison'])
 
 export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
   useEffect(() => {
@@ -39,14 +29,12 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  const peutEtreMeuble = PEUT_ETRE_MEUBLE.has(typeBien)
+  // Lot 4 : type et sous-type lus dans le référentiel unique (mêmes couples qu'à la publication).
+  const peutEtreMeuble = !!sousTypeParCle(typeBien)?.meuble
   const estMeuble = peutEtreMeuble && meuble
-
-  const typeBackend = typeBien === 'terrain' ? 'terrain'
-    : (typeBien === 'villa' || typeBien === 'maison' || typeBien === 'boutique' || typeBien === 'bureau') ? 'maison'
-    : estMeuble ? 'appart_meuble' : 'appart_vide'
-
-  const sousType = typeBien === 'appartement' ? (estMeuble ? 'appart_meuble' : 'appartement') : typeBien
+  const couple = coupleBackend({ cle: typeBien, meuble: estMeuble })
+  const typeBackend = couple?.type ?? 'appart_vide'
+  const sousType = couple?.sous_type ?? typeBien
 
   const submit = async () => {
     if (!loyer.trim() || Number(loyer) <= 0) { setError('Le loyer mensuel est obligatoire'); return }
@@ -91,7 +79,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
         <div className="p-5 space-y-4">
           <div className="bg-primary/10 border border-primary/30 rounded-xl px-4 py-3">
             <p className="text-primary text-xs leading-relaxed">
-              Ce bien sera visible uniquement dans votre espace, sans annonce publique. Partagez le code d'invitation généré à votre locataire pour lier son compte et activer le suivi des loyers.
+              Ce bien sera visible uniquement dans votre espace, sans annonce publique (il n’a donc pas besoin de photos). Partagez le code d'invitation généré à votre locataire pour lier son compte et activer le suivi des loyers.
             </p>
           </div>
 
@@ -110,19 +98,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
 
           <div>
             <p id="ajout-bien-type" className="text-xs font-semibold text-text-dark mb-1.5 block">Type de bien</p>
-            <div role="group" aria-labelledby="ajout-bien-type" className="flex flex-wrap gap-2">
-              {TYPES_BIEN.map(t => (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setTypeBien(t.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${typeBien === t.key ? 'text-white border-primary' : 'text-text-dark border-divider hover:border-primary'}`}
-                  style={typeBien === t.key ? { background: 'var(--c-brand)' } : undefined}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
+            <SelecteurTypeBien valeur={typeBien} onChange={setTypeBien} formulaires={['classique']} />
             {peutEtreMeuble && (
               <div className="flex gap-2 mt-2">
                 <button type="button" onClick={() => setMeuble(false)}
