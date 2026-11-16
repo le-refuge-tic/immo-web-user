@@ -21,7 +21,7 @@ const guesthouse = {
 }
 
 const routes = (extra: Record<string, { status: number; body: unknown }> = {}) => ({
-  'GET /biens/12': { status: 200, body: guesthouse },
+  'GET /biens/mes-biens/12': { status: 200, body: guesthouse },
   'GET /equipements': { status: 200, body: [{ categorie: 'confort', libelle: 'Confort', equipements: [{ code: 'wifi', libelle: 'Wi-Fi' }, { code: 'climatisation', libelle: 'Climatisation' }] }] },
   ...extra,
 })

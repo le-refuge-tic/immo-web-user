@@ -42,6 +42,10 @@ export const biensApi = {
   byId: (id: number, signal?: AbortSignal) =>
     axios.get<BienResponse>(`${BASE}/biens/${id}`, { ...auth(), signal }).then(r => r.data),
 
+  /** Détail d'un bien du propriétaire connecté, quel que soit son statut de modération. */
+  monBien: (id: number) =>
+    axios.get<BienResponse>(`${BASE}/biens/mes-biens/${id}`, auth()).then(r => r.data),
+
   mesBiens: () =>
     axios.get<ListResponse<Bien>>(`${BASE}/biens/mes-biens`, auth()).then(r => r.data),
 

@@ -61,7 +61,7 @@ export default function ModifierBienDediePage() {
 
   useEffect(() => {
     let actif = true
-    biensApi.byId(bienId)
+    biensApi.monBien(bienId)
       .then(r => {
         if (!actif) return
         const b = (r.data ?? r.bien ?? r) as Bien
