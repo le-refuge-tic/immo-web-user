@@ -6,9 +6,9 @@ import PushPrompt from './PushPrompt'
 import { ErrorBoundary } from './ErrorBoundary'
 import ScrollFloatButtons from './ScrollFloatButtons'
 import { useScrolled } from '../context/useScrolled'
+import { masquerBarreNavigation } from '../utils/barreNavigation'
 import { useTheme } from '../context/useTheme'
 
-const HIDE_CHROME_PATHS = ['/nouveau-bien']
 const HIDE_TOPNAV_PREFIXES: string[] = []
 // Pages qui gèrent leur propre scroll interne (pas de overflow-y-auto sur le layout)
 const OWN_SCROLL_PREFIXES = ['/conversations']
@@ -20,7 +20,8 @@ export default function MainLayout() {
   const isDark = theme === 'dark'
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const hideChrome = HIDE_CHROME_PATHS.includes(location.pathname)
+  // Lot 9 : formulaires de publication et d'édition plein écran, sans barres de navigation.
+  const hideChrome = masquerBarreNavigation(location.pathname)
   const hideTopNav = hideChrome || HIDE_TOPNAV_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
   const ownScroll  = OWN_SCROLL_PREFIXES.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
   const navigationType = useNavigationType()
@@ -83,7 +84,9 @@ export default function MainLayout() {
         id="main-content"
         tabIndex={-1}
         ref={ownScroll ? undefined : scrollRef}
-        className={`flex-1 min-h-0 relative outline-none ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideChrome ? '' : hideTopNav ? 'pb-20 md:pb-0' : ownScroll ? 'md:pt-[72px]' : 'pb-20 md:pb-0 md:pt-[72px]'}`}
+        className={`flex-1 min-h-0 relative outline-none ${ownScroll ? 'overflow-hidden' : 'overflow-y-auto scrollbar-auto'} ${hideTopNav ? '' : 'md:pt-[72px]'}`}
+        // Lot 9 : réserve la hauteur réelle de la barre du bas (zone sûre comprise), 0 sans barre.
+        style={ownScroll ? undefined : { paddingBottom: 'var(--bottom-nav-h, 0px)' }}
         onScroll={ownScroll ? undefined : handleScroll}
       >
         <ErrorBoundary compact resetKey={location.pathname}>
@@ -107,8 +110,9 @@ export default function MainLayout() {
           target="_blank"
           rel="noopener noreferrer"
           download
-          className="fixed z-50 bottom-24 md:bottom-6 left-4 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-sm font-semibold transition-transform hover:scale-105"
+          className="fixed z-50 left-4 flex items-center gap-2 px-3.5 py-2.5 rounded-full shadow-lg text-sm font-semibold transition-transform hover:scale-105"
           style={{
+            bottom: 'calc(var(--bottom-nav-h, 0px) + 16px)',
             background: isDark ? 'rgba(30,30,40,0.85)' : 'rgba(255,255,255,0.9)',
             color: 'var(--tx-blue)',
             border: '1px solid rgba(100,130,255,0.3)',

@@ -23,6 +23,8 @@
 /* Couleurs de texte sémantiques : éclaircies en mode sombre pour garder un
    contraste AA (≥ 4,5:1) sur les fonds #0F0F14 / glass-card sombres. */
 :root {
+  /* Lot 9 : hauteur réelle de la barre de navigation du bas (publiée par BottomNav, 0 sans barre). */
+  --bottom-nav-h: 0px;
   --tx-red: #C81E15;
   --tx-green: #166534;
   --tx-amber: #A94E08;

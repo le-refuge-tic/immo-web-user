@@ -44,8 +44,10 @@ export default function PushPrompt() {
 
   return (
     <div role="dialog" aria-modal="false" aria-label="Activer les notifications push"
-      className="fixed left-4 right-4 md:left-auto md:right-6 md:w-96 bottom-24 md:bottom-6 z-[70] rounded-2xl p-4 flex items-start gap-3 anim-scale-in"
+      className="fixed left-4 right-4 md:left-auto md:right-6 md:w-96 z-[70] rounded-2xl p-4 flex items-start gap-3 anim-scale-in"
       style={{
+        // Lot 9 : au-dessus de la barre du bas, quelle que soit sa hauteur (zone sûre comprise).
+        bottom: 'calc(var(--bottom-nav-h, 0px) + 16px)',
         background: 'rgba(26,26,46,0.92)',
         backdropFilter: 'blur(24px) saturate(180%)',
         border: '1px solid rgba(255,255,255,0.12)',

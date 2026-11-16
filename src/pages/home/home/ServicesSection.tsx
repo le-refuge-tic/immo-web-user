@@ -8,7 +8,7 @@ export default function ServicesSection({ tk }: { tk: Tokens }) {
   const [hoveredServiceIdx, setHoveredServiceIdx] = useState<number | null>(null)
 
   return (
-    <div className="hidden md:block w-full px-8 lg:px-16 py-16">
+    <div className="block w-full px-4 md:px-6 lg:px-16 py-16">
       <Reveal animation="anim-fade-up" className="text-center max-w-3xl mx-auto mb-12">
         <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5"
           style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)', border: '1px solid rgba(75,107,255,0.20)' }}>

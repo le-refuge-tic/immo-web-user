@@ -8,7 +8,7 @@ export default function HomeFooter({ isDark, tk }: { isDark: boolean; tk: Tokens
   const navigate = useNavigate()
 
   return (
-    <footer className="hidden md:block w-full px-8 lg:px-16 py-10"
+    <footer className="block w-full px-4 md:px-6 lg:px-16 py-10"
       style={{
         background: isDark ? 'rgba(10,10,18,0.96)' : 'rgba(245,245,247,0.95)',
         backdropFilter: 'blur(48px) saturate(180%)',

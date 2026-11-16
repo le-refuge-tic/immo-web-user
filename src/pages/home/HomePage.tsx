@@ -10,6 +10,7 @@ import { useHomeListings } from './home/useHomeListings'
 import MobileHeader from './home/MobileHeader'
 import DesktopHero from './home/DesktopHero'
 import RecentCarousel from './home/RecentCarousel'
+import RecentMobile from './home/RecentMobile'
 import ListingsSection from './home/ListingsSection'
 import ServicesSection from './home/ServicesSection'
 import LocationsMarquee from './home/LocationsMarquee'
@@ -44,6 +45,11 @@ export default function HomePage() {
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 6)
 
+  // Lot 9 : téléphone et tablette — un seul carrousel des derniers biens, location et vente.
+  const recentTous = [...biens]
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    .slice(0, 8)
+
   const locCarousel = useCarouselAutoplay(recentLocation.length)
   const venteCarousel = useCarouselAutoplay(recentVente.length)
 
@@ -58,7 +64,7 @@ export default function HomePage() {
     <div className="min-h-full overflow-x-hidden">
 
       {/* ══════════════ MOBILE HEADER ══════════════ */}
-      <MobileHeader search={search} goToSearch={s.goToSearch} />
+      <MobileHeader search={search} goToSearch={s.goToSearch} tk={tk} isDark={isDark} />
 
       {/* ══════════════ DESKTOP HERO ══════════════ */}
       <DesktopHero s={s} isDark={isDark} tk={tk} biens={biens} />
@@ -92,6 +98,7 @@ export default function HomePage() {
         s={s} isDark={isDark} tk={tk} displayedBiens={displayedBiens}
         loading={loading} loadError={loadError} loadBiens={loadBiens}
         favIds={favIds} onFavoriteToggle={handleFavToggle}
+        avantGrille={<RecentMobile biens={recentTous} favIds={favIds} onFavoriteToggle={handleFavToggle} tk={tk} />}
       />
 
       {/* ══════════════ SERVICES ══════════════ */}
