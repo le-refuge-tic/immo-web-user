@@ -49,7 +49,8 @@ export function ModalSheet({
   panelClassName = 'w-full max-w-lg',
   backdropOpacity = 0.45,
   dismissible = true,
-  zIndex = 50,
+  // Lot 9 : au-dessus de la barre de navigation du bas (z-50), jamais sous elle.
+  zIndex = 60,
 }: ModalSheetProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<Element | null>(null)

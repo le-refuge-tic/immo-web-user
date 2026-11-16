@@ -1,4 +1,6 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { VARIABLE_HAUTEUR, clavierOuvert } from '../utils/barreNavigation'
 import { useAuth } from '../context/useAuth'
 import { useNotifications } from '../context/useNotifications'
 import { useTheme } from '../context/useTheme'
@@ -38,7 +40,57 @@ const NAV_ITEMS = [
   { path: '/profil',        label: 'Profil',   icon: PersonIcon,   authRequired: true,  also: ['/mes-visites', '/mes-roles', '/portefeuille'] },
 ]
 
+const SAISIE = 'input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]), textarea, select, [contenteditable="true"]'
+
+/** Lot 9 : clavier virtuel ouvert (la barre se retire pour laisser la place au champ). */
+function useClavierOuvert(): boolean {
+  const [ouvert, setOuvert] = useState(false)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const evaluer = () => setOuvert(clavierOuvert({
+      hauteurVisible: vv.height,
+      hauteurFenetre: window.innerHeight,
+      saisieActive: !!(document.activeElement as HTMLElement | null)?.matches?.(SAISIE),
+    }))
+    vv.addEventListener('resize', evaluer)
+    document.addEventListener('focusin', evaluer)
+    document.addEventListener('focusout', evaluer)
+    return () => {
+      vv.removeEventListener('resize', evaluer)
+      document.removeEventListener('focusin', evaluer)
+      document.removeEventListener('focusout', evaluer)
+    }
+  }, [])
+  return ouvert
+}
+
+/**
+ * Lot 9 : hauteur réelle de la barre (zone sûre comprise) publiée dans --bottom-nav-h, lue par le
+ * contenu, les barres collantes, les toasts et l'indicateur d'envoi. 0 quand la barre est absente.
+ */
+function usePublierHauteur(ref: React.RefObject<HTMLElement | null>, visible: boolean) {
+  useLayoutEffect(() => {
+    const racine = document.documentElement
+    const el = ref.current
+    if (!visible || !el) { racine.style.setProperty(VARIABLE_HAUTEUR, '0px'); return }
+    const publier = () => racine.style.setProperty(VARIABLE_HAUTEUR, `${Math.ceil(el.getBoundingClientRect().height)}px`)
+    publier()
+    const obs = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(publier) : null
+    obs?.observe(el)
+    window.addEventListener('resize', publier)
+    return () => {
+      obs?.disconnect()
+      window.removeEventListener('resize', publier)
+      racine.style.setProperty(VARIABLE_HAUTEUR, '0px')
+    }
+  }, [ref, visible])
+}
+
 export default function BottomNav() {
+  const navRef = useRef<HTMLElement>(null)
+  const clavier = useClavierOuvert()
+  usePublierHauteur(navRef, !clavier)
   const { isLoggedIn } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
   const { theme } = useTheme()
@@ -60,8 +112,11 @@ export default function BottomNav() {
 
   const inactiveColor = isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'
 
+  if (clavier) return null
+
   return (
     <nav
+      ref={navRef}
       aria-label="Navigation principale mobile"
       className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
       style={{

@@ -55,7 +55,7 @@ export default function DesktopHero({ s, isDark, tk, biens }: DesktopHeroProps) 
 
   return (
     <div
-      className="hidden md:flex relative w-full flex-col justify-end overflow-hidden"
+      className="hidden lg:flex relative w-full flex-col justify-end overflow-hidden"
       style={{ minHeight: '78vh' }}
       onMouseEnter={() => setHeroPaused(true)}
       onMouseLeave={() => setHeroPaused(false)}

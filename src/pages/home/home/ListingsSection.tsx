@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import BienCard from '../../../components/BienCard'
 import ErrorState from '../../../components/ErrorState'
 import Reveal from '../../../components/Reveal'
@@ -21,11 +21,13 @@ interface ListingsSectionProps {
   loadBiens: () => void
   favIds: Set<number>
   onFavoriteToggle: (id: number, added: boolean) => void
+  /** Lot 9 : contenu entre les filtres et la grille (carrousel « Récemment ajoutés » sur téléphone et tablette). */
+  avantGrille?: ReactNode
 }
 
 /** Pastilles de catégories, filtres mobiles, titre et grille des annonces. */
 export default function ListingsSection({
-  s, isDark, tk, displayedBiens, loading, loadError, loadBiens, favIds, onFavoriteToggle,
+  s, isDark, tk, displayedBiens, loading, loadError, loadBiens, favIds, onFavoriteToggle, avantGrille,
 }: ListingsSectionProps) {
   const { transaction, setTransaction, type, setType, prixMin, prixMax, goToSearch } = s
   const [showFilters, setShowFilters] = useState(false)
@@ -36,7 +38,7 @@ export default function ListingsSection({
   const catLabel = [libelleType, libelleTransaction].filter(Boolean).join(' · ') || 'Annonces'
 
   return (
-    <div className="w-full px-4 sm:px-6 md:px-8 lg:px-16 py-6 md:py-8">
+    <div className="w-full px-4 md:px-6 lg:px-16 py-4 md:py-6 lg:py-8">
 
       {/* Transaction : segment Tous · À louer · À vendre */}
       <Reveal animation="anim-slide-left" className="flex items-center gap-2 mb-3">
@@ -44,7 +46,7 @@ export default function ListingsSection({
           {TRANSACTIONS.map(t => (
             <button key={t.key || 'tous'} type="button" role="radio" aria-checked={transaction === t.key}
               onClick={() => setTransaction(t.key)}
-              className="px-4 py-1.5 rounded-xl text-sm font-semibold transition-all"
+              className="px-3 sm:px-4 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all"
               style={transaction === t.key ? tk.pillActive : undefined}>
               {t.label}
             </button>
@@ -52,7 +54,7 @@ export default function ListingsSection({
         </div>
         <button
           onClick={() => setShowFilters(s => !s)}
-          className="md:hidden ml-auto flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
+          className="lg:hidden ml-auto flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
           style={showFilters || prixMin || prixMax ? tk.pillActive : tk.pillIdle}
         >
           <FilterIcon /><span>Filtres</span>
@@ -75,6 +77,8 @@ export default function ListingsSection({
       </Reveal>
 
       {showFilters && <MobileFilters s={s} isDark={isDark} tk={tk} />}
+
+      {avantGrille}
 
       {/* Titre section + Voir tout */}
       <Reveal animation="anim-fade-up" className="flex items-center justify-between mb-4">

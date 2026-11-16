@@ -11,6 +11,28 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Modifié (lot 9 — accueil mobile et tablette)
+- Accueil sur téléphone et tablette : en-tête compact (logo, salutation, avatar) aux couleurs du
+  thème (fini le fond `#0a0a0a`), image adoucie par un dégradé léger et recherche arrondie
+  flottante ; segment Louer/Acheter puis catégories ; « Récemment ajoutés » en cartes larges ;
+  grille ; services et pied de page désormais visibles sous 768 px.
+- Tablette (768–1024 px) : mise en page dédiée (hero réduit, grille de 2 colonnes, marges `px-6`,
+  carrousel visible) ; la version bureau seulement à partir de 1024 px.
+- Barre de navigation du bas : sa hauteur réelle (zone sûre comprise) est publiée dans
+  `--bottom-nav-h`, utilisée par le bas du contenu, les toasts, l'indicateur d'envoi, l'invitation
+  aux notifications et le bouton de l'application ; masquée pendant la publication et l'édition
+  plein écran et quand le clavier est ouvert.
+
+### Corrigé (lot 9)
+- Le bas des pages, les toasts et certaines modales passaient sous la barre du bas
+  (`--bottom-nav-h` utilisée mais jamais définie ; modales au même niveau que la barre).
+- Barre du haut à 1024 px : le logo chevauchait le lien « Accueil ».
+
+### Ajouté (lot 9)
+- Parcours Playwright `captures-accueil` : captures 360×640, 390×844, 768×1024, 1024×1366 (et
+  sombre), aucun contenu sous la barre du bas, barre absente des formulaires plein écran.
+  Captures dans `docs/captures/lot9/`.
+
 ### Ajouté (lot 8 — notifications)
 - Tableau des notifications dans le README (à compléter à chaque fonctionnalité).
 - Décision sur une annonce (approuvée, rejetée, sous conditions, retirée, modification approuvée

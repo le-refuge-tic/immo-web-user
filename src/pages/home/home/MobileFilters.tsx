@@ -22,7 +22,7 @@ export default function MobileFilters({ s, isDark, tk }: MobileFiltersProps) {
   const { suggestBg, suggestBdr, suggestRow, suggestHov } = panelColors(isDark, tk)
 
   return (
-    <Reveal animation="anim-fade-up" className="md:hidden rounded-2xl p-4 mb-4"
+    <Reveal animation="anim-fade-up" className="lg:hidden rounded-2xl p-4 mb-4"
       style={{
         background: tk.cardBg,
         backdropFilter: 'blur(32px)',

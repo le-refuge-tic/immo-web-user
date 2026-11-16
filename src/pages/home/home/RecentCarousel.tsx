@@ -30,7 +30,7 @@ interface RecentCarouselProps {
   dotIdleLight: string
 }
 
-/** Carrousel desktop des derniers biens ajoutés (location ou vente). */
+/** Carrousel des derniers biens ajoutés (location ou vente), à partir de `lg` ; en dessous : RecentMobile. */
 export default function RecentCarousel({
   biens, carousel, favIds, onFavoriteToggle, isDark, tk, topPaddingClass, title, description,
   titleColor, regionLabel, pauseSubject, pauseColor, dotActive, dotIdleDark, dotIdleLight,
@@ -39,7 +39,7 @@ export default function RecentCarousel({
   if (biens.length === 0) return null
 
   return (
-    <div className={`hidden md:block w-full px-8 lg:px-16 ${topPaddingClass} pb-4`}>
+    <div className={`hidden lg:block w-full px-16 ${topPaddingClass} pb-4`}>
       <div className="max-w-3xl mx-auto text-center mb-8">
         <h2 className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ color: titleColor }}>
           {title}
