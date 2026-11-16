@@ -42,6 +42,10 @@ export const biensApi = {
   byId: (id: number, signal?: AbortSignal) =>
     axios.get<BienResponse>(`${BASE}/biens/${id}`, { ...auth(), signal }).then(r => r.data),
 
+  /** Détail d'un bien du propriétaire connecté, quel que soit son statut de modération. */
+  monBien: (id: number) =>
+    axios.get<BienResponse>(`${BASE}/biens/mes-biens/${id}`, auth()).then(r => r.data),
+
   mesBiens: () =>
     axios.get<ListResponse<Bien>>(`${BASE}/biens/mes-biens`, auth()).then(r => r.data),
 
@@ -98,6 +102,16 @@ export const biensApi = {
       },
     }).then(r => { invaliderBiens(); return r.data })
   },
+
+  /** Photo principale (couverture) : la photo doit appartenir au bien. */
+  definirCouverture: (bienId: number, photoId: number) =>
+    axios.patch<{ message: string }>(`${BASE}/biens/${bienId}/photos/${photoId}/cover`, {}, auth())
+      .then(r => { invaliderBiens(bienId); return r.data }),
+
+  /** Un bien publié garde le minimum de photos de son type : l'API refuse (400) sinon. */
+  supprimerPhoto: (bienId: number, photoId: number) =>
+    axios.delete<{ message: string }>(`${BASE}/biens/${bienId}/photos/${photoId}`, auth())
+      .then(r => { invaliderBiens(bienId); return r.data }),
 
   uploadVideo: (bienId: number, file: File) => {
     const form = new FormData()

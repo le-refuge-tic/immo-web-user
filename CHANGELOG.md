@@ -11,6 +11,21 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 5 — modification des biens)
+- Guesthouse et salle de fêtes se modifient avec le formulaire de création
+  (`/proprietaire/biens/:id/modifier`) : mêmes étapes, champs, règles et totaux.
+- Gestion des photos d'un bien existant (guesthouse, salle et bien classique) : photo principale,
+  suppression confirmée, ajout par le gestionnaire d'envois en arrière-plan. Un bien publié garde le
+  minimum de photos de son type (refus de l'API affiché).
+- Parcours Playwright `modification-proprietaire` (envoi en validation, sortie sans enregistrer,
+  photos).
+
+### Modifié (lot 5)
+- Un bien publié n'est plus bloqué : la modification part en validation (« Envoyer en
+  validation »), l'annonce actuelle reste en ligne ; bandeau tant qu'elle attend.
+- « Enregistrer » inactif tant que rien n'a changé ; « Quitter sans enregistrer ? » avant de perdre
+  une saisie ; succès et erreurs en notification, avec le message du serveur.
+
 ### Ajouté (lot 4 — mêmes formulaires pour tous)
 - Le propriétaire publie une **guesthouse** et une **salle de fêtes** (`/nouveau-bien/guesthouse`,
   `/nouveau-bien/salle-fete`), ouvertes depuis « Court séjour » et « Événementiel » du choix du type

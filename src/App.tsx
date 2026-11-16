@@ -37,6 +37,7 @@ const LocataireDashboard     = lazy(() => import('./pages/locataire/LocataireDas
 const NouveauBienPage        = lazy(() => import('./pages/bien/NouveauBienPage'))
 const NouveauBienDediePage   = lazy(() => import('./pages/bien/dedie/NouveauBienDediePage'))
 const ProprietaireBienWrapper = lazy(() => import('./pages/bien/ProprietaireBienWrapper'))
+const ModifierBienDediePage  = lazy(() => import('./pages/bien/modifier/ModifierBienDediePage'))
 const ReservationPage        = lazy(() => import('./pages/reservation/ReservationPage'))
 const ContratBailPage        = lazy(() => import('./pages/integration/ContratBailPage'))
 const PaiementIntegrationPage = lazy(() => import('./pages/integration/PaiementIntegrationPage'))
@@ -132,6 +133,9 @@ function App() {
         } />
         <Route path="/proprietaire/biens/:id" element={
           <RoleRoute role="proprietaire"><ProprietaireBienWrapper /></RoleRoute>
+        } />
+        <Route path="/proprietaire/biens/:id/modifier" element={
+          <RoleRoute role="proprietaire"><ModifierBienDediePage /></RoleRoute>
         } />
         <Route path="/demarcheur" element={
           <RoleRoute role="demarcheur"><DemarcheurDashboard /></RoleRoute>

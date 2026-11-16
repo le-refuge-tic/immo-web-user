@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
+import { aFormulaireDedie } from '../../bien/modifier/formulaireEdition'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
 import { IcPlus, IcPin, IcTrash, IcEdit } from './shared'
@@ -359,7 +360,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                         {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- arrête la propagation vers la carte cliquable ; les boutons à l'intérieur sont focalisables */}
                         <div className="flex gap-2 pt-3" style={{ borderTop: '1px solid var(--p-border)' }}
                           onClick={e => e.stopPropagation()}>
-                          <button onClick={() => setEditingBien(b)}
+                          <button onClick={() => (aFormulaireDedie(b) ? navigate(`/proprietaire/biens/${b.id}/modifier`) : setEditingBien(b))}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
                             style={{ background: hoveredEl === `modifier-${b.id}` ? withAlpha(BLUE, '20') : withAlpha(BLUE, '10'), color: BLUE_TX, border: `1px solid ${withAlpha(BLUE, '20')}` }}
                             onMouseEnter={() => setHoveredEl(`modifier-${b.id}`)}
