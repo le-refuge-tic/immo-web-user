@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
 import BrouillonsProprietaire from '../../bien/brouillons/BrouillonsProprietaire'
+import { manquesApprobation } from '../../../shared/biens/approbation'
 import { aFormulaireDedie } from '../../bien/modifier/formulaireEdition'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
@@ -356,6 +357,18 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
 
                         {b.statut_moderation === 'rejete' && b.motif_refus && (
                           <p className="text-[10px] mb-3 truncate" style={{ color: 'var(--tx-red)' }}>⚠ {b.motif_refus}</p>
+                        )}
+                        {/* Lot 7 : ce qui empêche l'examen, et les décisions motivées de l'administration. */}
+                        {b.statut_moderation === 'en_attente' && manquesApprobation(b).length > 0 && (
+                          <p className="text-[10px] mb-3" style={{ color: 'var(--tx-red)' }}>
+                            À compléter pour être publié : {manquesApprobation(b).join(' et ')}.
+                          </p>
+                        )}
+                        {b.statut_moderation === 'en_attente' && b.motif_refus && (
+                          <p className="text-[10px] mb-3 truncate" style={{ color: 'var(--tx-red)' }}>Publication retirée : {b.motif_refus}</p>
+                        )}
+                        {b.statut_moderation === 'conditionnel' && b.conditions_speciales && (
+                          <p className="text-[10px] mb-3" style={{ color: 'var(--p-muted)' }}>Publié sous conditions : {b.conditions_speciales}</p>
                         )}
 
                         {/* Actions */}
