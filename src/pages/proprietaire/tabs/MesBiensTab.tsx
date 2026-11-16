@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
+import BrouillonsProprietaire from '../../bien/brouillons/BrouillonsProprietaire'
 import { aFormulaireDedie } from '../../bien/modifier/formulaireEdition'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
@@ -81,6 +82,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden"
         onScroll={e => onScrolled?.(e.currentTarget.scrollTop > 50)}>
+        <BrouillonsProprietaire />
         {/* ── Carousel biens récents ── */}
         {biens.length > 0 && (() => {
           const recentBiens = [...biens]

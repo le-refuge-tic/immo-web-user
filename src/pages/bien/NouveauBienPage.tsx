@@ -13,6 +13,8 @@ import { StepHonoraires } from './nouveau-bien/steps/StepHonoraires'
 import { StepPhotos } from './nouveau-bien/steps/StepPhotos'
 import { withAlpha } from '../../utils/color'
 import { resumeMedias } from '../../hooks/useMediaDraft'
+import { useVersionDistante } from '../../shared/brouillons/useSynchroBrouillons'
+import BandeauVersionDistante from './brouillons/BandeauVersionDistante'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
@@ -34,6 +36,8 @@ export default function NouveauBienPage() {
     goNext,
     navStyle,
   } = form
+  // Lot 6 : version plus récente reçue d'un autre appareil pendant la saisie.
+  const versionDistante = useVersionDistante(() => draft.versionPlusRecente())
 
   return (
     <div className="proprio-root proprio-light h-full flex flex-col overflow-hidden"
@@ -88,6 +92,12 @@ export default function NouveauBienPage() {
               </div>
             )}
           </div>
+
+          {versionDistante.conflit && (
+            <BandeauVersionDistante
+              onCharger={() => window.location.reload()}
+              onGarder={() => { draft.garderMaSaisie(); versionDistante.fermer() }} />
+          )}
 
           {(draft.restored || medias.restored) && !draftBannerDismissed && (
             <div role="status" className="rounded-xl px-4 py-3 border mb-4 flex items-start justify-between gap-3"

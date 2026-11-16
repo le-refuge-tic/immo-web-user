@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/useAuth'
 import { useToast } from '../../../context/useToast'
@@ -13,6 +13,9 @@ import { sectionsRecapSalle } from '../../../shared/biens/formulaires/recapSalle
 import { referentielsBiens, type GroupeEquipements, type TypeEvenement } from '../../../api/referentielsBiens'
 import { apiMessage } from '../../../utils/apiMessage'
 import { usePageTitle } from '../../../utils/usePageTitle'
+import { signalerBrouillonsModifies, useVersionDistante } from '../../../shared/brouillons/useSynchroBrouillons'
+import BandeauVersionDistante from '../brouillons/BandeauVersionDistante'
+import { cleStockageBrouillon, type BrouillonDedie } from '../brouillons/magasinsProprietaire'
 import { EtapeIdentite, EtapeLocalisation, EtapeMedias, Recapitulatif } from './EtapesCommunes'
 import { EtapeReglesGuesthouse, EtapeTarifGuesthouse } from './EtapesGuesthouse'
 import { EtapeReglesSalle, EtapeTarifSalle } from './EtapesSalle'
@@ -21,7 +24,8 @@ import { TotauxGuesthouseBloc, TotauxSalleBloc } from './champs'
 export type FamilleDediee = 'guesthouse' | 'salle_fete'
 type Form = G.GuesthouseForm | S.SalleFeteForm
 
-const CLES_BROUILLON: Record<FamilleDediee, string> = {
+/** Anciennes clés (lot 4, communes à tous les comptes) : reprises une fois. */
+const ANCIENNES_CLES: Record<FamilleDediee, string> = {
   guesthouse: 'rg_nouvelle_guesthouse',
   salle_fete: 'rg_nouvelle_salle_fete',
 }
@@ -38,7 +42,14 @@ const TEXTES: Record<FamilleDediee, { titre: string; libelleNom: string; placeho
   },
 }
 
-function lireBrouillon<T>(cle: string): { form: T; etape: number } | null {
+/** Formulaire complété des valeurs par défaut, à partir d'un brouillon (ou vierge). */
+function depuisBrouillon(famille: FamilleDediee, b: BrouillonDedie<Form> | null) {
+  const vide: Form = famille === 'guesthouse' ? G.formulaireVide() : S.formulaireVide()
+  const nbEtapes = (famille === 'guesthouse' ? G.ETAPES : S.ETAPES).length
+  return { form: { ...vide, ...(b?.form ?? {}) } as Form, etape: Math.min(b?.etape ?? 0, nbEtapes - 1) }
+}
+
+function lireBrouillon<T>(cle: string): BrouillonDedie<T> | null {
   try { return JSON.parse(localStorage.getItem(cle) ?? 'null') } catch { return null }
 }
 
@@ -56,7 +67,8 @@ export default function NouveauBienDediePage({ famille }: { famille: FamilleDedi
   const { confirmer, choisir } = useConfirm()
   const { demarrer } = useGestionEnvois()
   const { user } = useAuth()
-  const cle = CLES_BROUILLON[famille]
+  // Lot 6 : brouillon propre au compte, synchronisé avec le serveur (photos exceptées).
+  const cle = cleStockageBrouillon(famille, user?.id ?? 'anon')
   const ETAPES = famille === 'guesthouse' ? G.ETAPES : S.ETAPES
   const photosMin = sousTypeParCle(famille)?.photos_min ?? G.PHOTOS_MIN
 
@@ -66,11 +78,13 @@ export default function NouveauBienDediePage({ famille }: { famille: FamilleDedi
     proprioTelephone: user?.telephone ?? '', proprioEmail: user?.email ?? '',
   }), [user])
 
-  const [etat, setEtat] = useState<{ form: Form; etape: number }>(() => {
-    const vide: Form = famille === 'guesthouse' ? G.formulaireVide() : S.formulaireVide()
-    const b = lireBrouillon<Form>(cle)
-    return { form: { ...vide, ...(b?.form ?? {}) } as Form, etape: Math.min(b?.etape ?? 0, ETAPES.length - 1) }
-  })
+  const [etat, setEtat] = useState<{ form: Form; etape: number }>(() =>
+    depuisBrouillon(famille, lireBrouillon<Form>(cle) ?? lireBrouillon<Form>(ANCIENNES_CLES[famille])))
+  // Lot 6 : version du brouillon connue de cette page ; une plus récente (autre appareil) n'est
+  // jamais écrasée sans l'accord de l'utilisateur.
+  const [versionInitiale] = useState(() => lireBrouillon<Form>(cle)?.majLe ?? 0)
+  const versionConnue = useRef(versionInitiale)
+  const versionDistante = useVersionDistante(() => (lireBrouillon<Form>(cle)?.majLe ?? 0) > versionConnue.current)
   const form = { ...etat.form, ...proprio } as Form
   const etape = etat.etape
   const maj = (patch: Partial<Form>) => setEtat(e => ({ ...e, form: { ...e.form, ...patch } as Form }))
@@ -83,10 +97,20 @@ export default function NouveauBienDediePage({ famille }: { famille: FamilleDedi
   const [erreurRef, setErreurRef] = useState('')
   const [essai, setEssai] = useState(0)
 
-  // Brouillon des champs (les fichiers restent en mémoire).
+  // Brouillon des champs (les fichiers restent en mémoire), daté seulement quand il change.
   useEffect(() => {
-    try { localStorage.setItem(cle, JSON.stringify(etat)) } catch { /* stockage plein ou désactivé */ }
-  }, [cle, etat])
+    try {
+      const actuel = lireBrouillon<Form>(cle)
+      if (actuel && (actuel.majLe ?? 0) > versionConnue.current) return
+      // Comparaison sur la forme complétée (valeurs par défaut) : ouvrir la page ne re-date rien.
+      if (actuel && JSON.stringify(depuisBrouillon(famille, actuel)) === JSON.stringify(etat)) return
+      const majLe = Date.now()
+      localStorage.setItem(cle, JSON.stringify({ ...etat, majLe } satisfies BrouillonDedie<Form>))
+      versionConnue.current = majLe
+      localStorage.removeItem(ANCIENNES_CLES[famille])
+      signalerBrouillonsModifies()
+    } catch { /* stockage plein ou désactivé */ }
+  }, [cle, etat, famille])
 
   useEffect(() => {
     let actif = true
@@ -118,7 +142,10 @@ export default function NouveauBienDediePage({ famille }: { famille: FamilleDedi
     ? (() => { const f = form as G.GuesthouseForm; return <TotauxGuesthouseBloc t={totauxGuesthouse({ prixNuitee: f.prixNuitee, nuiteesMin: f.nuiteesMin, caution: f.caution, fraisMenage: f.fraisMenage, prixSemaine: f.prixSemaine, prixMois: f.prixMois })} /> })()
     : (() => { const f = form as S.SalleFeteForm; return <TotauxSalleBloc t={totauxSalle({ prix: f.prix, dureeHeures: f.dureeHeures, heuresMin: f.heuresMin, caution: f.caution, fraisMenage: f.fraisMenage, forfaitJournee: f.forfaitJournee, forfaitWeekend: f.forfaitWeekend })} /> })()
 
-  const effacerBrouillon = () => { try { localStorage.removeItem(cle) } catch { /* rien */ } }
+  const effacerBrouillon = () => {
+    try { localStorage.removeItem(cle) } catch { /* rien */ }
+    signalerBrouillonsModifies()
+  }
 
   const envoyer = async () => {
     setEnCours(true)
@@ -139,7 +166,7 @@ export default function NouveauBienDediePage({ famille }: { famille: FamilleDedi
   const annuler = async () => {
     const choix = await choisir<'garder' | 'supprimer' | 'continuer'>({
       titre: 'Quitter le formulaire ?',
-      message: 'Votre brouillon est conservé sur cet appareil (sauf les photos et la vidéo).',
+      message: 'Votre brouillon est conservé et vous le retrouverez sur vos autres appareils (sauf les photos et la vidéo, gardées sur celui-ci).',
       actions: [
         { valeur: 'continuer', libelle: 'Continuer la saisie', ton: 'neutre' },
         { valeur: 'supprimer', libelle: 'Supprimer le brouillon', ton: 'danger' },
@@ -151,7 +178,7 @@ export default function NouveauBienDediePage({ famille }: { famille: FamilleDedi
   }
 
   const changerDeType = async () => {
-    const ok = await confirmer({ titre: 'Changer de type de bien ?', message: 'Votre saisie reste en brouillon sur cet appareil.', confirmer: 'Changer de type' })
+    const ok = await confirmer({ titre: 'Changer de type de bien ?', message: 'Votre saisie reste en brouillon.', confirmer: 'Changer de type' })
     if (ok) navigate('/nouveau-bien')
   }
 
@@ -188,6 +215,20 @@ export default function NouveauBienDediePage({ famille }: { famille: FamilleDedi
       </header>
 
       <main className="mx-auto max-w-3xl px-4 pt-4">
+        {versionDistante.conflit && (
+          <BandeauVersionDistante
+            onCharger={() => {
+              const b = lireBrouillon<Form>(cle)
+              versionConnue.current = b?.majLe ?? 0
+              setEtat(depuisBrouillon(famille, b))
+              versionDistante.fermer()
+            }}
+            onGarder={() => {
+              versionConnue.current = lireBrouillon<Form>(cle)?.majLe ?? 0
+              setEtat(e => ({ ...e }))
+              versionDistante.fermer()
+            }} />
+        )}
         {etape === 0 && <EtapeIdentite form={form} maj={maj} libelleNom={textes.libelleNom} placeholderNom={textes.placeholderNom} placeholderDescription={textes.placeholderDescription} />}
         {etape === 1 && <EtapeLocalisation form={form} maj={maj} />}
         {etape === 2 && (famille === 'guesthouse'

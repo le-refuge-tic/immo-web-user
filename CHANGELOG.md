@@ -11,6 +11,23 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 6 — brouillons sur tous les appareils)
+- Brouillons de publication (bien, guesthouse, salle de fêtes) gardés sur le serveur
+  (`/brouillons-biens`) : repris sur un autre appareil, la saisie la plus récente l'emporte, une
+  suppression vaut partout. Le navigateur sert de cache hors ligne ; les photos restent sur
+  l'appareil où elles ont été choisies. Synchronisation : `src/shared/brouillons` (partagé).
+- « Mes biens » : section « Brouillons » (libellé, type, étape, date ; Reprendre, Supprimer avec
+  confirmation).
+- Parcours Playwright `brouillons-serveur`.
+- Formulaire ouvert pendant qu'une version plus récente arrive d'un autre appareil : rien n'est
+  écrasé, bandeau « Charger cette version » / « Garder ma saisie ».
+
+### Modifié (lot 6)
+- Le formulaire classique rouvre à l'étape atteinte ; son brouillon n'est plus re-daté chaque
+  seconde sans changement.
+- Brouillons guesthouse / salle propres au compte (`rg_draft_<type>_<id>`, l'ancienne clé commune
+  est reprise une fois) et effacés à la déconnexion comme les autres.
+
 ### Ajouté (lot 5 — modification des biens)
 - Guesthouse et salle de fêtes se modifient avec le formulaire de création
   (`/proprietaire/biens/:id/modifier`) : mêmes étapes, champs, règles et totaux.

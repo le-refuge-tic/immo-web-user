@@ -44,7 +44,8 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
 
     await page.reload()
     await expect(page.getByText('Votre saisie précédente a été retrouvée, avec 2 photos et la vidéo.')).toBeVisible()
-    await allerAuxPhotos(page)
+    // Lot 6 : le brouillon rouvre à l'étape atteinte.
+    await expect(page.getByText('Récapitulatif de votre annonce')).toBeVisible()
     await expect(page.getByText('2/8 photos')).toBeVisible()
     await expect(page.getByText('visite.mp4')).toBeVisible()
 
@@ -66,7 +67,7 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
     await page.waitForTimeout(ATTENTE_ECRITURE_MS)
 
     await page.reload()
-    await allerAuxPhotos(page)
+    await expect(page.getByText('Récapitulatif de votre annonce')).toBeVisible()
     await expect(page.getByText('1/8 photo —')).toBeVisible()
   })
 

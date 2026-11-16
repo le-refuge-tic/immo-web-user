@@ -6,6 +6,8 @@
  * sérialisables sont gardées ici ; les photos et la vidéo vont dans IndexedDB
  * (mediaDraft.ts).
  */
+import { signalerBrouillonsModifies } from '../shared/brouillons/useSynchroBrouillons'
+
 export const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
 const VERSION = 1
 
@@ -15,6 +17,8 @@ interface DraftPayload {
   v: number
   savedAt: number
   fields: Record<string, unknown>
+  /** Lot 6 : date de réception d'un brouillon venu d'un autre appareil (l'expiration en part). */
+  recuLe?: number
 }
 
 function memeType(valeur: unknown, defaut: unknown): boolean {
@@ -29,6 +33,8 @@ export class FormDraft {
   private readonly defaults = new Map<string, string>()
   private readonly values = new Map<string, unknown>()
   private cleared = false
+  /** Lot 6 : date de la version que ce formulaire connaît (lue ou écrite par lui). */
+  private versionConnue = 0
   private readonly key: string
   private readonly storage: StorageLike
   private readonly now: () => number
@@ -54,20 +60,39 @@ export class FormDraft {
     this.values.set(name, value)
   }
 
+  /** Lot 6 : une version plus récente a été écrite par la synchronisation (autre appareil). */
+  versionPlusRecente(): boolean {
+    return this.dateStockee() > this.versionConnue
+  }
+
+  /** Lot 6 : l'utilisateur garde sa saisie plutôt que la version de l'autre appareil. */
+  garderMaSaisie(): void {
+    this.versionConnue = this.dateStockee()
+  }
+
   /** Écrit le brouillon ; le supprime si tous les champs sont revenus à leur valeur par défaut. */
   flush(): void {
     if (this.cleared) return
+    // Jamais par-dessus une version plus récente venue d'un autre appareil sans l'accord de l'utilisateur.
+    if (this.versionPlusRecente()) return
     const fields: Record<string, unknown> = {}
     for (const [name, value] of this.values) {
       if (JSON.stringify(value) !== this.defaults.get(name)) fields[name] = value
     }
     try {
       if (Object.keys(fields).length === 0) {
+        if (this.storage.getItem(this.key) === null) return
         this.storage.removeItem(this.key)
+        signalerBrouillonsModifies()
         return
       }
+      // Lot 6 : saisie inchangée → date inchangée (le brouillon n'est pas renvoyé au serveur).
+      const actuel = JSON.parse(this.storage.getItem(this.key) ?? 'null') as Partial<DraftPayload> | null
+      if (actuel?.v === VERSION && JSON.stringify(actuel.fields) === JSON.stringify(fields)) return
       const payload: DraftPayload = { v: VERSION, savedAt: this.now(), fields }
       this.storage.setItem(this.key, JSON.stringify(payload))
+      this.versionConnue = payload.savedAt
+      signalerBrouillonsModifies()
     } catch {
       // Stockage plein ou interdit : le brouillon est un confort, pas une garantie.
     }
@@ -76,6 +101,14 @@ export class FormDraft {
   clear(): void {
     this.cleared = true
     try { this.storage.removeItem(this.key) } catch { /* stockage indisponible */ }
+    signalerBrouillonsModifies()
+  }
+
+  private dateStockee(): number {
+    try {
+      const p = JSON.parse(this.storage.getItem(this.key) ?? 'null') as Partial<DraftPayload> | null
+      return typeof p?.savedAt === 'number' ? p.savedAt : 0
+    } catch { return 0 }
   }
 
   private read(): Record<string, unknown> {
@@ -85,9 +118,12 @@ export class FormDraft {
       const payload = JSON.parse(raw) as Partial<DraftPayload>
       const valide = payload?.v === VERSION
         && typeof payload.savedAt === 'number'
-        && this.now() - payload.savedAt <= DRAFT_MAX_AGE_MS
+        && this.now() - Math.max(payload.savedAt, payload.recuLe ?? 0) <= DRAFT_MAX_AGE_MS
         && payload.fields && typeof payload.fields === 'object'
-      if (valide) return payload.fields as Record<string, unknown>
+      if (valide) {
+        this.versionConnue = payload.savedAt as number
+        return payload.fields as Record<string, unknown>
+      }
       this.storage.removeItem(this.key)
     } catch {
       try { this.storage.removeItem(this.key) } catch { /* stockage indisponible */ }
