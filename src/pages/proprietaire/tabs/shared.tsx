@@ -1,9 +1,6 @@
 
-import { IcPayments, IcMessagesNav } from './icons'
-import type { Bien, Piece } from '../../../types/api'
-import type { Contrat } from '../../../types/proprietaire'
 // ─── Icons ────────────────────────────────────────────────────────────────────
-const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+export const IcDash    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
 export const IcHome    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
 export const IcCal     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
 export const IcClock   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -21,138 +18,13 @@ export const IcBell    = () => <svg viewBox="0 0 24 24" fill="none" stroke="curr
 export const IcShare   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342a3 3 0 100 2.316m0-2.316a3 3 0 110 2.316m0-2.316L15.316 9.658M8.684 15.658L15.316 19.34M15.316 4.658a3 3 0 105.658 1.658 3 3 0 00-5.658-1.658zm0 0L8.684 8.342m6.632 11a3 3 0 105.658-1.658 3 3 0 00-5.658 1.658z"/></svg>
 export const IcUpload  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-export const BLUE      = 'var(--c-brand)'   // bleu principal (propriétaire)
-/** Bleu principal en couleur de texte : identique en clair, éclairci sur la palette marine (FE-B-024). Les fonds gardent BLUE. */
-export const BLUE_TX   = 'var(--tx-brand)'
-export const DARK_BLUE = '#0B1C30'   // navy
-
-export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Démarcheur', locataire: 'Locataire' }
-export const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
-
-export type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'notifications' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
-
 // Bottom nav (mobile/tablette, < xl) — jeu réduit d'onglets les plus utilisés.
-export const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: 'tableau',       label: 'Tableau',       icon: <IcDash /> },
-  { key: 'biens',         label: 'Mes biens',     icon: <IcHome /> },
-  { key: 'reservations',  label: 'Réservations',  icon: <IcCal /> },
-  { key: 'loyers',        label: 'Loyers',        icon: <IcPayments /> },
-  { key: 'portefeuille',  label: 'Portefeuille',  icon: <IcWallet /> },
-  { key: 'profil',        label: 'Profil',        icon: <IcPerson /> },
-]
 
 // Sidebar desktop (xl+) — liste plate façon immo-web-admin (icône + libellé,
 // sans sous-groupes). Tous les onglets internes (`tab`) restent dans le
 // dashboard (sidebar/topbar visibles) ; seuls "Gérer mes rôles" et
 // "Historique des transactions" pointent vers des pages à part (`to`),
 // comme "Nouveau bien".
-
-export const NAV_ITEMS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: 'tableau',      label: 'Tableau',      icon: <IcDash /> },
-  { key: 'biens',        label: 'Mes biens',    icon: <IcHome /> },
-  { key: 'reservations', label: 'Réservations', icon: <IcCal /> },
-  { key: 'loyers',       label: 'Loyers',       icon: <IcPayments /> },
-  { key: 'messages',     label: 'Messages',      icon: <IcMessagesNav /> },
-  { key: 'notifications', label: 'Notifications', icon: <IcBell /> },
-  { key: 'portefeuille', label: 'Portefeuille',  icon: <IcWallet /> },
-  { key: 'profil',       label: 'Profil',        icon: <IcPerson /> },
-]
-
-export function typeLabel(t: string) {
-  const m: Record<string, string> = { maison: 'Maison', appart_vide: 'Appartement vide', appart_meuble: 'Appartement meublé', terrain: 'Terrain', guesthouse: 'Guesthouse', salle_fete: 'Salle de fêtes' }
-  return m[t] || t
-}
-const SOUS_TYPE_LABELS: Record<string, string> = {
-  entree_coucher: 'Entrée-Coucher', chambre_salon: 'Chambre-Salon',
-  appartement: 'Appartement', villa: 'Villa', maison_individuelle: 'Maison',
-  villa_maison: 'Villa / Maison', boutique: 'Boutique / Local', terrain: 'Terrain',
-}
-export function bienLabel(b: Partial<Pick<Bien, 'type' | 'amenites'>> | null | undefined): string {
-  const sous = b?.amenites?.sous_type
-  if (typeof sous === 'string' && SOUS_TYPE_LABELS[sous]) {
-    if (sous === 'appartement' && b?.type === 'appart_meuble') return 'Appartement meublé'
-    return SOUS_TYPE_LABELS[sous]
-  }
-  return typeLabel(b?.type || '')
-}
-export function bienComposition(b: { pieces?: Piece[] } | null | undefined): string {
-  const pieces: Piece[] = b?.pieces || []
-  if (!pieces.length) return ''
-  const counts: Record<string, number> = {}
-  for (const p of pieces) counts[p.nom] = (counts[p.nom] || 0) + 1
-  return Object.entries(counts).map(([nom, n]) => `${n} ${nom}${n > 1 ? 's' : ''}`).join(' · ')
-}
-export function fmtPrix(p: number | string | null | undefined) {
-  const n = Number(p); return `${n.toLocaleString('fr-FR')} FCFA`
-}
-// Statuts : `color` pour un texte, `fill` pour un fond plein sous texte blanc (FE-B-024).
-export function statutBien(s: string) {
-  if (s === 'approuve')    return { label: 'Publié ✓',    color: 'var(--tx-green)', fill: 'var(--c-fill-success)' }
-  if (s === 'rejete')      return { label: 'Rejeté ✗',    color: 'var(--tx-red)', fill: 'var(--c-fill-error)' }
-  if (s === 'conditionnel') return { label: 'Conditionnel', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
-  return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
-}
-export function statutVisite(s: string) {
-  if (s === 'confirmee')       return { label: 'Confirmée',       color: 'var(--tx-green)', fill: 'var(--c-fill-success)' }
-  if (s === 'annulee')         return { label: 'Annulée',         color: 'var(--tx-red)', fill: 'var(--c-fill-error)' }
-  if (s === 'effectuee')       return { label: 'Effectuée',       color: BLUE_TX, fill: BLUE }
-  if (s === 'contre_proposee') return { label: 'Contre-proposée', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
-  return { label: 'En attente', color: 'var(--tx-amber)', fill: 'var(--c-amber-dark)' }
-}
-
-const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc']
-
-/** Revenus locatifs encaissés (loyers payés), regroupés par mois — `n` derniers mois. */
-export function buildRevenueSeries(contrats: Contrat[], n = 6): { label: string; value: number }[] {
-  const now = new Date()
-  const months = Array.from({ length: n }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1)
-    return { key: `${d.getFullYear()}-${d.getMonth()}`, label: MONTH_LABELS[d.getMonth()], value: 0 }
-  })
-  const byKey = new Map(months.map(m => [m.key, m]))
-  for (const c of contrats) {
-    for (const l of c.loyers || []) {
-      if (l.statut !== 'paye' || !l.date_paiement) continue
-      const d = new Date(l.date_paiement)
-      const m = byKey.get(`${d.getFullYear()}-${d.getMonth()}`)
-      if (m) m.value += Number(l.montant)
-    }
-  }
-  return months
-}
-
-/** Compte des éléments par mois (`n` derniers mois) — ex. visites reçues. */
-export function buildCountSeries<T>(items: T[], getDate: (item: T) => string | null | undefined, n = 6): { label: string; value: number }[] {
-  const now = new Date()
-  const months = Array.from({ length: n }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1)
-    return { key: `${d.getFullYear()}-${d.getMonth()}`, label: MONTH_LABELS[d.getMonth()], value: 0 }
-  })
-  const byKey = new Map(months.map(m => [m.key, m]))
-  for (const item of items) {
-    const raw = getDate(item)
-    if (!raw) continue
-    const d = new Date(raw)
-    if (isNaN(d.getTime())) continue
-    const m = byKey.get(`${d.getFullYear()}-${d.getMonth()}`)
-    if (m) m.value += 1
-  }
-  return months
-}
-
-// ─── Composants graphiques (SVG maison, sans librairie externe) ───────────────
-
-/** Assombrit une couleur hex d'un facteur (0-1) — utilisé pour donner un
- *  léger dégradé de profondeur aux StatCards pleines couleurs. */
-/**
- * Assombrit une couleur CSS quelconque (hex, `var(--jeton)`) de `amt` (0-1). Remplace l'ancien `shade`,
- * qui exigeait un hex : sur un `var()`, il produisait une couleur invalide et le dégradé disparaissait.
- */
-export function assombrir(color: string, amt: number): string {
-  return `color-mix(in srgb, ${color} ${Math.round((1 - amt) * 100)}%, black)`
-}
-
 
 /** Petit indicateur "temps réel" — pastille pulsante + horodatage de dernière synchro. */
 export function LiveIndicator({ label, refreshing }: { label: string; refreshing: boolean }) {
@@ -166,14 +38,3 @@ export function LiveIndicator({ label, refreshing }: { label: string; refreshing
     </div>
   )
 }
-
-export const MSG_AVATAR_COLORS = ['#2563EB', '#7C3AED', '#DB2777', 'var(--c-amber-600)', 'var(--c-success-bright)', '#0891B2']
-export function formatConvTime(iso?: string): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  const diff = Date.now() - d.getTime()
-  if (diff < 86_400_000) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-  if (diff < 604_800_000) return d.toLocaleDateString('fr-FR', { weekday: 'short' })
-  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-}
-

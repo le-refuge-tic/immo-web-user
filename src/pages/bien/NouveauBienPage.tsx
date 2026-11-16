@@ -13,7 +13,6 @@ import { StepHonoraires } from './nouveau-bien/steps/StepHonoraires'
 import { StepPhotos } from './nouveau-bien/steps/StepPhotos'
 import { withAlpha } from '../../utils/color'
 import { resumeMedias } from '../../hooks/useMediaDraft'
-import { messageEnvoisEchoues } from '../../utils/envoisEchoues'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
@@ -26,11 +25,6 @@ export default function NouveauBienPage() {
     setDraftBannerDismissed,
     submitting,
     error,
-    createdId,
-    created,
-    envoisEchoues,
-    renvoyerEchecs,
-    renvoiEnCours,
     navigate,
     draft,
     medias,
@@ -40,48 +34,6 @@ export default function NouveauBienPage() {
     goNext,
     navStyle,
   } = form
-
-  // ── Success screen ────────────────────────────────────────────────────────
-  if (created) {
-    return (
-      <div className="proprio-root proprio-light h-full flex flex-col items-center justify-center px-6 text-center"
-        style={{ background: 'var(--p-deep)' }}>
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
-          style={{ background: withAlpha(BLUE, '20') }}>
-          <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
-            style={{ color: BLUE }}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--p-text)' }}>Bien soumis !</h2>
-        <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--p-muted)' }}>
-          En attente de validation par l'administrateur. Vous serez notifié une fois approuvé.
-        </p>
-        {messageEnvoisEchoues(envoisEchoues.photos, envoisEchoues.video) && (
-          <div className="mb-6 max-w-xs">
-            <p role="alert" className="text-sm font-semibold" style={{ color: 'var(--tx-amber)' }}>
-              {messageEnvoisEchoues(envoisEchoues.photos, envoisEchoues.video)}
-            </p>
-            <button type="button" onClick={renvoyerEchecs} disabled={renvoiEnCours}
-              className="mt-2 px-5 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
-              style={{ background: withAlpha(BLUE, '18'), color: 'var(--tx-brand)' }}>
-              {renvoiEnCours ? 'Envoi…' : "Réessayer l'envoi"}
-            </button>
-          </div>
-        )}
-        <button onClick={() => navigate(createdId ? `/proprietaire/biens/${createdId}` : '/proprietaire')}
-          className="px-8 py-4 rounded-xl font-bold"
-          style={{ background: BLUE, color: 'white', boxShadow: `0 4px 24px ${withAlpha(BLUE, '44')}` }}>
-          Voir mon annonce
-        </button>
-        <button onClick={() => navigate('/proprietaire', { state: { tab: 'biens' } })}
-          className="mt-3 px-6 py-3 rounded-xl text-sm font-semibold"
-          style={{ color: 'var(--p-muted)' }}>
-          Retour à mes biens
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div className="proprio-root proprio-light h-full flex flex-col overflow-hidden"

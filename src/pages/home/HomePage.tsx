@@ -1,5 +1,5 @@
-import { useAuth } from '../../context/AuthContext'
-import { useTheme } from '../../context/ThemeContext'
+import { useAuth } from '../../context/useAuth'
+import { useTheme } from '../../context/useTheme'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { useCarouselAutoplay } from '../../hooks/useCarouselAutoplay'
 import { isSousType, matchLoc } from './home/constants'

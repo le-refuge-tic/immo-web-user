@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { notificationsApi } from '../../../api/notificationsApi'
-import { useNotifications } from '../../../context/NotificationsContext'
+import { useNotifications } from '../../../context/useNotifications'
 import { GREEN, GREEN_TX } from '../shared'
 import { IcBell } from '../icons'
 import AlerteItem from './AlerteItem'

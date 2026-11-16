@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import { usePrefersReducedMotion } from '../../../hooks/useCarouselAutoplay'
 import { HERO_SLIDES } from './constants'
 import { SearchIcon } from './icons'

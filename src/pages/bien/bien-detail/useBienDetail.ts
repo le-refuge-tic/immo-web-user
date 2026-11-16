@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, type SetStateAction } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import { biensApi } from '../../../api/biensApi'
 import { queryKeys } from '../../../api/queryKeys'
 import { unwrapList } from '../../../utils/unwrapList'

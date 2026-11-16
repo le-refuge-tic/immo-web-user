@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { usePageTitle } from '../../utils/usePageTitle'
 import { GREEN, TEAL, GREEN_TX } from './shared'
 import type { Tab } from './shared'

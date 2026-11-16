@@ -1,7 +1,7 @@
 import { cn } from '../../lib/utils'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { authApi } from '../../api/authApi'
 import { withColdStartRetry, isColdStartError } from '../../utils/coldStartRetry'
 import { motion, AnimatePresence, useReducedMotion, type Transition } from 'framer-motion'

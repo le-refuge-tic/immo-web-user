@@ -10,12 +10,10 @@ import { PHOTOS_MAX, PHOTOS_MIN } from '../photosRegles'
 
 export function StepPhotos({ form }: { form: NouveauBienForm }) {
   const {
-    submitting,
     photos,
     setPhotos,
     video,
     setVideo,
-    uploadProgress,
     hoveredDropzone,
     setHoveredDropzone,
     typeBien,
@@ -203,16 +201,6 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
             </>
           )}
 
-          {submitting && uploadProgress > 0 && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--p-muted)' }}>
-                <span>Téléversement des photos…</span><span>{uploadProgress}%</span>
-              </div>
-              <div className="h-2 rounded-full" style={{ background: 'var(--p-deep)' }}>
-                <div className="h-full rounded-full transition-all" style={{ width: `${uploadProgress}%`, background: BLUE }} />
-              </div>
-            </div>
-          )}
         </Card>
 
         {/* ── Vidéo ── */}

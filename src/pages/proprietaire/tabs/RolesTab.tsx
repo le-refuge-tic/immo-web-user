@@ -1,21 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import { rolesApi } from '../../../api/rolesApi'
-import { ROLE_ROUTES, assombrir, BLUE, BLUE_TX } from './shared'
+import { ROLE_ROUTES, assombrir, BLUE, BLUE_TX } from './outils'
 import { withAlpha } from '../../../utils/color'
+import { svgMaskUrl } from './rolesOutils'
 
 import { apiMessage } from '../../../utils/apiMessage'
 
-// ─── Tab: Profil ──────────────────────────────────────────────────────────────
-// ─── Tab: Gérer mes rôles ───────────────────────────────────────────────────────
-// Icônes rendues en CSS mask (data-URI SVG) plutôt qu'en <svg stroke> inline :
-// la couleur vient alors de `background` sur le conteneur (currentColor via
-// `color`), ce qui permet le dégradé plein-couleur des puces de rôle actif.
-export function svgMaskUrl(inner: string): string {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>${inner}</svg>`
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
-}
 const ROLE_ICON_PATHS: Record<string, string> = {
   prospect:     '<path d="M21 21l-5.2-5.2m2.2-5.3a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"/>',
   proprietaire: '<path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>',

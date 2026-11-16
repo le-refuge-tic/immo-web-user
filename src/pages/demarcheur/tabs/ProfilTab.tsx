@@ -1,7 +1,7 @@
 import AppearanceSetting from '../../../components/AppearanceSetting'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import { userApi } from '../../../api/userApi'
 import EditProfileModal from '../../profile/EditProfileModal'
 import ChangePasswordModal from '../../profile/ChangePasswordModal'

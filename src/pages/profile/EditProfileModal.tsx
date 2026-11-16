@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { userApi } from '../../api/userApi'
 import { apiMessage } from '../../utils/apiMessage'
 import VerifyPhoneSection from './VerifyPhoneSection'

@@ -11,7 +11,11 @@ export function StepHonoraires({ form }: { form: NouveauBienForm }) {
   const [fraisPromotionnels, setFraisPromotionnels] = useState(500)
   useEffect(() => {
     axios.get<{ montant: number }>(`${BASE}/configuration/frais-visite`)
-      .then(response => setFraisPromotionnels(response.data.montant))
+      .then(response => {
+        // Réponse inattendue (corps vide, autre format) : le tarif standard, jamais un crash de l'étape.
+        const montant = Number(response.data?.montant)
+        setFraisPromotionnels(Number.isFinite(montant) && montant >= 0 ? montant : 500)
+      })
       .catch(() => setFraisPromotionnels(500))
   }, [])
   const {

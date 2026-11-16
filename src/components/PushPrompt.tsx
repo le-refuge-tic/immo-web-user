@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { pushSupported, subscribeToPush, PUSH_MOMENT_EVENT } from '../lib/push'
 
 const DISMISS_KEY = 'rg_push_dismissed'
