@@ -32,3 +32,17 @@ test('publication retirée et publication sous conditions : le motif est affich�
   await expect(page.getByText('Publication retirée : Bien déjà loué.')).toBeVisible()
   await expect(page.getByText('Publié sous conditions : Fournir le titre foncier')).toBeVisible()
 })
+
+test('fiche d’un bien non publié : le propriétaire l’ouvre (route du propriétaire)', async ({ page }) => {
+  await mockApp(page, {
+    role: 'proprietaire',
+    mocks: { routes: {
+      'GET /biens/21': { status: 404, body: { message: 'Bien introuvable' } },
+      'GET /biens/mes-biens/21': { status: 200, body: bien({ statut_moderation: 'rejete', motif_refus: 'Photos floues', user_id: 42 }) },
+    } },
+  })
+  await page.goto('/proprietaire/biens/21')
+  await expect(page.getByText('Bien introuvable')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Chambre-Salon — Akpakpa' })).toBeVisible()
+  await expect(page.locator('text=Photos floues >> visible=true').first()).toBeVisible()
+})

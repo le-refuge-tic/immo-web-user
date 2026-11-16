@@ -10,6 +10,7 @@ import { chatApi } from '../api/chatApi'
 import { API_ORIGIN } from '../api/apiBase'
 import { tokenStore } from '../utils/tokenStore'
 import { NotificationsContext } from './useNotifications'
+import { EVENEMENT_ALERTE_DIRECTE, toastPourAlerte, type EvenementAlerte } from '../utils/typesAlertes'
 
 // Filet de sécurité si le WebSocket est coupé ; les mises à jour normales
 // arrivent par les événements alertes:maj / messages:maj.
@@ -127,7 +128,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     void import('socket.io-client').then(({ io }) => {
       if (cancelled) return
       socket = io(`${API_ORIGIN}/chat`, { auth: { token }, transports: ['websocket'], reconnectionDelay: 2000 })
-      socket.on('alertes:maj', refreshAlertes)
+      socket.on('alertes:maj', (e?: EvenementAlerte) => {
+        refreshAlertes()
+        // Lot 8 : décision sur une annonce reçue en direct → toast (affiché par SocleApp).
+        if (toastPourAlerte(e)) window.dispatchEvent(new CustomEvent(EVENEMENT_ALERTE_DIRECTE, { detail: e }))
+      })
       socket.on('messages:maj', refreshMessages)
       socket.on('connect', refresh)
     })

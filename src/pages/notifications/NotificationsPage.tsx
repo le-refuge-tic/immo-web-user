@@ -11,6 +11,7 @@ import { useApiQuery } from '../../hooks/useApiQuery'
 import { useNotifications } from '../../context/useNotifications'
 import type { Notification } from '../../types/api'
 import ErrorState from '../../components/ErrorState'
+import { TYPES_ALERTE_BIEN } from '../../utils/typesAlertes'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -97,6 +98,9 @@ const TYPE_ALIAS: Record<string, string> = {
   visite_annulee: 'annulation', visite_echouee: 'annulation', visite_creneau_refuse: 'annulation',
   paiement_visite: 'paiement', nouveau_message: 'message', creneau_expire: 'proposition',
   bien_occupe: 'bien_rejete', bien_disponible: 'bien_approuve',
+  // Lot 8 : décisions de modération
+  bien_conditionnel: 'proposition', bien_revoque: 'bien_rejete',
+  modification_approuvee: 'bien_approuve', modification_rejetee: 'bien_rejete', type_bien_change: 'systeme',
 }
 
 function getTypeConfig(type?: string): TypeCfg {
@@ -140,7 +144,7 @@ const CONVERSATION_TYPES = new Set([
   'nouveau_message', 'creneau_expire', 'visite_contre_proposee',
   'visite_client_recontrepropose', 'visite_creneau_refuse',
 ])
-const BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
+const BIEN_TYPES = TYPES_ALERTE_BIEN
 
 // Étiquette d'action affichée sous la notification, comme sur mobile (_Notif.chipLabel).
 function chipLabel(n: Notification): string | null {

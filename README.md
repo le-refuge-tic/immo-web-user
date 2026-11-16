@@ -57,6 +57,26 @@ La CI (`.github/workflows/ci.yml`) exécute typage, lint, tests, vérification d
 
 Les tests Playwright (`e2e/`) jouent les parcours critiques (découverte et recherche, session, réservation et paiement, publication d'annonce, messagerie, tableaux de bord…) dans un vrai navigateur, **contre une API entièrement simulée** : aucun backend n'est nécessaire. `playwright.config.ts` lance le serveur de développement. Première utilisation : `npx playwright install chromium`. `e2e/support/mockApi.ts` fournit la simulation (`mockApp`) ; ajouter un point d'accès simulé y suffit pour un nouveau test.
 
+## Notifications
+
+Liste minimale des notifications liées aux annonces (lot 8). **Chaque nouvelle fonctionnalité qui
+prévient quelqu'un doit compléter ce tableau, dans les README des deux fronts.**
+Les alertes sont créées par l'API (`AlertesService.creerAlerte`) ; l'événement socket
+`alertes:maj` (raison `nouvelle`) porte leur titre et leur texte, ce qui permet le toast
+immédiat dans l'onglet ouvert.
+
+| Événement | Destinataire(s) | Canal | Type d'alerte |
+|---|---|---|---|
+| Envoi des photos terminé / échoué | auteur | toast (session, gestionnaire d'envois) | — |
+| Nouveau bien en attente de validation | admins | alerte + badge « Modération » (temps réel) + toast | `bien_a_valider` |
+| Bien approuvé / rejeté (motif) / publié sous conditions / publication retirée (motif) | auteur ; propriétaire lié si l'auteur est un commercial (sans la prime) | alerte + push + toast si connecté ; SMS au commercial auteur | `bien_approuve`, `bien_rejete`, `bien_conditionnel`, `bien_revoque` |
+| Bien publié modifié, renvoyé en validation | admins | alerte + toast | `bien_modifie` |
+| Modification approuvée / refusée (motif) | auteur de la modification | alerte + toast | `modification_approuvee`, `modification_rejetee` |
+| Type de bien changé par un admin | auteur | alerte + toast | `type_bien_change` |
+| Brouillon ancien (> 7 jours) | auteur | non câblé (optionnel) | — |
+
+Côté propriétaire, les alertes s'affichent dans l'onglet « Alertes » ; les types liés à un bien sont listés dans `src/utils/typesAlertes.ts`.
+
 ## Structure du code
 
 - `src/pages/<écran>/` : une page par dossier ; les grosses pages sont découpées en hook (`useXxx`), sections et modules d'options (par exemple `bien/nouveau-bien/`, `search/recherche/`). Aucun fichier ne dépasse 800 lignes.

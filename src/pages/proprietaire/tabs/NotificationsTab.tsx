@@ -11,6 +11,7 @@ import { BLUE, formatConvTime, BLUE_TX } from './outils'
 import type { Tab } from './outils'
 import type { Notification } from '../../../types/api'
 import ErrorState from '../../../components/ErrorState'
+import { TYPES_ALERTE_BIEN } from '../../../utils/typesAlertes'
 
 /* ── Onglet Notifications — propre à l'espace propriétaire ─────────────────
  * Affiche uniquement les alertes concernant le rôle propriétaire (target_role
@@ -24,7 +25,8 @@ const NOTIF_VISITE_TYPES = new Set([
   'visite_effectuee', 'visite_echouee', 'visite_annulee',
   'rappel_visite', 'paiement_visite',
 ])
-const NOTIF_BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
+// Lot 8 : liste commune (décisions de modération comprises).
+const NOTIF_BIEN_TYPES = TYPES_ALERTE_BIEN
 
 function notifIcon(type: string): { node: React.ReactNode; color: string } {
   if (NOTIF_BIEN_TYPES.has(type)) return { node: <IcHome />, color: 'var(--tx-green)' }

@@ -11,6 +11,16 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 8 — notifications)
+- Tableau des notifications dans le README (à compléter à chaque fonctionnalité).
+- Décision sur une annonce (approuvée, rejetée, sous conditions, retirée, modification approuvée
+  ou refusée, type changé) : toast immédiat si la personne est connectée ; ces alertes ont leur
+  icône et ouvrent le bien (`src/utils/typesAlertes.ts`, liste commune aux trois écrans).
+
+### Corrigé (lot 8)
+- La fiche d'un bien non publié (en attente, rejeté, retiré) affichait « Bien introuvable » à son
+  propriétaire : elle se charge désormais par la route du propriétaire.
+
 ### Ajouté (lot 7 — modération)
 - « Mes biens » : une annonce en attente indique ce qui manque pour être publiée (photos du bien
   et des pièces, minimum du référentiel), le motif d'un retrait de publication et les conditions

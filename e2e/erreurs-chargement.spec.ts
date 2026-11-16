@@ -148,7 +148,12 @@ test.describe('erreurs de chargement : fiche et réservation d\'un bien', () => 
   })
 
   test('fiche bien : un vrai 404 reste « Bien introuvable », sans bouton « Réessayer »', async ({ page }) => {
-    await mockApp(page, { mocks: { bienDetail: { status: 404, body: { message: 'Not found' } } } })
+    // Lot 8 : connecté, la fiche essaie aussi la route du propriétaire ; l'API y répond 404
+    // pour un bien qui n'est pas le sien.
+    await mockApp(page, { mocks: {
+      bienDetail: { status: 404, body: { message: 'Not found' } },
+      routes: { 'GET /biens/mes-biens/1': { status: 404, body: { message: 'Bien introuvable' } } },
+    } })
     await page.goto('/biens/1')
 
     await expect(page.getByText('Bien introuvable')).toBeVisible()
