@@ -47,6 +47,32 @@ describe('FormDraft (FE-B-002)', () => {
     expect(JSON.parse(store.getItem(KEY)!).savedAt).toBe(now)
   })
 
+  it('lot 6 : version plus récente écrite par la synchronisation → plus d’écriture jusqu’au choix', () => {
+    const d = draft()
+    d.initialValue('prix', '')
+    d.set('prix', '75 000')
+    d.flush()
+    now += 1000
+    // Autre appareil, plus récent, reçu par la synchronisation
+    store.setItem(KEY, JSON.stringify({ v: 1, savedAt: now, fields: { prix: '90 000' } }))
+    expect(d.versionPlusRecente()).toBe(true)
+    d.set('prix', '76 000')
+    now += 1000
+    d.flush()
+    expect(JSON.parse(store.getItem(KEY)!).fields.prix).toBe('90 000')
+    d.garderMaSaisie()
+    d.flush()
+    expect(JSON.parse(store.getItem(KEY)!).fields.prix).toBe('76 000')
+    expect(d.versionPlusRecente()).toBe(false)
+  })
+
+  it('lot 6 : brouillon ancien reçu du serveur : l’expiration part de sa réception', () => {
+    const vieux = now - 2 * DRAFT_MAX_AGE_MS
+    store.setItem(KEY, JSON.stringify({ v: 1, savedAt: vieux, recuLe: now, fields: { prix: '45 000' } }))
+    const d = draft()
+    expect(d.initialValue('prix', '')).toBe('45 000')
+  })
+
   it('enregistre les champs modifiés et les restaure à la visite suivante', () => {
     const d1 = draft()
     d1.initialValue('prix', '')

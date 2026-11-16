@@ -19,6 +19,8 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 - « Mes biens » : section « Brouillons » (libellé, type, étape, date ; Reprendre, Supprimer avec
   confirmation).
 - Parcours Playwright `brouillons-serveur`.
+- Formulaire ouvert pendant qu'une version plus récente arrive d'un autre appareil : rien n'est
+  écrasé, bandeau « Charger cette version » / « Garder ma saisie ».
 
 ### Modifié (lot 6)
 - Le formulaire classique rouvre à l'étape atteinte ; son brouillon n'est plus re-daté chaque

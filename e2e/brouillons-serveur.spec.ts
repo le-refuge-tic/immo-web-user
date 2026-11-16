@@ -86,3 +86,36 @@ test('suppression confirmée : retirée de l’appareil et du serveur', async ({
   await expect(brouillons).toHaveCount(0)
   await expect.poll(() => calls.some(c => c.method === 'DELETE' && c.path === `/brouillons-biens/${CLE_GH}`), { timeout: 10_000 }).toBe(true)
 })
+
+test('page ouverte, version plus récente reçue d’un autre appareil : rien n’est écrasé, l’utilisateur choisit', async ({ page }) => {
+  const ancien = Date.UTC(2026, 10, 10)
+  const recent = Date.UTC(2026, 10, 15)
+  const calls = await mockApp(page, {
+    role: 'proprietaire',
+    mocks: { routes: {
+      // Réponse retardée : la page est ouverte avant que la version de l'autre appareil n'arrive.
+      'GET /brouillons-biens': { status: 200, delayMs: 8000, body: [{ cle: CLE_GH, famille: 'proprietaire_guesthouse', libelle: 'Villa Awa Plage', etape: 0, maj_le: recent }] },
+      [`GET /brouillons-biens/${CLE_GH}`]: { status: 200, body: {
+        cle: CLE_GH, famille: 'proprietaire_guesthouse', libelle: 'Villa Awa Plage', etape: 0, maj_le: recent, donnees: { nom: 'Villa Awa Plage' },
+      } },
+    } },
+  })
+  await avecTelephone(page)
+  await page.addInitScript(({ uid, ancien }) => {
+    localStorage.setItem(`rg_draft_guesthouse_${uid}`, JSON.stringify({ form: { nom: 'Villa Awa' }, etape: 0, majLe: ancien }))
+    localStorage.setItem('rg_draft_synchro', JSON.stringify({ compte: uid, etat: { 'proprietaire-guesthouse': ancien } }))
+  }, { uid: UID, ancien })
+  await page.goto('/nouveau-bien/guesthouse')
+
+  await expect(page.getByLabel('Nom de la guesthouse')).toHaveValue('Villa Awa')
+  const bandeau = page.getByRole('alert').filter({ hasText: 'modifié sur un autre appareil' })
+  await expect(bandeau).toBeVisible({ timeout: 20_000 })
+  // La saisie de cette page ne remplace pas la version plus récente tant que rien n'est choisi.
+  await page.getByLabel('Nom de la guesthouse').fill('Villa Awa ici')
+  await page.waitForTimeout(2000)
+  expect(calls.some(c => c.method === 'POST' && c.path === '/brouillons-biens')).toBe(false)
+
+  await bandeau.getByRole('button', { name: 'Charger cette version' }).click()
+  await expect(page.getByLabel('Nom de la guesthouse')).toHaveValue('Villa Awa Plage')
+  await expect(bandeau).toHaveCount(0)
+})

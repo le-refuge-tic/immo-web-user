@@ -40,7 +40,7 @@ export const LIBELLES_FORMULAIRE: Record<FormulaireBrouillon, string> = {
 /** Format du brouillon guesthouse / salle (NouveauBienDediePage). */
 export interface BrouillonDedie<T = Record<string, unknown>> { form: T; etape: number; majLe?: number }
 /** Format FormDraft du formulaire classique. */
-interface BrouillonClassique { v: number; savedAt: number; fields: Record<string, unknown> }
+interface BrouillonClassique { v: number; savedAt: number; fields: Record<string, unknown>; recuLe?: number }
 
 function lireJson<T>(cle: string): T | null {
   try { return JSON.parse(localStorage.getItem(cle) ?? 'null') as T | null } catch { return null }
@@ -81,7 +81,8 @@ function magasin(formulaire: FormulaireBrouillon, uid: number): MagasinBrouillon
     familles: [FAMILLE[formulaire]],
     lire: () => { const e = lireEntree(formulaire, uid); return e ? [e] : [] },
     ecrire: e => ecrireJson(cle, formulaire === 'bien'
-      ? { v: 1, savedAt: e.majLe, fields: e.donnees } satisfies BrouillonClassique
+      // recuLe : l'expiration locale (7 jours) part de la réception, pas de la saisie d'origine.
+      ? { v: 1, savedAt: e.majLe, fields: e.donnees, recuLe: Date.now() } satisfies BrouillonClassique
       : { form: e.donnees, etape: e.etape, majLe: e.majLe } satisfies BrouillonDedie),
     retirer: () => retirerCle(cle),
     vider: () => retirerCle(cle),
