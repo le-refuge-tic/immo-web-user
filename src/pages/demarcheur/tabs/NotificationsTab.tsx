@@ -10,6 +10,7 @@ import { IcHome, IcCal, IcBell, IcChat } from '../icons'
 import { unwrapList } from '../../../utils/unwrapList'
 import type { Notification } from '../../../types/api'
 import ErrorState from '../../../components/ErrorState'
+import { TYPES_ALERTE_BIEN } from '../../../utils/typesAlertes'
 
 /* Onglet notifications propre à l'espace démarcheur : n'affiche que les alertes
  * concernant ce rôle (target_role = 'demarcheur'/'commercial', ou null pour les
@@ -20,7 +21,8 @@ const NOTIF_VISITE_TYPES = new Set([
   'visite_effectuee', 'visite_echouee', 'visite_annulee',
   'rappel_visite', 'paiement_visite',
 ])
-const NOTIF_BIEN_TYPES = new Set(['bien_approuve', 'bien_rejete', 'bien_occupe', 'bien_disponible'])
+// Lot 8 : liste commune (décisions de modération comprises).
+const NOTIF_BIEN_TYPES = TYPES_ALERTE_BIEN
 const DEMARCHEUR_ROLES = new Set(['demarcheur', 'commercial'])
 
 function notifTimeAgo(iso?: string): string {

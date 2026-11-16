@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, type SetStateAction } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
 import { useAuth } from '../../../context/useAuth'
 import { biensApi } from '../../../api/biensApi'
 import { queryKeys } from '../../../api/queryKeys'
@@ -26,7 +27,16 @@ export function useBienDetail() {
   // une autre adresse a sa propre entrée, jamais l'ancien bien sous la nouvelle adresse.
   const detail = useQuery({
     queryKey: queryKeys.biens.detail(bienId),
-    queryFn: ({ signal }) => biensApi.byId(bienId, signal),
+    // Lot 8 : un bien non publié (en attente, rejeté, retiré) n'est pas sur la route publique ;
+    // son propriétaire l'ouvre par la sienne (liens des alertes, « Mes biens »).
+    queryFn: async ({ signal }) => {
+      try {
+        return await biensApi.byId(bienId, signal)
+      } catch (err) {
+        if (!isLoggedIn || !axios.isAxiosError(err) || err.response?.status !== 404) throw err
+        return await biensApi.monBien(bienId)
+      }
+    },
   })
   const bien: Bien | null = detail.data ?? null
   const setBien = useCallback((value: SetStateAction<Bien | null>) => {
