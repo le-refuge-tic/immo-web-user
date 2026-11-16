@@ -99,6 +99,16 @@ export const biensApi = {
     }).then(r => { invaliderBiens(); return r.data })
   },
 
+  /** Photo principale (couverture) : la photo doit appartenir au bien. */
+  definirCouverture: (bienId: number, photoId: number) =>
+    axios.patch<{ message: string }>(`${BASE}/biens/${bienId}/photos/${photoId}/cover`, {}, auth())
+      .then(r => { invaliderBiens(bienId); return r.data }),
+
+  /** Un bien publié garde le minimum de photos de son type : l'API refuse (400) sinon. */
+  supprimerPhoto: (bienId: number, photoId: number) =>
+    axios.delete<{ message: string }>(`${BASE}/biens/${bienId}/photos/${photoId}`, auth())
+      .then(r => { invaliderBiens(bienId); return r.data }),
+
   uploadVideo: (bienId: number, file: File) => {
     const form = new FormData()
     form.append('video', file)

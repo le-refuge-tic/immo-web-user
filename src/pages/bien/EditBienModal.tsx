@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import { biensApi } from '../../api/biensApi'
 import QuartierPicker from '../../components/QuartierPicker'
 import { trouverQuartierExact } from '../../data/quartiers'
@@ -6,15 +6,16 @@ import { apiMessage } from '../../utils/apiMessage'
 import type { Bien, Localisation } from '../../types/api'
 import type { BienPayload } from '../../api/biensApi'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import { useToast } from '../../context/useToast'
+import { useConfirm } from '../../shared/dialogues/useConfirm'
+import { PHOTOS_MIN_CLASSIQUE } from '../../shared/biens/referentielTypes'
+import PhotosBien from './modifier/PhotosBien'
 
 type Props = { bien: Bien; onClose: () => void; onSaved: (bien: Bien) => void }
 
 export default function EditBienModal({ bien, onClose, onSaved }: Props) {
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [onClose])
+  const toast = useToast()
+  const { confirmer } = useConfirm()
 
   const loc: Localisation & { arrondissement?: string } = bien.localisation || {}
   const [prix, setPrix] = useState(String(bien.prix ?? ''))
@@ -28,7 +29,18 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [photos, setPhotos] = useState(bien.photos ?? [])
   const scrollRef = useRef<HTMLDivElement>(null)
+  const publie = bien.statut_moderation === 'approuve'
+
+  // Lot 5 : rien à enregistrer tant que rien n'a changé ; fermer prévient avant de perdre une saisie.
+  const valeurs = JSON.stringify([prix, prixPromo, fraisVisite, description, quartier, ville, adresse])
+  const [reference] = useState(valeurs)
+  const modifie = valeurs !== reference
+  const fermer = async () => {
+    if (modifie && !success && !(await confirmer({ titre: 'Quitter sans enregistrer ?', message: 'Vos changements seront perdus.', confirmer: 'Quitter sans enregistrer', danger: true }))) return
+    onClose()
+  }
 
   const submit = async () => {
     if (!prix.trim()) {
@@ -63,31 +75,39 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       const updated = await biensApi.update(bien.id, body)
       const saved = updated.data || updated.bien || updated
       setSuccess(true)
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-      setTimeout(() => onSaved(saved), 900)
+      toast(saved.modification_en_attente
+        ? 'Modification envoyée en validation : l’annonce actuelle reste en ligne jusqu’à la décision de l’administration.'
+        : 'Bien mis à jour.', saved.modification_en_attente ? 'info' : 'success')
+      setTimeout(() => onSaved({ ...saved, photos }), 900)
     } catch (err: unknown) {
-      setError(apiMessage(err) || 'Erreur lors de la mise à jour')
+      const message = apiMessage(err) || 'Erreur lors de la mise à jour'
+      setError(message)
+      toast(message, 'error')
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
     setSaving(false)
   }
 
   return (
-    <ModalSheet open onClose={onClose} label="Modifier le bien" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
+    <ModalSheet open onClose={() => void fermer()} label="Modifier le bien" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
       <div
         ref={scrollRef}
         className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-divider sticky top-0 bg-white">
           <h2 className="font-bold text-text-dark">Modifier le bien</h2>
-          <button onClick={onClose} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
+          <button onClick={() => void fermer()} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-g text-text-grey">✕</button>
         </div>
 
         <div className="p-5 space-y-4">
-          {success && (
-            <div className="bg-success/10 border border-success/30 rounded-xl px-4 py-2.5">
-              <p className="text-success text-sm font-semibold">Bien mis à jour avec succès</p>
-            </div>
+          {bien.modification_en_attente ? (
+            <p role="status" className="bg-primary/10 border border-primary/30 rounded-xl px-4 py-2.5 text-sm text-text-dark">
+              Une modification attend la validation de l’administration ; l’annonce actuelle reste en ligne. Un nouvel envoi la remplace.
+            </p>
+          ) : publie && (
+            <p role="note" className="bg-surface-g border border-divider rounded-xl px-4 py-2.5 text-sm text-text-grey">
+              Ce bien est publié : vos modifications seront vérifiées par l’administration avant d’être mises en ligne.
+            </p>
           )}
           <div role="alert" aria-live="assertive" aria-atomic="true">
             {error && (
@@ -151,11 +171,16 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
           </div>
         </div>
 
+        <div className="px-5 pb-5">
+          <PhotosBien bienId={bien.id} photos={photos} setPhotos={setPhotos} min={PHOTOS_MIN_CLASSIQUE}
+            libelle={`Bien n° ${bien.id}`} lien={`/proprietaire/biens/${bien.id}`} />
+        </div>
+
         <div className="p-5 pt-0">
-          <button onClick={submit} disabled={saving || success}
+          <button onClick={submit} disabled={saving || success || !modifie}
             className="w-full py-3.5 rounded-xl font-bold text-white disabled:opacity-60"
             style={{ background: 'linear-gradient(135deg,var(--c-brand),var(--c-violet))' }}>
-            {success ? 'Enregistré ✓' : saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+            {success ? 'Enregistré ✓' : saving ? 'Enregistrement…' : publie ? 'Envoyer en validation' : 'Enregistrer les modifications'}
           </button>
         </div>
       </div>

@@ -110,6 +110,8 @@ export interface Bien {
   description?: string
   statut: StatutBien
   statut_moderation?: StatutModeration
+  /** Lot 5 : modification d'un bien publié en attente de validation (l'annonce en ligne reste inchangée). */
+  modification_en_attente?: { source: 'proprietaire' | 'staff'; soumise_le: string } | null
   motif_refus?: string | null
   conditions_speciales?: string | null
   score_qualite?: number

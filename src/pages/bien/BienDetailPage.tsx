@@ -3,6 +3,7 @@ import type { Amenites } from '../../types/amenites'
 import type { Photo, Piece } from '../../types/api'
 import { infosLogementRows, infosTerrainRows, type InfoRow } from '../../utils/amenites'
 import EditBienModal from './EditBienModal'
+import { aFormulaireDedie } from './modifier/formulaireEdition'
 import ShareSheet from '../../components/ShareSheet'
 import { bienTypeLabel } from '../../utils/bienType'
 import { resolveUrl, buildComposition } from './bien-detail/helpers'
@@ -57,6 +58,8 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const allUrls = photos.map((p: Photo) => resolveUrl(p.url))
   const isLocation = bien.transaction === 'location'
   const typeLabel = bienTypeLabel(bien)
+  // Lot 5 : guesthouse et salle se modifient avec le formulaire de création.
+  const modifier = () => (aFormulaireDedie(bien) ? navigate(`/proprietaire/biens/${bien.id}/modifier`) : setEditing(true))
   /** Titre auto-généré (le bien n'a pas de champ "titre" saisi) : Type — Quartier. */
   // Guesthouse : son nom (1re ligne de la description) quand il existe
   const nomGuesthouse = nomEtDescription(bien).nom
@@ -189,7 +192,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                 visiteActive={visiteActive} visiteCancellee={visiteCancellee} visiteEchouee={visiteEchouee}
                 onAnnuler={annulerVisite} annulerBusy={annulerBusy}
                 onProposerVisite={() => { if (!isLoggedIn) { sessionStorage.setItem('post_login_redirect', `/reservation/${bien.id}`); navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
-                onModifier={() => setEditing(true)}
+                onModifier={modifier}
                 fraisVisite={bien.frais_visite}
               />
 
@@ -274,7 +277,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           visiteActive={visiteActive} visiteCancellee={visiteCancellee} visiteEchouee={visiteEchouee}
           onAnnuler={annulerVisite} annulerBusy={annulerBusy}
           onProposerVisite={() => { if (!isLoggedIn) { sessionStorage.setItem('post_login_redirect', `/reservation/${bien.id}`); navigate('/login'); return } navigate(`/reservation/${bien.id}`) }}
-          onModifier={() => setEditing(true)}
+          onModifier={modifier}
           fraisVisite={bien.frais_visite}
         />
       </div>
