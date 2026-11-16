@@ -70,6 +70,9 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
     chambre_salon:  'Chambre-Salon',
     studio:         'Studio',
     f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5',
+    // Lot 2 : sous-types du référentiel enregistrés en type « maison » (sinon tous affichés « Maison »).
+    villa: 'Villa', duplex: 'Duplex', villa_maison: 'Villa',
+    boutique: 'Boutique', bureau: 'Bureau', local_commercial: 'Local commercial', showroom: 'Showroom',
   }
   const sousType = typeof bien.amenites?.sous_type === 'string' ? bien.amenites.sous_type : undefined
   const isGuesthouse = bien.type === 'guesthouse'

@@ -83,7 +83,7 @@ test.describe("P4 publication d'annonce", () => {
     await page.goto('/nouveau-bien')
     const continuer = page.getByRole('button', { name: /Continuer/ })
 
-    await page.getByRole('button', { name: 'Appartement', exact: true }).click()
+    await page.getByRole('radio', { name: 'Appartement', exact: true }).click()
     await page.locator('input[type="number"]').first().fill('120000')
     await continuer.click()
     await page.getByPlaceholder('Rechercher un quartier…').fill('Akpakpa')

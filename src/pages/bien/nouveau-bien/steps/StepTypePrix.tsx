@@ -1,8 +1,9 @@
 
 
-import { BLUE, TYPES_BIEN, STANDING_OPTS, STANDING_AUTRE_MAX, baseInputStyle } from '../options'
+import { BLUE, STANDING_OPTS, STANDING_AUTRE_MAX, baseInputStyle } from '../options'
 import { Card, Section, ChoiceList, Chip, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
+import SelecteurTypeBien from '../../../../components/SelecteurTypeBien'
 
 export function StepTypePrix({ form }: { form: NouveauBienForm }) {
   const {
@@ -38,19 +39,7 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
       <div className="space-y-4">
         <Card>
           <Section title="Type de bien" />
-          <div className="flex flex-wrap gap-2">
-            {TYPES_BIEN.map(t => (
-              <button key={t.key} type="button" onClick={() => setTypeBien(t.key)}
-                className="px-3.5 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
-                style={{
-                  borderColor: typeBien === t.key ? BLUE : 'var(--p-border)',
-                  background: typeBien === t.key ? BLUE : 'transparent',
-                  color: typeBien === t.key ? 'white' : 'var(--p-muted)',
-                }}>
-                {t.label}
-              </button>
-            ))}
-          </div>
+          <SelecteurTypeBien valeur={typeBien} onChange={setTypeBien} formulaires={['classique']} />
         </Card>
 
         {isSmallUnit && (

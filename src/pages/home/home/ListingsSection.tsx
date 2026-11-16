@@ -2,7 +2,8 @@ import { useState } from 'react'
 import BienCard from '../../../components/BienCard'
 import ErrorState from '../../../components/ErrorState'
 import Reveal from '../../../components/Reveal'
-import { CATEGORIES, TYPES } from './constants'
+import { TRANSACTIONS } from './constants'
+import { FILTRES_TYPE } from '../../../shared/biens/referentielTypes'
 import { CAT_ICONS } from './catIcons'
 import { FilterIcon } from './icons'
 import MobileFilters from './MobileFilters'
@@ -29,33 +30,48 @@ export default function ListingsSection({
   const { transaction, setTransaction, type, setType, prixMin, prixMax, goToSearch } = s
   const [showFilters, setShowFilters] = useState(false)
 
-  const activeCat = CATEGORIES.find(c => c.transaction === transaction && c.type === type)
-  const combinedLabel = [transaction && (transaction === 'location' ? 'À louer' : 'À vendre'), TYPES.find(t => t.key === type)?.label]
-    .filter(Boolean).join(' · ')
-  const catLabel = activeCat?.label ?? (combinedLabel || 'Annonces')
+  // Lot 2 : la transaction et le type sont deux choix distincts, jamais mélangés sur une même ligne.
+  const libelleType = FILTRES_TYPE.find(f => f.cle === type && f.cle)?.libelle
+  const libelleTransaction = transaction ? (transaction === 'location' ? 'À louer' : 'À vendre') : ''
+  const catLabel = [libelleType, libelleTransaction].filter(Boolean).join(' · ') || 'Annonces'
 
   return (
     <div className="w-full px-4 sm:px-6 md:px-8 lg:px-16 py-6 md:py-8">
 
-      {/* Pills catégories */}
-      <Reveal animation="anim-slide-left" className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 md:mb-6 scrollbar-hide">
-        {CATEGORIES.map(cat => (
-          <button key={cat.key}
-            onClick={() => { setTransaction(cat.transaction); setType(cat.type) }}
-            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
-            style={transaction === cat.transaction && type === cat.type ? tk.pillActive : tk.pillIdle}
-          >
-            {CAT_ICONS[cat.key]}
-            <span>{cat.label}</span>
-          </button>
-        ))}
+      {/* Transaction : segment Tous · À louer · À vendre */}
+      <Reveal animation="anim-slide-left" className="flex items-center gap-2 mb-3">
+        <div role="radiogroup" aria-label="Transaction" className="inline-flex p-1 rounded-2xl" style={tk.pillIdle}>
+          {TRANSACTIONS.map(t => (
+            <button key={t.key || 'tous'} type="button" role="radio" aria-checked={transaction === t.key}
+              onClick={() => setTransaction(t.key)}
+              className="px-4 py-1.5 rounded-xl text-sm font-semibold transition-all"
+              style={transaction === t.key ? tk.pillActive : undefined}>
+              {t.label}
+            </button>
+          ))}
+        </div>
         <button
           onClick={() => setShowFilters(s => !s)}
-          className="md:hidden flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
+          className="md:hidden ml-auto flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
           style={showFilters || prixMin || prixMax ? tk.pillActive : tk.pillIdle}
         >
           <FilterIcon /><span>Filtres</span>
         </button>
+      </Reveal>
+
+      {/* Type de bien : ligne distincte */}
+      <Reveal animation="anim-slide-left" className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 md:mb-6 scrollbar-hide">
+        <span className="sr-only">Type de bien</span>
+        {FILTRES_TYPE.map(f => (
+          <button key={f.cle || 'tous'} type="button" aria-pressed={type === f.cle}
+            onClick={() => setType(f.cle)}
+            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all pill-hover"
+            style={type === f.cle ? tk.pillActive : tk.pillIdle}
+          >
+            {CAT_ICONS[f.cle]}
+            <span>{f.libelle}</span>
+          </button>
+        ))}
       </Reveal>
 
       {showFilters && <MobileFilters s={s} isDark={isDark} tk={tk} />}

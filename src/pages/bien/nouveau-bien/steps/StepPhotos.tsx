@@ -1,7 +1,8 @@
 
 
-import { BLUE, TYPES_BIEN, EQUIPEMENTS_RESIDENTIEL, EQUIPEMENTS_BOUTIQUE, ALENTOURS_OPTS, parsePrix, formatFcfa } from '../options'
+import { BLUE, EQUIPEMENTS_RESIDENTIEL, EQUIPEMENTS_BOUTIQUE, ALENTOURS_OPTS, parsePrix, formatFcfa } from '../options'
 import { Card, RecapSection } from '../ui'
+import { sousTypeParCle } from '../../../../shared/biens/referentielTypes'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import { withAlpha } from '../../../../utils/color'
 import { erreurVideo, TAILLE_MAX_VIDEO_MO } from '../../../../utils/videoAnnonce'
@@ -65,7 +66,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
           <p className="text-sm font-bold mb-4" style={{ color: 'var(--p-text)' }}>Récapitulatif de votre annonce</p>
 
           <RecapSection title="Type de bien" items={[
-            TYPES_BIEN.find(t => t.key === typeBien)?.label ?? typeBien,
+            sousTypeParCle(typeBien)?.libelle ?? typeBien,
             ...(finition ? [labelFinition(finition)] : []),
             ...(sanitaire ? [labelSanitaire(sanitaire)] : []),
             ...(isMeuble ? ['Meublé'] : []),
