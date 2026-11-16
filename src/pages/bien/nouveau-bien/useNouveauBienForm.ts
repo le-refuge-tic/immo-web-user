@@ -28,7 +28,8 @@ export function useNouveauBienForm() {
   const draftKey = `rg_draft_nouveau_bien_${user?.id ?? 'anon'}`
   const draft = useFormDraft(draftKey)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [step, setStep] = useState(0)
+  // Lot 6 : l'étape fait partie du brouillon (reprise au bon endroit, sur tout appareil).
+  const [step, setStep] = useDraftState(draft, 'step', 0)
   const [draftBannerDismissed, setDraftBannerDismissed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')

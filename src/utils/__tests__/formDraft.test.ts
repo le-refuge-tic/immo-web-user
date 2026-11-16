@@ -33,6 +33,20 @@ describe('FormDraft (FE-B-002)', () => {
     expect(store.getItem(KEY)).toBeNull()
   })
 
+  it('lot 6 : sans changement, la date du brouillon ne bouge pas (pas de renvoi au serveur)', () => {
+    const d = draft()
+    d.initialValue('prix', '')
+    d.set('prix', '75 000')
+    d.flush()
+    const premier = store.getItem(KEY)
+    now += 60_000
+    d.flush()
+    expect(store.getItem(KEY)).toBe(premier)
+    d.set('prix', '80 000')
+    d.flush()
+    expect(JSON.parse(store.getItem(KEY)!).savedAt).toBe(now)
+  })
+
   it('enregistre les champs modifiés et les restaure à la visite suivante', () => {
     const d1 = draft()
     d1.initialValue('prix', '')

@@ -6,6 +6,8 @@
  * sérialisables sont gardées ici ; les photos et la vidéo vont dans IndexedDB
  * (mediaDraft.ts).
  */
+import { signalerBrouillonsModifies } from '../shared/brouillons/useSynchroBrouillons'
+
 export const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
 const VERSION = 1
 
@@ -63,11 +65,17 @@ export class FormDraft {
     }
     try {
       if (Object.keys(fields).length === 0) {
+        if (this.storage.getItem(this.key) === null) return
         this.storage.removeItem(this.key)
+        signalerBrouillonsModifies()
         return
       }
+      // Lot 6 : saisie inchangée → date inchangée (le brouillon n'est pas renvoyé au serveur).
+      const actuel = JSON.parse(this.storage.getItem(this.key) ?? 'null') as Partial<DraftPayload> | null
+      if (actuel?.v === VERSION && JSON.stringify(actuel.fields) === JSON.stringify(fields)) return
       const payload: DraftPayload = { v: VERSION, savedAt: this.now(), fields }
       this.storage.setItem(this.key, JSON.stringify(payload))
+      signalerBrouillonsModifies()
     } catch {
       // Stockage plein ou interdit : le brouillon est un confort, pas une garantie.
     }
@@ -76,6 +84,7 @@ export class FormDraft {
   clear(): void {
     this.cleared = true
     try { this.storage.removeItem(this.key) } catch { /* stockage indisponible */ }
+    signalerBrouillonsModifies()
   }
 
   private read(): Record<string, unknown> {
