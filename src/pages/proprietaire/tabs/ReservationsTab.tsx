@@ -6,7 +6,7 @@ import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
 import { IcPin, IcChat } from './shared'
 import { BLUE, bienLabel, fmtPrix, statutVisite, BLUE_TX } from './outils'
-import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
+import { isEchouee, isExpiree, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ReservationDetailModal } from './ReservationDetailModal'
 import type { Bien, Visite } from '../../../types/api'
 import { suggestPush } from '../../../lib/push'
@@ -15,6 +15,7 @@ import { withAlpha } from '../../../utils/color'
 import { apiMessage } from '../../../utils/apiMessage'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
+import { MOT_CRENEAU_EXPIRE } from '../../../utils/creneauExpire'
 
 export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: Bien[]; onScrolled?: (v: boolean) => void; onOpenMessages?: (convId: number, draftMessage?: string) => void }) {
   const navigate = useNavigate()
@@ -57,10 +58,11 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
 
   const byBien = bienIdFilter ? visites.filter(v => v.bien?.id === bienIdFilter) : visites
   const filtered = filter === 'Toutes' ? byBien
-    : filter === 'À traiter' ? byBien.filter(v => !isEchouee(v) && (v.statut === 'en_attente' || v.statut === 'contre_proposee'))
+    : filter === 'À traiter' ? byBien.filter(v => !isEchouee(v) && !isExpiree(v) && (v.statut === 'en_attente' || v.statut === 'contre_proposee'))
     : filter === 'Confirmées' ? byBien.filter(v => !isEchouee(v) && v.statut === 'confirmee')
     : filter === 'Effectuées' ? byBien.filter(v => v.statut === 'effectuee')
     : filter === 'Échouées' ? byBien.filter(v => isEchouee(v))
+    : filter === 'Expirées' ? byBien.filter(v => isExpiree(v))
     : byBien.filter(v => v.statut === 'annulee')
 
   const confirmer = async (id: number) => {
@@ -116,7 +118,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
 
   const modalVisite = modalVisiteId ? visites.find(v => v.id === modalVisiteId) || null : null
 
-  const STATUS_FILTERS = ['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Annulées', 'Échouées']
+  const STATUS_FILTERS = ['Toutes', 'À traiter', 'Confirmées', 'Effectuées', 'Annulées', 'Échouées', 'Expirées']
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
@@ -217,11 +219,14 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
               {filtered.map(v => {
                 const echouee = isEchouee(v)
-                const urgente = !echouee && isUrgente(v, now)
+                const expiree = isExpiree(v)
+                const urgente = !echouee && !expiree && isUrgente(v, now)
                 const mins = urgente ? minutesAvant(v, now) : null
                 const { label: sLabel, color: sColor, fill: sFill } = echouee
                   ? { label: 'Échouée', color: 'var(--tx-red)', fill: 'var(--c-fill-red)' }
-                  : statutVisite(v.statut)
+                  : expiree
+                    ? { label: MOT_CRENEAU_EXPIRE, color: 'var(--tx-amber)', fill: 'var(--c-fill-amber, #B45309)' }
+                    : statutVisite(v.statut)
                 const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
                 const initiale = clientNom[0]?.toUpperCase() || '?'
                 const bType = v.bien ? bienLabel(v.bien) : ''

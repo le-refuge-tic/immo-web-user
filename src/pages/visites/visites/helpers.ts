@@ -1,14 +1,16 @@
 import type { Visite } from '../../../types/api'
 import { dateEffectiveVisite, type VisiteDatable } from '../../../utils/dateVisite'
+import { STATUTS_NON_CONFIRMES } from '../../../utils/creneauExpire'
 
 /** Champs de date lus pour juger l'état d'une visite. */
 type VisiteDatee = Pick<Visite, 'statut'> & VisiteDatable
 
-// Même règle que côté mobile : une visite non traitée (confirmée ou en attente
-// de réponse) est considérée "échouée" 2h après la date programmée.
+// Une visite confirmée qui n'a pas eu lieu est "échouée" 2h après la date programmée. Lot 10 : une
+// visite non confirmée (en attente, contre-proposée) au créneau passé est « Créneau expiré »
+// (`estCreneauExpire`), pas échouée.
 export function isEchoueeVisite(v: VisiteDatee): boolean {
   if (v.statut === 'echouee') return true
-  if (v.statut === 'effectuee' || v.statut === 'annulee') return false
+  if (v.statut === 'effectuee' || v.statut === 'annulee' || STATUTS_NON_CONFIRMES.includes(v.statut)) return false
   const raw = dateEffectiveVisite(v)
   if (!raw) return false
   return Date.now() > new Date(raw).getTime() + 2 * 60 * 60 * 1000

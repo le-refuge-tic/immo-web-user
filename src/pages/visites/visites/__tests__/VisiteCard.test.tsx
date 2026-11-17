@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { VisiteCard } from '../VisiteCard'
 import { isDatePasseeVisite, isEchoueeVisite } from '../helpers'
 import type { Visite } from '../../../../types/api'
@@ -7,10 +8,15 @@ import type { Visite } from '../../../../types/api'
 const noop = () => {}
 const handlers = {
   onAnnuler: noop, onAccepterCP: noop, onRefuserCP: noop, onReproposer: noop, onMarquerEffectuee: noop,
-  onIntegration: noop, onPay: noop, onMessage: noop, onContacterEchouee: noop, onFeedback: noop, onPayIntegration: noop,
+  onIntegration: noop, onPay: noop, onMessage: noop, onContacterEchouee: noop, onNouveauCreneau: noop, onFeedback: noop, onPayIntegration: noop,
 }
+// PrixVisite lit le tarif des frais de visite (React Query) : un client de requêtes est nécessaire.
 const rendre = (v: Partial<Visite>) =>
-  renderToStaticMarkup(<VisiteCard visite={{ id: 5, statut: 'confirmee', ...v } as Visite} {...handlers} />)
+  renderToStaticMarkup(
+    <QueryClientProvider client={new QueryClient()}>
+      <VisiteCard visite={{ id: 5, statut: 'confirmee', ...v } as Visite} {...handlers} />
+    </QueryClientProvider>,
+  )
 
 const dans = (jours: number) => new Date(Date.now() + jours * 86_400_000).toISOString()
 const BIEN = { id: 9, type: 'maison', localisation: { ville: 'Cotonou', quartier: 'Akpakpa' } } as unknown as Visite['bien']
@@ -73,5 +79,24 @@ describe('helpers de date des visites du client', () => {
     expect(isEchoueeVisite({ statut: 'confirmee', creneau: { date_debut: passe } })).toBe(true)
     expect(isEchoueeVisite({ statut: 'confirmee', creneau: { date_debut: futur } })).toBe(false)
     expect(isEchoueeVisite({ statut: 'confirmee' })).toBe(false)
+  })
+})
+
+describe('VisiteCard : créneau expiré (lot 10)', () => {
+  const hier = new Date(Date.now() - 86_400_000).toISOString()
+
+  it('visite en attente au créneau passé : badge, phrase, nouveau créneau et support, sans Annuler', () => {
+    const html = rendre({ statut: 'en_attente', date_souhaitee: hier, bien: BIEN })
+    expect(html).toContain('Créneau expiré')
+    expect(html).toContain('Le propriétaire n’a pas répondu avant le créneau.')
+    expect(html).toContain('Proposer un nouveau créneau')
+    expect(html).toContain('Contacter le support')
+    expect(html).not.toContain('>Annuler<')
+    expect(html).not.toContain('Visite échouée')
+  })
+
+  it('une visite à venir ou confirmée n’est pas expirée', () => {
+    expect(rendre({ statut: 'en_attente', date_souhaitee: dans(2), bien: BIEN })).not.toContain('Créneau expiré')
+    expect(rendre({ statut: 'confirmee', date_souhaitee: hier, bien: BIEN })).not.toContain('Créneau expiré')
   })
 })

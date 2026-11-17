@@ -8,6 +8,8 @@ export const STATUT_META: Record<string, { label: string; color: string; bg: str
   annulee:         { label: 'Annulée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
   payee:           { label: 'Payée',            color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.1)' },
   echouee:         { label: 'Échouée',          color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.1)' },
+  // Lot 10 : état dérivé (créneau passé sans confirmation), pas un statut du backend.
+  expiree:         { label: 'Créneau expiré',   color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.12)' },
 }
 
 export const OPERATORS: { key: MethodePaiement; label: string }[] = [
@@ -15,7 +17,7 @@ export const OPERATORS: { key: MethodePaiement; label: string }[] = [
   { key: 'fedapay', label: 'FedaPay'  },
 ]
 
-export const TABS = ['Toutes', 'À venir', 'Terminées', 'Annulées', 'Échouées']
+export const TABS = ['Toutes', 'À venir', 'Terminées', 'Annulées', 'Échouées', 'Expirées']
 
 export const ISSUES_TAGS = [
   "L'interlocuteur n'était pas professionnel",

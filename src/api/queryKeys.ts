@@ -14,4 +14,6 @@ export const queryKeys = {
     detail: (id: number) => ['biens', 'detail', id] as const,
   },
   favoris: ['favoris'] as const,
+  /** Tarif des frais de visite (promotion, prix normal, date de fin). */
+  fraisVisite: ['configuration', 'frais-visite'] as const,
 }

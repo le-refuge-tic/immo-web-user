@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { openPaymentUrl } from '../../../utils/paymentUrl'
 import { validateBeninPhone, PHONE_PLACEHOLDER } from '../../../utils/phone'
-import { fraisVisiteAPayer, libelleFraisVisite } from '../../../utils/fraisVisite'
+import { fraisVisiteAPayer } from '../../../utils/fraisVisite'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { OPERATORS } from './constants'
 import type { usePaiementVisite } from './usePaiementVisite'
 import { PhoneInput } from '../../../shared/saisie/champs'
+import { PrixVisite } from '../../../components/PrixVisite'
 
 // Modale de paiement des frais de visite (saisie, attente, en attente, succès).
 export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisite> }) {
@@ -67,7 +68,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
           <>
             <h3 className="font-bold text-text-dark mb-1">Payer la visite</h3>
             <p className="text-sm text-text-grey mb-4">
-              Montant : <span className="font-bold text-text-dark">{libelleFraisVisite(showPay ? fraisVisiteAPayer(showPay) : 0)}</span>
+              Montant : <span className="font-bold text-text-dark"><PrixVisite montant={showPay ? fraisVisiteAPayer(showPay) : 0} /></span>
             </p>
             {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
             <div className="flex gap-2 mb-4">

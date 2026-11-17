@@ -7,7 +7,7 @@ import type { Visite } from '../../../../types/api'
 const noop = () => {}
 const handlers = {
   onAnnuler: noop, onAccepterCP: noop, onRefuserCP: noop, onReproposer: noop, onMarquerEffectuee: noop,
-  onIntegration: noop, onPay: noop, onMessage: noop, onContacterEchouee: noop, onFeedback: noop, onPayIntegration: noop,
+  onIntegration: noop, onPay: noop, onMessage: noop, onContacterEchouee: noop, onNouveauCreneau: noop, onFeedback: noop, onPayIntegration: noop,
 }
 const visite = (v: Partial<Visite>) => ({ id: 3, statut: 'confirmee', ...v }) as Visite
 const MAINTENANT = Date.parse('2026-11-12T08:00:00Z')

@@ -3,6 +3,8 @@ import type { Visite } from '../../../types/api'
 import { fmtVisiteDate } from './helpers'
 import { AnnulationVisiteDialog } from '../../../components/AnnulationVisiteDialog'
 import type { ChoixAnnulation } from '../../../utils/annulationVisite'
+import { OffreVisite, PrixVisite } from '../../../components/PrixVisite'
+import { MOT_CRENEAU_EXPIRE, STATUTS_NON_CONFIRMES } from '../../../utils/creneauExpire'
 
 // ─── Barre d'action (bottom bar mobile fixe / panneau desktop) ─────────────
 export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDisponibilite, visiteActive, visiteCancellee, visiteEchouee, onAnnuler, annulerBusy, onProposerVisite, onModifier, fraisVisite }: {
@@ -78,7 +80,7 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
       {visiteEchouee ? (
         <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border mb-2.5" style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.25)' }}>
           <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: 'var(--tx-red)' }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          <p className="text-xs font-semibold truncate" style={{ color: 'var(--tx-red)' }}>Visite échouée · {fmtVisiteDate(visiteEchouee.date_contre_proposee || visiteEchouee.date_souhaitee)}</p>
+          <p className="text-xs font-semibold truncate" style={{ color: 'var(--tx-red)' }}>{STATUTS_NON_CONFIRMES.includes(visiteEchouee.statut) ? MOT_CRENEAU_EXPIRE : 'Visite échouée'} · {fmtVisiteDate(visiteEchouee.date_contre_proposee || visiteEchouee.date_souhaitee)}</p>
         </div>
       ) : visiteCancellee ? (
         <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border mb-2.5" style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.25)' }}>
@@ -91,9 +93,12 @@ export function BottomCta({ isOwnBien, isOccupeLocal, togglingStatut, onToggleDi
         style={{ background: 'linear-gradient(135deg, var(--c-brand) 0%, var(--c-violet) 100%)' }}>
         <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
         {fraisVisite && Number(fraisVisite) > 0
-          ? `Réserver une visite · ${Number(fraisVisite).toLocaleString('fr-FR')} F`
+          ? <>Réserver une visite · <PrixVisite montant={Number(fraisVisite)} compact /></>
           : 'Réserver une visite'}
       </button>
+      {fraisVisite && Number(fraisVisite) > 0 && (
+        <OffreVisite montant={Number(fraisVisite)} className="text-caption font-semibold text-center mt-1.5" />
+      )}
       {/* Ce que recouvre « annonce modérée » : sans survendre une vérification du bien lui-même */}
       <p className="text-caption leading-snug mt-2.5 text-center" style={{ color: 'var(--tx-grey, #5E5E63)' }}>
         Annonce examinée par l'équipe REFUGE avant publication. Seule la visite permet de vérifier l'état réel du bien.

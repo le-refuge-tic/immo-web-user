@@ -10,11 +10,12 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { track } from '../../lib/analytics'
 import { suggestPush } from '../../lib/push'
 import { apiMessage } from '../../utils/apiMessage'
-import { fraisVisiteBien, libelleFraisVisite } from '../../utils/fraisVisite'
+import { fraisVisiteBien } from '../../utils/fraisVisite'
 import { ModalSheet } from '../../components/ui/ModalSheet'
 import ErrorState from '../../components/ErrorState'
 import type { Bien } from '../../types/api'
 import { suffixeUnite } from '../../utils/prix'
+import { PrixVisite } from '../../components/PrixVisite'
 
 /** Bien affiché : la photo de couverture peut aussi arriver à plat (`photo_couverture`). */
 type BienReservation = Bien & { photo_couverture?: string }
@@ -451,7 +452,7 @@ export default function ReservationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-white text-caption font-bold">{bien ? libelleFraisVisite(frais) : '—'}</span>
+            <span className="text-white text-caption font-bold">{bien ? <PrixVisite montant={frais} compact /> : '—'}</span>
           </div>
         </div>
       </div>
@@ -520,7 +521,7 @@ export default function ReservationPage() {
             <dl className="text-left text-sm rounded-2xl p-4 mb-5 space-y-2" style={{ background: 'rgba(65,96,242,0.07)' }}>
               <div className="flex justify-between gap-3"><dt className="text-text-grey">Bien</dt><dd className="font-semibold text-text-dark text-right">{bien ? bienTypeLabel(bien) : '—'}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-text-grey">Créneau demandé</dt><dd className="font-semibold text-text-dark text-right">{confirmation.dateLabel}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-text-grey">Frais de visite</dt><dd className="font-semibold text-text-dark text-right">{!bien ? 'Non disponibles' : frais > 0 ? `${libelleFraisVisite(frais)}, à régler après confirmation` : 'Gratuite'}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-text-grey">Frais de visite</dt><dd className="font-semibold text-text-dark text-right">{!bien ? 'Non disponibles' : frais > 0 ? <><PrixVisite montant={frais} />, à régler après confirmation</> : 'Gratuite'}</dd></div>
             </dl>
             {chatError && <p role="alert" className="text-sm font-semibold mb-2 text-[color:var(--tx-red)]">{chatError}</p>}
             <button type="button" onClick={ouvrirConversation} disabled={openingChat}

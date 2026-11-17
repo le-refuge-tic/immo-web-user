@@ -11,6 +11,18 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 10 — visites)
+- **« Créneau expiré »** : une visite en attente ou contre-proposée dont le créneau est passé affiche un badge « Créneau expiré » et une phrase claire (« Le propriétaire n'a pas répondu avant le créneau »). Elle propose « Proposer un nouveau créneau » ou « Contacter le support », sans bouton Annuler ni paiement. Un onglet « Expirées » existe côté client (Mes visites) et côté propriétaire (Réservations). Avant, la carte indiquait encore « Souhaitée : … », puis passait d'un coup en « Échouée ».
+  - Un propriétaire voit le même état avec la phrase « Vous n'avez pas répondu avant le créneau demandé ».
+  - Le serveur envoie aussi une alerte « Créneau expiré » aux deux parties, une seule fois.
+- **Frais de visite présentés comme une promotion** : 500 F s'affichent avec le prix normal barré (1 000 FCFA) et la mention « Tarif promotionnel » (ou « Offre de lancement jusqu'au JJ/MM » si une date de fin est fixée) :
+  - fiche du bien (bouton « Réserver une visite »), page de réservation, confirmation, paiement de la visite, carte de visite et reçu.
+  - Seul le tarif par défaut est une promotion : un bien aux frais personnalisés ou une visite gratuite s'affichent tels quels.
+  - Si le tarif est indisponible, les montants s'affichent simplement, sans mention.
+
+### Modifié (lot 10)
+- Une visite non confirmée au créneau passé n'est plus « Échouée » : « Échouée » reste réservé aux visites confirmées qui n'ont pas eu lieu.
+
 ### Modifié (lot 13 — rôles)
 - **Rôle démarcheur supprimé du site** (décision du 17/11) :
   - l'espace `/demarcheur` et ses onglets, la délégation à un démarcheur (déjà masquée) et leurs API ont été retirés ;
