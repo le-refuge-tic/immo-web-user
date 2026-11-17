@@ -10,6 +10,9 @@ import { useToast } from '../../context/useToast'
 import { useConfirm } from '../../shared/dialogues/useConfirm'
 import { PHOTOS_MIN_CLASSIQUE } from '../../shared/biens/referentielTypes'
 import PhotosBien from './modifier/PhotosBien'
+import { ErreurChamp, NumberInput } from '../../shared/saisie/champs'
+import { idErreur, useValidation } from '../../shared/saisie/validation'
+import { schemaModificationBien } from '../../validation/schemas'
 
 type Props = { bien: Bien; onClose: () => void; onSaved: (bien: Bien) => void }
 
@@ -42,30 +45,18 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
     onClose()
   }
 
-  const submit = async () => {
-    if (!prix.trim()) {
-      setError('Le prix est obligatoire')
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
-    if (prixPromo.trim() && Number(prixPromo) >= Number(prix)) {
-      setError('Le prix promotionnel doit être inférieur au prix normal')
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
-    if (prixPromo.trim() && Number(prixPromo) < 100) {
-      setError('Le prix promotionnel doit être d’au moins 100 FCFA')
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
+  // Lot 15 : règles du schéma (prix requis, promo ≥ 100 et < prix, frais ≥ 0), erreurs sous les champs.
+  const v = useValidation('edit-bien', schemaModificationBien, { prix, prixPromo, fraisVisite, description })
+
+  const submit = () => v.soumettre(async d => {
     setSaving(true)
     setError('')
     try {
       const body: BienPayload = {
-        prix: Number(prix),
-        prix_promo: prixPromo.trim() ? Number(prixPromo) : null,
-        frais_visite: fraisVisite.trim() ? Number(fraisVisite) : 0,
-        description: description.trim() || undefined,
+        prix: d.prix,
+        prix_promo: d.prixPromo ?? null,
+        frais_visite: d.fraisVisite ?? 0,
+        description: d.description,
         localisation: {
           ville: ville || undefined,
           quartier: quartier || undefined,
@@ -86,7 +77,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
     setSaving(false)
-  }
+  })
 
   return (
     <ModalSheet open onClose={() => void fermer()} label="Modifier le bien" placement="center" panelClassName="w-full max-w-md" backdropOpacity={0.4}>
@@ -120,23 +111,26 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide">Informations tarifaires</p>
           <div>
             <label htmlFor="edit-bien-prix" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix (FCFA)</label>
-            <input id="edit-bien-prix" type="number" value={prix} onChange={e => setPrix(e.target.value)}
+            <NumberInput milliers value={prix} onChange={e => setPrix(e.target.value)} {...v.propsChamp('prix')}
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
+            <ErreurChamp id={idErreur('edit-bien', 'prix')} message={v.erreurs.prix} className="text-danger text-xs mt-1" />
           </div>
           <div>
-            <label htmlFor="edit-bien-prix-promo" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
-            <input id="edit-bien-prix-promo" type="number" value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo"
+            <label htmlFor="edit-bien-prixPromo" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
+            <NumberInput milliers value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo" {...v.propsChamp('prixPromo')}
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
+            <ErreurChamp id={idErreur('edit-bien', 'prixPromo')} message={v.erreurs.prixPromo} className="text-danger text-xs mt-1" />
             <p className="text-caption text-text-grey mt-1">Affiché en avant sur la fiche du bien, à la place du prix normal.</p>
           </div>
           <div>
-            <label htmlFor="edit-bien-frais-visite" className="text-xs font-semibold text-text-dark mb-1.5 block">Frais de visite (FCFA)</label>
-            <input id="edit-bien-frais-visite" type="number" value={fraisVisite} onChange={e => setFraisVisite(e.target.value)} placeholder="0 si gratuit"
+            <label htmlFor="edit-bien-fraisVisite" className="text-xs font-semibold text-text-dark mb-1.5 block">Frais de visite (FCFA)</label>
+            <NumberInput milliers value={fraisVisite} onChange={e => setFraisVisite(e.target.value)} placeholder="0 si gratuit" {...v.propsChamp('fraisVisite')}
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
+            <ErreurChamp id={idErreur('edit-bien', 'fraisVisite')} message={v.erreurs.fraisVisite} className="text-danger text-xs mt-1" />
           </div>
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide pt-2">Description</p>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} placeholder="Décrivez le bien…"
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} maxLength={5000} placeholder="Décrivez le bien…"
             className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none" />
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide pt-2">Localisation</p>

@@ -20,6 +20,7 @@ import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
 import { usePaymentAttempt } from '../../../hooks/usePaymentAttempt'
 import { avecCle } from '../../../utils/paymentAttempt'
+import { NumberInput } from '../../../shared/saisie/champs'
 
 // ─── Tab: Portefeuille ────────────────────────────────────────────────────────
 function WalletMaskIcon({ path, size = 20 }: { path: string; size?: number }) {
@@ -111,7 +112,7 @@ function RetraitModal({ solde, onClose, onSuccess }: { solde: number; onClose: (
             <label htmlFor="portefeuille-tab-97" className="text-xs font-bold text-p-text uppercase tracking-wide mb-2 block">Montant à retirer</label>
             <div className="relative">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-p-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="5" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 10h20" /></svg>
-              <input id="portefeuille-tab-97" type="number" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50000" min={min} max={solde}
+              <NumberInput milliers id="portefeuille-tab-97" value={montant} onChange={e => setMontant(e.target.value)} placeholder="Ex: 50 000" min={min}
                 aria-invalid={!!montantMessage} aria-describedby="retrait-montant-aide"
                 className="w-full bg-p-card border border-p-border rounded-xl pl-10 pr-16 py-3 text-sm font-bold outline-none text-p-text focus:border-brand" />
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-p-muted">FCFA</span>

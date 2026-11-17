@@ -7,6 +7,9 @@ import { ModalSheet } from '../../components/ui/ModalSheet'
 import type { Bien } from '../../types/api'
 import SelecteurTypeBien from '../../components/SelecteurTypeBien'
 import { coupleBackend, sousTypeParCle } from '../../shared/biens/referentielTypes'
+import { NumberInput } from '../../shared/saisie/champs'
+import { valider } from '../../shared/saisie/validation'
+import { schemaLoyerGestion } from '../../validation/schemas'
 
 type Props = { onClose: () => void; onCreated: (bien: Bien) => void }
 
@@ -37,7 +40,9 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
   const sousType = couple?.sous_type ?? typeBien
 
   const submit = async () => {
-    if (!loyer.trim() || Number(loyer) <= 0) { setError('Le loyer mensuel est obligatoire'); return }
+    // Lot 15 : loyer entier positif (schéma partagé avec les tests).
+    const verifLoyer = valider(schemaLoyerGestion, { loyer })
+    if (!verifLoyer.ok) { setError(loyer.trim() ? verifLoyer.erreurs.loyer : 'Le loyer mensuel est obligatoire'); return }
     if (!ville.trim()) { setError('La ville est obligatoire'); return }
     setSaving(true)
     setError('')
@@ -115,7 +120,7 @@ export default function AjouterBienGestionModal({ onClose, onCreated }: Props) {
 
           <div>
             <label htmlFor="ajouter-bien-gestion-modal-144" className="text-xs font-semibold text-text-dark mb-1.5 block">Loyer mensuel (FCFA)</label>
-            <input id="ajouter-bien-gestion-modal-144" type="number" value={loyer} onChange={e => setLoyer(e.target.value)} placeholder="Ex : 50000"
+            <NumberInput milliers id="ajouter-bien-gestion-modal-144" value={loyer} onChange={e => setLoyer(e.target.value)} placeholder="Ex : 50 000"
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
 

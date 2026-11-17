@@ -16,13 +16,16 @@ import slide2 from '../../assets/onboarding-2.webp'
 import slide3 from '../../assets/onboarding-3.webp'
 import slide4 from '../../assets/hero-interior.webp'
 import '../../pages/auth/authNew.css'
-import { validateBeninPhone, toInternationalPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
+import { toInternationalPhone, PHONE_PLACEHOLDER } from '../../utils/phone'
 import { track } from '../../lib/analytics'
 import { nameError, NAME_MAX_LENGTH } from '../../utils/nameRules'
+import { valider } from '../../shared/saisie/validation'
+import { schemaConnexion, schemaInscription } from '../../validation/schemas'
 import { applyOtpInput } from '../../utils/otpInput'
 import { apiMessage } from '../../utils/apiMessage'
 import { POST_LOGIN_REDIRECT_KEY, isSessionExpired, clearSessionExpired, estDestinationInterne } from '../../utils/sessionExpiry'
 import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
+import { PhoneInput as ChampTelephone } from '../../shared/saisie/champs'
 
 /** Délai minimal entre l'affichage du formulaire et l'envoi (anti-robot). */
 const MIN_FORM_MS = 3000
@@ -200,14 +203,13 @@ export function PhoneInput({
         </select>
       </div>
       <span className="auth-phone-divider" />
-      <input
+      <ChampTelephone
         id={id}
-        type="tel"
+        etranger={countryCode !== '+229'}
         className="auth-phone-number"
         value={phone}
         onChange={e => onPhoneChange(e.target.value)}
         placeholder={PHONE_PLACEHOLDER}
-        inputMode="tel"
         autoComplete={autoComplete}
         aria-invalid={ariaInvalid}
       />
@@ -259,7 +261,8 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!phone.trim() || !password) { setError('Remplissez tous les champs'); return }
+    const verif = valider(schemaConnexion(countryCode), { telephone: phone, password })
+    if (!verif.ok) { setError(Object.values(verif.erreurs)[0]); return }
     setLoading(true); setError('')
     try {
       const fullPhone = toInternationalPhone(countryCode, phone)
@@ -477,12 +480,9 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setNomTouched(true); setPrenomTouched(true)
-    const identiteInvalide = nameError('Nom', nom) || nameError('Prénom', prenom)
-    if (identiteInvalide) { setError(identiteInvalide); return }
-    if (phone.trim() && countryCode === '+229' && !validateBeninPhone(phone)) { setError(PHONE_FORMAT_HINT); return }
-    if (password !== confirmPwd) { setError('Les mots de passe ne correspondent pas'); return }
-    if (password.length < 8) { setError('Mot de passe trop court (8 caractères min.)'); return }
-    if (!acceptedTerms) { setError('Veuillez accepter les conditions d\'utilisation'); return }
+    // Lot 15 : règles du schéma d'inscription (mêmes que RegisterDto), première erreur affichée.
+    const verif = valider(schemaInscription(countryCode), { nom, prenom, telephone: phone, email, password, confirmation: confirmPwd, conditions: acceptedTerms })
+    if (!verif.ok) { setError(Object.values(verif.erreurs)[0]); return }
     if (Date.now() - formShownAtRef.current < MIN_FORM_MS) { setError('Vérifiez vos informations puis validez à nouveau.'); return }
     setLoading(true); setError('')
     try {

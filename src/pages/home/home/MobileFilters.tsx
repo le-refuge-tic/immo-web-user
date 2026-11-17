@@ -5,6 +5,7 @@ import { FILTRES_TYPE } from '../../../shared/biens/referentielTypes'
 import { PinIcon, XIcon } from './icons'
 import { panelColors, type Tokens } from './tokens'
 import type { HomeSearch } from './useHomeSearch'
+import { NumberInput } from '../../../shared/saisie/champs'
 
 interface MobileFiltersProps {
   s: HomeSearch
@@ -113,12 +114,12 @@ export default function MobileFilters({ s, isDark, tk }: MobileFiltersProps) {
           })}
         </div>
         <div className="flex items-center gap-3">
-          <input type="number" min={0} value={prixMin} onChange={e => setPrixMin(e.target.value)}
+          <NumberInput milliers min={0} value={prixMin} onChange={e => setPrixMin(e.target.value)}
             placeholder="Minimum"
             className="flex-1 min-w-0 rounded-xl px-3 py-2 text-sm outline-none"
             style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textPrimary }} />
           <span className="text-sm flex-shrink-0" style={{ color: tk.textMuted }}>—</span>
-          <input type="number" min={0} value={prixMax} onChange={e => setPrixMax(e.target.value)}
+          <NumberInput milliers min={0} value={prixMax} onChange={e => setPrixMax(e.target.value)}
             placeholder="Maximum"
             className="flex-1 min-w-0 rounded-xl px-3 py-2 text-sm outline-none"
             style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textPrimary }} />

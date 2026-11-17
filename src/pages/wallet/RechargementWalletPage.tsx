@@ -4,13 +4,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
 import type { MethodePaiement } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, normaliseBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { validateBeninPhone, normaliseBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { avecCle } from '../../utils/paymentAttempt'
 import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 import { withAlpha } from '../../utils/color'
+import { MoneyInput, PhoneInput } from '../../shared/saisie/champs'
 
 type WalletType = 'cotisation' | 'epargne'
 
@@ -166,7 +167,7 @@ export default function RechargementWalletPage() {
             </div>
 
             <label htmlFor="recharge-montant" className="block font-bold text-text-dark text-sm mb-2">Montant à recharger</label>
-            <input id="recharge-montant" type="text" inputMode="numeric" value={montant} onChange={e => { setMontant(e.target.value.replace(/\D/g, '')); attempt.reset() }}
+            <MoneyInput id="recharge-montant" value={montant} onChange={e => { setMontant(e.target.value); attempt.reset() }}
               placeholder="Ex. 5 000" className="w-full bg-white border border-divider rounded-xl px-4 py-4 text-lg font-bold outline-none text-text-dark mb-2" />
             <div className="flex gap-2 mb-4">
               {[5000, 10000, 25000, 50000].map(v => (
@@ -183,8 +184,8 @@ export default function RechargementWalletPage() {
                 <p className="font-bold text-text-dark text-sm mb-2">Numéro {op.label}</p>
                 <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-3.5 mb-4 border border-divider">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                  <input type="tel" value={tel} onChange={e => { setTel(e.target.value.replace(/\D/g, '')); attempt.reset() }}
-                    placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
+                  <PhoneInput value={tel} onChange={e => { setTel(e.target.value); attempt.reset() }}
+                    placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money" className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               </>
             )}

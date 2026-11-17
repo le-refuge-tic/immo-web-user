@@ -5,7 +5,7 @@ import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, normaliseBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { validateBeninPhone, normaliseBeninPhone, PHONE_PLACEHOLDER } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
@@ -13,6 +13,7 @@ import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 import { unwrapList } from '../../utils/unwrapList'
 import type { Bien, Visite } from '../../types/api'
 import ErrorState from '../../components/ErrorState'
+import { PhoneInput } from '../../shared/saisie/champs'
 
 const TEAL = 'var(--c-sky)'
 
@@ -221,8 +222,8 @@ export default function PaiementIntegrationPage() {
               <div className="flex items-center gap-3 rounded-xl px-4 py-3.5 border border-divider bg-surface-g mb-4">
                 <span className="font-bold text-text-dark text-sm">+229</span>
                 <div className="w-px h-4 bg-divider" />
-                <input type="tel" value={tel} onChange={e => { setTel(e.target.value.replace(/\D/g, '')); attempt.reset() }}
-                  placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
+                <PhoneInput value={tel} onChange={e => { setTel(e.target.value); attempt.reset() }}
+                  placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money"
                   className="flex-1 min-w-0 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
               </div>
               <div className="flex items-start gap-2 text-xs text-text-grey mb-4">

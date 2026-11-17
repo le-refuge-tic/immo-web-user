@@ -4,11 +4,11 @@ import { userApi } from '../../api/userApi'
 import { apiMessage } from '../../utils/apiMessage'
 import VerifyPhoneSection from './VerifyPhoneSection'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import { valider } from '../../shared/saisie/validation'
+import { schemaProfil } from '../../validation/schemas'
 
 type Props = { open: boolean; onClose: () => void }
 
-/** Vrai nom : au moins 2 lettres, sans chiffres ni caractères spéciaux. */
-const NOM_REEL = /^(?=(?:[^\p{L}]*\p{L}){2})\p{L}[\p{L}\s'’-]*$/u
 
 const GLASS = {
   background: 'rgba(255,255,255,0.82)',
@@ -58,15 +58,14 @@ export default function EditProfileModal({ open, onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!NOM_REEL.test(nom.trim()) || !NOM_REEL.test(prenom.trim())) {
-      setError('Saisissez votre vrai nom et prénom : lettres uniquement, 2 minimum (tiret, apostrophe et espace permis).')
-      return
-    }
+    // Lot 15 : vrai nom (règle NOM_REEL du backend) et e-mail valide, via le schéma du profil.
+    const verif = valider(schemaProfil, { nom, prenom, email })
+    if (!verif.ok) { setError(Object.values(verif.erreurs)[0]); return }
     setLoading(true)
     try {
       // `telephone` est exclu volontairement : il ne change que par le flux
       // vérifié par SMS (VerifyPhoneSection), jamais par ce PATCH.
-      const data = await userApi.updateProfil({ nom, prenom, email: email || undefined })
+      const data = await userApi.updateProfil({ nom: verif.data.nom, prenom: verif.data.prenom, email: verif.data.email })
       // Le endpoint renvoie l'entité User mise à jour directement (pas de wrapper
       // { user }). On applique donc soit data.user, soit l'entité elle-même, avec
       // repli sur les valeurs saisies si la réponse est vide.
