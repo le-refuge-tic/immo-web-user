@@ -16,7 +16,7 @@ import { EVENEMENT_ALERTE_DIRECTE, toastPourAlerte, type EvenementAlerte } from 
 // arrivent par les événements alertes:maj / messages:maj.
 const POLL_MS = 30000
 /** Espaces dont la liste d'alertes est filtrée par rôle. */
-const ESPACES_FILTRES = new Set(['proprietaire', 'demarcheur', 'commercial', 'locataire'])
+const ESPACES_FILTRES = new Set(['proprietaire', 'commercial', 'locataire'])
 const TITRE_BADGE = /^\(\d+\+?\) /
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {

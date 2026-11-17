@@ -3,77 +3,20 @@ import { BLUE, formatFcfa, baseInputStyle } from '../options'
 import { Card, Section, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import { withAlpha } from '../../../../utils/color'
-import { useEffect, useState } from 'react'
-import axios from 'axios'
-import { BASE } from '../../../../api/apiBase'
 
 export function StepHonoraires({ form }: { form: NouveauBienForm }) {
-  const [fraisPromotionnels, setFraisPromotionnels] = useState(500)
-  useEffect(() => {
-    axios.get<{ montant: number }>(`${BASE}/configuration/frais-visite`)
-      .then(response => {
-        // Réponse inattendue (corps vide, autre format) : le tarif standard, jamais un crash de l'étape.
-        const montant = Number(response.data?.montant)
-        setFraisPromotionnels(Number.isFinite(montant) && montant >= 0 ? montant : 500)
-      })
-      .catch(() => setFraisPromotionnels(500))
-  }, [])
   const {
     typeTransaction,
-    fraisVisite,
-    setFraisVisite,
-    visiteGratuite,
-    setVisiteGratuite,
     description,
     setDescription,
-    commissionMontant,
-    setCommissionMontant,
     autresFrais,
     setAutresFrais,
-    isDemarcheur,
     isTerrain,
     montantBrut,
   } = form
   return (
       <div className="space-y-4">
-        {isDemarcheur && (
-          <div
-            className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
-            style={{
-              background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
-              border: '1px solid #fdba74',
-              color: '#9a3412',
-            }}
-          >
-            <div>
-              <div className="text-[11px] font-black uppercase tracking-widest">Promotion visite</div>
-              <div className="text-sm font-bold">Frais standards réduits à {formatFcfa(fraisPromotionnels)}</div>
-            </div>
-            <div className="text-lg font-black whitespace-nowrap">{formatFcfa(fraisPromotionnels)}</div>
-          </div>
-        )}
-        {isDemarcheur && (
-          <Card>
-            <Section title="Frais de visite" />
-            <p className="text-xs mb-3" style={{ color: 'var(--p-muted)' }}>
-              Montant payé par chaque client pour visiter ce bien. Laissé vide, le tarif standard s'applique ({isTerrain ? '5 000' : fraisPromotionnels.toLocaleString('fr-FR')} FCFA).
-            </p>
-            <label className="mb-3 flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer"
-              style={{ borderColor: 'var(--p-border)', background: 'var(--p-deep)' }}>
-              <span className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>Visite gratuite</span>
-              <input type="checkbox" checked={visiteGratuite} onChange={e => setVisiteGratuite(e.target.checked)} className="w-5 h-5 accent-blue-500" />
-            </label>
-            {!visiteGratuite && <MoneyInput value={fraisVisite} onChange={setFraisVisite} />}
-          </Card>
-        )}
 
-        {isDemarcheur && !isTerrain && (
-          <Card>
-            <Section title="Commission d'agence" />
-            <p className="text-xs mb-3" style={{ color: 'var(--p-muted)' }}>Montant direct de votre commission.</p>
-            <MoneyInput value={commissionMontant} onChange={setCommissionMontant} />
-          </Card>
-        )}
 
         <Card>
           <Section title="Notes / Précisions (optionnel)" />

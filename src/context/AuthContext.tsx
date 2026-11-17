@@ -12,6 +12,7 @@ import type { LoginPayload } from '../types/session'
 import { CompteStaffRefuse, estCompteStaff } from '../utils/compteStaff'
 import { viderLots } from '../shared/uploads/stockageEnvoi'
 import { AuthContext, type AuthUser } from './useAuth'
+import { roleDeRepli, rolesUtilisables } from '../utils/roles'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -47,7 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     writeStoredUser(u)
     tokenStore.setToken(t)
     tokenStore.setRefresh(rt)
-    setActiveRole(u.role_principal || u.role)
+    // Lot 13 : un compte encore démarcheur arrive sur son rôle principal (ou propriétaire / prospect).
+    setActiveRole(roleDeRepli(u))
   }
 
   const logout = () => {
@@ -76,11 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     writeStoredUser(updated)
   }
 
-  const rolesActifs: string[] = user?.roles_actifs ?? (user?.role ? [user.role] : [])
+  // Lot 13 : le rôle démarcheur, abandonné, n'est plus jamais proposé ni utilisé comme espace.
+  const rolesActifs: string[] = rolesUtilisables(user?.roles_actifs ?? (user?.role ? [user.role] : []))
 
   const hasRole = (role: string) => rolesActifs.includes(role)
 
-  const fallbackRole = user?.role_principal || user?.role || ''
+  const fallbackRole = roleDeRepli(user)
   const candidate = activeRole || fallbackRole
   const computedActiveRole = (candidate && rolesActifs.includes(candidate)) ? candidate : fallbackRole
   const rolesKey = rolesActifs.join(',')

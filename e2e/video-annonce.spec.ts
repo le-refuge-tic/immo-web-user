@@ -35,7 +35,7 @@ test('sans vidéo, la fiche n’a pas de section vidéo', async ({ page }) => {
 })
 
 test('une vidéo qui n’est pas en MP4 est refusée dès le choix', async ({ page }) => {
-  await mockApp(page, { role: 'demarcheur' })
+  await mockApp(page, { role: 'proprietaire' })
   await page.goto('/nouveau-bien')
   await allerAuxPhotos(page)
   await champVideo(page).setInputFiles({ name: 'visite.mov', mimeType: 'video/quicktime', buffer: Buffer.from('x') })
@@ -51,7 +51,7 @@ test('un envoi de vidéo qui échoue après la publication est signalé et peut 
     ? { status: 500, body: { message: 'stockage indisponible' } }
     : { status: 201, body: { video_url: 'https://cdn.test/videos/v1.mp4' } })
   await mockApp(page, {
-    role: 'demarcheur',
+    role: 'proprietaire',
     mocks: { routes: { 'POST /biens': { status: 201, body: { id: 1 } }, 'POST /biens/1/video': video } },
   })
   await page.goto('/nouveau-bien')
@@ -61,7 +61,7 @@ test('un envoi de vidéo qui échoue après la publication est signalé et peut 
   await page.getByRole('button', { name: 'Publier le bien' }).click()
 
   // Lot 1 : retour au tableau de bord ; l'échec est signalé par l'indicateur d'envoi.
-  await expect(page).toHaveURL(/\/demarcheur$/)
+  await expect(page).toHaveURL(/\/proprietaire$/)
   await expect(page.getByText(/1 fichier non envoyé/)).toBeVisible({ timeout: 20_000 })
   expect(envois).toBe(3)
 

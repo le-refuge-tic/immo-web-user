@@ -31,7 +31,7 @@ const SLIDES = [
       </svg>
     ),
     title: 'Planifiez vos\nvisites facilement',
-    subtitle: "Réservez un créneau et payez en ligne. Le démarcheur vous contacte directement.",
+    subtitle: "Réservez un créneau et payez en ligne. Le propriétaire vous contacte directement.",
     features: ['Réservation en ligne', 'Confirmation rapide', 'Rappels automatiques'],
     btnLabel: 'Continuer',
   },

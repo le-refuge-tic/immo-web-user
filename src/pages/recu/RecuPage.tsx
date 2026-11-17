@@ -121,7 +121,7 @@ export default function RecuPage() {
   const ville = bien?.localisation?.ville
   const client = recu.locataire || recu.client
   const gestionnaire = recu.gestionnaire
-  const gestionnaireRoleLabel = gestionnaire?.role === 'demarcheur' ? 'Démarcheur' : 'Propriétaire'
+  const gestionnaireRoleLabel = gestionnaire?.role === 'proprietaire' ? 'Propriétaire' : 'Gestionnaire'
   const dateVisite = dateVisiteRecu(recu.visite)
   const moisLoyerLabel = recu.loyer?.mois ? moisLabel(recu.loyer.mois) : null
   const operateur = operateurLabel(recu.methode_paiement)
@@ -300,7 +300,7 @@ export default function RecuPage() {
             {client && <IconRow icon={<IcPerson />} label={isLoyer ? 'Locataire' : 'Client'} value={nomComplet(client)} />}
             {gestionnaire && (
               <IconRow
-                icon={gestionnaire.role === 'demarcheur' ? <IcAgent /> : <IcPerson />}
+                icon={gestionnaire.role === 'proprietaire' ? <IcPerson /> : <IcAgent />}
                 label={isLoyer ? 'Gestionnaire' : gestionnaireRoleLabel}
                 value={nomComplet(gestionnaire)}
               />

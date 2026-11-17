@@ -158,7 +158,7 @@ function chipLabel(n: Notification): string | null {
   return null
 }
 
-const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/mes-visites', prospect: '/mes-visites' }
+const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', locataire: '/mes-visites', prospect: '/mes-visites' }
 
 const NO_NOTIFS: Notification[] = []
 

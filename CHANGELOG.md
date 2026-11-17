@@ -11,6 +11,19 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Modifié (lot 13 — rôles)
+- **Rôle démarcheur supprimé du site** (décision du 17/11) :
+  - l'espace `/demarcheur` et ses onglets, la délégation à un démarcheur (déjà masquée) et leurs API ont été retirés ;
+  - un ancien lien `/demarcheur` ramène à l'accueil ;
+  - plus aucun écran ne cite le démarcheur : rôles, navigation, notifications, inscription, textes publics. Dans la messagerie, un ancien compte démarcheur s'affiche comme « Agent immobilier ».
+- Un compte qui a encore le rôle démarcheur arrive sur son rôle principal, ou sur propriétaire, ou sinon sur prospect. Rien n'est modifié en base.
+- **Écrans de rôles** (onglet propriétaire et « Espaces & rôles ») : ils appliquent les règles du backend et du mobile (`src/utils/roles.ts`, testé). Prospect et Propriétaire s'activent ; Locataire s'obtient avec « Rejoindre un bien ». Un propriétaire peut maintenant activer Prospect ; avant, il ne pouvait activer que Démarcheur.
+- **Désactiver un rôle** passe par une boîte de dialogue de confirmation.
+- **Publication par un propriétaire** : les champs réservés au démarcheur (frais de visite, commission d'agence) ont disparu. Ils n'étaient de toute façon jamais affichés à un propriétaire.
+
+### Corrigé (lot 13)
+- Réservations du propriétaire : l'erreur d'une action (confirmation, visite effectuée, chat, autre créneau) s'affiche dans la fenêtre de détail. Avant, elle restait cachée derrière la fenêtre. Le bandeau est aussi annoncé aux lecteurs d'écran (`role="alert"`).
+
 ### Ajouté (lot 15 — validation des formulaires)
 - Champs communs (`src/shared/saisie`, identiques dans l'administration) :
   - `NumberInput` et `MoneyInput` : chiffres seulement, à la frappe comme au collage ; milliers affichés (« 150 000 ») ;

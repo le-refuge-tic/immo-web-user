@@ -32,7 +32,6 @@ const MesVisitesPage         = lazy(() => import('./pages/visites/MesVisitesPage
 const ForgotPasswordPage     = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const AnnulerChangementPage  = lazy(() => import('./pages/auth/AnnulerChangementPage'))
 const ProprietaireDashboard  = lazy(() => import('./pages/proprietaire/ProprietaireDashboard'))
-const DemarcheurDashboard    = lazy(() => import('./pages/demarcheur/DemarcheurDashboard'))
 const LocataireDashboard     = lazy(() => import('./pages/locataire/LocataireDashboard'))
 const NouveauBienPage        = lazy(() => import('./pages/bien/NouveauBienPage'))
 const NouveauBienDediePage   = lazy(() => import('./pages/bien/dedie/NouveauBienDediePage'))
@@ -88,12 +87,11 @@ function HomeGuard() {
   const isOnboarded = localStorage.getItem('rg_onboarded') === 'true'
 
   // activeRole reflète l'espace choisi par l'utilisateur (voir "Gérer mes
-  // rôles") — un propriétaire/démarcheur qui a activé le rôle prospect et
+  // rôles") — un propriétaire qui a activé le rôle prospect et
   // cliqué "Accéder" doit voir l'accueil client, pas être renvoyé de force
   // vers son tableau de bord.
   if (isLoggedIn) {
     if (activeRole === 'proprietaire') return <Navigate to="/proprietaire" replace />
-    if (activeRole === 'demarcheur')   return <Navigate to="/demarcheur" replace />
     if (activeRole === 'locataire')    return <Navigate to="/locataire" replace />
   }
 
@@ -137,9 +135,8 @@ function App() {
         <Route path="/proprietaire/biens/:id/modifier" element={
           <RoleRoute role="proprietaire"><ModifierBienDediePage /></RoleRoute>
         } />
-        <Route path="/demarcheur" element={
-          <RoleRoute role="demarcheur"><DemarcheurDashboard /></RoleRoute>
-        } />
+        {/* Lot 13 : l'espace démarcheur est abandonné ; les anciens liens ramènent à l'accueil. */}
+        <Route path="/demarcheur" element={<Navigate to="/" replace />} />
         <Route path="/locataire" element={
           <RoleRoute role="locataire"><LocataireDashboard /></RoleRoute>
         } />
@@ -198,7 +195,7 @@ function App() {
             <RoleRoute role="proprietaire" redirectTo="/mes-roles"><NouveauBienDediePage famille="salle_fete" /></RoleRoute>
           } />
           <Route path="nouveau-bien" element={
-            <RoleRoute anyOf={['proprietaire', 'demarcheur']} redirectTo="/mes-roles"><NouveauBienPage /></RoleRoute>
+            <RoleRoute role="proprietaire" redirectTo="/mes-roles"><NouveauBienPage /></RoleRoute>
           } />
           <Route path="portefeuille" element={
             <PrivateRoute><PortefeuillePage /></PrivateRoute>

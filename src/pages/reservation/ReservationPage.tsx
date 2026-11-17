@@ -84,8 +84,8 @@ export default function ReservationPage() {
   const timeInputRef = useRef<HTMLInputElement>(null)
   const timeSectionRef = useRef<HTMLDivElement>(null)
 
-  // Le backend n'autorise que prospect/locataire à réserver. Un propriétaire ou
-  // démarcheur qui explore un bien n'a pas ce rôle → sans garde-fou, le POST
+  // Le backend n'autorise que prospect/locataire à réserver. Un propriétaire
+  // qui explore un bien n'a pas forcément ce rôle → sans garde-fou, le POST
   // renvoie un 403 « Forbidden resource » brut. On détecte le cas en amont pour
   // proposer d'activer le rôle prospect à la volée plutôt que d'échouer.
   const peutReserver = rolesActifs.some(r => ROLES_RESERVATION.includes(r))
@@ -394,8 +394,8 @@ export default function ReservationPage() {
     </div>
   )
 
-  // Invite affichée à la place du bouton d'envoi quand l'utilisateur (proprio /
-  // démarcheur sans rôle client) n'est pas autorisé à réserver : on lui propose
+  // Invite affichée à la place du bouton d'envoi quand l'utilisateur (propriétaire
+  // sans rôle client) n'est pas autorisé à réserver : on lui propose
   // d'activer le profil prospect en un clic plutôt que de le laisser buter sur un 403.
   const ActivateProspectBtn = () => (
     <button onClick={activerRoleProspect} disabled={activatingRole}

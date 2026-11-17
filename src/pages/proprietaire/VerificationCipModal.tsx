@@ -94,7 +94,7 @@ export default function VerificationCipModal({ user, onClose }: Props) {
 
         <div className="p-5 space-y-4">
           <p className="text-xs leading-relaxed" style={{ color: 'var(--p-muted)' }}>
-            Une pièce d'identité vérifiée renforce la confiance des locataires et démarcheurs qui interagissent avec vos annonces. Envoyez votre CIP (Carte d'Identité Personnelle) ou votre IFU.
+            Une pièce d'identité vérifiée renforce la confiance des locataires et des clients qui interagissent avec vos annonces. Envoyez votre CIP (Carte d'Identité Personnelle) ou votre IFU.
           </p>
 
           <StatutVerificationDocuments statut={statut} motif={statut === 'rejete' ? user?.motif_rejet_documents : null} />

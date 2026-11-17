@@ -27,6 +27,7 @@ export interface Paginated<T> {
  */
 export type ListResponse<T> = T[] | Paginated<T>
 
+/** `demarcheur` : rôle abandonné (lot 13), gardé pour lire les anciens comptes ; jamais proposé. */
 export type RoleUtilisateur =
   | 'prospect' | 'locataire' | 'demarcheur' | 'proprietaire'
   | 'detenteur' | 'commercial' | 'admin' | 'super_admin'

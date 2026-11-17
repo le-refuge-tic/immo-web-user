@@ -113,28 +113,6 @@ export type MessageHit = ChatSearchHit & {
   contenu?: string
   created_at?: IsoDate
 }
-
-// ─── Délégations ──────────────────────────────────────────────────────────
-
-export type StatutDelegationApi = 'en_attente' | 'active' | 'revoquee' | 'expiree' | 'refusee'
-
-/** Délégation émise par le propriétaire (`GET /delegations/emises`). */
-export interface DelegationEmise {
-  id: number
-  proprietaire_id?: number
-  demarcheur_id?: number
-  demarcheur?: User
-  /** `null` = délégation portant sur tous les biens. */
-  bien_id?: number | null
-  bien?: Bien | null
-  statut: StatutDelegationApi
-  date_debut?: IsoDate | null
-  date_fin?: IsoDate | null
-  permissions?: string[] | null
-  taux_commission_demarcheur?: number | string
-  motif?: string | null
-}
-
 // ─── Portefeuille ─────────────────────────────────────────────────────────
 
 /** Wallet renvoyé par `GET /wallets/me/solde`. */

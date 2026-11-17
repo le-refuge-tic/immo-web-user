@@ -16,7 +16,7 @@ export const visitesApi = {
   annuler: (id: number, choix?: ChoixAnnulation) =>
     axios.patch<Visite>(`${BASE}/visites/${id}/annuler`, choix ? { choix } : {}, auth()).then(r => r.data),
 
-  // propriétaire / démarcheur
+  // propriétaire
   reservationsRecues: () =>
     axios.get<ListResponse<Visite>>(`${BASE}/visites`, auth()).then(r => r.data),
 

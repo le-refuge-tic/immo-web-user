@@ -12,7 +12,7 @@ export default function GestionnaireCard({ gestionnaire, chatLoading, onOpenChat
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-text-dark text-sm">{gestionnaire.prenom} {gestionnaire.nom}</p>
-        <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'demarcheur' ? 'Démarcheur' : 'Propriétaire'}</p>
+        <p className="text-xs text-text-grey capitalize">{gestionnaire.role === 'proprietaire' ? 'Propriétaire' : 'Gestionnaire'}</p>
       </div>
       <button onClick={onOpenChat} disabled={chatLoading}
         className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-50" style={{ background: withAlpha(TEAL, '20'), color: TEAL_TX }}>

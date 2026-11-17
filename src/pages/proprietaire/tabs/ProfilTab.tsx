@@ -6,7 +6,6 @@ import { walletApi } from '../../../api/walletApi'
 import EditProfileModal from '../../profile/EditProfileModal'
 import ChangePasswordModal from '../../profile/ChangePasswordModal'
 import VerificationCipModal from '../VerificationCipModal'
-import DelegationModal from '../DelegationModal'
 import NumeroRetraitModal from '../../../components/wallet/NumeroRetraitModal'
 import { IcPayments, IcChevron } from './icons'
 import { IcWallet, IcPerson, IcStar, IcShield, IcEdit, IcUpload } from './shared'
@@ -21,7 +20,6 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
   const [editOpen, setEditOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [cipOpen, setCipOpen] = useState(false)
-  const [delegationOpen, setDelegationOpen] = useState(false)
   const [numeroRetraitOpen, setNumeroRetraitOpen] = useState(false)
   const [numeroRetrait, setNumeroRetrait] = useState<{ masque: string | null } | null>(null)
   const [hoveredEl, setHoveredEl] = useState<string | null>(null)
@@ -52,7 +50,6 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
     { icon: <IcEdit />, label: 'Mes infos personnelles', color: BLUE_TX, onClick: () => setEditOpen(true) },
     { icon: <IcShield />, label: 'Changer le mot de passe', color: 'var(--c-purple-dark)', onClick: () => setPasswordOpen(true) },
     { icon: <IcUpload />, label: 'Vérification CIP / IFU', color: 'var(--c-sky)', onClick: () => setCipOpen(true) },
-    // « Déléguer la gestion » masqué : la délégation à un agent immobilier (démarcheur) est abandonnée (E13).
     { icon: <IcWallet />, label: 'Numéro de retrait MoMo', color: '#FFB300', onClick: () => setNumeroRetraitOpen(true) },
     { icon: <IcPerson />, label: 'Mes espaces', color: 'var(--tx-amber)', onClick: onOpenRoles },
     { icon: <IcPayments />, label: 'Historique des transactions', color: 'var(--tx-green)', onClick: onOpenTransactions },
@@ -198,7 +195,6 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
       <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
       {cipOpen && <VerificationCipModal user={user} onClose={() => setCipOpen(false)} />}
-      {delegationOpen && <DelegationModal onClose={() => setDelegationOpen(false)} />}
       {numeroRetraitOpen && (
         <NumeroRetraitModal
           current={numeroRetrait?.masque ?? null}

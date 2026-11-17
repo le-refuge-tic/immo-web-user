@@ -9,7 +9,6 @@ import { useConfirm } from '../../../../shared/dialogues/useConfirm'
 export function StepTypePrix({ form }: { form: NouveauBienForm }) {
   const { confirmer } = useConfirm()
   const {
-    isDemarcheur,
     navigate,
     typeBien,
     setTypeBien,
@@ -44,7 +43,6 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
         <Card>
           <Section title="Type de bien" />
           <SelecteurTypeBien valeur={typeBien} onChange={setTypeBien}
-            formulaires={isDemarcheur ? ['classique'] : undefined}
             onFormulaireDedie={async st => {
               // Lot 4 : guesthouse et salle de fêtes ont leur propre formulaire.
               const ok = await confirmer({
