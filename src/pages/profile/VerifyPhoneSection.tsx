@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { userApi } from '../../api/userApi'
+import PasswordInput from '../../components/ui/PasswordInput'
 import { apiMessage } from '../../utils/apiMessage'
 import {
   PHONE_PLACEHOLDER,
@@ -115,7 +116,7 @@ export default function VerifyPhoneSection({ currentPhone, onVerified }: Props) 
       <div role="alert" aria-live="assertive" aria-atomic="true">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            <p className="text-red-600 text-sm">{error}</p>
+            <p className="text-red-700 text-sm font-medium">{error}</p>
           </div>
         )}
       </div>
@@ -141,9 +142,8 @@ export default function VerifyPhoneSection({ currentPhone, onVerified }: Props) 
               <label htmlFor="vp-password" className="text-xs font-semibold text-text-dark mb-1.5 block">
                 Mot de passe actuel
               </label>
-              <input
+              <PasswordInput
                 id="vp-password"
-                type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={e => { setPassword(e.target.value); setError('') }}

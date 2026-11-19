@@ -22,9 +22,10 @@ export function StepLocalisation({ form }: { form: NouveauBienForm }) {
     filteredQuartiers,
     selectQuartier,
     clearQuartier,
+    champErreur,
   } = form
   return (
-      <Card>
+      <Card champ="quartier" invalide={champErreur?.champ === 'quartier'}>
         <div className="space-y-4">
           {/* Quartier — recherche inline dark-themed */}
           <div>

@@ -93,14 +93,9 @@ export default function ManageRolesPage() {
     navigate(ESPACE_PAR_ROLE[role] ?? '/')
   }
 
-  // Un seul ensemble ordonné : espace courant d'abord, puis rôle principal,
-  // puis rôles actifs secondaires, puis rôles disponibles à activer — au lieu
-  // de répéter les mêmes cartes dans plusieurs sections + un switcher séparé.
-  const ordered = [...ROLES].sort((a, b) => {
-    const rank = (r: RoleInfo) =>
-      r.key === activeRole ? 0 : r.key === rolePrincipal ? 1 : actifs.includes(r.key) ? 2 : 3
-    return rank(a) - rank(b)
-  })
+  // Ordre fixe : les cartes ne changent pas de place quand on bascule d'espace
+  // (l'espace courant se repère à son badge et à sa bordure).
+  const ordered = ROLES
 
   return (
     <div className="min-h-full flex flex-col bg-[#F4F6FA] dark:bg-[#0F0F14]">

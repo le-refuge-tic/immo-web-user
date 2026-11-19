@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { avatarGradient } from '../../theme/illustrations'
 import { Outlet, useNavigate, useMatch } from 'react-router-dom'
+import { Home } from 'lucide-react'
 import { useAuth } from '../../context/useAuth'
 import { useTheme } from '../../context/useTheme'
 import { chatApi } from '../../api/chatApi'
@@ -137,7 +138,7 @@ export default function ConversationsPage() {
           const name   = displayName(other)
           const role   = roleLabel(other)
           const last   = conv.dernierMessage
-          const preview = last?.contenu === '__supprime__' ? 'Message supprimé' : (last?.contenu || 'Nouvelle conversation')
+          const preview = last?.contenu === '__supprime__' ? 'Message supprimé' : (last?.contenu || (conv.bien ? "À propos d'un bien" : "Aucun message pour l'instant"))
           const unread = conv.nonLus || 0
           const time   = fmtTime(last?.created_at)
           const active = conv.id === activeId
@@ -191,8 +192,9 @@ export default function ConversationsPage() {
                   )}
                 </div>
                 {conv.bien && (
-                  <span className="block mt-0.5 text-micro truncate" style={{ color: textMuted }}>
-                    🏠 {conv.bien.titre || conv.bien.localisation?.quartier || `Bien #${conv.bien.id}`}
+                  <span className="flex items-center gap-1 mt-0.5 text-micro truncate" style={{ color: textMuted }}>
+                    <Home aria-hidden="true" className="w-3 h-3 flex-shrink-0" />
+                    {conv.bien.titre || conv.bien.localisation?.quartier || `Bien #${conv.bien.id}`}
                   </span>
                 )}
                 {role && (

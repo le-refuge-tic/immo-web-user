@@ -1,3 +1,4 @@
+import PasswordInput from '../ui/PasswordInput'
 import { useEffect, useState } from 'react'
 import { ModalSheet } from '../ui/ModalSheet'
 import { walletApi } from '../../api/walletApi'
@@ -79,7 +80,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
               </div>
               <div>
                 <label htmlFor="numero-retrait-modal-69" className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Mot de passe (confirmation)</label>
-                <input id="numero-retrait-modal-69" type="password" value={motDePasse} onChange={e => setMotDePasse(e.target.value)} placeholder="••••••••"
+                <PasswordInput id="numero-retrait-modal-69" value={motDePasse} onChange={e => setMotDePasse(e.target.value)} placeholder="••••••••"
                   className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm outline-none text-proprio-text focus:border-brand" />
               </div>
               <p className="text-caption text-proprio-muted">Un code sera envoyé par SMS sur le numéro principal de votre compte pour confirmer ce changement. Par sécurité, les retraits sont ensuite suspendus 48 h si le numéro change. L&apos;opérateur, lui, se choisit à chaque retrait.</p>

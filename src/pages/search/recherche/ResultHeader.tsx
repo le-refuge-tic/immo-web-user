@@ -45,7 +45,7 @@ export default function ResultHeader({ count, loading, hasFilters, reset, inline
           return (
             <button key={s.key}
               onClick={() => setSortBy(s.key)}
-              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all"
+              className="flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
               style={active ? tk.pillActive : { color: tk.labelClr }}
               title={s.label}
               aria-label={s.label}

@@ -18,7 +18,7 @@ export const visitesApi = {
 
   // propriétaire
   reservationsRecues: () =>
-    axios.get<ListResponse<Visite>>(`${BASE}/visites`, auth()).then(r => r.data),
+    axios.get<ListResponse<Visite>>(`${BASE}/visites`, { ...auth(), params: { role: 'gestionnaire' } }).then(r => r.data),
 
   confirmerVisite: (id: number) =>
     axios.patch<Visite>(`${BASE}/visites/${id}/confirmer`, {}, auth()).then(r => r.data),

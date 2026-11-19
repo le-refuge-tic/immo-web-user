@@ -65,12 +65,17 @@ const ImageSlider = React.forwardRef<HTMLDivElement, ImageSliderProps>(
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={cn(
-                "w-2 h-2 rounded-full transition-colors duration-300",
-                currentIndex === index ? "bg-white" : "bg-white/50 hover:bg-white"
-              )}
+              className="group flex h-11 w-6 items-center justify-center"
               aria-label={`Aller à la diapositive ${index + 1}`}
-            />
+              aria-current={currentIndex === index ? 'true' : undefined}
+            >
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full transition-colors duration-300",
+                  currentIndex === index ? "bg-white" : "bg-white/50 group-hover:bg-white"
+                )}
+              />
+            </button>
           ))}
         </div>
       </div>

@@ -12,6 +12,9 @@ const ICONES: Record<string, string> = {
   fete: 'M5 21l4-12 6 6zM14 4l1 2M19 6l-2 1M18 11l2 1',
 }
 
+/** Libellés vus par l'utilisateur : les catégories à sous-type unique portent le nom du type, comme partout ailleurs (recherche, cartes). */
+const LIBELLE_CATEGORIE: Record<string, string> = { court_sejour: 'Guesthouse', evenementiel: 'Salle de fêtes' }
+
 interface SelecteurTypeBienProps {
   /** Clé du sous-type choisi (référentiel), ex. « villa ». */
   valeur: string
@@ -57,7 +60,7 @@ export default function SelecteurTypeBien({ valeur, onChange, formulaires, onFor
               <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                 <path d={ICONES[c.icone] ?? ICONES.maison} />
               </svg>
-              {c.libelle}
+              {LIBELLE_CATEGORIE[c.cle] ?? c.libelle}
             </button>
           )
         })}

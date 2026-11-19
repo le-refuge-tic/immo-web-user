@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../utils/usePageTitle'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import LoadMoreBar from '../../components/LoadMoreBar'
 import { useSearchPage } from './recherche/useSearchPage'
 import SuggestDropdown from './recherche/SuggestDropdown'
@@ -14,6 +15,8 @@ import { PinIcon, XIcon, BackIcon, FilterIcon, ClearIcon } from './recherche/ico
 export default function SearchPage() {
   usePageTitle('Rechercher un logement', 'Maisons, appartements et terrains à louer ou à vendre au Bénin : filtrez par ville, quartier, type et budget.')
   const navigate = useNavigate()
+  // Une seule mise en page est montée : sinon la liste est rendue deux fois (cartes et titres en double)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const {
     tk, isDark, query, setQuery, showSuggest, setShowSuggest, suggestions, pickSuggestion,
     mobileOpen, setMobileOpen, sidebarRef, chips, hasFilters, reset, fp,
@@ -25,7 +28,7 @@ export default function SearchPage() {
     <div className="min-h-full">
 
       {/* ══════════════ MOBILE ══════════════ */}
-      <div className="lg:hidden overflow-x-hidden">
+      {!isDesktop && <div className="overflow-x-hidden">
 
         {/* Header sticky : top-0 sur téléphone (pas de barre en haut), top-[72px] dès que la TopNav fixe est visible */}
         <div className="sticky top-0 md:top-[72px] z-30 px-4 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] md:pt-3 pb-3"
@@ -38,7 +41,7 @@ export default function SearchPage() {
         >
           <div className="flex items-center gap-2 mb-2.5">
             <button onClick={() => navigate(-1)}
-              className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl transition-all"
+              className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-xl transition-all"
               style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textClr }}
               aria-label="Retour"
             >
@@ -72,7 +75,7 @@ export default function SearchPage() {
 
             <button
               onClick={() => setMobileOpen(o => !o)}
-              className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl relative transition-all"
+              className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-xl relative transition-all"
               aria-label="Filtres"
               style={hasFilters ? tk.pillActive : { background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}`, color: tk.textClr }}
             >
@@ -90,13 +93,13 @@ export default function SearchPage() {
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pr-2 scrollbar-hide">
               {chips.map(chip => (
                 <button key={chip.label} onClick={chip.onRemove}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                  className="flex-shrink-0 flex items-center gap-1.5 min-h-[44px] px-3 py-1 rounded-full text-xs font-semibold"
                   style={tk.chipStyle}
                 >
                   {chip.label}<XIcon />
                 </button>
               ))}
-              <button onClick={reset} className="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full" style={{ color: tk.labelClr }}>
+              <button onClick={reset} className="flex-shrink-0 min-h-[44px] text-xs font-semibold px-3 py-1 rounded-full" style={{ color: tk.labelClr }}>
                 Tout effacer
               </button>
             </div>
@@ -124,10 +127,10 @@ export default function SearchPage() {
           <GuidedResults {...sharedResults} onFavToggle={onFavToggle} cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3" />
           {!loading && !fetchError && <LoadMoreBar loaded={allBiens.length} total={total} loading={loadingMore} error={loadMoreError} localFilters={localFiltersActive} onLoadMore={loadMore} />}
         </div>
-      </div>
+      </div>}
 
       {/* ══════════════ DESKTOP ══════════════ */}
-      <div className="hidden lg:flex min-h-full">
+      {isDesktop && <div className="flex min-h-full">
 
         {/* Sidebar filtres */}
         <aside
@@ -171,7 +174,7 @@ export default function SearchPage() {
               <div className="flex flex-wrap gap-1.5 pb-1">
                 {chips.map(chip => (
                   <button key={chip.label} onClick={chip.onRemove}
-                    className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold"
+                    className="flex items-center gap-1 min-h-[44px] px-3 py-1 rounded-full text-xs font-semibold"
                     style={tk.chipStyle}
                   >
                     {chip.label}<XIcon />
@@ -234,7 +237,7 @@ export default function SearchPage() {
           <GuidedResults {...sharedResults} onFavToggle={onFavToggle} cols="grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" />
           {!loading && !fetchError && <LoadMoreBar loaded={allBiens.length} total={total} loading={loadingMore} error={loadMoreError} localFilters={localFiltersActive} onLoadMore={loadMore} />}
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

@@ -278,7 +278,7 @@ export function PortefeuilleTab({ onOpenTransactions }: { onOpenTransactions: ()
         <div className="flex items-center justify-between mb-3">
           <p className="font-bold text-p-text">Transactions récentes</p>
           {transactions.length > 0 && (
-            <button onClick={onOpenTransactions} className="text-xs font-semibold" style={{ color: BLUE_TX }}>Voir tout →</button>
+            <button onClick={onOpenTransactions} className="inline-flex min-h-[44px] items-center px-2 -mr-2 text-xs font-semibold" style={{ color: BLUE_TX }}>Voir tout →</button>
           )}
         </div>
         {loading ? [1, 2, 3].map(n => <div key={n} className="h-16 skeleton-dark rounded-xl mb-2" />) : noData ? (

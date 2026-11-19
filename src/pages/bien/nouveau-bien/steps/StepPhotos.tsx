@@ -56,6 +56,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     labelElec,
     labelEau,
     prixPrincipal,
+    champErreur,
   } = form
   const [videoErreur, setVideoErreur] = useState<string | null>(null)
   return (
@@ -153,7 +154,7 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
         </Card>
 
         {/* ── Photos ── */}
-        <Card>
+        <Card champ="photos" invalide={champErreur?.champ === 'photos'}>
           <p className="text-sm font-bold mb-1" style={{ color: 'var(--p-text)' }}>Photos du bien</p>
           <p className="text-xs mb-4" style={{ color: 'var(--p-muted)' }}>
             Entre {PHOTOS_MIN} et {PHOTOS_MAX} photos (PNG, JPEG, WEBP) — les photos augmentent les visites de 3×

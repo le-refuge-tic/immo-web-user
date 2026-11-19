@@ -93,12 +93,8 @@ export function RolesTab() {
     setLoadingRole(null)
   }
 
-  // Espace courant d'abord, puis rôle principal, puis rôles actifs secondaires,
-  // puis rôles disponibles à activer.
-  const ordered = [...ROLES_META].sort((a, b) => {
-    const rank = (r: typeof ROLES_META[0]) => r.key === activeRole ? 0 : r.key === rolePrincipal ? 1 : actifs.includes(r.key) ? 2 : 3
-    return rank(a) - rank(b)
-  })
+  // Ordre fixe : les cartes ne changent pas de place quand on bascule d'espace.
+  const ordered = ROLES_META
 
   return (
     <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-8">
