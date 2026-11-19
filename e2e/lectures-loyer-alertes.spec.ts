@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { BIEN, mockApp, visite, type ApiCall, type MockResponse } from './support/mockApi'
 
 // Lectures corrigées : référence du paiement de loyer (`reference`), réparation (`repare`),
-// alertes du locataire (lu / tout lu / erreurs), date retenue du profil, erreurs du démarcheur
+// alertes du locataire (lu / tout lu / erreurs), date retenue du profil, erreurs du propriétaire
 // et de la reproposition. Le suivi du loyer doit interroger /paiements/loyer/<reference>/statut.
 
 const iso = (jours: number) => new Date(Date.now() + jours * 86_400_000).toISOString()
@@ -311,54 +311,58 @@ test.describe('Date retenue de la visite en cours (profil)', () => {
   })
 })
 
-test.describe('Démarcheur : actions sur les réservations', () => {
+test.describe('Propriétaire : actions sur les réservations', () => {
   const ouvrirReservations = async (page: Page) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/demarcheur')
-    await page.locator('aside nav').getByRole('button', { name: 'Réservations' }).click()
+    await page.goto('/proprietaire')
+    await page.getByRole('button', { name: 'Réservations', exact: true }).first().click()
   }
+  const ouvrirDetail = (page: Page) => page.getByRole('button', { name: 'Voir le détail' }).first().click()
   const attente = { status: 200, body: { data: [visite({ id: 7, statut: 'en_attente', client: { id: 5, prenom: 'Awa' } })] } }
 
   test('panne au chargement : erreur et « Réessayer », jamais « Aucune réservation »', async ({ page }) => {
     let enPanne = true
-    await mockApp(page, { role: 'demarcheur', mocks: { visites: () => (enPanne ? PANNE : attente) } })
+    await mockApp(page, { role: 'proprietaire', mocks: { visites: () => (enPanne ? PANNE : attente) } })
     await ouvrirReservations(page)
 
     await expect(page.getByText('Impossible de charger vos réservations')).toBeVisible()
     await expect(page.getByText('Aucune réservation')).toHaveCount(0)
     enPanne = false
     await page.getByRole('button', { name: 'Réessayer' }).click()
-    await expect(page.getByRole('button', { name: 'Confirmer' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Confirmer/ }).first()).toBeVisible()
   })
 
   test('une confirmation refusée affiche le message de l’API et le bouton redevient actif', async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur', mocks: { visites: attente, routes: { 'PATCH /visites/7/confirmer': { status: 400, body: { message: 'Cette visite est déjà confirmée.' } } } } })
+    await mockApp(page, { role: 'proprietaire', mocks: { visites: attente, routes: { 'PATCH /visites/7/confirmer': { status: 400, body: { message: 'Cette visite est déjà confirmée.' } } } } })
     await ouvrirReservations(page)
-    await page.getByRole('button', { name: 'Confirmer' }).click()
+    await page.getByRole('button', { name: /^Confirmer/ }).first().click()
 
     await expect(page.getByRole('alert').filter({ hasText: 'Cette visite est déjà confirmée.' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Confirmer' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: /^Confirmer/ }).first()).toBeEnabled()
   })
 
   test('« Marquer effectuée » en panne affiche un message de repli français', async ({ page }) => {
     await mockApp(page, {
-      role: 'demarcheur',
+      role: 'proprietaire',
       mocks: { visites: { status: 200, body: { data: [visite({ id: 7, statut: 'confirmee' })] } }, routes: { 'PATCH /visites/7/effectuee': PANNE } },
     })
     await ouvrirReservations(page)
+    await ouvrirDetail(page)
     await page.getByRole('button', { name: 'Marquer effectuée' }).click()
+    await page.getByRole('button', { name: 'Confirmer', exact: true }).click()
 
     await expect(page.getByRole('alert').filter({ hasText: 'momentanément indisponible' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Marquer effectuée' })).toBeEnabled()
+    await expect(page.getByRole('alert').filter({ hasText: 'momentanément indisponible' })).toBeVisible()
   })
 
   test('l’ouverture du chat en panne affiche un message au lieu d’échouer en silence', async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur', mocks: { visites: attente, conversations: PANNE } })
+    await mockApp(page, { role: 'proprietaire', mocks: { visites: attente, conversations: PANNE } })
     await ouvrirReservations(page)
-    await page.getByRole('button', { name: 'Chat' }).click()
+    await ouvrirDetail(page)
+    await page.getByRole('button', { name: 'Chat', exact: true }).click()
 
     await expect(page.getByRole('alert').filter({ hasText: 'momentanément indisponible' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Chat' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Chat', exact: true })).toBeEnabled()
   })
 })
 

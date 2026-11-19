@@ -41,7 +41,7 @@ export default function ConfidentialitePage() {
         <ul>
           <li>Créer et sécuriser votre compte, vous connecter avec un code SMS.</li>
           <li>Publier, vérifier (modération) et afficher les annonces.</li>
-          <li>Organiser les visites et vous mettre en relation avec les propriétaires, démarcheurs et locataires.</li>
+          <li>Organiser les visites et vous mettre en relation avec les propriétaires et les locataires.</li>
           <li>Encaisser les frais et loyers, gérer le portefeuille et les retraits.</li>
           <li>Vous prévenir des événements qui vous concernent (visite confirmée, message, loyer…).</li>
           <li>Lutter contre la fraude et les abus, améliorer la plateforme.</li>

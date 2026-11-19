@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { mockApp, visite } from './support/mockApi'
 
 // Lectures corrigées : alertes lues, dates retenues des visites, bouton d'intégration,
-// contre-proposition du démarcheur via la couche d'API (intercepteur axios).
+// contre-proposition du propriétaire via la couche d'API (intercepteur axios).
 
 const iso = (jours: number) => new Date(Date.now() + jours * 86_400_000).toISOString()
 const fmt = (valeur: string) => {
@@ -72,11 +72,12 @@ test.describe('Mes visites : date retenue et paiement d’intégration', () => {
   })
 })
 
-test.describe('Démarcheur : contre-proposition de créneau', () => {
+test.describe('Propriétaire : contre-proposition de créneau', () => {
   const ouvrirFormulaire = async (page: import('@playwright/test').Page) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/demarcheur')
-    await page.locator('aside nav').getByRole('button', { name: 'Réservations' }).click()
+    await page.goto('/proprietaire')
+    await page.getByRole('button', { name: 'Réservations', exact: true }).first().click()
+    await page.getByRole('button', { name: 'Voir le détail' }).first().click()
     await page.getByRole('button', { name: 'Autre créneau' }).click()
     await page.locator('input[type="date"]').fill('2030-05-17')
     await page.locator('input[type="time"]').fill('09:30')
@@ -87,7 +88,7 @@ test.describe('Démarcheur : contre-proposition de créneau', () => {
 
   test('envoie la proposition avec le jeton et le même corps qu’avant', async ({ page }) => {
     const calls = await mockApp(page, {
-      role: 'demarcheur',
+      role: 'proprietaire',
       mocks: { visites, contreProposer: { status: 200, body: { id: 7, statut: 'contre_proposee' } } },
     })
     await ouvrirFormulaire(page)
@@ -101,7 +102,7 @@ test.describe('Démarcheur : contre-proposition de créneau', () => {
 
   test('rafraîchit le jeton sur 401 puis rejoue la requête', async ({ page }) => {
     const calls = await mockApp(page, {
-      role: 'demarcheur',
+      role: 'proprietaire',
       mocks: {
         visites,
         refresh: { status: 200, body: { access_token: 'n.e30.t', refresh_token: 'refresh-2' } },
@@ -122,7 +123,7 @@ test.describe('Démarcheur : contre-proposition de créneau', () => {
 
   test('affiche le message de l’API en cas de refus et garde le formulaire ouvert', async ({ page }) => {
     await mockApp(page, {
-      role: 'demarcheur',
+      role: 'proprietaire',
       mocks: { visites, contreProposer: { status: 400, body: { message: 'Cette date est déjà réservée.' } } },
     })
     await ouvrirFormulaire(page)
@@ -134,7 +135,7 @@ test.describe('Démarcheur : contre-proposition de créneau', () => {
 
   test('affiche un message de repli sur une panne serveur', async ({ page }) => {
     await mockApp(page, {
-      role: 'demarcheur',
+      role: 'proprietaire',
       mocks: { visites, contreProposer: { status: 500, body: { message: 'boom' } } },
     })
     await ouvrirFormulaire(page)

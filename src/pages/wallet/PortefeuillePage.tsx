@@ -48,12 +48,12 @@ function TypeIcon({ t, color, className }: { t: WalletTransaction; color: string
 }
 
 // Sur mobile, "Mon portefeuille" (profile_screen.dart) ouvre toujours le
-// wallet Cotisation/Épargne, quel que soit le rôle — seuls le propriétaire et
-// le démarcheur ont un wallet de commissions séparé (revenus_locatifs),
-// accessible depuis leur propre tableau de bord.
+// wallet Cotisation/Épargne, quel que soit le rôle — seul le propriétaire
+// a un wallet de commissions séparé (revenus_locatifs),
+// accessible depuis son propre tableau de bord.
 export default function PortefeuillePage() {
   const { activeRole } = useAuth()
-  if (activeRole === 'proprietaire' || activeRole === 'demarcheur') return <WalletCommissionsView />
+  if (activeRole === 'proprietaire') return <WalletCommissionsView />
   return <ClientWalletView />
 }
 
@@ -308,7 +308,7 @@ function ClientWalletView() {
   )
 }
 
-// ─── Vue propriétaire / démarcheur : Commissions (revenus_locatifs) ────────────
+// ─── Vue propriétaire : Commissions (revenus_locatifs) ────────────
 function WalletCommissionsView() {
   const attempt = usePaymentAttempt()
   const navigate = useNavigate()

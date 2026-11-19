@@ -5,6 +5,8 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { rolesApi } from '../../api/rolesApi'
 import { apiMessage } from '../../utils/apiMessage'
 import { withAlpha } from '../../utils/color'
+import { useConfirm } from '../../shared/dialogues/useConfirm'
+import { ESPACE_PAR_ROLE, etatRole, MAX_ROLES_ACTIFS } from '../../utils/roles'
 
 type RoleInfo = {
   key: string
@@ -40,7 +42,7 @@ export default function ManageRolesPage() {
   const [activating, setActivating] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [confirmDesactiver, setConfirmDesactiver] = useState<string | null>(null)
+  const { confirmer } = useConfirm()
 
   const rolePrincipal = user?.role_principal || user?.role || ''
   const actifs = rolesActifs
@@ -62,7 +64,13 @@ export default function ManageRolesPage() {
   }
 
   const desactiverRole = async (role: string) => {
-    setConfirmDesactiver(null)
+    const ok = await confirmer({
+      titre: `Désactiver l’espace ${roleLabel(role)} ?`,
+      message: 'Vous pourrez le réactiver plus tard depuis cet écran.',
+      confirmer: 'Désactiver',
+      danger: true,
+    })
+    if (!ok) return
     setLoading(role); setError('')
     try {
       await rolesApi.desactiver(role)
@@ -82,10 +90,7 @@ export default function ManageRolesPage() {
 
   const goToDashboard = (role: string) => {
     setActiveRole(role)
-    if (role === 'proprietaire') navigate('/proprietaire')
-    else if (role === 'demarcheur') navigate('/demarcheur')
-    else if (role === 'locataire') navigate('/locataire')
-    else navigate('/')
+    navigate(ESPACE_PAR_ROLE[role] ?? '/')
   }
 
   // Un seul ensemble ordonné : espace courant d'abord, puis rôle principal,
@@ -166,7 +171,7 @@ export default function ManageRolesPage() {
                   </div>
 
                   <div className="px-4 pb-4 flex gap-2">
-                    {isDisponible && r.key === 'locataire' ? (
+                    {etatRole(r.key, actifs) === 'sur_invitation' ? (
                       // Le statut locataire ne s'auto-active jamais : il vient uniquement
                       // de la validation d'une demande de liaison à un bien en gestion
                       // (code d'invitation), jamais d'une activation directe.
@@ -175,8 +180,9 @@ export default function ManageRolesPage() {
                         style={{ background: r.fill }}>
                         Rejoindre un bien
                       </button>
-                    ) : isDisponible && r.key !== 'proprietaire' ? null : isDisponible ? (
-                      <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
+                    ) : isDisponible ? (
+                      // Lot 13 : prospect et propriétaire s'activent (ROLES_AUTO_ACTIVABLES du backend).
+                      <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= MAX_ROLES_ACTIFS}
                         className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-opacity hover:opacity-90"
                         style={{ background: r.fill }}>
                         Activer ce rôle
@@ -191,20 +197,11 @@ export default function ManageRolesPage() {
                           </button>
                         )}
                         {!isPrincipal && (
-                          confirmDesactiver === r.key ? (
-                            <div className="flex items-center gap-1.5">
-                              <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white disabled:opacity-50" style={{ background: 'var(--c-danger)' }}>
-                                {busy ? '…' : 'Confirmer'}
-                              </button>
-                              <button onClick={() => setConfirmDesactiver(null)} className="py-2 px-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: 'var(--c-line)', color: 'var(--c-grey)', background: 'transparent' }}>✕</button>
-                            </div>
-                          ) : (
-                            <button onClick={() => setConfirmDesactiver(r.key)} disabled={busy}
-                              className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                              style={{ borderColor: 'rgba(239,68,68,0.3)', color: 'var(--tx-red)', background: 'rgba(239,68,68,0.06)' }}>
-                              Désactiver
-                            </button>
-                          )
+                          <button onClick={() => void desactiverRole(r.key)} disabled={busy}
+                            className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
+                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: 'var(--tx-red)', background: 'rgba(239,68,68,0.06)' }}>
+                            {busy ? '…' : 'Désactiver'}
+                          </button>
                         )}
                       </>
                     )}

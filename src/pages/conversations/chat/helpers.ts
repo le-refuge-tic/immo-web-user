@@ -51,7 +51,9 @@ export function libelleAnnulation(meta: CreneauMetadata | null | undefined, user
 }
 export function displayName(o: Interlocuteur) { return o?.prenom || o?.pseudonyme || o?.nom || 'Contact' }
 export function roleLabel(o: Interlocuteur) {
-  if (o?.role === 'demarcheur' || o?.role === 'commercial') return 'Démarcheur'
+  if (o?.role === 'commercial') return 'Conseiller Refuge'
+  // Lot 13 : ancien rôle démarcheur, abandonné ; l'interlocuteur reste identifiable.
+  if (o?.role === 'demarcheur') return 'Agent immobilier'
   if (o?.role === 'proprietaire') return 'Propriétaire'
   if (o?.role === 'locataire') return 'Locataire'
   if (o?.role === 'prospect') return 'Client'

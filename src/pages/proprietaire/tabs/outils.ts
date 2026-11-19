@@ -1,5 +1,6 @@
 import type { Bien, Piece } from '../../../types/api'
 import type { Contrat } from '../../../types/proprietaire'
+import { ESPACE_PAR_ROLE } from '../../../utils/roles'
 
 const SOUS_TYPE_LABELS: Record<string, string> = {
   entree_coucher: 'Entrée-Coucher', chambre_salon: 'Chambre-Salon',
@@ -15,8 +16,8 @@ export const BLUE      = 'var(--c-brand)'   // bleu principal (propriétaire)
 export const BLUE_TX   = 'var(--tx-brand)'
 export const DARK_BLUE = '#0B1C30'   // navy
 
-export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', demarcheur: 'Démarcheur', locataire: 'Locataire' }
-export const ROLE_ROUTES: Record<string, string> = { proprietaire: '/proprietaire', demarcheur: '/demarcheur', locataire: '/locataire' }
+export const ROLE_LABELS: Record<string, string> = { prospect: 'Prospect', proprietaire: 'Propriétaire', locataire: 'Locataire' }
+export const ROLE_ROUTES: Record<string, string> = ESPACE_PAR_ROLE
 
 export type Tab = 'tableau' | 'biens' | 'reservations' | 'messages' | 'notifications' | 'loyers' | 'portefeuille' | 'transactions' | 'roles' | 'profil'
 

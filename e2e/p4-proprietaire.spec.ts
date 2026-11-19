@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
 import { ajouterPhotos, mockApp } from './support/mockApi'
 
-// P4 — Propriétaire / démarcheur : publication d'une annonce, brouillon (FE-B-002).
+// P4 — Propriétaire : publication d'une annonce, brouillon (FE-B-002).
 
 test.describe("P4 publication d'annonce", () => {
   test('la saisie survit à un rechargement et « Tout effacer » repart de zéro', async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur' })
+    await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     await page.locator('input[inputmode="numeric"]').first().fill('75000')
     await page.waitForTimeout(1600)
@@ -21,7 +21,7 @@ test.describe("P4 publication d'annonce", () => {
   })
 
   test("l'assistant parcourt les cinq étapes jusqu'à la publication", async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur' })
+    await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     const continuer = page.getByRole('button', { name: /Continuer/ })
 
@@ -49,7 +49,7 @@ test.describe("P4 publication d'annonce", () => {
   })
 
   test('« En finition / Bientôt » propose une date de disponibilité, envoyée à la publication', async ({ page }) => {
-    const calls = await mockApp(page, { role: 'demarcheur' })
+    const calls = await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     const continuer = page.getByRole('button', { name: /Continuer/ })
 
@@ -79,7 +79,7 @@ test.describe("P4 publication d'annonce", () => {
   })
 
   test('les compteurs chambres et salons donnent le total de pièces, au récapitulatif et à la publication', async ({ page }) => {
-    const calls = await mockApp(page, { role: 'demarcheur' })
+    const calls = await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     const continuer = page.getByRole('button', { name: /Continuer/ })
 
@@ -115,7 +115,7 @@ test.describe("P4 publication d'annonce", () => {
   })
 
   test("un prix manquant bloque l'étape 1 avec un message", async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur' })
+    await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     await page.getByRole('button', { name: /Continuer/ }).click()
 

@@ -24,8 +24,6 @@ const ICON_ITEMS = [
 
 const ROLE_ROUTES: Record<string, { label: string; path: string }> = {
   proprietaire: { label: 'Espace Propriétaire', path: '/proprietaire' },
-  demarcheur:   { label: 'Espace Démarcheur',   path: '/demarcheur'   },
-  commercial:   { label: 'Espace Démarcheur',    path: '/demarcheur'   },
   locataire:    { label: 'Espace Locataire',     path: '/locataire'    },
   prospect:     { label: 'Espace Client',        path: '/'             },
 }

@@ -120,10 +120,10 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden" style={{ background: 'var(--p-deep)' }}>
-      {chatError && (
-        <div className="mx-5 mt-4 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#F87171' }}>
+      {chatError && !modalVisite && (
+        <div role="alert" className="mx-5 mt-4 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#F87171' }}>
           {chatError}
-          <button onClick={() => setChatError('')} className="text-base leading-none flex-shrink-0" style={{ color: '#F87171' }}>✕</button>
+          <button onClick={() => setChatError('')} aria-label="Fermer le message" className="text-base leading-none flex-shrink-0" style={{ color: '#F87171' }}>✕</button>
         </div>
       )}
 
@@ -358,7 +358,7 @@ export function ReservationsTab({ biens, onScrolled, onOpenMessages }: { biens: 
         <ReservationDetailModal v={modalVisite} onClose={() => setModalVisiteId(null)}
           chatLoadingId={chatLoadingId} onChat={ouvrirChat} onConfirm={confirmer} onMarquerEffectuee={marquerEffectuee}
           cpId={cpId} setCpId={setCpId} cpDate={cpDate} setCpDate={setCpDate} cpTime={cpTime} setCpTime={setCpTime}
-          submitting={submitting} onContrePropose={contreProposer} now={now} />
+          submitting={submitting} onContrePropose={contreProposer} now={now} erreur={chatError} />
       )}
     </div>
   )

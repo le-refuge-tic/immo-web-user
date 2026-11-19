@@ -34,7 +34,7 @@ const champVideo = (page: Page) => page.locator('input[type="file"][accept="vide
 
 test.describe("Brouillon d'annonce : photos et vidéo", () => {
   test('photos et vidéo retrouvées après un rechargement, puis effacées par « Tout effacer »', async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur' })
+    await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     await allerAuxPhotos(page)
     await champPhotos(page).setInputFiles([photo('salon.png'), photo('chambre.png')])
@@ -58,7 +58,7 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
   })
 
   test('une photo retirée ne revient pas au rechargement', async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur' })
+    await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     await allerAuxPhotos(page)
     await champPhotos(page).setInputFiles([photo('salon.png'), photo('chambre.png')])
@@ -73,7 +73,7 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
 
   test('la déconnexion supprime les photos du brouillon (appareil partagé)', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await mockApp(page, { role: 'demarcheur' })
+    await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     await allerAuxPhotos(page)
     await champPhotos(page).setInputFiles([photo('salon.png')])
@@ -87,14 +87,14 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
   })
 
   test('après la publication, le brouillon et ses photos sont effacés', async ({ page }) => {
-    await mockApp(page, { role: 'demarcheur' })
+    await mockApp(page, { role: 'proprietaire' })
     await page.goto('/nouveau-bien')
     await allerAuxPhotos(page)
     await champPhotos(page).setInputFiles([photo('salon.png'), photo('chambre.png')])
     await page.waitForTimeout(ATTENTE_ECRITURE_MS)
     await page.getByRole('button', { name: 'Publier le bien' }).click()
     // Lot 1 : retour immédiat au tableau de bord, la photo part en arrière-plan.
-    await expect(page).toHaveURL(/\/demarcheur$/)
+    await expect(page).toHaveURL(/\/proprietaire$/)
     await expect(page.getByText(/Toutes les photos de .* sont en ligne/)).toBeVisible()
 
     await page.goto('/nouveau-bien')

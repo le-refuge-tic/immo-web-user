@@ -22,7 +22,6 @@ export function useNouveauBienForm() {
   usePageTitle('Publier une annonce')
   const navigate = useNavigate()
   const { user } = useAuth()
-  const isDemarcheur = (user?.roles_actifs ?? (user?.role_principal ? [user.role_principal] : [])).includes('demarcheur')
 
   // Brouillon par compte : une session expirée ne fait plus perdre la saisie (FE-B-002)
   const draftKey = `rg_draft_nouveau_bien_${user?.id ?? 'anon'}`
@@ -286,7 +285,6 @@ export function useNouveauBienForm() {
       if (typeTransaction === 'location') {
         a.echeance_mois = echeanceMois
         // Lot 4 : la commission d'agence du propriétaire est fixée par le serveur (50 % du loyer).
-        if (isDemarcheur) a.commission_agence = parsePrix(commissionMontant) ?? 0
       }
       if (cEau > 0) a.caution_eau = cEau
       if (cElec > 0) a.caution_elec = cElec
@@ -301,8 +299,6 @@ export function useNouveauBienForm() {
       if (isMeuble) a.tarifs_meuble = buildTarifsMeuble()
     }
 
-    // FE-B-012 : « gratuite » est un choix explicite ; un montant vide ou à 0 reçoit le barème du serveur
-    if (isDemarcheur && visiteGratuite) a.visite_gratuite = true
 
     const validAutres = autresFrais.filter(f => parsePrix(f.prix) !== undefined)
     if (validAutres.length) {
@@ -344,7 +340,8 @@ export function useNouveauBienForm() {
         type: typeBackend,
         transaction: typeTransaction,
         prix: prixFinal,
-        frais_visite: isDemarcheur && !visiteGratuite ? (parsePrix(fraisVisite) ?? 0) : 0,
+        // Frais de visite : tarif fixé par Refuge (lot 13 : le propriétaire ne les saisit pas).
+        frais_visite: 0,
         description: descFull || undefined,
         localisation: {
           adresse: indicationAdresse.trim() || [quartier, arrondissement].filter(Boolean).join(', ') || quartier,
@@ -378,7 +375,7 @@ export function useNouveauBienForm() {
         demarrer({
           bienId: bien.id,
           libelle: titre || [typeLibelle, quartier.trim()].filter(Boolean).join(' '),
-          lien: isDemarcheur ? '/demarcheur' : `/proprietaire/biens/${bien.id}`,
+          lien: `/proprietaire/biens/${bien.id}`,
           photos,
           video,
         })
@@ -391,7 +388,7 @@ export function useNouveauBienForm() {
       // Sans attendre : le bien est créé, un stockage lent ne doit pas retarder la suite.
       void medias.clear()
       suggestPush()
-      navigate(isDemarcheur ? '/demarcheur' : '/proprietaire', { state: { tab: 'biens' } })
+      navigate('/proprietaire', { state: { tab: 'biens' } })
     } catch (err: unknown) {
       setError(apiMessage(err) || apiMessageDetail(err) || 'Erreur lors de la création')
     }
@@ -581,7 +578,6 @@ export function useNouveauBienForm() {
     autresFrais,
     setAutresFrais,
     navigate,
-    isDemarcheur,
     draft,
     medias,
     onSelectSanitaire,

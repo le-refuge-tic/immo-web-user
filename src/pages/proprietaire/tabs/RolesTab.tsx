@@ -7,11 +7,12 @@ import { withAlpha } from '../../../utils/color'
 import { svgMaskUrl } from './rolesOutils'
 
 import { apiMessage } from '../../../utils/apiMessage'
+import { useConfirm } from '../../../shared/dialogues/useConfirm'
+import { etatRole, MAX_ROLES_ACTIFS } from '../../../utils/roles'
 
 const ROLE_ICON_PATHS: Record<string, string> = {
   prospect:     '<path d="M21 21l-5.2-5.2m2.2-5.3a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"/>',
   proprietaire: '<path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>',
-  demarcheur:   '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a2 2 0 012-2h2a2 2 0 012 2v2M3 13h18"/>',
   locataire:    '<path d="M15 7a4 4 0 11-8.6 2.4L2 14v3h3v-2h2v-2h2l1.6-1.6A4 4 0 0115 7z"/><circle cx="15.5" cy="6.5" r=".6" fill="white"/>',
 }
 function MaskIcon({ role, size = 22 }: { role: string; size?: number }) {
@@ -31,7 +32,6 @@ function MaskIcon({ role, size = 22 }: { role: string; size?: number }) {
 const ROLES_META: { key: string; label: string; desc: string; color: string; fill: string }[] = [
   { key: 'prospect',     label: 'Prospect',     desc: 'Chercher à louer ou acheter un bien',            color: 'var(--tx-blue)', fill: 'var(--c-primary)' },
   { key: 'proprietaire', label: 'Propriétaire', desc: 'Publier et gérer vos biens immobiliers',          color: BLUE_TX, fill: BLUE },
-  { key: 'demarcheur',   label: 'Démarcheur',   desc: 'Mandataire immobilier — gérer des biens clients', color: 'var(--tx-violet)', fill: 'var(--c-fill-violet)' },
   { key: 'locataire',    label: 'Locataire',    desc: 'Accéder à votre logement et payer vos loyers',    color: 'var(--tx-green)', fill: 'var(--c-fill-green)' },
 ]
 
@@ -43,7 +43,7 @@ export function RolesTab() {
   const [activating, setActivating] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [confirmDesactiverRole, setConfirmDesactiverRole] = useState<string | null>(null)
+  const { confirmer } = useConfirm()
 
   const rolePrincipal = user?.role_principal || user?.role || ''
   const actifs = rolesActifs
@@ -68,7 +68,14 @@ export function RolesTab() {
   }
 
   const desactiverRole = async (role: string) => {
-    setConfirmDesactiverRole(null)
+    const libelle = ROLES_META.find(r => r.key === role)?.label ?? role
+    const ok = await confirmer({
+      titre: `Désactiver l’espace ${libelle} ?`,
+      message: 'Vous pourrez le réactiver plus tard depuis cet écran.',
+      confirmer: 'Désactiver',
+      danger: true,
+    })
+    if (!ok) return
     setLoadingRole(role); setError('')
     try {
       await rolesApi.desactiver(role)
@@ -121,11 +128,9 @@ export function RolesTab() {
             const isPrincipal = r.key === rolePrincipal
             const isActif = actifs.includes(r.key)
             const isDisponible = !isActif
-            // Un propriétaire ne peut lui-même s'ajouter que l'espace démarcheur
-            // (même restriction métier que ManageRolesScreen côté mobile,
-            // activatableRoles=['demarcheur'] pour un rôle principal propriétaire)
-            // — prospect/locataire restent visibles mais non auto-activables ici.
-            const isActivable = isDisponible && (rolePrincipal !== 'proprietaire' || r.key === 'demarcheur')
+            // Lot 13 : mêmes règles que le backend (ROLES_AUTO_ACTIVABLES) et le mobile —
+            // prospect et propriétaire s'activent ; locataire vient d'un code d'invitation.
+            const isActivable = etatRole(r.key, actifs) === 'activable'
             const busy = loadingRole === r.key
             const statusLabel = isActiveNow ? 'Espace actuel' : isPrincipal ? 'Rôle principal' : isActif ? 'Actif' : null
 
@@ -160,13 +165,17 @@ export function RolesTab() {
 
                 <div className="px-4 pb-4 flex gap-2">
                   {isActivable ? (
-                    <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= 3}
+                    <button onClick={() => setActivating(activating === r.key ? null : r.key)} disabled={actifs.length >= MAX_ROLES_ACTIFS}
                       className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-opacity hover:opacity-90"
                       style={{ background: r.fill }}>
                       Activer ce rôle
                     </button>
                   ) : isDisponible ? (
-                    <p className="flex-1 py-2.5 text-center text-[11px] text-p-muted">Non disponible pour un compte propriétaire</p>
+                    <button onClick={() => navigate('/rejoindre-bien')}
+                      className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold transition-opacity hover:opacity-90"
+                      style={{ background: r.fill }}>
+                      Rejoindre un bien
+                    </button>
                   ) : (
                     <>
                       {!isActiveNow && (
@@ -177,20 +186,11 @@ export function RolesTab() {
                         </button>
                       )}
                       {!isPrincipal && (
-                        confirmDesactiverRole === r.key ? (
-                          <div className="flex items-center gap-1.5">
-                            <button onClick={() => desactiverRole(r.key)} disabled={busy} className="py-2 px-3 rounded-xl text-xs font-bold text-white" style={{ background: '#DC2626', border: 'none' }}>
-                              {busy ? '…' : 'Confirmer'}
-                            </button>
-                            <button onClick={() => setConfirmDesactiverRole(null)} className="py-2 px-2 rounded-xl text-xs font-bold border" style={{ borderColor: 'rgba(255,255,255,0.15)', color: '#6B7280', background: 'transparent' }}>✕</button>
-                          </div>
-                        ) : (
-                          <button onClick={() => setConfirmDesactiverRole(r.key)} disabled={busy}
-                            className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
-                            style={{ borderColor: 'rgba(239,68,68,0.3)', color: 'var(--tx-red)', background: 'rgba(239,68,68,0.06)' }}>
-                            Désactiver
-                          </button>
-                        )
+                        <button onClick={() => void desactiverRole(r.key)} disabled={busy}
+                          className={`${isActiveNow ? 'flex-1' : ''} py-2.5 px-3 rounded-xl text-xs font-bold border disabled:opacity-50`}
+                          style={{ borderColor: 'rgba(239,68,68,0.3)', color: 'var(--tx-red)', background: 'rgba(239,68,68,0.06)' }}>
+                          {busy ? '…' : 'Désactiver'}
+                        </button>
                       )}
                     </>
                   )}

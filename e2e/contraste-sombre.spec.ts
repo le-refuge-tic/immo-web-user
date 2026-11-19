@@ -56,8 +56,6 @@ const ECRANS: { nom: string; route: string; role: Role; onglet?: string; bureau?
   { nom: 'espaces et rôles', route: '/mes-roles', role: 'prospect' },
   { nom: 'locataire : logement', route: '/locataire', role: 'locataire', onglet: 'Logement', bureau: true },
   { nom: 'locataire : activité', route: '/locataire', role: 'locataire', onglet: 'Activité', bureau: true },
-  { nom: 'démarcheur : tableau', route: '/demarcheur', role: 'demarcheur', onglet: 'Tableau', bureau: true },
-  { nom: 'démarcheur : mes biens', route: '/demarcheur', role: 'demarcheur', onglet: 'Mes biens', bureau: true },
   { nom: 'propriétaire', route: '/proprietaire', role: 'proprietaire', bureau: true },
 ]
 

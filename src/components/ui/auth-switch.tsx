@@ -255,7 +255,6 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     }
     const role = data.user?.role
     if (role === 'proprietaire') navigate('/proprietaire', { replace: true })
-    else if (role === 'demarcheur') navigate('/demarcheur', { replace: true })
     else navigate('/', { replace: true })
   }
 
@@ -473,7 +472,6 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     }
     const userRole = data.user?.role
     if (userRole === 'proprietaire') navigate('/proprietaire', { replace: true })
-    else if (userRole === 'demarcheur') navigate('/demarcheur', { replace: true })
     else navigate('/', { replace: true })
   }
 

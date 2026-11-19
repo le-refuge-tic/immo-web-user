@@ -8,7 +8,7 @@ import { withAlpha } from '../../../utils/color'
 
 
 /** Modal de détail — thème clair, sections bien délimitées. */
-export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, cpId, setCpId, cpDate, setCpDate, cpTime, setCpTime, submitting, onContrePropose, now }: {
+export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onConfirm, onMarquerEffectuee, cpId, setCpId, cpDate, setCpDate, cpTime, setCpTime, submitting, onContrePropose, now, erreur }: {
   v: Visite
   onClose: () => void
   chatLoadingId: number | null
@@ -24,6 +24,8 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
   submitting: boolean
   onContrePropose: () => void
   now: number
+  /** Échec de la dernière action (confirmation, chat, contre-proposition…), affiché dans la fenêtre. */
+  erreur?: string
 }) {
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
@@ -69,6 +71,12 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
             : 'transform 0.2s cubic-bezier(0.4, 0, 1, 1), opacity 0.18s ease',
           transformOrigin: 'center center',
         }}>
+        {erreur && (
+          <p role="alert" className="mx-5 mt-4 px-4 py-3 rounded-xl text-sm font-semibold"
+            style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--tx-red)' }}>
+            {erreur}
+          </p>
+        )}
 
         {/* ── Header ── */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b"

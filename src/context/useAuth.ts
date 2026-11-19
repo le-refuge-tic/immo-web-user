@@ -13,7 +13,7 @@ export type AuthCtx = {
   hasRole: (role: string) => boolean
   rolesActifs: string[]
   /** Rôle "espace" actuellement parcouru (peut différer du rôle principal
-   *  quand un propriétaire/démarcheur a activé le rôle prospect pour
+   *  quand un propriétaire a activé le rôle prospect pour
    *  naviguer côté client). */
   activeRole: string
   setActiveRole: (role: string) => void

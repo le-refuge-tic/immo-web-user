@@ -21,7 +21,6 @@ const ROLE_LABELS: Record<string, string> = {
   prospect:   'Prospect',
   locataire:  'Locataire',
   proprietaire: 'Propriétaire',
-  demarcheur: 'Démarcheur',
   admin:      'Admin',
   super_admin: 'Super Admin',
 }

@@ -214,13 +214,13 @@ test.describe('erreurs de chargement : messagerie', () => {
 
 const ouvrirOnglet = (page: Page, nom: string) => page.getByRole('button', { name: nom, exact: true }).first().click()
 
-async function ouvrirEspace(page: Page, role: 'proprietaire' | 'demarcheur', url: string, mocks: Mocks) {
+async function ouvrirEspace(page: Page, role: 'proprietaire', url: string, mocks: Mocks) {
   await page.setViewportSize({ width: 1440, height: 900 })
   await mockApp(page, { role, mocks })
   await page.goto(url)
 }
 
-test.describe('erreurs de chargement : espaces propriétaire et démarcheur', () => {
+test.describe('erreurs de chargement : espace propriétaire', () => {
   test('tableau propriétaire : panne → bandeau d’erreur avec « Réessayer », relance → bandeau disparu', async ({ page }) => {
     const biens = interrupteur({ status: 200, body: { data: [BIEN] } })
     await ouvrirEspace(page, 'proprietaire', '/proprietaire', { routes: { 'GET /biens/mes-biens': biens.mock } })
@@ -256,25 +256,25 @@ test.describe('erreurs de chargement : espaces propriétaire et démarcheur', ()
     await expect(page.getByText('Aucun contrat').first()).toBeVisible()
   })
 
-  test('portefeuille démarcheur : panne → erreur, jamais « Aucune transaction », relance → transactions', async ({ page }) => {
+  test('portefeuille propriétaire : panne → erreur, jamais « Aucune transaction », relance → transactions', async ({ page }) => {
     const txs = interrupteur({ status: 200, body: { data: [{ ...transaction, description: 'Commission test' }] } })
-    await ouvrirEspace(page, 'demarcheur', '/demarcheur', { transactions: txs.mock })
-    await page.locator('aside nav').getByRole('button', { name: 'Portefeuille' }).click()
+    await ouvrirEspace(page, 'proprietaire', '/proprietaire', { transactions: txs.mock })
+    await ouvrirOnglet(page, 'Portefeuille')
 
-    await expect(page.getByText('Impossible de charger vos transactions')).toBeVisible()
+    await expect(page.getByText('Impossible de charger votre portefeuille')).toBeVisible()
     await expect(page.getByText('Aucune transaction')).toHaveCount(0)
     txs.reparer()
     await reessayer(page).click()
     await expect(page.getByText('Commission test')).toBeVisible()
   })
 
-  test('notifications démarcheur : panne → erreur, jamais « Aucune notification », relance → alerte', async ({ page }) => {
+  test('notifications propriétaire : panne → erreur, jamais « Aucune notification », relance → alerte', async ({ page }) => {
     const alertes = interrupteur({
       status: 200,
       body: { data: [{ id: 1, type: 'bien_approuve', titre: 'Annonce validée', lu: false, created_at: new Date().toISOString() }] },
     })
-    await ouvrirEspace(page, 'demarcheur', '/demarcheur', { alertes: alertes.mock })
-    await page.locator('aside nav').getByRole('button', { name: 'Notifications' }).click()
+    await ouvrirEspace(page, 'proprietaire', '/proprietaire', { alertes: alertes.mock })
+    await ouvrirOnglet(page, 'Notifications')
 
     await expect(page.getByText('Impossible de charger vos notifications')).toBeVisible()
     await expect(page.getByText('Aucune notification')).toHaveCount(0)
