@@ -17,6 +17,7 @@ import SuiviRetraits from '../../components/wallet/SuiviRetraits'
 import SelecteurOperateur from '../../components/wallet/SelecteurOperateur'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { avecCle } from '../../utils/paymentAttempt'
+import { NumberInput } from '../../shared/saisie/champs'
 
 const isLoyer = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('loyer')
 const isVisite = (t: WalletTransaction) => `${t.type ?? ''}${t.libelle ?? ''}${t.description ?? ''}`.toLowerCase().includes('visite')
@@ -226,7 +227,7 @@ function ClientWalletView() {
                 <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{soldeEpargne.toLocaleString('fr-FR')} FCFA</strong></p>
                 <p className="text-xs text-text-grey mb-3">{aideMontant}</p>
                 <label htmlFor="portefeuille-page-178" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input id="portefeuille-page-178" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={min} max={soldeEpargne}
+                <NumberInput milliers id="portefeuille-page-178" value={montant} onChange={e => setMontant(e.target.value)} min={min}
                   aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 5000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />
@@ -432,7 +433,7 @@ function WalletCommissionsView() {
                 <p className="text-sm text-text-grey mb-1">Solde disponible : <strong>{solde.toLocaleString('fr-FR')} FCFA</strong></p>
                 <p className="text-xs text-text-grey mb-3">{aideMontant}</p>
                 <label htmlFor="portefeuille-page-317" className="block text-sm font-semibold text-text-dark mb-1.5">Montant à retirer (FCFA)</label>
-                <input id="portefeuille-page-317" type="number" value={montant} onChange={e => setMontant(e.target.value)} min={min} max={solde}
+                <NumberInput milliers id="portefeuille-page-317" value={montant} onChange={e => setMontant(e.target.value)} min={min}
                   aria-invalid={!!montantMessage} aria-describedby="retrait-montant-message"
                   placeholder="Ex: 50000"
                   className="w-full border border-divider rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4 bg-surface-g" />

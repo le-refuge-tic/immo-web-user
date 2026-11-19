@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { BLUE } from './options'
 import { withAlpha } from '../../../utils/color'
+import { NumberInput } from '../../../shared/saisie/champs'
 // ─── UI components — dark-themed ──────────────────────────────────────────
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
@@ -110,7 +111,7 @@ export function NumberPicker({ presets, unit, value, isCustom, onPick, onCustomS
         <Chip label="Saisir" active={isCustom} onClick={onCustomStart} />
       </div>
       {isCustom && (
-        <input type="number" value={customText} onChange={e => onCustomText(e.target.value)} placeholder="Nombre"
+        <NumberInput value={customText} onChange={e => onCustomText(e.target.value)} placeholder="Nombre"
           className="mt-2.5 w-full rounded-xl px-4 py-2.5 text-sm outline-none border"
           style={{ background: 'var(--p-deep)', borderColor: BLUE, color: 'var(--p-text)' }} />
       )}
@@ -121,7 +122,7 @@ export function NumberPicker({ presets, unit, value, isCustom, onPick, onCustomS
 export function MoneyInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div className="relative">
-      <input type="number" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder ?? '0'}
+      <NumberInput milliers value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder ?? '0'}
         className="w-full rounded-xl pl-4 pr-16 py-3 text-sm outline-none border transition-colors"
         style={{ background: 'var(--p-deep)', borderColor: 'var(--p-border)', color: 'var(--p-text)' }}
         onFocus={e => (e.currentTarget.style.borderColor = BLUE)}

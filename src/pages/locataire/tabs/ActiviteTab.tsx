@@ -5,7 +5,7 @@ import { loyersApi } from '../../../api/loyersApi'
 import { paiementApi } from '../../../api/paiementApi'
 import { walletApi } from '../../../api/walletApi'
 import { formatMois } from '../../../utils/dateFormat'
-import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../../utils/phone'
+import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../../utils/phone'
 import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, loyerRepare, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
@@ -18,6 +18,7 @@ import type { ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
+import { PhoneInput } from '../../../shared/saisie/champs'
 
 export default function ActiviteTab() {
   const navigate = useNavigate()
@@ -219,8 +220,8 @@ export default function ActiviteTab() {
                 <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
                   <span className="text-text-grey text-sm font-semibold">+229</span>
                   <div className="w-px h-4 bg-divider" />
-                  <input type="tel" value={tel} onChange={e => setTel(e.target.value.replace(/\D/g, ''))}
-                    placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
+                  <PhoneInput value={tel} onChange={e => setTel(e.target.value)}
+                    placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money"
                     className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
                 </div>
               )}

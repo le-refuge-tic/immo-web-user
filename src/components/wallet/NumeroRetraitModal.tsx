@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ModalSheet } from '../ui/ModalSheet'
 import { walletApi } from '../../api/walletApi'
-import { validateBeninPhone, localBeninDigits, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../utils/phone'
+import { validateBeninPhone, localBeninDigits, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
+import { PhoneInput } from '../../shared/saisie/champs'
 
 /**
  * Changement du NUMÉRO de retrait Mobile Money (flow OTP en 2 étapes), partagé entre tous les
@@ -73,7 +74,7 @@ export default function NumeroRetraitModal({ current, onClose, onSaved, accent =
             <>
               <div>
                 <label htmlFor="numero-retrait-modal-64" className="text-xs font-bold text-proprio-text uppercase tracking-wide mb-2 block">Numéro Mobile Money</label>
-                <input id="numero-retrait-modal-64" type="tel" value={numero} onChange={e => setNumero(e.target.value.replace(/\D/g, ''))} placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national"
+                <PhoneInput id="numero-retrait-modal-64" value={numero} onChange={e => setNumero(e.target.value)} placeholder={PHONE_PLACEHOLDER}
                   className="w-full bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm outline-none text-proprio-text focus:border-brand" />
               </div>
               <div>

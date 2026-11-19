@@ -4,6 +4,7 @@ import { BLUE, DOCUMENT_TERRAIN_OPTS, baseInputStyle } from '../options'
 import { Card, Section, ChoiceList, Chip } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import { withAlpha } from '../../../../utils/color'
+import { NumberInput } from '../../../../shared/saisie/champs'
 
 export function StepTerrain({ form }: { form: NouveauBienForm }) {
   const {
@@ -45,7 +46,7 @@ export function StepTerrain({ form }: { form: NouveauBienForm }) {
         <Card>
           <Section title="Superficie (facultatif)" />
           <div className="flex gap-2.5">
-            <input type="number" value={superficieTerrain} onChange={e => setSuperficieTerrain(e.target.value)}
+            <NumberInput decimales={superficieUnite === 'ha'} value={superficieTerrain} onChange={e => setSuperficieTerrain(e.target.value)}
               placeholder={superficieUnite === 'ha' ? 'Ex: 2.5' : 'Ex: 25000'}
               className="flex-1 min-w-0 rounded-xl px-4 py-3 text-sm outline-none border transition-colors"
               style={baseInputStyle}

@@ -14,7 +14,7 @@ const ATTENTE_ECRITURE_MS = 1600
 /** Remplit les étapes obligatoires et ouvre l'étape « Photos ». */
 async function allerAuxPhotos(page: Page) {
   const continuer = page.getByRole('button', { name: /Continuer/ })
-  await page.locator('input[type="number"]').first().fill('45000')
+  await page.locator('input[inputmode="numeric"]').first().fill('45000')
   await continuer.click()
   // Un quartier retrouvé dans le brouillon remplace le champ de recherche.
   const recherche = page.getByPlaceholder('Rechercher un quartier…')

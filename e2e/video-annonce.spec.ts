@@ -6,7 +6,7 @@ import { ajouterPhotos, BIEN, mockApp, type MockResponse } from './support/mockA
 
 async function allerAuxPhotos(page: Page) {
   const continuer = page.getByRole('button', { name: /Continuer/ })
-  await page.locator('input[type="number"]').first().fill('45000')
+  await page.locator('input[inputmode="numeric"]').first().fill('45000')
   await continuer.click()
   await page.getByPlaceholder('Rechercher un quartier…').fill('Akpakpa')
   await page.getByRole('button', { name: /Akpakpa/ }).first().click()

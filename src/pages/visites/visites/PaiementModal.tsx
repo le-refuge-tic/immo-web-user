@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { openPaymentUrl } from '../../../utils/paymentUrl'
-import { validateBeninPhone, PHONE_PLACEHOLDER, BENIN_PHONE_LENGTH } from '../../../utils/phone'
+import { validateBeninPhone, PHONE_PLACEHOLDER } from '../../../utils/phone'
 import { fraisVisiteAPayer, libelleFraisVisite } from '../../../utils/fraisVisite'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import { OPERATORS } from './constants'
 import type { usePaiementVisite } from './usePaiementVisite'
+import { PhoneInput } from '../../../shared/saisie/champs'
 
 // Modale de paiement des frais de visite (saisie, attente, en attente, succès).
 export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisite> }) {
@@ -92,11 +93,10 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
                 <span className="text-lg">🇧🇯</span>
                 <span className="font-bold text-text-dark text-sm">+229</span>
                 <div className="w-px h-5 bg-divider" />
-                <input
-                  type="tel"
+                <PhoneInput
                   value={phoneOp}
-                  onChange={e => { setPhoneOp(e.target.value.replace(/\D/g, '')); attempt.reset() }}
-                  placeholder={PHONE_PLACEHOLDER} maxLength={BENIN_PHONE_LENGTH} inputMode="tel" autoComplete="tel-national" aria-label="Numéro Mobile Money"
+                  onChange={e => { setPhoneOp(e.target.value); attempt.reset() }}
+                  placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money"
                   className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
                 />
               </div>

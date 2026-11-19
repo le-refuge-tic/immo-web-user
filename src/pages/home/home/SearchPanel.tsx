@@ -5,6 +5,7 @@ import { FILTRES_TYPE } from '../../../shared/biens/referentielTypes'
 import { PinIcon, SearchIcon, XIcon } from './icons'
 import { panelColors, type Tokens } from './tokens'
 import type { HomeSearch } from './useHomeSearch'
+import { NumberInput } from '../../../shared/saisie/champs'
 
 interface SearchPanelProps {
   s: HomeSearch
@@ -183,7 +184,7 @@ export default function SearchPanel({ s, isDark, tk, searchOpen, setSearchOpen, 
               {/* Champs min / max */}
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl min-w-0" style={{ flex: 1, background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
-                  <input type="number" min={0} value={prixMin}
+                  <NumberInput milliers min={0} value={prixMin}
                     onChange={e => { setPrixMin(e.target.value); if (e.target.value) setPrixMax('') }}
                     placeholder="Minimum"
                     className="w-full bg-transparent outline-none text-xs"
@@ -191,7 +192,7 @@ export default function SearchPanel({ s, isDark, tk, searchOpen, setSearchOpen, 
                 </div>
                 <span className="text-sm flex-shrink-0" style={{ color: tk.textMuted }}>—</span>
                 <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl min-w-0" style={{ flex: 1, background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
-                  <input type="number" min={0} value={prixMax}
+                  <NumberInput milliers min={0} value={prixMax}
                     onChange={e => setPrixMax(e.target.value)}
                     placeholder="Maximum"
                     className="w-full bg-transparent outline-none text-xs"

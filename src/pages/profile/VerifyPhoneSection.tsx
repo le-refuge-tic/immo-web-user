@@ -7,6 +7,7 @@ import {
   validateBeninPhone,
   normaliseBeninPhone,
 } from '../../utils/phone'
+import { PhoneInput } from '../../shared/saisie/champs'
 
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN_SECONDS = 60
@@ -125,10 +126,8 @@ export default function VerifyPhoneSection({ currentPhone, onVerified }: Props) 
             <label htmlFor="vp-telephone" className="text-xs font-semibold text-text-dark mb-1.5 block">
               Nouveau numéro
             </label>
-            <input
+            <PhoneInput
               id="vp-telephone"
-              type="tel"
-              inputMode="numeric"
               autoComplete="tel"
               value={telephone}
               onChange={e => { setTelephone(e.target.value); setError('') }}

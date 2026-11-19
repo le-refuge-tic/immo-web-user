@@ -11,7 +11,7 @@ const cleEnvoi = (req: Request): string | null =>
 /** Remplit les étapes obligatoires jusqu'au récapitulatif (même parcours que p4-proprietaire). */
 async function remplirJusquAuxPhotos(page: Page) {
   const continuer = page.getByRole('button', { name: /Continuer/ })
-  await page.locator('input[type="number"]').first().fill('45000')
+  await page.locator('input[inputmode="numeric"]').first().fill('45000')
   await continuer.click()
   const recherche = page.getByPlaceholder('Rechercher un quartier…')
   await expect(page.getByText('2/5', { exact: true })).toBeVisible()

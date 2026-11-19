@@ -4,6 +4,7 @@ import {
 } from './options'
 import type { Tokens } from './tokens'
 import { PIECES_MAX } from '../../../utils/searchFilters'
+import { NumberInput } from '../../../shared/saisie/champs'
 
 /* ══════════════════════════════════════════════════════════════
    FilterPanel
@@ -206,7 +207,7 @@ export default function FilterPanel({
                 <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
                 <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl"
                   style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
-                  <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
+                  <NumberInput milliers value={f.value} onChange={e => f.set(e.target.value)}
                     placeholder={f.ph} min={0}
                     className="flex-1 bg-transparent outline-none text-sm min-w-0"
                     style={{ color: tk.textClr }} />
@@ -249,7 +250,7 @@ export default function FilterPanel({
               <p className="text-micro mb-1 font-medium" style={{ color: tk.labelClr }}>{f.label}</p>
               <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
                 style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
-                <input type="number" value={f.value} onChange={e => f.set(e.target.value)}
+                <NumberInput milliers value={f.value} onChange={e => f.set(e.target.value)}
                   placeholder={f.ph} min={0}
                   className="flex-1 bg-transparent outline-none text-sm min-w-0"
                   style={{ color: tk.textClr }} />

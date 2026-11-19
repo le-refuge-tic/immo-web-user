@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { fcfa, type TotauxGuesthouse, type TotauxSalle } from '../../../shared/biens/calculsTarifs'
+import { NumberInput } from '../../../shared/saisie/champs'
 
 /** Libellé de champ ; « (facultatif) » ajouté si demandé. */
 export function Libelle({ children, facultatif, htmlFor }: { children: ReactNode; facultatif?: boolean; htmlFor?: string }) {
@@ -29,8 +30,8 @@ export function Heure({ id, value, onChange }: { id?: string; value: string; onC
 export function Entier({ id, value, onChange, unite, placeholder }: { id?: string; value: string; onChange: (v: string) => void; unite: string; placeholder?: string }) {
   return (
     <div className="relative">
-      <input id={id} inputMode="numeric" value={value} placeholder={placeholder}
-        onChange={e => onChange(e.target.value.replace(/[^\d]/g, ''))} className={`${classeChamp} pr-24`} />
+      <NumberInput id={id} value={value} placeholder={placeholder} max={999_999}
+        onValueChange={onChange} className={`${classeChamp} pr-24`} />
       <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[var(--p-muted)]">{unite}</span>
     </div>
   )

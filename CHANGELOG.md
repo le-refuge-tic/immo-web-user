@@ -11,6 +11,21 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 15 — validation des formulaires)
+- Champs communs (`src/shared/saisie`, identiques dans l'administration) :
+  - `NumberInput` et `MoneyInput` : chiffres seulement, à la frappe comme au collage ; milliers affichés (« 150 000 ») ;
+  - `PhoneInput` : 10 chiffres commençant par 01, indicatif collé retiré ;
+  - `EmailInput`, `TexteInput`, `DateInput`.
+- Les 16 `<input type="number">` et les 9 champs téléphone de l'application utilisent ces composants. Avant, ils acceptaient « e », « - », le collage de texte ou un numéro trop long.
+- Schémas zod (`src/validation/schemas.ts`, testés) pour l'inscription, la connexion, le profil, la modification rapide d'un bien, le bien en gestion, le rechargement et les numéros Mobile Money.
+- Modification rapide d'un bien : les erreurs s'affichent sous chaque champ et le focus va au premier champ en erreur.
+- `npm run check:inputs` (dans `npm run check`) refuse tout nouveau champ numérique ou téléphone brut.
+- Inventaire champ par champ dans `docs/VALIDATION_FORMULAIRES.md`.
+
+### Corrigé (lot 15)
+- Un retrait au-delà du solde n'est plus bloqué en silence à la frappe : le message habituel s'affiche sous le champ.
+- La connexion refuse un numéro béninois de mauvaise longueur avant d'appeler le serveur.
+
 ### Modifié (lot 9 — accueil mobile et tablette)
 - Accueil sur téléphone et tablette : en-tête compact (logo, salutation, avatar) aux couleurs du
   thème (fini le fond `#0a0a0a`), image adoucie par un dégradé léger et recherche arrondie
