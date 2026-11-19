@@ -11,6 +11,7 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+<<<<<<< Updated upstream
 ### Corrigé (recette du 19/11)
 - Fiche d'un bien du propriétaire et assistant « Nouveau bien » : en thème sombre, les textes clairs
   s'affichaient sur des cartes blanches (illisibles). Ces deux pages suivent maintenant le thème,
@@ -42,6 +43,23 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ### Corrigé (lot 13)
 - Réservations du propriétaire : l'erreur d'une action (confirmation, visite effectuée, chat, autre créneau) s'affiche dans la fenêtre de détail. Avant, elle restait cachée derrière la fenêtre. Le bandeau est aussi annoncé aux lecteurs d'écran (`role="alert"`).
+=======
+### Corrigé (audit de la recette staging)
+- Recherche et fiche d'un bien : une seule mise en page est montée (liste et adresse n'apparaissent plus en double dans la page).
+- Tri par prix : les biens sont regroupés par unité (mois, nuit, heure, vente) puis triés dans chaque groupe ; « Légèrement hors budget » et « Autres biens » sont triés aussi.
+- Conversations : le dernier échange (créneau de visite compris) et son heure s'affichent ; plus de « Nouvelle conversation » à tort ; icône à la place de l'emoji 🏠.
+- Publication d'un bien : l'écran défile jusqu'au champ fautif (prix, quartier, photos) et le surligne ; bandeau d'erreur plus contrasté.
+- Contrastes (bandeaux d'erreur, « Retour », « Renvoyer dans Xs »), zones tactiles de 44 px (navigation, filtres, compteurs, points du carrousel), champs à 16 px sur mobile (zoom iOS).
+- Connexion : la diapositive de marque ne chevauche plus le logo et l'accroche du panneau.
+- Cartes : hauteur uniforme, « à louer / à vendre » retiré du titre (le badge suffit).
+- Libellés : « Publier un bien » partout ; Guesthouse et Salle de fêtes dans le choix du type.
+- Espace propriétaire : réservations et indicateurs ne comptent plus les visites faites en tant que visiteur (`GET /visites?role=gestionnaire`) ; « — vs mois dernier » quand le mois précédent est à 0.
+- Portefeuille : plus d'erreur au premier chargement (création simultanée du wallet côté backend).
+- Menu profil : l'espace courant (et non « Prospect ») ; les cartes de /mes-roles gardent leur place.
+- Mot de passe : œil afficher / masquer dans Sécurité, retrait et vérification du téléphone.
+- Mobile : « Voir tout » et boutons de tri à 44 px ; prix de la visite toujours en « FCFA ».
+- Mot de passe oublié : format du numéro vérifié avant envoi ; message neutre (« Si ce numéro existe… »).
+>>>>>>> Stashed changes
 
 ### Ajouté (lot 15 — validation des formulaires)
 - Champs communs (`src/shared/saisie`, identiques dans l'administration) :

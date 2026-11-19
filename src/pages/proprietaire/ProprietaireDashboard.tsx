@@ -172,7 +172,7 @@ export default function ProprietaireDashboard() {
   const visitesMoisPrecedent = visitesSeries6[visitesSeries6.length - 2]?.value ?? 0
   const visitesTrendPct = visitesMoisPrecedent > 0
     ? Math.round(((visitesMoisActuel - visitesMoisPrecedent) / visitesMoisPrecedent) * 100)
-    : (visitesMoisActuel > 0 ? 100 : 0)
+    : undefined // mois précédent à 0 : pas de pourcentage défini (« +100 % » serait trompeur)
 
   const hasVisites = visitesSeries6.some(m => m.value > 0)
 
@@ -429,7 +429,7 @@ export default function ProprietaireDashboard() {
               </div>
               <div className="flex gap-2.5 mb-7 overflow-x-auto scrollbar-hide pb-1">
                 {[
-                  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE_TX, label: 'Nouveau bien', action: () => navigate('/nouveau-bien') },
+                  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>, color: BLUE_TX, label: 'Publier un bien', action: () => navigate('/nouveau-bien') },
                   { icon: <IcCal />, color: 'var(--tx-blue)', label: 'Réservations', badge: reservationsEnAttente, action: () => setTab('reservations') },
                   { icon: <IcPayments />, color: 'var(--tx-green)', label: 'Loyers', badge: loyersImpayesCount + loyersEnRetardCount, action: () => setTab('loyers') },
                   { icon: <IcMessagesNav />, color: 'var(--c-accent)', label: 'Messages', badge: unreadMessages, action: () => { setTab('messages'); refreshNotifications() } },
@@ -478,7 +478,7 @@ export default function ProprietaireDashboard() {
                     value: `${visitesMoisActuel}`,
                     sub: hasVisites && visitesTrendPct !== undefined
                       ? `${visitesTrendPct >= 0 ? '↑' : '↓'} ${Math.abs(visitesTrendPct)}% vs mois dernier`
-                      : 'ce mois',
+                      : '— vs mois dernier',
                     subColor: hasVisites && visitesTrendPct !== undefined
                       ? (visitesTrendPct >= 0 ? 'var(--c-success)' : 'var(--c-danger)')
                       : undefined,
@@ -529,7 +529,7 @@ export default function ProprietaireDashboard() {
                   <div className="mb-2">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--p-muted)' }}>Mes biens récents</p>
-                      <button onClick={() => setTab('biens')} className="text-xs font-bold" style={{ color: BLUE_TX }}>Voir tout →</button>
+                      <button onClick={() => setTab('biens')} className="inline-flex min-h-[44px] items-center px-2 -mr-2 text-xs font-bold" style={{ color: BLUE_TX }}>Voir tout →</button>
                     </div>
                     <div
                       ref={carousel2Ref}
@@ -632,7 +632,7 @@ export default function ProprietaireDashboard() {
           <button onClick={() => navigate('/nouveau-bien')}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
             style={{ background: 'linear-gradient(135deg, var(--c-brand), var(--c-primary))', color: 'rgb(255,255,255)', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
-            <IcPlus /> Nouveau bien
+            <IcPlus /> Publier un bien
           </button>
         </div>
       )}

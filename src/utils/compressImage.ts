@@ -16,7 +16,7 @@ export function targetSize(width: number, height: number, maxSide = PHOTO_MAX_SI
 export async function compressImage(file: File, maxSide = PHOTO_MAX_SIDE): Promise<File> {
   if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.size < SEUIL_OCTETS) return file
   try {
-    const bitmap = await createImageBitmap(file)
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
     const { width, height } = targetSize(bitmap.width, bitmap.height, maxSide)
     const canvas = document.createElement('canvas')
     canvas.width = width

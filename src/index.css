@@ -675,3 +675,30 @@ div:hover > .hero-arrow { opacity: 1; }
   outline: 2px solid #FF3B30;
   outline-offset: -2px;
 }
+
+/* Audit web-user : lisibilité et cibles tactiles */
+
+/* Texte secondaire des écrans d'authentification (#6E6E73) : trop sombre sur fond sombre. */
+.dark .text-ink-muted { color: #B4B4C2 !important; }
+
+/* Champs de saisie à 16 px minimum sur mobile et écran tactile : en dessous, iOS zoome la page au focus. */
+@media (max-width: 1023px), (pointer: coarse) {
+  input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color'], [type='submit'], [type='button'], [type='image']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Zone tactile d'au moins 44 px (WCAG 2.5.5) pour les petits contrôles : l'élément garde son aspect,
+   la zone cliquable déborde de façon invisible. */
+.touch-target { position: relative; }
+.touch-target::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}

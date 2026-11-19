@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { userApi } from '../../api/userApi'
 import { apiMessage } from '../../utils/apiMessage'
 import { ModalSheet } from '../../components/ui/ModalSheet'
+import PasswordInput from '../../components/ui/PasswordInput'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -105,7 +106,7 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
           <div role="alert" aria-live="assertive" aria-atomic="true">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                <p className="text-red-600 text-sm">{error}</p>
+                <p className="text-red-700 text-sm font-medium">{error}</p>
               </div>
             )}
           </div>
@@ -132,18 +133,18 @@ export default function ChangePasswordModal({ open, onClose }: Props) {
             <>
             <div>
               <label htmlFor="cp-current" className="text-sm font-semibold text-text-dark mb-1.5 block">Mot de passe actuel</label>
-              <input id="cp-current" type="password" value={current} onChange={e => setCurrent(e.target.value)} required
+              <PasswordInput id="cp-current" value={current} onChange={e => setCurrent(e.target.value)} required
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
             <div>
               <label htmlFor="cp-new" className="text-sm font-semibold text-text-dark mb-1.5 block">Nouveau mot de passe</label>
-              <input id="cp-new" type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} required
+              <PasswordInput id="cp-new" value={newPwd} onChange={e => setNewPwd(e.target.value)} required
                 placeholder="Min. 8 caractères"
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
             <div>
               <label htmlFor="cp-confirm" className="text-sm font-semibold text-text-dark mb-1.5 block">Confirmer le nouveau mot de passe</label>
-              <input id="cp-confirm" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required
+              <PasswordInput id="cp-confirm" value={confirm} onChange={e => setConfirm(e.target.value)} required
                 className="glass-input w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-all" />
             </div>
             </>

@@ -1,5 +1,6 @@
 
 
+import { useEffect } from 'react'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 
 import { BLUE } from './nouveau-bien/options'
@@ -29,6 +30,7 @@ export default function NouveauBienPage() {
     setDraftBannerDismissed,
     submitting,
     error,
+    champErreur,
     navigate,
     draft,
     medias,
@@ -38,6 +40,15 @@ export default function NouveauBienPage() {
     goNext,
     navStyle,
   } = form
+  // Erreur de validation : l'écran défile jusqu'au champ fautif (sinon il reste hors de vue sous la pile de cartes)
+  useEffect(() => {
+    if (!champErreur) return
+    const el = document.querySelector<HTMLElement>(`[data-champ="${champErreur.champ}"]`)
+    if (!el) return
+    const reduit = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: reduit ? 'auto' : 'smooth', block: 'center' })
+    el.querySelector<HTMLElement>('input, button')?.focus({ preventScroll: true })
+  }, [champErreur])
   // Lot 6 : version plus récente reçue d'un autre appareil pendant la saisie.
   const versionDistante = useVersionDistante(() => draft.versionPlusRecente())
 
@@ -61,7 +72,7 @@ export default function NouveauBienPage() {
             </button>
 
             <div className="flex-1 text-center min-w-0">
-              <h1 className="text-[13px] font-bold truncate" style={{ color: 'var(--p-text)' }}>Nouveau bien</h1>
+              <h1 className="text-[13px] font-bold truncate" style={{ color: 'var(--p-text)' }}>Publier un bien</h1>
               <p className="text-micro uppercase tracking-[0.12em] truncate" style={{ color: 'var(--p-muted)' }}>
                 {STEP_LABELS[step]}
               </p>
@@ -88,9 +99,9 @@ export default function NouveauBienPage() {
 
           <div id="nouveau-bien-error" role="alert" aria-live="assertive" aria-atomic="true">
             {error && (
-              <div className="rounded-xl px-4 py-3 border mb-4"
-                style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
-                <p className="text-sm" style={{ color: 'var(--tx-red)' }}>{error}</p>
+              <div className="rounded-xl px-4 py-3 border-2 mb-4"
+                style={{ background: 'rgba(200,30,21,0.08)', borderColor: 'var(--tx-red)' }}>
+                <p className="text-sm font-semibold" style={{ color: 'var(--tx-red)' }}>{error}</p>
               </div>
             )}
           </div>

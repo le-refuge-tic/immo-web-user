@@ -12,7 +12,7 @@ type BienPrix = {
   details_salle_fete?: { duree_heures?: number | null } | null
 }
 
-function unite(b: BienPrix): string {
+export function unite(b: BienPrix): string {
   if (b.unite_prix) return b.unite_prix
   if (b.type === 'guesthouse') return 'nuit'
   if (b.type === 'salle_fete') return 'heure'

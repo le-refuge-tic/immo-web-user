@@ -19,7 +19,7 @@ import { useToast } from '../../../context/useToast'
 import type { TarifCustom, DetailCustom } from './options'
 import { PHOTOS_MIN } from './photosRegles'
 export function useNouveauBienForm() {
-  usePageTitle('Publier une annonce')
+  usePageTitle('Publier un bien')
   const navigate = useNavigate()
   const { user } = useAuth()
 
@@ -32,6 +32,9 @@ export function useNouveauBienForm() {
   const [draftBannerDismissed, setDraftBannerDismissed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  // Champ fautif de l'étape : la page y fait défiler l'écran et le surligne (`n` relance le défilement si l'erreur se répète)
+  const [champErreur, setChampErreur] = useState<{ champ: string; n: number } | null>(null)
+  const echoue = (message: string, champ: string) => { setError(message); setChampErreur({ champ, n: Date.now() }) }
   const { demarrer } = useGestionEnvois()
   const toast = useToast()
   const [photos, setPhotos] = useState<File[]>([])
@@ -205,8 +208,8 @@ export function useNouveauBienForm() {
 
   const goNext = () => {
     if (step === 0) {
-      if (!isMeuble && !parsePrix(prix)) { setError('Veuillez entrer le prix'); return }
-      if (isMeuble && !hasAtLeastOneTarif) { setError('Renseignez au moins un tarif'); return }
+      if (!isMeuble && !parsePrix(prix)) { echoue('Veuillez entrer le prix', 'prix'); return }
+      if (isMeuble && !hasAtLeastOneTarif) { echoue('Renseignez au moins un tarif', 'prix'); return }
     }
     if (step === 1 && !quartier.trim()) {
       // Un nom tapé en toutes lettres (sans cliquer la suggestion) est reconnu s'il figure dans la liste (B-010)
@@ -214,16 +217,17 @@ export function useNouveauBienForm() {
       const exact = typed ? QUARTIERS.find(q => normalizeStr(q.nom) === normalizeStr(typed)) : undefined
       if (exact) selectQuartier(exact.nom, exact.arrondissement, exact.ville)
       else {
-        setError(typed
+        echoue(typed
           ? `« ${typed} » n'est pas dans la liste. Choisissez une suggestion, ou touchez « Utiliser « ${typed} » comme quartier » pour le garder tel quel.`
-          : 'Veuillez sélectionner un quartier')
+          : 'Veuillez sélectionner un quartier', 'quartier')
         return
       }
     }
     if (step === 4 && photos.length < PHOTOS_MIN) {
-      setError(`Ajoutez au moins ${PHOTOS_MIN} photos (${photos.length} pour l’instant)`); return
+      echoue(`Ajoutez au moins ${PHOTOS_MIN} photos (${photos.length} pour l’instant)`, 'photos'); return
     }
     setError('')
+    setChampErreur(null)
     if (step === 4) { handleCreate(); return }
     setStep(s => s + 1)
   }
@@ -423,6 +427,7 @@ export function useNouveauBienForm() {
     setSubmitting,
     error,
     setError,
+    champErreur,
     photos,
     setPhotos,
     video,

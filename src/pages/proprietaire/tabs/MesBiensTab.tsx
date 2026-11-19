@@ -189,7 +189,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               <button onClick={() => navigate('/nouveau-bien')}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all"
                 style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))`, color: 'rgb(255,255,255)', boxShadow: `0 4px 14px ${withAlpha(BLUE, '40')}` }}>
-                <IcPlus /> Nouveau bien
+                <IcPlus /> Publier un bien
               </button>
             </div>
           </div>
@@ -258,7 +258,7 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
               <button onClick={() => navigate('/nouveau-bien')}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
                 style={{ background: `linear-gradient(135deg, ${BLUE}, var(--c-primary))`, color: 'rgb(255,255,255)', boxShadow: `0 4px 16px ${withAlpha(BLUE, '40')}` }}>
-                <IcPlus /> {search ? 'Ajouter un bien' : 'Publier mon premier bien'}
+                <IcPlus /> {search ? 'Publier un bien' : 'Publier mon premier bien'}
               </button>
             </div>
           ) : (

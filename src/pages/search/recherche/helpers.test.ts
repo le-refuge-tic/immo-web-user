@@ -76,3 +76,13 @@ describe('trierParPrix', () => {
     expect(liste.map(b => b.id)).toEqual([1, 2, 3])
   })
 })
+
+describe('trierParPrix : unités séparées', () => {
+  const bien = (id: number, prix: number, unite_prix: 'nuit' | 'mois' | 'total') =>
+    ({ id, prix, unite_prix, type: 'appart_vide' as const, details_salle_fete: null })
+  it('regroupe mois, nuit puis vente, et trie par prix dans chaque groupe', () => {
+    const liste = [bien(1, 500000, 'total'), bien(2, 30000, 'nuit'), bien(3, 80000, 'mois'), bien(4, 20000, 'nuit'), bien(5, 50000, 'mois')]
+    expect(trierParPrix(liste, 'prix_asc').map(b => b.id)).toEqual([5, 3, 4, 2, 1])
+    expect(trierParPrix(liste, 'prix_desc').map(b => b.id)).toEqual([3, 5, 2, 4, 1])
+  })
+})

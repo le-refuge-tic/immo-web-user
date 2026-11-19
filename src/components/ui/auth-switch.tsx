@@ -47,32 +47,17 @@ const ROLES: RoleOption[] = [
   { key: 'proprietaire', label: 'Je suis propriétaire', desc: 'Je mets mon bien en location/vente', icon: <Home size={20} /> },
 ]
 
-// Slide dédiée à la marque REFUGE (premier élément du carrousel)
+// Slide de marque : fond seul. Logo, nom et accroche sont déjà dans le panneau fixe (SidePanel) ;
+// les répéter ici les faisait se chevaucher.
 function BrandSlide() {
   return (
     <div
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full"
       style={{
         // couleur-libre : dégradé d'illustration du panneau de connexion, identique dans les deux thèmes
         background: 'linear-gradient(160deg, #0A0E1A 0%, #14192B 45%, #1E1533 100%)',
       }}
-    >
-      <img
-        src={logoUrl}
-        alt="REFUGE"
-        className="object-contain drop-shadow-2xl mb-4"
-        style={{ width: 300, height: 300 }}
-      />
-      <span
-        className="text-white font-black tracking-[0.18em] uppercase drop-shadow-lg"
-        style={{ fontSize: '2rem', letterSpacing: '0.22em' }}
-      >
-        REFUGE
-      </span>
-      <span className="text-white/60 text-sm font-medium mt-2 tracking-wide">
-        Votre logement idéal au Bénin
-      </span>
-    </div>
+    />
   )
 }
 
@@ -144,7 +129,7 @@ export function ErrorBanner({ message, id }: { message: string; id?: string }) {
           transition={{ duration: 0.15 }}
           role="alert"
           aria-live="assertive"
-          className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-600 mb-3"
+          className="flex items-start gap-2.5 rounded-xl border border-red-300 bg-red-50 px-3.5 py-2.5 text-sm font-semibold text-red-800 mb-3"
         >
           <AlertTriangle size={15} className="mt-px shrink-0" />
           <span>{message}</span>
@@ -370,7 +355,7 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
             {PROPRIO_SEUL ? 'Vous êtes propriétaire ?' : 'Nouveau ici ?'}{' '}
             <button type="button" onClick={onSwitch} className="auth-link">{PROPRIO_SEUL ? 'Créez votre compte' : 'Créer un compte'}</button>
           </p>
-          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full min-h-[44px] text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour à l'accueil
           </button>
         </motion.div>
@@ -399,13 +384,13 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           </div>
           <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
           <div className="mt-3 text-sm text-ink-muted text-center">
-            {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
-              <button type="button" onClick={resendOtp} disabled={loading} className="font-semibold text-brand hover:underline disabled:opacity-60">
+            {resendCooldown > 0 ? <span className="inline-flex min-h-[44px] items-center gap-1">Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
+              <button type="button" onClick={resendOtp} disabled={loading} className="min-h-[44px] px-2 font-semibold text-brand hover:underline disabled:opacity-60">
                 {loading ? 'Envoi…' : 'Renvoyer le code'}
               </button>
             )}
           </div>
-          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" onClick={() => { setStepDir(-1); setFormStep('credentials'); setError('') }} className="mt-3 block w-full min-h-[44px] text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
             Retour
           </button>
         </motion.div>
@@ -590,7 +575,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             <PrimaryButton type="button" onClick={() => { if (!role) { setError('Choisissez un profil'); return } setError(''); goTo(2) }} className="mt-5">Continuer</PrimaryButton>
             <div className="auth-divider" />
             <p className="auth-footer">Déjà un compte ?{' '}<button type="button" onClick={onSwitch} className="auth-link">Se connecter</button></p>
-            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
+            <button type="button" onClick={() => navigate(-1)} className="mt-3 block w-full min-h-[44px] text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Retour à l'accueil</button>
           </motion.div>
         )}
 
@@ -605,13 +590,13 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                   <label htmlFor="reg-nom" className="auth-label">Nom</label>
                   <input id="reg-nom" value={nom} onChange={e => setNom(e.target.value)} onBlur={() => setNomTouched(true)} placeholder="Dupont" required maxLength={NAME_MAX_LENGTH}
                     aria-invalid={!!nomError} aria-describedby={nomError ? 'reg-nom-error' : undefined} className="auth-input" />
-                  {nomError && <p id="reg-nom-error" className="mt-1 text-xs font-semibold text-red-600">{nomError}</p>}
+                  {nomError && <p id="reg-nom-error" className="mt-1 text-xs font-semibold text-red-700">{nomError}</p>}
                 </div>
                 <div className="auth-field flex-1">
                   <label htmlFor="reg-prenom" className="auth-label">Prénom</label>
                   <input id="reg-prenom" value={prenom} onChange={e => setPrenom(e.target.value)} onBlur={() => setPrenomTouched(true)} placeholder="Jean" required maxLength={NAME_MAX_LENGTH}
                     aria-invalid={!!prenomError} aria-describedby={prenomError ? 'reg-prenom-error' : undefined} className="auth-input" />
-                  {prenomError && <p id="reg-prenom-error" className="mt-1 text-xs font-semibold text-red-600">{prenomError}</p>}
+                  {prenomError && <p id="reg-prenom-error" className="mt-1 text-xs font-semibold text-red-700">{prenomError}</p>}
                 </div>
               </div>
               <div className="auth-field">
@@ -660,7 +645,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 </span>
               </label>
               <div className="flex gap-2 mt-1">
-                {!PROPRIO_SEUL && <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.12)] bg-transparent px-5 text-[15px] font-bold text-text-dark hover:bg-black/5 transition-colors shrink-0">Retour</button>}
+                {!PROPRIO_SEUL && <button type="button" onClick={() => { setError(''); goTo(1) }} className="h-12 rounded-xl border border-[rgba(0,0,0,0.30)] bg-transparent px-5 text-[15px] font-bold text-text-dark hover:bg-black/5 transition-colors shrink-0">Retour</button>}
                 <PrimaryButton loading={loading} loadingLabel="Création…" className="flex-1">S'inscrire</PrimaryButton>
               </div>
             </form>
@@ -694,8 +679,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             </div>
             <PrimaryButton type="button" onClick={() => verifyOtp(otpDigits.join(''))} loading={otpLoading} disabled={otpDigits.some(d => !d)} loadingLabel="Vérification…">Confirmer</PrimaryButton>
             <div className="mt-3 text-sm text-ink-muted text-center">
-              {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
-                <button type="button" onClick={resendOtp} disabled={resending} className="font-semibold text-brand hover:underline disabled:opacity-60">
+              {resendCooldown > 0 ? <span className="inline-flex min-h-[44px] items-center gap-1">Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
+                <button type="button" onClick={resendOtp} disabled={resending} className="min-h-[44px] px-2 font-semibold text-brand hover:underline disabled:opacity-60">
                   {resending ? 'Envoi…' : 'Renvoyer le code'}
                 </button>
               )}

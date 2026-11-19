@@ -172,7 +172,7 @@ function MenuGroup({ title, children }: { title: string; children: React.ReactNo
 
 export default function ProfilePage() {
   usePageTitle('Profil')
-  const { user, logout } = useAuth()
+  const { user, logout, activeRole } = useAuth()
   const navigate = useNavigate()
   const [apiUser, setApiUser] = useState<User | null>(null)
   const [visites, setVisites] = useState<Visite[]>([])
@@ -213,7 +213,8 @@ export default function ProfilePage() {
 
   const initials = `${user.prenom?.[0] || ''}${user.nom?.[0] || ''}`.toUpperCase()
   const fullName = `${user.prenom || ''} ${user.nom || ''}`.trim() || 'Utilisateur'
-  const role = user.role
+  // Espace courant (et non le rôle d'origine du compte) : un propriétaire ne doit pas se voir « Prospect »
+  const role = activeRole || user.role
   const roleLabel = ROLE_LABELS[role] || role
 
   const visitCount = visites.filter(v => v.statut !== 'annulee').length

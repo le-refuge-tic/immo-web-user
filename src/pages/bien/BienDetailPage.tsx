@@ -15,9 +15,12 @@ import { SimilairesDesktop, SimilairesMobile } from './bien-detail/Similaires'
 import ErrorState from '../../components/ErrorState'
 import { suffixeUnite } from '../../utils/prix'
 import { nomEtDescription } from '../../utils/guesthouse'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 
 export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: boolean }) {
   const navigate = useNavigate()
+  // Une seule mise en page est montée : sinon adresse, titres et sections sont dupliqués dans la page
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const {
     bien, setBien, loading, error, loadError, actionError, recharger, bienTitle, isLoggedIn, isOwnBien,
     photoIdx, setPhotoIdx,
@@ -100,10 +103,10 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       )}
 
       {/* ── MOBILE header / galerie ── */}
-      <GalleryMobile allUrls={allUrls} photoIdx={photoIdx} setPhotoIdx={setPhotoIdx} altText={bienTitle || 'Photo du bien'} showOwnBack={showOwnBack} onBack={() => navigate(-1)} />
+      {!isDesktop && <GalleryMobile allUrls={allUrls} photoIdx={photoIdx} setPhotoIdx={setPhotoIdx} altText={bienTitle || 'Photo du bien'} showOwnBack={showOwnBack} onBack={() => navigate(-1)} />}
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden lg:block w-full px-6 md:px-16 py-8">
+      {isDesktop && <div className="w-full px-6 md:px-16 py-8">
         {showOwnBack && (
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-text-grey hover:text-primary transition-colors mb-6 group text-sm font-medium">
             <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -209,10 +212,10 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           )}
         </div>
         </div>
-      </div>
+      </div>}
 
       {/* ── MOBILE content ── */}
-      <div className="lg:hidden px-4 md:px-8 py-5 md:py-8 space-y-4 md:max-w-2xl md:mx-auto">
+      {!isDesktop && <div className="px-4 md:px-8 py-5 md:py-8 space-y-4 md:max-w-2xl md:mx-auto">
         <div>
           <div className="flex flex-wrap gap-2 mb-3">
             <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${isLocation ? 'bg-primary' : 'bg-orange-700'}`}>
@@ -267,10 +270,10 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
         {!isOwnBien && similaires.length > 0 && (
           <SimilairesMobile similaires={similaires} onOpen={bienId => navigate(`/biens/${bienId}`)} />
         )}
-      </div>
+      </div>}
 
       {/* ── Barre CTA fixe (mobile/tablette) ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white border-t border-divider px-5 py-3 safe-bottom">
+      {!isDesktop && <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white border-t border-divider px-5 py-3 safe-bottom">
         <BottomCta
           isOwnBien={isOwnBien} isOccupeLocal={isOccupeLocal} togglingStatut={togglingStatut}
           onToggleDisponibilite={toggleDisponibilite}
@@ -280,7 +283,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           onModifier={modifier}
           fraisVisite={bien.frais_visite}
         />
-      </div>
+      </div>}
 
       {editing && (
         <EditBienModal bien={bien} onClose={() => setEditing(false)}

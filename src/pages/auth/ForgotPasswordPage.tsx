@@ -15,6 +15,7 @@ import './authNew.css'
 import { apiMessage } from '../../utils/apiMessage'
 import { toInternationalPhone } from '../../utils/phone'
 import { applyOtpInput } from '../../utils/otpInput'
+import { estTelephoneBenin, INDICATIF_BENIN, MESSAGE_TELEPHONE } from '../../shared/saisie/telephone'
 
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
@@ -55,6 +56,9 @@ export default function ForgotPasswordPage() {
 
   const demanderCode = async () => {
     if (!phone.trim()) { setError('Entrez votre numéro de téléphone'); return }
+    // Format vérifié avant tout envoi : un numéro mal saisi ne déclenche ni appel ni SMS
+    const formatValide = countryCode === INDICATIF_BENIN ? estTelephoneBenin(phone) : /^\d{6,15}$/.test(phone.replace(/\D/g, ''))
+    if (!formatValide) { setError(MESSAGE_TELEPHONE); return }
     setLoading(true); setError('')
     try {
       await withColdStartRetry(
@@ -130,8 +134,6 @@ export default function ForgotPasswordPage() {
     setLoading(false)
   }
 
-  const maskedPhone = phone.length >= 4 ? `••••${phone.slice(-4)}` : phone
-
   return (
     <div className="auth-root">
       <SidePanel />
@@ -155,7 +157,7 @@ export default function ForgotPasswordPage() {
                   </div>
                   <PrimaryButton loading={loading} loadingLabel="Envoi…" className="mt-1">Recevoir le code</PrimaryButton>
                 </form>
-                <button type="button" onClick={() => navigate('/login')} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button type="button" onClick={() => navigate('/login')} className="mt-3 block w-full min-h-[44px] text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                   Retour à la connexion
                 </button>
               </motion.div>
@@ -168,7 +170,7 @@ export default function ForgotPasswordPage() {
                     <ShieldCheck size={22} className="text-brand" />
                   </div>
                   <h1 className="auth-title">Vérification</h1>
-                  <p className="auth-sub">Code envoyé au numéro se terminant par <strong className="text-text-dark">{maskedPhone}</strong></p>
+                  <p className="auth-sub">Si ce numéro existe, un code a été envoyé par SMS.</p>
                 </div>
                 <ErrorBanner message={error} />
                 <form onSubmit={e => { e.preventDefault(); validerOtp() }} className="flex flex-col gap-2">
@@ -188,13 +190,13 @@ export default function ForgotPasswordPage() {
                 </form>
 
                 <div className="mt-3 text-sm text-ink-muted text-center">
-                  {resendCooldown > 0 ? <span>Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
-                    <button type="button" onClick={resendCode} disabled={resending} className="font-semibold text-brand hover:underline disabled:opacity-60">
+                  {resendCooldown > 0 ? <span className="inline-flex min-h-[44px] items-center gap-1">Renvoyer dans <strong className="text-text-dark">{resendCooldown}s</strong></span> : (
+                    <button type="button" onClick={resendCode} disabled={resending} className="min-h-[44px] px-2 font-semibold text-brand hover:underline disabled:opacity-60">
                       {resending ? 'Envoi…' : 'Renvoyer le code'}
                     </button>
                   )}
                 </div>
-                <button type="button" onClick={() => { setStepDir(-1); setStep('phone'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button type="button" onClick={() => { setStepDir(-1); setStep('phone'); setError('') }} className="mt-3 block w-full min-h-[44px] text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                   Retour
                 </button>
               </motion.div>
@@ -228,7 +230,7 @@ export default function ForgotPasswordPage() {
                   <PrimaryButton loading={loading} loadingLabel="Réinitialisation…" className="mt-1">Réinitialiser le mot de passe</PrimaryButton>
                 </form>
 
-                <button type="button" onClick={() => { setStepDir(-1); setStep('otp'); setError('') }} className="mt-3 block w-full text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button type="button" onClick={() => { setStepDir(-1); setStep('otp'); setError('') }} className="mt-3 block w-full min-h-[44px] text-center text-sm font-semibold text-ink-muted hover:text-text-dark transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                   Retour
                 </button>
               </motion.div>

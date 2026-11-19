@@ -124,7 +124,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
   return (
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- survol purement décoratif ; la carte contient de vrais liens focalisables
     <article
-      className="relative glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-within:outline-2 focus-within:outline-brand focus-within:outline-offset-2"
+      className="relative flex flex-col h-full glass-card rounded-[22px] overflow-hidden cursor-pointer group focus-within:outline-2 focus-within:outline-brand focus-within:outline-offset-2"
       style={{ transition: 'transform 0.25s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.25s ease' }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLElement
@@ -140,7 +140,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       }}
     >
       {/* ── Image ── */}
-      <div className="relative h-44 sm:h-48 md:h-52 lg:h-56 img-zoom">
+      <div className="relative h-44 sm:h-48 md:h-52 lg:h-56 flex-shrink-0 img-zoom">
         {couverture ? (
           <img src={couverture.src} srcSet={couverture.srcSet} sizes={couverture.sizes} alt={label} className="w-full h-full object-cover" loading="lazy" />
         ) : (
@@ -184,7 +184,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           onClick={handleFav}
           aria-pressed={isFav}
           aria-label={`Favori : ${title}`}
-          className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
+          className={`absolute top-1.5 right-1.5 z-10 w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${favPopped ? 'fav-pop' : ''}`}
           style={{
             background: isDark ? 'rgba(30,30,44,0.80)' : 'rgba(255,255,255,0.80)',
             backdropFilter: 'blur(16px)',
@@ -204,7 +204,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           </svg>
         </button>
         {favError && (
-          <p role="alert" className="absolute top-12 right-3 z-10 px-2 py-1 rounded-lg text-micro font-semibold text-white" style={{ background: 'var(--c-danger)' }}>
+          <p role="alert" className="absolute top-14 right-3 z-10 px-2 py-1 rounded-lg text-micro font-semibold text-white" style={{ background: 'var(--c-danger)' }}>
             Favori non enregistré
           </p>
         )}
@@ -227,7 +227,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
       </div>
 
       {/* ── Infos ── */}
-      <div className="p-4">
+      <div className="p-4 flex-1 flex flex-col">
         <p className="text-lg md:text-xl font-bold leading-tight tracking-tight" style={{ color: textPrimary }}>
           {Number(bien.prix).toLocaleString('fr-FR')}{' '}
           <span className="text-sm font-medium" style={{ color: textMuted }}>
@@ -238,13 +238,12 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           {/* Vrai lien (clavier, clic milieu, nouvel onglet) étendu à toute la carte */}
           <Link to={`/biens/${bien.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
             {title}
-            <span className="sr-only"> — {bien.transaction === 'location' ? 'à louer' : 'à vendre'}</span>
           </Link>
         </h3>
         {capacite && (
           <p className="text-xs mt-1 font-medium" style={{ color: textSecond }}>{capacite}</p>
         )}
-        <div className="flex items-center gap-1 mt-2">
+        <div className="flex items-center gap-1 mt-auto pt-2">
           <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: iconMuted }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />

@@ -90,7 +90,7 @@ export default function ListingsSection({
             </span>
           )}
         </h2>
-        <button onClick={goToSearch} className="text-sm font-semibold" style={{ color: 'var(--tx-blue)' }}>
+        <button onClick={goToSearch} className="inline-flex min-h-[44px] items-center -mr-2 px-2 text-sm font-semibold" style={{ color: 'var(--tx-blue)' }}>
           Voir tout
         </button>
       </Reveal>
