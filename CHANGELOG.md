@@ -11,6 +11,13 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Corrigé (recette du 19/11)
+- Fiche d'un bien du propriétaire et assistant « Nouveau bien » : en thème sombre, les textes clairs
+  s'affichaient sur des cartes blanches (illisibles). Ces deux pages suivent maintenant le thème,
+  comme le tableau de bord.
+- « Nouveau bien », champ Quartier : les suggestions ne se sélectionnaient pas au toucher (le champ
+  perdait le focus avant le clic). Sélection au `click`, focus conservé.
+
 ### Ajouté (lot 10 — visites)
 - **« Créneau expiré »** : une visite en attente ou contre-proposée dont le créneau est passé affiche un badge « Créneau expiré » et une phrase claire (« Le propriétaire n'a pas répondu avant le créneau »). Elle propose « Proposer un nouveau créneau » ou « Contacter le support », sans bouton Annuler ni paiement. Un onglet « Expirées » existe côté client (Mes visites) et côté propriétaire (Réservations). Avant, la carte indiquait encore « Souhaitée : … », puis passait d'un coup en « Échouée ».
   - Un propriétaire voit le même état avec la phrase « Vous n'avez pas répondu avant le créneau demandé ».

@@ -12,12 +12,14 @@ import { StepConfort } from './nouveau-bien/steps/StepConfort'
 import { StepHonoraires } from './nouveau-bien/steps/StepHonoraires'
 import { StepPhotos } from './nouveau-bien/steps/StepPhotos'
 import { withAlpha } from '../../utils/color'
+import { useTheme } from '../../context/useTheme'
 import { resumeMedias } from '../../hooks/useMediaDraft'
 import { useVersionDistante } from '../../shared/brouillons/useSynchroBrouillons'
 import BandeauVersionDistante from './brouillons/BandeauVersionDistante'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
+  const isDark = useTheme().theme === 'dark'
   const {
     isScrolled,
     setIsScrolled,
@@ -40,7 +42,7 @@ export default function NouveauBienPage() {
   const versionDistante = useVersionDistante(() => draft.versionPlusRecente())
 
   return (
-    <div className="proprio-root proprio-light h-full flex flex-col overflow-hidden"
+    <div className={`proprio-root${isDark ? '' : ' proprio-light'} h-full flex flex-col overflow-hidden`}
       style={{ background: 'var(--p-deep)' }}>
 
       {/* ── Navbar ── */}
