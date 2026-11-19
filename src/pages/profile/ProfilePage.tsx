@@ -292,7 +292,7 @@ export default function ProfilePage() {
         <div className="h-px bg-divider ml-[50px]" />
         <MenuItem icon={<LockMenuIcon />} label="Sécurité et mot de passe" onClick={() => setPasswordOpen(true)} />
         <MenuItem icon={<ShieldIcon />} label="Cookies et mesure d’audience" onClick={openConsentSettings} />
-        <MenuItem icon={<StarMenuIcon />} label="Donner mon avis" onClick={() => navigate('/mes-visites')} showDivider={false} />
+        <MenuItem icon={<StarMenuIcon />} label="Évaluer mes visites" onClick={() => navigate('/mes-visites')} showDivider={false} />
       </MenuGroup>
     </>
   )
