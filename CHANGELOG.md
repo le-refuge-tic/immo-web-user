@@ -44,6 +44,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 ### Corrigé (lot 13)
 - Réservations du propriétaire : l'erreur d'une action (confirmation, visite effectuée, chat, autre créneau) s'affiche dans la fenêtre de détail. Avant, elle restait cachée derrière la fenêtre. Le bandeau est aussi annoncé aux lecteurs d'écran (`role="alert"`).
 =======
+### Corrigé (audit de la recette staging, suite)
+- Bandeau cookies : Échap le ferme sans enregistrer de choix, et il ne revient pas à chaque page de la session.
+- Profil : « Donner mon avis » devient « Évaluer mes visites » (l'avis se donne visite par visite).
+- Portefeuille épargne : « Recharger mon épargne » (comme la page de rechargement) ; numéro Mobile Money à 16 px.
+
 ### Corrigé (audit de la recette staging)
 - Recherche et fiche d'un bien : une seule mise en page est montée (liste et adresse n'apparaissent plus en double dans la page).
 - Tri par prix : les biens sont regroupés par unité (mois, nuit, heure, vente) puis triés dans chaque groupe ; « Légèrement hors budget » et « Autres biens » sont triés aussi.

@@ -143,7 +143,7 @@ function ClientWalletView() {
 
   const typeLabel = (t: WalletTransaction) => {
     switch (t.type) {
-      case 'depot': return 'Dépôt'
+      case 'depot': return 'Rechargement'
       case 'retrait': return 'Retrait'
       case 'paiement_loyer': return 'Paiement de loyer'
       case 'transfert_interne': return 'Transfert interne'
@@ -196,7 +196,7 @@ function ClientWalletView() {
               <div className="space-y-2.5">
                 <button onClick={() => navigate('/portefeuille/recharger/epargne')}
                   className="w-full py-3 rounded-xl font-bold text-sm" style={{ background: 'white', color }}>
-                  Déposer
+                  Recharger mon épargne
                 </button>
                 <button onClick={() => setShowRetrait(true)} disabled={solde <= 0}
                   className="w-full py-3 rounded-xl font-bold text-sm text-white border disabled:opacity-50" style={{ borderColor: 'rgba(255,255,255,0.4)' }}>

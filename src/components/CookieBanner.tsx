@@ -5,8 +5,15 @@ import { CONSENT_EVENT, OPEN_CONSENT_EVENT, readConsent, saveConsent, loadAnalyt
  * Bandeau de consentement. Les boutons Refuser et Accepter ont le même poids
  * visuel ; le choix est gardé 6 mois et modifiable via « Gérer les cookies ».
  */
+const REPORT_KEY = 'rg_cookie_report'
+
+/** Échap l'a fermé pour cette session : sans choix enregistré, il ne réapparaît pas à chaque page. */
+const ecarteCetteSession = () => {
+  try { return sessionStorage.getItem(REPORT_KEY) === '1' } catch { return false }
+}
+
 export default function CookieBanner() {
-  const [open, setOpen] = useState(() => readConsent() === null)
+  const [open, setOpen] = useState(() => readConsent() === null && !ecarteCetteSession())
 
   useEffect(() => {
     loadAnalytics()
@@ -19,6 +26,19 @@ export default function CookieBanner() {
       window.removeEventListener(CONSENT_EVENT, close)
     }
   }, [])
+
+  // Échap ferme le dialogue sans enregistrer de choix (aucun consentement n'est présumé) ;
+  // « Gérer les cookies » le rouvre.
+  useEffect(() => {
+    if (!open) return
+    const surEchap = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      try { sessionStorage.setItem(REPORT_KEY, '1') } catch { /* stockage indisponible */ }
+      setOpen(false)
+    }
+    document.addEventListener('keydown', surEchap)
+    return () => document.removeEventListener('keydown', surEchap)
+  }, [open])
 
   if (!open) return null
   const choix = readConsent()
