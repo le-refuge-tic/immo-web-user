@@ -6,7 +6,6 @@ import { NotificationsProvider } from './context/NotificationsContext'
 import { BannerProvider } from './context/BannerContext'
 import { ScrollProvider } from './context/ScrollContext'
 import MainLayout from './components/MainLayout'
-import { AuthSwitch } from './components/ui/auth-switch'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import CookieBanner from './components/CookieBanner'
 import { ToastProvider } from './context/ToastContext'
@@ -21,6 +20,7 @@ import OnboardingProjetPage from './pages/auth/OnboardingProjetPage'
 import OnboardingDestinationPage from './pages/auth/OnboardingDestinationPage'
 
 /* Pages lourdes — chargées à la demande */
+const AuthSwitch              = lazy(() => import('./components/ui/auth-switch').then(m => ({ default: m.AuthSwitch })))
 const BienDetailPage         = lazy(() => import('./pages/bien/BienDetailPage'))
 const SearchPage             = lazy(() => import('./pages/search/SearchPage'))
 const FavoritesPage          = lazy(() => import('./pages/favorites/FavoritesPage'))

@@ -11,7 +11,12 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
-<<<<<<< Updated upstream
+### Corrigé (CI)
+- Budget de chargement initial : la page de connexion/inscription (qui embarque zod, framer-motion et ses
+  images) est chargée à la demande comme les autres pages lourdes. JS initial : 221 Ko → 164 Ko (budget 200 Ko).
+- e2e messagerie : les deux tests supposaient que le chat ouvre « Infos du contact » ; depuis le 04/11 seul le
+  personnel y a accès (`estCompteStaff`). Les tests vérifient maintenant la règle réelle.
+
 ### Corrigé (recette du 19/11)
 - Fiche d'un bien du propriétaire et assistant « Nouveau bien » : en thème sombre, les textes clairs
   s'affichaient sur des cartes blanches (illisibles). Ces deux pages suivent maintenant le thème,
@@ -43,7 +48,6 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ### Corrigé (lot 13)
 - Réservations du propriétaire : l'erreur d'une action (confirmation, visite effectuée, chat, autre créneau) s'affiche dans la fenêtre de détail. Avant, elle restait cachée derrière la fenêtre. Le bandeau est aussi annoncé aux lecteurs d'écran (`role="alert"`).
-=======
 ### Corrigé (audit de la recette staging, lot 3)
 - Conversations (téléphone) : la barre du bas est masquée dans un fil de discussion (elle recouvrait la zone de saisie) ; en-tête de la liste sans l'espace vide de 156 px ; la liste défile.
 - Publication : étape « Détails & frais » (ex-« Honoraires »), titres liés à leurs champs, combobox ARIA et clavier sur Quartier, « Tout effacer » avec confirmation, coche en icône.
@@ -75,7 +79,6 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 - Mot de passe : œil afficher / masquer dans Sécurité, retrait et vérification du téléphone.
 - Mobile : « Voir tout » et boutons de tri à 44 px ; prix de la visite toujours en « FCFA ».
 - Mot de passe oublié : format du numéro vérifié avant envoi ; message neutre (« Si ce numéro existe… »).
->>>>>>> Stashed changes
 
 ### Ajouté (lot 15 — validation des formulaires)
 - Champs communs (`src/shared/saisie`, identiques dans l'administration) :
