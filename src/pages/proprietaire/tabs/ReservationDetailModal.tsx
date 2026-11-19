@@ -4,6 +4,7 @@ import { BLUE, bienLabel, fmtPrix, statutVisite, BLUE_TX } from './outils'
 import { isEchouee, isExpiree, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import type { Visite } from '../../../types/api'
+import { fraisVisiteAPayer } from '../../../utils/fraisVisite'
 import { withAlpha } from '../../../utils/color'
 import { MOT_CRENEAU_EXPIRE, phraseCreneauExpire } from '../../../utils/creneauExpire'
 
@@ -30,6 +31,8 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 }) {
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
+  // La visite ne se marque « effectuée » qu'une fois les frais réglés (ou si elle est gratuite)
+  const paiementOk = !!v.paiement_effectue || fraisVisiteAPayer(v) === 0
   const expiree = isExpiree(v)
   const urgente = !echouee && !expiree && isUrgente(v, now)
   const { label: sLabel, color: sColor } = echouee
@@ -294,7 +297,12 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
                 Autre créneau
               </button>
             )}
-            {v.statut === 'confirmee' && !echouee && (
+            {v.statut === 'confirmee' && !echouee && !paiementOk && (
+              <p className="flex-1 rounded-xl px-3 py-2.5 text-xs font-semibold" style={{ background: 'var(--c-wash)', color: 'var(--c-slate)' }}>
+                « Marquer effectuée » sera disponible dès que le client aura payé les frais de visite.
+              </p>
+            )}
+            {v.statut === 'confirmee' && !echouee && paiementOk && (
               confirmEffectuee ? (
                 <div className="flex items-center gap-2 flex-1">
                   <button onClick={() => { onMarquerEffectuee(v.id); setConfirmEffectuee(false) }} className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: 'var(--c-green-material)' }}>Confirmer</button>

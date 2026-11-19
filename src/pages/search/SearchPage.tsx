@@ -59,6 +59,7 @@ export default function SearchPage() {
                   onFocus={() => setShowSuggest(true)}
                   onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                   placeholder="Ville ou quartier…"
+                  aria-label="Ville ou quartier"
                   className="flex-1 min-w-0 bg-transparent outline-none text-sm"
                   style={{ color: tk.textClr }}
                 />
@@ -107,7 +108,9 @@ export default function SearchPage() {
         </div>
 
         {mobileOpen && (
-          <div className="px-4 pb-4 pt-4 border-b anim-fade-down overflow-hidden"
+          // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Échap ferme le dialogue des filtres
+          <div role="dialog" aria-modal="true" aria-label="Filtres de recherche" onKeyDown={e => { if (e.key === 'Escape') setMobileOpen(false) }}
+            className="px-4 pb-4 pt-4 border-b anim-fade-down overflow-hidden"
             style={{
               background: isDark ? 'rgba(16,16,26,0.99)' : 'rgba(255,255,255,0.97)',
               backdropFilter: 'blur(40px)',

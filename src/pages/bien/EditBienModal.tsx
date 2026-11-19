@@ -13,6 +13,10 @@ import PhotosBien from './modifier/PhotosBien'
 import { ErreurChamp, NumberInput } from '../../shared/saisie/champs'
 import { idErreur, useValidation } from '../../shared/saisie/validation'
 import { schemaModificationBien } from '../../validation/schemas'
+import { fraisVisiteBien } from '../../utils/fraisVisite'
+
+/** « 150000.00 » (décimal du serveur) → « 150000 » : un montant en FCFA n'a pas de centimes. */
+const entier = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? '' : String(Math.round(Number(v))))
 
 type Props = { bien: Bien; onClose: () => void; onSaved: (bien: Bien) => void }
 
@@ -21,9 +25,9 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   const { confirmer } = useConfirm()
 
   const loc: Localisation & { arrondissement?: string } = bien.localisation || {}
-  const [prix, setPrix] = useState(String(bien.prix ?? ''))
-  const [prixPromo, setPrixPromo] = useState(bien.prix_promo != null ? String(bien.prix_promo) : '')
-  const [fraisVisite, setFraisVisite] = useState(String(bien.frais_visite ?? ''))
+  const [prix, setPrix] = useState(entier(bien.prix))
+  const [prixPromo, setPrixPromo] = useState(bien.prix_promo != null ? entier(bien.prix_promo) : '')
+  const [fraisVisite, setFraisVisite] = useState(String(fraisVisiteBien(bien))) // montant effectivement demandé (500 F par défaut), comme sur la fiche
   const [description, setDescription] = useState(bien.description || '')
   const [quartier, setQuartier] = useState(loc.quartier || '')
   const [ville, setVille] = useState(loc.ville || '')
@@ -129,8 +133,8 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
             <ErreurChamp id={idErreur('edit-bien', 'fraisVisite')} message={v.erreurs.fraisVisite} className="text-danger text-xs mt-1" />
           </div>
 
-          <p className="text-xs font-bold text-text-grey uppercase tracking-wide pt-2">Description</p>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} maxLength={5000} placeholder="Décrivez le bien…"
+          <label htmlFor="edit-bien-description" className="text-xs font-bold text-text-grey uppercase tracking-wide pt-2 block">Description</label>
+          <textarea id="edit-bien-description" value={description} onChange={e => setDescription(e.target.value)} rows={4} maxLength={5000} placeholder="Décrivez le bien…"
             className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none" />
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide pt-2">Localisation</p>

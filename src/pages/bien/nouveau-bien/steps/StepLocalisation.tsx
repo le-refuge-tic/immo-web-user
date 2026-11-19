@@ -57,6 +57,21 @@ export function StepLocalisation({ form }: { form: NouveauBienForm }) {
                   onChange={e => setQuartierSearch(e.target.value)}
                   onFocus={() => setQuartierInputFocused(true)}
                   onBlur={() => setQuartierInputFocused(false)}
+                  onKeyDown={e => {
+                    const n = filteredQuartiers.length
+                    if (e.key === 'ArrowDown' && n) { e.preventDefault(); setQuartierInputFocused(true); setHoveredQuartierIdx(i => (i == null ? 0 : (i + 1) % n)) }
+                    else if (e.key === 'ArrowUp' && n) { e.preventDefault(); setHoveredQuartierIdx(i => (i == null ? n - 1 : (i - 1 + n) % n)) }
+                    else if (e.key === 'Enter' && quartierInputFocused && hoveredQuartierIdx != null && filteredQuartiers[hoveredQuartierIdx]) {
+                      e.preventDefault()
+                      const q = filteredQuartiers[hoveredQuartierIdx]
+                      selectQuartier(q.nom, q.arrondissement, q.ville)
+                    } else if (e.key === 'Escape') setQuartierInputFocused(false)
+                  }}
+                  role="combobox"
+                  aria-expanded={quartierInputFocused}
+                  aria-controls="nouveau-bien-quartier-liste"
+                  aria-autocomplete="list"
+                  aria-activedescendant={quartierInputFocused && hoveredQuartierIdx != null ? `nouveau-bien-quartier-opt-${hoveredQuartierIdx}` : undefined}
                   placeholder="Rechercher un quartier…"
                   className="w-full rounded-xl pl-9 pr-4 py-3 text-sm outline-none border transition-colors"
                   style={baseInputStyle}
@@ -65,7 +80,7 @@ export function StepLocalisation({ form }: { form: NouveauBienForm }) {
                   <circle cx={11} cy={11} r={8} /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
                 </svg>
                 {quartierInputFocused && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 rounded-xl border overflow-auto z-20"
+                  <div id="nouveau-bien-quartier-liste" role="listbox" aria-label="Quartiers proposés" className="absolute top-full left-0 right-0 mt-1.5 rounded-xl border overflow-auto z-20"
                     style={{ background: 'var(--p-card)', borderColor: 'var(--p-border)', maxHeight: 260 }}>
                     {filteredQuartiers.length === 0 ? (
                       quartierSearch.trim() ? (
@@ -82,7 +97,7 @@ export function StepLocalisation({ form }: { form: NouveauBienForm }) {
                         <p className="px-4 py-3 text-sm" style={{ color: 'var(--p-muted)' }}>Commencez à taper…</p>
                       )
                     ) : filteredQuartiers.map((q, qi) => (
-                      <button key={q.nom + q.arrondissement} type="button"
+                      <button key={q.nom + q.arrondissement} type="button" role="option" id={`nouveau-bien-quartier-opt-${qi}`} aria-selected={hoveredQuartierIdx === qi}
                         onMouseDown={e => e.preventDefault()}
                         onClick={() => selectQuartier(q.nom, q.arrondissement, q.ville)}
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-sm border-b transition-colors"

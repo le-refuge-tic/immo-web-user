@@ -116,20 +116,20 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
               ].map(row => (
                 <div key={row.label} className="flex items-center gap-2.5">
                   <span className="flex-1 text-xs font-semibold" style={{ color: 'var(--p-text)' }}>{row.label}</span>
-                  <div className="w-32"><MoneyInput value={row.value} onChange={row.onChange} /></div>
+                  <div className="w-32"><MoneyInput label={row.label} value={row.value} onChange={row.onChange} /></div>
                 </div>
               ))}
               {tarifsAutres.map((t, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input value={t.label}
+                  <input value={t.label} aria-label={`Libellé du tarif ${i + 1}`}
                     onChange={e => setTarifsAutres(a => a.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x))}
                     placeholder="Libellé"
                     className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none border"
                     style={baseInputStyle} />
                   <div className="w-28">
-                    <MoneyInput value={t.prix} onChange={v => setTarifsAutres(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
+                    <MoneyInput label={`Prix du tarif ${i + 1}`} value={t.prix} onChange={v => setTarifsAutres(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
                   </div>
-                  <button type="button" onClick={() => setTarifsAutres(a => a.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
+                  <button type="button" onClick={() => setTarifsAutres(a => a.filter((_, idx) => idx !== i))} aria-label={`Supprimer le tarif ${i + 1}`} style={{ color: 'var(--tx-red)' }}>✕</button>
                 </div>
               ))}
               <button type="button" onClick={() => setTarifsAutres(a => [...a, { label: '', prix: '' }])}
@@ -138,8 +138,8 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
           </Card>
         ) : (
           <Card champ="prix" invalide={champErreur?.champ === 'prix'}>
-            <Section title={typeTransaction === 'location' ? 'Loyer mensuel (FCFA)' : 'Prix de vente (FCFA)'} />
-            <MoneyInput value={prix} onChange={setPrix} />
+            <Section title={typeTransaction === 'location' ? 'Loyer mensuel (FCFA)' : 'Prix de vente (FCFA)'} htmlFor="nouveau-bien-prix" />
+            <MoneyInput id="nouveau-bien-prix" value={prix} onChange={setPrix} />
           </Card>
         )}
       </div>

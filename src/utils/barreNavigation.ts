@@ -7,6 +7,13 @@ const PLEIN_ECRAN = [/^\/nouveau-bien(\/|$)/, /^\/proprietaire\/biens\/\d+\/modi
 
 export const masquerBarreNavigation = (chemin: string): boolean => PLEIN_ECRAN.some(r => r.test(chemin))
 
+/**
+ * Fil de discussion ouvert (/conversations/12) : sur téléphone, la barre fixe recouvrait la zone de
+ * saisie (impossible d'écrire). Seule la barre du bas est masquée : la barre du haut (ordinateur) reste.
+ */
+export const masquerBarreBasse = (chemin: string): boolean =>
+  masquerBarreNavigation(chemin) || /^\/conversations\/[^/]+\/?$/.test(chemin)
+
 /** Réduction de la zone visible au-delà de laquelle on considère le clavier ouvert. */
 const SEUIL_CLAVIER = 0.25
 

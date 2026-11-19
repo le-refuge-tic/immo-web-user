@@ -254,11 +254,11 @@ export default function ConversationsPage() {
     <div className="min-h-full" style={{ background: bgPage }}>
 
       {/* ── MOBILE : liste seule ou fil actif ── */}
-      <div className="md:hidden">
+      <div className="md:hidden h-full overflow-y-auto">
         {activeId === null ? (
-          <div style={{ background: bgSidebar, minHeight: '100dvh' }}>
+          <div style={{ background: bgSidebar, minHeight: '100%', paddingBottom: 'var(--bottom-nav-h, 0px)' }}>
             {/* Header mobile */}
-            <div className="px-5 pt-[calc(72px+12px)] pb-3 flex items-center justify-between sticky top-[72px] z-10"
+            <div className="px-5 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-3 flex items-center justify-between sticky top-0 z-10"
               style={{ background: bgSidebar, borderBottom: `1px solid ${divider}` }}>
               <h1 className="text-[20px] font-extrabold tracking-tight" style={{ color: textPrimary }}>Messages</h1>
               {!loading && convs.length > 0 && (

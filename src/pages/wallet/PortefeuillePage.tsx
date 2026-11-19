@@ -198,10 +198,11 @@ function ClientWalletView() {
                   className="w-full py-3 rounded-xl font-bold text-sm" style={{ background: 'white', color }}>
                   Recharger mon épargne
                 </button>
-                <button onClick={() => setShowRetrait(true)} disabled={solde <= 0}
+                <button onClick={() => setShowRetrait(true)} disabled={solde <= 0} aria-describedby={solde <= 0 ? 'retrait-indispo' : undefined}
                   className="w-full py-3 rounded-xl font-bold text-sm text-white border disabled:opacity-50" style={{ borderColor: 'rgba(255,255,255,0.4)' }}>
                   Retirer
                 </button>
+                {solde <= 0 && <p id="retrait-indispo" className="text-white/80 text-xs text-center">Retrait indisponible : votre solde est de 0 FCFA. Rechargez d'abord votre épargne.</p>}
               </div>
             )}
           </div>

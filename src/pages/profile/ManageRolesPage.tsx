@@ -5,6 +5,7 @@ import { usePageTitle } from '../../utils/usePageTitle'
 import { rolesApi } from '../../api/rolesApi'
 import { apiMessage } from '../../utils/apiMessage'
 import { withAlpha } from '../../utils/color'
+import { useToast } from '../../context/useToast'
 import { useConfirm } from '../../shared/dialogues/useConfirm'
 import { ESPACE_PAR_ROLE, etatRole, MAX_ROLES_ACTIFS } from '../../utils/roles'
 
@@ -43,6 +44,7 @@ export default function ManageRolesPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const { confirmer } = useConfirm()
+  const afficherToast = useToast()
 
   const rolePrincipal = user?.role_principal || user?.role || ''
   const actifs = rolesActifs
@@ -55,6 +57,7 @@ export default function ManageRolesPage() {
       updateUser({ roles_actifs: newRoles })
       setActivating(null); setJustif('')
       setSuccess(`Rôle "${roleLabel(role)}" activé avec succès.`)
+      afficherToast(`Rôle « ${roleLabel(role)} » activé avec succès.`, 'success')
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: unknown) {
       setError(apiMessage(e) || `Impossible d'activer ce rôle.`)
@@ -79,6 +82,7 @@ export default function ManageRolesPage() {
       // setActiveRole uniquement après updateUser pour éviter un état incohérent
       if (role === activeRole) setActiveRole(rolePrincipal)
       setSuccess(`Rôle "${roleLabel(role)}" désactivé.`)
+      afficherToast(`Rôle « ${roleLabel(role)} » désactivé.`, 'success')
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de désactiver ce rôle.')

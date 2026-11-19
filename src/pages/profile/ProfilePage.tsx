@@ -118,18 +118,20 @@ type StatBadgeProps = {
   value: string
   label: string
   color: string
+  /** Couleur du chiffre (variante lisible, AA) ; l'icône garde `color`. */
+  texte?: string
   bg: string
   border: string
 }
 
-function StatBadge({ icon, value, label, color, bg, border }: StatBadgeProps) {
+function StatBadge({ icon, value, label, color, texte, bg, border }: StatBadgeProps) {
   return (
     <div
       className="flex flex-col items-center px-3.5 py-2.5 rounded-[14px]"
       style={{ backgroundColor: bg, border: `1px solid ${border}` }}
     >
       <div style={{ color }}>{icon}</div>
-      <p className="text-base font-bold mt-1" style={{ color }}>{value}</p>
+      <p className="text-base font-bold mt-1" style={{ color: texte ?? color }}>{value}</p>
       <p className="text-micro text-text-grey">{label}</p>
     </div>
   )
@@ -268,9 +270,9 @@ export default function ProfilePage() {
 
   const StatsRow = () => (
     <div className="flex gap-3">
-      <StatBadge icon={<CalendarStatIcon />} value={visitesIndispo ? '—' : String(visitCount)} label="Visites" color="var(--c-brand)" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
-      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="var(--c-success)" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
-      <StatBadge icon={<StarMenuIcon />} value={visitesIndispo ? '—' : String(mesAvis.length)} label="Avis" color="var(--c-amber-dark)" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
+      <StatBadge icon={<CalendarStatIcon />} value={visitesIndispo ? '—' : String(visitCount)} label="Visites" color="var(--c-brand)" texte="var(--tx-blue)" bg="rgba(75,107,255,0.08)" border="rgba(75,107,255,0.15)" />
+      <StatBadge icon={<ShieldIcon />} value={String(score)} label="Score" color="var(--c-success)" texte="var(--tx-green)" bg="rgba(76,175,80,0.08)" border="rgba(76,175,80,0.15)" />
+      <StatBadge icon={<StarMenuIcon />} value={visitesIndispo ? '—' : String(mesAvis.length)} label="Avis" color="var(--c-amber-dark)" texte="var(--tx-amber)" bg="rgba(245,158,11,0.08)" border="rgba(245,158,11,0.18)" />
     </div>
   )
 

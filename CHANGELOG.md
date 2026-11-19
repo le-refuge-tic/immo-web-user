@@ -44,6 +44,17 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 ### Corrigé (lot 13)
 - Réservations du propriétaire : l'erreur d'une action (confirmation, visite effectuée, chat, autre créneau) s'affiche dans la fenêtre de détail. Avant, elle restait cachée derrière la fenêtre. Le bandeau est aussi annoncé aux lecteurs d'écran (`role="alert"`).
 =======
+### Corrigé (audit de la recette staging, lot 3)
+- Conversations (téléphone) : la barre du bas est masquée dans un fil de discussion (elle recouvrait la zone de saisie) ; en-tête de la liste sans l'espace vide de 156 px ; la liste défile.
+- Publication : étape « Détails & frais » (ex-« Honoraires »), titres liés à leurs champs, combobox ARIA et clavier sur Quartier, « Tout effacer » avec confirmation, coche en icône.
+- Rôles : notification après activation et désactivation.
+- Mes biens : liste relue à la fin d'un envoi de photos ; carte avec « Reprendre l'envoi » pour un envoi interrompu ou en échec ; plus d'avertissement « 0 photo » pendant l'envoi.
+- Contrastes : badge Guesthouse, onglets inactifs de Mes visites (sombre), chiffres du profil.
+- Édition d'un bien : prix sans décimales, frais de visite identiques à la fiche (500 F par défaut), description étiquetée ; budget min/max et lieu étiquetés dans la recherche.
+- Réservations du propriétaire : « Marquer effectuée » seulement une fois les frais payés.
+- Filtres mobiles : dialogue ARIA, Échap ; bouton Retirer désactivé expliqué.
+- CSP : `connect-src` limité à l'API configurée (+ WebSocket, Umami, Sentry) via une balise ajoutée au build. `'unsafe-inline'` des styles est conservé : les attributs `style` de React en dépendent.
+
 ### Corrigé (audit de la recette staging, suite)
 - Bandeau cookies : Échap le ferme sans enregistrer de choix, et il ne revient pas à chaque page de la session.
 - Profil : « Donner mon avis » devient « Évaluer mes visites » (l'avis se donne visite par visite).

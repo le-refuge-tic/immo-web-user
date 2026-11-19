@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { apiProdEnPreview } from './scripts/garde-api-preview.mjs'
+import { connectSrc } from './scripts/csp-connexions.mjs'
 
 /**
  * Version rattachée aux erreurs Sentry (FE-F-007) : VITE_RELEASE si renseignée, sinon
@@ -51,6 +52,16 @@ function seo(siteUrl: string, allowIndexing: boolean): Plugin {
   }
 }
 
+/** Restreint les connexions réseau de la page à l'API et aux services configurés (build uniquement). */
+function cspConnexions(politique: string): Plugin {
+  return {
+    name: 'refuge-csp-connexions',
+    apply: 'build',
+    transformIndexHtml: html => html.replace('<head>', `<head>
+    <meta http-equiv="Content-Security-Policy" content="${politique}" />`),
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
@@ -70,7 +81,11 @@ export default defineConfig(({ mode }) => {
   })
   if (refus) throw new Error(refus)
   return {
-    plugins: [react(), seo(env.VITE_SITE_URL ?? '', env.VITE_ALLOW_INDEXING === 'true')],
+    plugins: [
+      react(),
+      seo(env.VITE_SITE_URL ?? '', env.VITE_ALLOW_INDEXING === 'true'),
+      cspConnexions(connectSrc({ apiUrl: env.VITE_API_URL, umamiSrc: env.VITE_UMAMI_SRC, sentryDsn: env.VITE_SENTRY_DSN })),
+    ],
     // Constante dédiée : Vite remplace `import.meta.env` avant `define`, qui ne peut donc pas la compléter.
     define: { __APP_RELEASE__: JSON.stringify(release(env.VITE_RELEASE)) },
     // Les specs Playwright (e2e/) ont leur propre lanceur : Vitest ne doit pas les charger.

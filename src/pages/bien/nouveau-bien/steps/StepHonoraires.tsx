@@ -19,9 +19,9 @@ export function StepHonoraires({ form }: { form: NouveauBienForm }) {
 
 
         <Card>
-          <Section title="Notes / Précisions (optionnel)" />
+          <Section title="Notes / Précisions (optionnel)" htmlFor="nouveau-bien-notes" />
           <p className="text-xs mb-3" style={{ color: 'var(--p-muted)' }}>Ces informations s'afficheront dans votre annonce.</p>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={5}
+          <textarea id="nouveau-bien-notes" value={description} onChange={e => setDescription(e.target.value)} rows={5}
             placeholder="Points forts, accès, conditions particulières, règles de la maison..."
             className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none border transition-colors"
             style={baseInputStyle}
@@ -36,15 +36,15 @@ export function StepHonoraires({ form }: { form: NouveauBienForm }) {
             <div className="space-y-2.5">
               {autresFrais.map((f, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input value={f.label}
+                  <input value={f.label} aria-label={`Libellé du frais ${i + 1}`}
                     onChange={e => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x))}
                     placeholder="Libellé (ex: Frais de dossier)"
                     className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none border"
                     style={baseInputStyle} />
                   <div className="w-28">
-                    <MoneyInput value={f.prix} onChange={v => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
+                    <MoneyInput label={`Montant du frais ${i + 1}`} value={f.prix} onChange={v => setAutresFrais(a => a.map((x, idx) => idx === i ? { ...x, prix: v } : x))} />
                   </div>
-                  <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} style={{ color: 'var(--tx-red)' }}>✕</button>
+                  <button type="button" onClick={() => setAutresFrais(a => a.filter((_, idx) => idx !== i))} aria-label={`Supprimer le frais ${i + 1}`} style={{ color: 'var(--tx-red)' }}>✕</button>
                 </div>
               ))}
               <button type="button" onClick={() => setAutresFrais(a => [...a, { label: '', prix: '' }])}
