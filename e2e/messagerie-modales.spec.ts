@@ -38,7 +38,7 @@ test.describe('messagerie', () => {
     const menu = page.getByRole('menu', { name: 'Options de la conversation' })
     await expect(menu).toBeVisible()
     await expect(options).toHaveAttribute('aria-expanded', 'true')
-    expect(await page.evaluate(() => document.activeElement?.textContent)).toBe('Infos du contact')
+    expect(await page.evaluate(() => document.activeElement?.textContent)).toBe('Voir le bien')
     await page.keyboard.press('End')
     expect(await page.evaluate(() => document.activeElement?.textContent)).toBe('Signaler')
     await page.keyboard.press('Escape')
@@ -59,18 +59,18 @@ test.describe('messagerie', () => {
     await expect(dialog).toHaveCount(0)
   })
 
-  test("le panneau profil du chat s'ouvre comme une modale et se ferme par Échap", async ({ page }) => {
+  test('un compte non staff ne peut pas ouvrir le profil du contact depuis le chat', async ({ page }) => {
     await mockApp(page, {
       mocks: { conversations: { status: 200, body: { data: [conv] } }, messages: { status: 200, body: { data: [] } } },
     })
     await page.goto('/conversations/55')
-    await page.locator('button:has(span.text-white.font-bold)').first().click()
+    // Règle du site : seul le personnel voit les infos du contact (estCompteStaff).
+    await expect(page.locator('button:has(span.text-white.font-bold)').first()).toBeDisabled()
 
-    const profil = page.getByRole('dialog', { name: 'Profil' })
-    await expect(profil).toBeVisible()
-    expect(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(true)
-    await page.keyboard.press('Escape')
-    await expect(profil).toHaveCount(0)
+    await page.getByRole('button', { name: 'Options', exact: true }).first().click()
+    await expect(page.getByRole('menu', { name: 'Options de la conversation' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'Infos du contact' })).toHaveCount(0)
+    await expect(page.getByRole('dialog', { name: 'Profil' })).toHaveCount(0)
   })
 })
 

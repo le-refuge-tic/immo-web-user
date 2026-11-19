@@ -11,6 +11,12 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Corrigé (CI)
+- Budget de chargement initial : la page de connexion/inscription (qui embarque zod, framer-motion et ses
+  images) est chargée à la demande comme les autres pages lourdes. JS initial : 221 Ko → 164 Ko (budget 200 Ko).
+- e2e messagerie : les deux tests supposaient que le chat ouvre « Infos du contact » ; depuis le 04/11 seul le
+  personnel y a accès (`estCompteStaff`). Les tests vérifient maintenant la règle réelle.
+
 ### Corrigé (recette du 19/11)
 - Fiche d'un bien du propriétaire et assistant « Nouveau bien » : en thème sombre, les textes clairs
   s'affichaient sur des cartes blanches (illisibles). Ces deux pages suivent maintenant le thème,
