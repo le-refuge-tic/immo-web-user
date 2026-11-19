@@ -7,6 +7,7 @@ import { withAlpha } from '../../../utils/color'
 import { svgMaskUrl } from './rolesOutils'
 
 import { apiMessage } from '../../../utils/apiMessage'
+import { useToast } from '../../../context/useToast'
 import { useConfirm } from '../../../shared/dialogues/useConfirm'
 import { etatRole, MAX_ROLES_ACTIFS } from '../../../utils/roles'
 
@@ -44,6 +45,7 @@ export function RolesTab() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const { confirmer } = useConfirm()
+  const afficherToast = useToast()
 
   const rolePrincipal = user?.role_principal || user?.role || ''
   const actifs = rolesActifs
@@ -59,7 +61,9 @@ export function RolesTab() {
       await rolesApi.activer(role)
       updateUser({ roles_actifs: [...actifs, role] })
       setActivating(null); setJustif('')
-      setSuccess(`Rôle « ${ROLES_META.find(r => r.key === role)?.label} » activé avec succès.`)
+      const message = `Rôle « ${ROLES_META.find(r => r.key === role)?.label} » activé avec succès.`
+      setSuccess(message)
+      afficherToast(message, 'success') // visible même si le message du haut est hors écran
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: unknown) {
       setError(apiMessage(e) || "Impossible d'activer ce rôle.")
@@ -86,6 +90,7 @@ export function RolesTab() {
         if (ROLE_ROUTES[rolePrincipal] && ROLE_ROUTES[rolePrincipal] !== '/proprietaire') navigate(ROLE_ROUTES[rolePrincipal])
       }
       setSuccess('Rôle désactivé.')
+      afficherToast('Rôle désactivé.', 'success')
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: unknown) {
       setError(apiMessage(e) || 'Impossible de désactiver ce rôle.')

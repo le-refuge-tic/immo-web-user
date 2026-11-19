@@ -176,7 +176,7 @@ export function useNouveauBienForm() {
     return loyer * (avanceMois + loyerPrepayeMois) + cEau + cElec + autres
   })()
 
-  const STEP_LABELS = ['Type & Prix', 'Localisation', isTerrain ? 'Terrain' : typeBien === 'bureau' ? 'Bureau' : isBoutique ? 'Boutique' : 'Confort', 'Honoraires', 'Photos']
+  const STEP_LABELS = ['Type & Prix', 'Localisation', isTerrain ? 'Terrain' : typeBien === 'bureau' ? 'Bureau' : isBoutique ? 'Boutique' : 'Confort', 'Détails & frais', 'Photos']
 
   // Quartier search
   const filteredQuartiers = quartierSearch.trim()

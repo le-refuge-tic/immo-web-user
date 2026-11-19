@@ -166,7 +166,7 @@ export default function BienCard({ bien, favoriteIds, onFavoriteToggle, distance
           </span>
           {isGuesthouse && (
             <span className="ml-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
-              style={{ background: 'rgba(13,148,136,0.94)', border: '1px solid rgba(255,255,255,0.3)' }}>
+              style={{ background: 'rgba(15,118,110,0.97)', border: '1px solid rgba(255,255,255,0.3)' }}>
               GUESTHOUSE
             </span>
           )}

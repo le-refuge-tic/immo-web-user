@@ -1,6 +1,7 @@
 
 
 import { useEffect } from 'react'
+import { useConfirm } from '../../shared/dialogues/useConfirm'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 
 import { BLUE } from './nouveau-bien/options'
@@ -20,6 +21,7 @@ import BandeauVersionDistante from './brouillons/BandeauVersionDistante'
 
 export default function NouveauBienPage() {
   const form = useNouveauBienForm()
+  const { confirmer } = useConfirm()
   const isDark = useTheme().theme === 'dark'
   const {
     isScrolled,
@@ -119,7 +121,16 @@ export default function NouveauBienPage() {
                 Votre saisie précédente a été retrouvée{medias.restored ? `, avec ${resumeMedias(medias.restored)}.` : '.'}
               </p>
               <div className="flex gap-3 flex-shrink-0">
-                <button type="button" onClick={async () => { draft.clear(); await medias.clear(); window.location.reload() }} className="text-xs font-bold" style={{ color: 'var(--tx-red)' }}>
+                <button type="button" onClick={async () => {
+                  const ok = await confirmer({
+                    titre: 'Tout effacer ?',
+                    message: 'La saisie et les photos retrouvées seront supprimées. Cette action est définitive.',
+                    confirmer: 'Tout effacer',
+                    danger: true,
+                  })
+                  if (!ok) return
+                  draft.clear(); await medias.clear(); window.location.reload()
+                }} className="text-xs font-bold" style={{ color: 'var(--tx-red)' }}>
                   Tout effacer
                 </button>
                 <button type="button" onClick={() => setDraftBannerDismissed(true)} className="text-xs font-bold" style={{ color: BLUE }}>OK</button>

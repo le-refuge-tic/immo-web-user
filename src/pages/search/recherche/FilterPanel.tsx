@@ -251,6 +251,7 @@ export default function FilterPanel({
               <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
                 style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
                 <NumberInput milliers value={f.value} onChange={e => f.set(e.target.value)}
+                  aria-label={`Budget ${f.label === 'Min' ? 'minimum' : 'maximum'} (FCFA)`}
                   placeholder={f.ph} min={0}
                   className="flex-1 bg-transparent outline-none text-sm min-w-0"
                   style={{ color: tk.textClr }} />

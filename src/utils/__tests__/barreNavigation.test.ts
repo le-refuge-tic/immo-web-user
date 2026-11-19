@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clavierOuvert, masquerBarreNavigation } from '../barreNavigation'
+import { clavierOuvert, masquerBarreBasse, masquerBarreNavigation } from '../barreNavigation'
 
 describe('lot 9 : barre de navigation du bas', () => {
   it('masquée pendant la publication et l’édition plein écran', () => {
@@ -10,6 +10,13 @@ describe('lot 9 : barre de navigation du bas', () => {
     expect(masquerBarreNavigation('/')).toBe(false)
     expect(masquerBarreNavigation('/proprietaire/biens/12')).toBe(false)
     expect(masquerBarreNavigation('/nouveau-bienveillant')).toBe(false)
+  })
+
+  it('barre du bas masquée dans un fil de discussion, pas dans la liste', () => {
+    expect(masquerBarreBasse('/conversations/12')).toBe(true)
+    expect(masquerBarreBasse('/conversations')).toBe(false)
+    expect(masquerBarreBasse('/nouveau-bien')).toBe(true)
+    expect(masquerBarreBasse('/')).toBe(false)
   })
 
   it('clavier ouvert : champ de saisie actif et zone visible nettement réduite', () => {

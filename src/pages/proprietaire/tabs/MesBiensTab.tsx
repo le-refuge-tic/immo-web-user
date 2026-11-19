@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { biensApi } from '../../../api/biensApi'
 import EditBienModal from '../../bien/EditBienModal'
 import BrouillonsProprietaire from '../../bien/brouillons/BrouillonsProprietaire'
 import { manquesApprobation } from '../../../shared/biens/approbation'
+import { useGestionEnvois } from '../../../shared/uploads/useGestionEnvois'
+import { avancement } from '../../../shared/uploads/fileEnvoi'
+import { invaliderBiens } from '../../../lib/queryClient'
 import { aFormulaireDedie } from '../../bien/modifier/formulaireEdition'
 import { AnimatedGroup } from '../../../components/ui/animated-group'
 import { IcRefresh } from './icons'
@@ -36,6 +39,10 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
   const { ref: carouselRef, index: carouselIdx, setIndex: setCarouselIdx, paused: carouselPaused, togglePause: toggleCarousel, autoplayAvailable, containerProps: carouselProps } =
     useCarouselAutoplay(Math.min(5, biens.length))
   const navigate = useNavigate()
+  const { lots, interrompus, reprendre, abandonner } = useGestionEnvois()
+
+  // Envois de photos en cours, en échec ou interrompus, par bien (reprise explicite sur la carte).
+  const envoisDuBien = (id: number) => [...lots, ...interrompus].filter(l => l.bienId === id)
 
   const load = async () => {
     setLoading(true)
@@ -44,6 +51,17 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
     setLoading(false)
   }
   useEffect(() => { load() }, [])
+
+  // Fin d'un envoi de photos : la liste (et son cache) est relue, sinon la carte garde « 0 photo ».
+  const nbEnvoisActifs = lots.filter(l => avancement(l).enCours).length
+  const nbActifsAvant = useRef(nbEnvoisActifs)
+  useEffect(() => {
+    if (nbActifsAvant.current > 0 && nbEnvoisActifs === 0) {
+      invaliderBiens()
+      biensApi.mesBiens().then(d => setBiens(Array.isArray(d) ? d : d.data || [])).catch(() => { /* la liste affichée reste valable */ })
+    }
+    nbActifsAvant.current = nbEnvoisActifs
+  }, [nbEnvoisActifs])
 
   const FILTERS = ['Tous', 'Location', 'Vente', 'Publié', 'En attente', 'Rejeté', 'Occupé']
   const byFilter = filter === 'Tous' ? biens
@@ -359,7 +377,31 @@ export function MesBiensTab({ onScrolled }: { onScrolled?: (v: boolean) => void 
                           <p className="text-[10px] mb-3 truncate" style={{ color: 'var(--tx-red)' }}>⚠ {b.motif_refus}</p>
                         )}
                         {/* Lot 7 : ce qui empêche l'examen, et les décisions motivées de l'administration. */}
-                        {b.statut_moderation === 'en_attente' && manquesApprobation(b).length > 0 && (
+                        {envoisDuBien(b.id).map(lot => {
+                          const { faits, total, enCours } = avancement(lot)
+                          const interrompu = interrompus.some(l => l.id === lot.id)
+                          return (
+                            // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-element-interactions -- arrête la propagation vers la carte cliquable
+                            <div key={lot.id} role="status" onClick={e => e.stopPropagation()}
+                              className="mb-3 rounded-xl border px-3 py-2" style={{ borderColor: 'var(--p-border)', background: 'var(--p-deep)' }}>
+                              <p className="text-xs font-semibold" style={{ color: 'var(--p-text)' }}>
+                                {enCours ? `Photos en cours d'envoi : ${faits}/${total}`
+                                  : interrompu ? `Envoi interrompu : ${faits}/${total} fichiers envoyés`
+                                  : `${total - faits} fichier${total - faits > 1 ? 's' : ''} non envoyé${total - faits > 1 ? 's' : ''}`}
+                              </p>
+                              {!enCours && (
+                                <div className="mt-2 flex gap-2">
+                                  <button type="button" onClick={() => reprendre(lot.id)}
+                                    className="min-h-[44px] rounded-xl px-3 text-xs font-bold text-white" style={{ background: BLUE }}>Reprendre l'envoi</button>
+                                  <button type="button" onClick={() => abandonner(lot.id)}
+                                    className="min-h-[44px] rounded-xl px-3 text-xs font-semibold" style={{ border: '1px solid var(--p-border)', color: 'var(--p-muted)' }}>Ignorer</button>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                        {/* Pendant l'envoi, « 0 photo » n'est pas encore vrai : l'avertissement attend la fin */}
+                        {b.statut_moderation === 'en_attente' && manquesApprobation(b).length > 0 && !envoisDuBien(b.id).some(l => avancement(l).enCours) && (
                           <p className="text-[10px] mb-3" style={{ color: 'var(--tx-red)' }}>
                             À compléter pour être publié : {manquesApprobation(b).join(' et ')}.
                           </p>

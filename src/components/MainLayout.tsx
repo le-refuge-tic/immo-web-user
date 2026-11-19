@@ -6,7 +6,7 @@ import PushPrompt from './PushPrompt'
 import { ErrorBoundary } from './ErrorBoundary'
 import ScrollFloatButtons from './ScrollFloatButtons'
 import { useScrolled } from '../context/useScrolled'
-import { masquerBarreNavigation } from '../utils/barreNavigation'
+import { masquerBarreNavigation, masquerBarreBasse } from '../utils/barreNavigation'
 import { useTheme } from '../context/useTheme'
 
 const HIDE_TOPNAV_PREFIXES: string[] = []
@@ -94,7 +94,7 @@ export default function MainLayout() {
         </ErrorBoundary>
       </main>
 
-      {!hideChrome && (
+      {!masquerBarreBasse(location.pathname) && (
         <div className="md:hidden relative z-50">
           <BottomNav />
         </div>

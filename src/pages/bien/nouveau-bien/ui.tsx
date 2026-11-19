@@ -18,10 +18,12 @@ export function Card({ children, className, champ, invalide }: { children: React
   )
 }
 
-export function Section({ title, required }: { title: string; required?: boolean }) {
+/** `htmlFor` : le titre devient l'étiquette du champ (lecteurs d'écran, clic sur le titre). */
+export function Section({ title, required, htmlFor }: { title: string; required?: boolean; htmlFor?: string }) {
+  const Titre = htmlFor ? 'label' : 'p'
   return (
     <div className="flex items-center gap-2 mb-3">
-      <p className="text-caption font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--p-muted)' }}>{title}</p>
+      <Titre htmlFor={htmlFor} className="text-caption font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--p-muted)' }}>{title}</Titre>
       {required && (
         <span className="text-micro font-bold px-1.5 py-0.5 rounded"
           style={{ color: BLUE, background: withAlpha(BLUE, '20') }}>Obligatoire</span>
@@ -57,7 +59,11 @@ export function ChoiceList({ options, value, onChange, disabledValues, onDeselec
                 style={{ color: isActive ? BLUE : 'var(--p-text)' }}>{o.label}</span>
               {o.sub && <span className="block text-xs mt-0.5" style={{ color: 'var(--p-muted)' }}>{o.sub}</span>}
             </span>
-            {isActive && !isDisabled && <span className="font-bold shrink-0" style={{ color: BLUE }}>✓</span>}
+            {isActive && !isDisabled && (
+              <svg aria-hidden="true" className="h-5 w-5 shrink-0 rounded-full p-1 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" style={{ background: BLUE }}>
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            )}
           </button>
         )
       })}
@@ -124,10 +130,10 @@ export function NumberPicker({ presets, unit, value, isCustom, onPick, onCustomS
   )
 }
 
-export function MoneyInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+export function MoneyInput({ value, onChange, placeholder, id, label }: { value: string; onChange: (v: string) => void; placeholder?: string; id?: string; label?: string }) {
   return (
     <div className="relative">
-      <NumberInput milliers value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder ?? '0'}
+      <NumberInput milliers id={id} aria-label={label} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder ?? '0'}
         className="w-full rounded-xl pl-4 pr-16 py-3 text-sm outline-none border transition-colors"
         style={{ background: 'var(--p-deep)', borderColor: 'var(--p-border)', color: 'var(--p-text)' }}
         onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
