@@ -5,6 +5,8 @@ import { Card, Section, ChoiceList, Chip, MoneyInput } from '../ui'
 import type { NouveauBienForm } from '../useNouveauBienForm'
 import SelecteurTypeBien from '../../../../components/SelecteurTypeBien'
 import { useConfirm } from '../../../../shared/dialogues/useConfirm'
+import { libelleReductionCash } from '../../../../utils/prixCash'
+import { parsePrix } from '../options'
 
 export function StepTypePrix({ form }: { form: NouveauBienForm }) {
   const { confirmer } = useConfirm()
@@ -16,6 +18,9 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
     setTypeTransaction,
     prix,
     setPrix,
+    prixCash,
+    setPrixCash,
+    avecPrixCash,
     estMeuble,
     setEstMeuble,
     etatMeubleMaison,
@@ -138,8 +143,17 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
           </Card>
         ) : (
           <Card champ="prix" invalide={champErreur?.champ === 'prix'}>
-            <Section title={typeTransaction === 'location' ? 'Loyer mensuel (FCFA)' : 'Prix de vente (FCFA)'} htmlFor="nouveau-bien-prix" />
+            <Section title={typeTransaction === 'location' ? 'Loyer mensuel (FCFA)' : avecPrixCash ? 'Prix normal — paiement échelonné (FCFA)' : 'Prix de vente (FCFA)'} htmlFor="nouveau-bien-prix" />
             <MoneyInput id="nouveau-bien-prix" value={prix} onChange={setPrix} />
+          </Card>
+        )}
+        {!isMeuble && avecPrixCash && (
+          <Card champ="prixCash" invalide={champErreur?.champ === 'prixCash'}>
+            <Section title="Prix si paiement cash (FCFA, facultatif)" htmlFor="nouveau-bien-prix-cash" />
+            <MoneyInput id="nouveau-bien-prix-cash" value={prixCash} onChange={setPrixCash} />
+            <p className="text-xs mt-2" style={{ color: 'var(--p-muted)' }} aria-live="polite">
+              {libelleReductionCash(parsePrix(prix), parsePrix(prixCash)) || 'Plus bas que le prix normal : proposé à l’acheteur qui paie comptant.'}
+            </p>
           </Card>
         )}
       </div>

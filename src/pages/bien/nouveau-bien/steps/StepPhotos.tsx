@@ -8,6 +8,7 @@ import { withAlpha } from '../../../../utils/color'
 import { erreurVideo, TAILLE_MAX_VIDEO_MO } from '../../../../utils/videoAnnonce'
 import { useState } from 'react'
 import { PHOTOS_MAX, PHOTOS_MIN } from '../photosRegles'
+import { erreurPrixCash, libelleReductionCash } from '../../../../utils/prixCash'
 
 export function StepPhotos({ form }: { form: NouveauBienForm }) {
   const {
@@ -56,6 +57,8 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
     labelElec,
     labelEau,
     prixPrincipal,
+    prixCash,
+    avecPrixCash,
     champErreur,
   } = form
   const [videoErreur, setVideoErreur] = useState<string | null>(null)
@@ -97,6 +100,15 @@ export function StepPhotos({ form }: { form: NouveauBienForm }) {
           {!isTerrain && prixPrincipal > 0 && (
             <RecapSection title="Prix" items={[
               `${typeTransaction === 'location' ? 'Loyer mensuel' : 'Prix de vente'} : ${formatFcfa(prixPrincipal)}`
+            ]} />
+          )}
+
+          {isTerrain && prixPrincipal > 0 && (
+            <RecapSection title="Prix" items={[
+              `${typeTransaction === 'location' ? 'Loyer mensuel' : avecPrixCash ? 'Prix normal (paiement échelonné)' : 'Prix de vente'} : ${formatFcfa(prixPrincipal)}`,
+              ...(avecPrixCash && parsePrix(prixCash) !== undefined && !erreurPrixCash(prixPrincipal, parsePrix(prixCash))
+                ? [`Prix cash : ${formatFcfa(parsePrix(prixCash)!)} (${libelleReductionCash(prixPrincipal, parsePrix(prixCash))})`]
+                : []),
             ]} />
           )}
 

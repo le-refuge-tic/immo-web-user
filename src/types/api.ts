@@ -107,6 +107,8 @@ export interface Bien {
   /** Colonne numérique : parfois renvoyée en chaîne. */
   prix: number | string
   prix_promo?: number | string | null
+  /** Terrain en vente : prix si paiement cash (inférieur au prix normal). */
+  prix_cash?: number | string | null
   frais_visite?: number | string
   description?: string
   statut: StatutBien

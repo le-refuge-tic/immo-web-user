@@ -14,6 +14,7 @@ import { ErreurChamp, NumberInput } from '../../shared/saisie/champs'
 import { idErreur, useValidation } from '../../shared/saisie/validation'
 import { schemaModificationBien } from '../../validation/schemas'
 import { fraisVisiteBien } from '../../utils/fraisVisite'
+import { estTerrainEnVente, libelleReductionCash } from '../../utils/prixCash'
 
 /** « 150000.00 » (décimal du serveur) → « 150000 » : un montant en FCFA n'a pas de centimes. */
 const entier = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? '' : String(Math.round(Number(v))))
@@ -27,6 +28,8 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   const loc: Localisation & { arrondissement?: string } = bien.localisation || {}
   const [prix, setPrix] = useState(entier(bien.prix))
   const [prixPromo, setPrixPromo] = useState(bien.prix_promo != null ? entier(bien.prix_promo) : '')
+  const avecPrixCash = estTerrainEnVente(bien)
+  const [prixCash, setPrixCash] = useState(bien.prix_cash != null ? entier(bien.prix_cash) : '')
   const [fraisVisite, setFraisVisite] = useState(String(fraisVisiteBien(bien))) // montant effectivement demandé (500 F par défaut), comme sur la fiche
   const [description, setDescription] = useState(bien.description || '')
   const [quartier, setQuartier] = useState(loc.quartier || '')
@@ -41,7 +44,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   const publie = bien.statut_moderation === 'approuve'
 
   // Lot 5 : rien à enregistrer tant que rien n'a changé ; fermer prévient avant de perdre une saisie.
-  const valeurs = JSON.stringify([prix, prixPromo, fraisVisite, description, quartier, ville, adresse])
+  const valeurs = JSON.stringify([prix, prixPromo, prixCash, fraisVisite, description, quartier, ville, adresse])
   const [reference] = useState(valeurs)
   const modifie = valeurs !== reference
   const fermer = async () => {
@@ -50,7 +53,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
   }
 
   // Lot 15 : règles du schéma (prix requis, promo ≥ 100 et < prix, frais ≥ 0), erreurs sous les champs.
-  const v = useValidation('edit-bien', schemaModificationBien, { prix, prixPromo, fraisVisite, description })
+  const v = useValidation('edit-bien', schemaModificationBien, { prix, prixPromo, prixCash: avecPrixCash ? prixCash : '', fraisVisite, description })
 
   const submit = () => v.soumettre(async d => {
     setSaving(true)
@@ -59,6 +62,7 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
       const body: BienPayload = {
         prix: d.prix,
         prix_promo: d.prixPromo ?? null,
+        ...(avecPrixCash ? { prix_cash: d.prixCash ?? null } : {}),
         frais_visite: d.fraisVisite ?? 0,
         description: d.description,
         localisation: {
@@ -114,11 +118,20 @@ export default function EditBienModal({ bien, onClose, onSaved }: Props) {
 
           <p className="text-xs font-bold text-text-grey uppercase tracking-wide">Informations tarifaires</p>
           <div>
-            <label htmlFor="edit-bien-prix" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix (FCFA)</label>
+            <label htmlFor="edit-bien-prix" className="text-xs font-semibold text-text-dark mb-1.5 block">{avecPrixCash ? 'Prix normal — paiement échelonné (FCFA)' : 'Prix (FCFA)'}</label>
             <NumberInput milliers value={prix} onChange={e => setPrix(e.target.value)} {...v.propsChamp('prix')}
               className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
             <ErreurChamp id={idErreur('edit-bien', 'prix')} message={v.erreurs.prix} className="text-danger text-xs mt-1" />
           </div>
+          {avecPrixCash && (
+            <div>
+              <label htmlFor="edit-bien-prixCash" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix si paiement cash (FCFA, facultatif)</label>
+              <NumberInput milliers value={prixCash} onChange={e => setPrixCash(e.target.value)} placeholder="Laisser vide pour aucun prix cash" {...v.propsChamp('prixCash')}
+                className="w-full bg-white border border-divider rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary" />
+              <ErreurChamp id={idErreur('edit-bien', 'prixCash')} message={v.erreurs.prixCash} className="text-danger text-xs mt-1" />
+              <p className="text-caption text-text-grey mt-1">{libelleReductionCash(Number(prix.replace(/D/g, '')) || null, Number(prixCash.replace(/D/g, '')) || null) || 'Plus bas que le prix normal, pour l’acheteur qui paie comptant.'}</p>
+            </div>
+          )}
           <div>
             <label htmlFor="edit-bien-prixPromo" className="text-xs font-semibold text-text-dark mb-1.5 block">Prix promotionnel (FCFA)</label>
             <NumberInput milliers value={prixPromo} onChange={e => setPrixPromo(e.target.value)} placeholder="Laisser vide pour aucune promo" {...v.propsChamp('prixPromo')}
