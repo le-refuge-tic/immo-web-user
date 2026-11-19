@@ -11,6 +11,12 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 11 — prix cash des terrains)
+- Terrain en vente : deux prix clairement libellés dans « Nouveau bien » et dans la modification — « Prix normal (paiement échelonné) », obligatoire, et « Prix si paiement cash », facultatif, qui doit être inférieur au prix normal (au moins 100 F). La réduction s'affiche en direct (« soit −12 % / −300 000 F »).
+- Récapitulatif de création (qui n'affichait aucun prix pour un terrain) et fiche du bien : le prix normal et le prix cash s'affichent côte à côte, sans prix barré ni badge « PROMO » (ce n'est pas une offre limitée dans le temps).
+- Tri et filtres de recherche : toujours sur le prix normal.
+- Dépend du backend (colonne `prix_cash`, migration 1787880000000).
+
 ### Corrigé (CI)
 - Budget de chargement initial : la page de connexion/inscription (qui embarque zod, framer-motion et ses
   images) est chargée à la demande comme les autres pages lourdes. JS initial : 221 Ko → 164 Ko (budget 200 Ko).

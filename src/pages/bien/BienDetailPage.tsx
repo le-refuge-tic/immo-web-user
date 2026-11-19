@@ -14,6 +14,8 @@ import { GalleryMobile, GalleryDesktop } from './bien-detail/Galleries'
 import { SimilairesDesktop, SimilairesMobile } from './bien-detail/Similaires'
 import ErrorState from '../../components/ErrorState'
 import { suffixeUnite } from '../../utils/prix'
+import { prixCashDuBien } from '../../utils/prixCash'
+import { PrixCash } from './bien-detail/PrixCash'
 import { nomEtDescription } from '../../utils/guesthouse'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 
@@ -74,6 +76,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
   const prixPromoNum = bien.prix_promo != null ? Number(bien.prix_promo) : null
   const hasPromo = prixPromoNum != null && prixPromoNum >= 100 && prixPromoNum < Number(bien.prix)
   const prixPromo = hasPromo ? prixPromoNum!.toLocaleString('fr-FR') : null
+  const prixCash = prixCashDuBien(bien)
   const promoPct = hasPromo ? Math.round((1 - prixPromoNum! / Number(bien.prix)) * 100) : 0
 
   const am = bien.amenites as Amenites | null | undefined
@@ -148,6 +151,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
               <p className="text-xl font-bold text-text-dark mb-3">{title}</p>
 
               <div className="mb-5">
+                {prixCash != null && <p className="text-xs font-semibold text-text-grey mb-1">Prix normal (paiement échelonné)</p>}
                 {hasPromo && (
                   <div className="flex items-center gap-2 mb-1">
                     <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: 'var(--c-danger)' }}>PROMO -{promoPct}%</span>
@@ -157,6 +161,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
                 <p className="text-3xl font-bold" style={{ color: hasPromo ? 'var(--c-danger)' : accentColor }}>
                   {hasPromo ? prixPromo : prix} <span className="text-base font-medium text-text-grey">FCFA{suffixeUnite(bien)}</span>
                 </p>
+                {prixCash != null && <PrixCash prixNormal={Number(bien.prix)} prixCash={prixCash} />}
               </div>
 
               <div className="h-px bg-divider mb-5" />
@@ -232,6 +237,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
             )}
           </div>
           <h1 className="text-lg font-bold text-text-dark mb-1">{title}</h1>
+          {prixCash != null && <p className="text-xs font-semibold text-text-grey mb-1">Prix normal (paiement échelonné)</p>}
           {hasPromo && (
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2 py-0.5 rounded-md text-caption font-bold text-white" style={{ background: 'var(--c-danger)' }}>PROMO -{promoPct}%</span>
@@ -241,6 +247,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           <p className="text-2xl font-bold" style={{ color: hasPromo ? 'var(--c-danger)' : accentColor }}>
             {hasPromo ? prixPromo : prix} FCFA{suffixeUnite(bien) && <span className="text-base font-medium text-text-grey">{suffixeUnite(bien)}</span>}
           </p>
+          {prixCash != null && <PrixCash prixNormal={Number(bien.prix)} prixCash={prixCash} />}
         </div>
 
         <div className="card-soft rounded-2xl p-4 flex items-start gap-3">

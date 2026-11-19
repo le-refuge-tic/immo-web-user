@@ -75,12 +75,16 @@ export const schemaModificationBien = z
   .object({
     prix: zMontant({ max: 999_999_999, libelle: 'Le prix' }),
     prixPromo: zNombreFacultatif({ min: 100, max: 999_999_999, libelle: 'Le prix promotionnel' }),
+    prixCash: zNombreFacultatif({ min: 100, max: 999_999_999, libelle: 'Le prix cash' }),
     fraisVisite: zNombreFacultatif({ min: 0, max: 999_999, libelle: 'Les frais de visite' }),
     description: zTexteFacultatif(5000),
   })
   .superRefine((v, ctx) => {
     if (v.prixPromo != null && v.prixPromo >= v.prix) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['prixPromo'], message: 'Le prix promotionnel doit être inférieur au prix normal.' })
+    }
+    if (v.prixCash != null && v.prixCash >= v.prix) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['prixCash'], message: 'Le prix cash doit être inférieur au prix normal.' })
     }
   })
 

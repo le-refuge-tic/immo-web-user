@@ -18,6 +18,7 @@ import { coupleBackend, sousTypeParCle } from '../../../shared/biens/referentiel
 import { useToast } from '../../../context/useToast'
 import type { TarifCustom, DetailCustom } from './options'
 import { PHOTOS_MIN } from './photosRegles'
+import { erreurPrixCash, estTerrainEnVente } from '../../../utils/prixCash'
 export function useNouveauBienForm() {
   usePageTitle('Publier un bien')
   const navigate = useNavigate()
@@ -48,6 +49,8 @@ export function useNouveauBienForm() {
   const [typeBien, setTypeBien] = useDraftState(draft, 'typeBien', 'chambre_salon')
   const [typeTransaction, setTypeTransaction] = useDraftState<'location' | 'vente'>(draft, 'typeTransaction', 'location')
   const [prix, setPrix] = useDraftState(draft, 'prix', '')
+  // Lot 11 : terrain en vente, prix si paiement cash (facultatif, inférieur au prix normal).
+  const [prixCash, setPrixCash] = useDraftState(draft, 'prixCash', '')
   const [estMeuble, setEstMeuble] = useDraftState(draft, 'estMeuble', false)
   const [etatMeubleMaison, setEtatMeubleMaison] = useDraftState<'non_meuble' | 'semi_meuble' | 'meuble'>(draft, 'etatMeubleMaison', 'non_meuble')
   const [etatConstructionMaison, setEtatConstructionMaison] = useDraftState<'semi_construite' | 'totalement_construite' | null>(draft, 'etatConstructionMaison', null)
@@ -142,6 +145,7 @@ export function useNouveauBienForm() {
   // Lot 2 : le choix vient du référentiel unique (src/shared/biens) : catégorie puis sous-type.
   const sousTypeChoisi = sousTypeParCle(typeBien)
   const isTerrain = typeBien === 'terrain'
+  const avecPrixCash = estTerrainEnVente({ type: typeBien, transaction: typeTransaction })
   // Local professionnel (boutique, bureau, local commercial) : même parcours.
   const isBoutique = sousTypeChoisi?.categorie === 'commercial'
   const isSmallUnit = typeBien === 'entree_coucher' || typeBien === 'chambre_salon'
@@ -210,6 +214,8 @@ export function useNouveauBienForm() {
     if (step === 0) {
       if (!isMeuble && !parsePrix(prix)) { echoue('Veuillez entrer le prix', 'prix'); return }
       if (isMeuble && !hasAtLeastOneTarif) { echoue('Renseignez au moins un tarif', 'prix'); return }
+      const erreurCash = avecPrixCash ? erreurPrixCash(parsePrix(prix), parsePrix(prixCash)) : null
+      if (erreurCash) { echoue(erreurCash, 'prixCash'); return }
     }
     if (step === 1 && !quartier.trim()) {
       // Un nom tapé en toutes lettres (sans cliquer la suggestion) est reconnu s'il figure dans la liste (B-010)
@@ -364,6 +370,8 @@ export function useNouveauBienForm() {
         body.details_appart = { entree_personnelle: typeCour === 'entree_personnelle' }
       }
 
+      if (avecPrixCash && parsePrix(prixCash) !== undefined) body.prix_cash = parsePrix(prixCash)
+
       if (!isTerrain && disponibilite === 'en_finition' && disponibleA) body.disponible_a = disponibleA
 
       const pieces = buildPieces()
@@ -442,6 +450,9 @@ export function useNouveauBienForm() {
     setTypeTransaction,
     prix,
     setPrix,
+    prixCash,
+    setPrixCash,
+    avecPrixCash,
     estMeuble,
     setEstMeuble,
     etatMeubleMaison,

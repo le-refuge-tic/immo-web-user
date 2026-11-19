@@ -51,6 +51,14 @@ describe('schémas du site (lot 15)', () => {
     expect(valider(schemaModificationBien, { ...ok, fraisVisite: '0' }).ok).toBe(true)
   })
 
+  it('modification d’un terrain : prix cash facultatif, ≥ 100 et inférieur au prix normal (lot 11)', () => {
+    const ok = { prix: '5000000', prixPromo: '', prixCash: '4400000', fraisVisite: '', description: '' }
+    expect(valider(schemaModificationBien, ok).ok).toBe(true)
+    expect(valider(schemaModificationBien, { ...ok, prixCash: '' }).ok).toBe(true)
+    expect(champs(valider(schemaModificationBien, { ...ok, prixCash: '50' }))).toEqual(['prixCash'])
+    expect(premier(valider(schemaModificationBien, { ...ok, prixCash: '5000000' }))).toBe('Le prix cash doit être inférieur au prix normal.')
+  })
+
   it('montants et numéros Mobile Money', () => {
     expect(valider(schemaLoyerGestion, { loyer: '0' }).ok).toBe(false)
     expect(valider(schemaLoyerGestion, { loyer: '50000' }).ok).toBe(true)
