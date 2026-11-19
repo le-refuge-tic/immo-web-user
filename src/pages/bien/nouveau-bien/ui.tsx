@@ -4,10 +4,15 @@ import { withAlpha } from '../../../utils/color'
 import { NumberInput } from '../../../shared/saisie/champs'
 // ─── UI components — dark-themed ──────────────────────────────────────────
 
-export function Card({ children, className }: { children: ReactNode; className?: string }) {
+/** `champ` repère la carte pour le défilement vers une erreur ; `invalide` la surligne. */
+export function Card({ children, className, champ, invalide }: { children: ReactNode; className?: string; champ?: string; invalide?: boolean }) {
   return (
-    <div className={`rounded-2xl border ${className ?? ''}`}
-      style={{ background: 'var(--p-card)', borderColor: 'var(--p-border)', padding: '1rem' }}>
+    <div className={`rounded-2xl border ${className ?? ''}`} data-champ={champ}
+      style={{
+        background: 'var(--p-card)', padding: '1rem',
+        borderColor: invalide ? 'var(--tx-red)' : 'var(--p-border)',
+        boxShadow: invalide ? '0 0 0 3px rgba(200,30,21,0.22)' : undefined,
+      }}>
       {children}
     </div>
   )
@@ -63,7 +68,7 @@ export function ChoiceList({ options, value, onChange, disabledValues, onDeselec
 export function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick}
-      className="px-4 py-2.5 rounded-xl border-2 text-xs font-bold text-center transition-all"
+      className="min-h-[44px] px-4 py-2.5 rounded-xl border-2 text-xs font-bold text-center transition-all"
       style={{
         borderColor: active ? BLUE : 'var(--p-border)',
         background: active ? withAlpha(BLUE, '18') : 'transparent',
@@ -87,11 +92,11 @@ export function Counter({ label, value, onChange, min = 0, max = COUNTER_MAX, it
       <span className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{label}</span>
       <div className="flex items-center gap-3">
         <button type="button" aria-label={`${nom} de moins`} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}
-          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold border disabled:opacity-40 transition-colors"
+          className="w-11 h-11 rounded-lg flex items-center justify-center text-lg font-bold border disabled:opacity-40 transition-colors"
           style={{ background: 'var(--p-deep)', borderColor: 'var(--p-border)', color: 'var(--p-text)' }}>−</button>
         <span className="w-6 text-center font-bold" style={{ color: 'var(--p-text)' }}>{value}</span>
         <button type="button" aria-label={`${nom} de plus`} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}
-          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-colors disabled:opacity-40"
+          className="w-11 h-11 rounded-lg flex items-center justify-center text-lg font-bold transition-colors disabled:opacity-40"
           style={{ background: withAlpha(BLUE, '20'), color: BLUE }}>+</button>
       </div>
     </div>

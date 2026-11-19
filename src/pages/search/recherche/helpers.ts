@@ -1,6 +1,7 @@
 import type { Bien } from '../../../types/api'
 import type { BienLocalisable } from '../../../types/recherche'
 import { prixParHeure } from '../../../utils/salleFete'
+import { unite } from '../../../utils/prix'
 import { BUDGET_TOLERANCE, BUDGET_TOLERANCE_HEURE } from './options'
 
 export function norm(s: string) {
@@ -19,7 +20,7 @@ export function matchLoc(bien: BienLocalisable, query: string) {
   return fields.some(f => f.includes(q))
 }
 
-type BienPrixComparable = Pick<Bien, 'prix' | 'type' | 'details_salle_fete'>
+type BienPrixComparable = Pick<Bien, 'prix' | 'type' | 'details_salle_fete'> & Partial<Pick<Bien, 'unite_prix' | 'transaction'>>
 
 /**
  * Prix comparé au budget et utilisé pour le tri. Pour une recherche de salles de fêtes,
@@ -52,10 +53,22 @@ export function isBudgetVoisin(bien: BienPrixComparable, prixMin: string, prixMa
   return false
 }
 
-/** Tri par prix croissant ou décroissant (nouvelle liste ; la liste d'origine n'est pas modifiée). */
+/** Ordre des groupes d'unités : un prix par mois, par nuit, par heure et un prix de vente ne se comparent pas. */
+const ORDRE_UNITES = ['mois', 'nuit', 'heure', 'total']
+const rangUnite = (b: BienPrixComparable) => {
+  const i = ORDRE_UNITES.indexOf(unite(b))
+  return i === -1 ? ORDRE_UNITES.length : i
+}
+
+/**
+ * Tri par prix croissant ou décroissant (nouvelle liste ; la liste d'origine n'est pas modifiée).
+ * Les biens sont d'abord regroupés par unité de prix (mois, nuit, heure, vente), puis triés
+ * par prix dans chaque groupe : on ne mélange pas un loyer, une nuitée et un prix de vente.
+ */
 export function trierParPrix<T extends BienPrixComparable>(biens: T[], sens: 'prix_asc' | 'prix_desc', type = ''): T[] {
   const signe = sens === 'prix_asc' ? 1 : -1
-  return [...biens].sort((a, b) => signe * (prixPourBudget(a, type) - prixPourBudget(b, type)))
+  return [...biens].sort((a, b) =>
+    (rangUnite(a) - rangUnite(b)) || signe * (prixPourBudget(a, type) - prixPourBudget(b, type)))
 }
 
 export function fmtFcfa(v: string) {

@@ -137,7 +137,7 @@ export default function BottomNav() {
               onClick={() => handleNav(item)}
               aria-label={item.label + (badge > 0 ? `, ${badge} non lu${badge > 1 ? 's' : ''}` : '')}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-col items-center gap-0.5 px-2 py-2 min-w-[56px] rounded-2xl transition-all duration-200 btn-press"
+              className="relative flex flex-col items-center justify-center gap-0.5 px-2 py-2 min-w-[56px] min-h-[44px] rounded-2xl transition-all duration-200 btn-press"
               style={{
                 background: active ? 'rgba(75,107,255,0.12)' : 'transparent',
                 border: active ? '1px solid rgba(75,107,255,0.20)' : '1px solid transparent',

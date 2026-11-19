@@ -224,9 +224,10 @@ export function useSearchPage() {
     const shownIds       = new Set([...mainResults, ...environs].map(b => b.id))
     const widePool       = [...wideBase, ...base.filter(b => !wideBase.some(w => w.id === b.id))]
     const pool           = widePool.filter(b => !shownIds.has(b.id))
-    const budgetSimilar  = (prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax, type)) : []
+    // Le tri par prix s'applique aussi à « Légèrement hors budget » et « Autres biens »
+    const budgetSimilar  = applySort((prixMin || prixMax) ? pool.filter(b => isBudgetVoisin(b, prixMin, prixMax, type)) : [], '')
     const budgetSimilarIds = new Set(budgetSimilar.map(b => b.id))
-    const autres         = pool.filter(b => !budgetSimilarIds.has(b.id))
+    const autres         = applySort(pool.filter(b => !budgetSimilarIds.has(b.id)), '')
 
     const distFromQuartier = (b: Bien): number | null => {
       if (!matchedQuartier) return null

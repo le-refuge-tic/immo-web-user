@@ -54,7 +54,7 @@ export default function FilterPanel({
         <div role="group" aria-labelledby="filtre-transaction" className="flex gap-1.5">
           {TRANSACTIONS.map(t => (
             <button key={t.key} onClick={() => setTransaction(t.key)} aria-pressed={transaction === t.key}
-              className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all"
+              className="flex-1 min-h-[44px] py-2 rounded-xl text-xs font-semibold transition-all"
               style={transaction === t.key ? tk.pillActive : tk.pillIdle}
             >
               {t.label}
@@ -71,7 +71,7 @@ export default function FilterPanel({
         <div role="group" aria-labelledby="filtre-type" className="flex flex-wrap gap-1.5">
           {TYPES.map(t => (
             <button key={t.key} onClick={() => setType(t.key)} aria-pressed={type === t.key}
-              className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
               style={type === t.key ? tk.pillActive : tk.pillIdle}
             >
               {t.label}
@@ -97,13 +97,13 @@ export default function FilterPanel({
             <div role="group" aria-labelledby="filtre-equipements" className="flex flex-wrap gap-1.5">
               {EQUIPEMENTS_CLES.map(e => (
                 <button key={e.code} type="button" onClick={() => basculerEquipement(e.code)} aria-pressed={equipements.includes(e.code)}
-                  className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                   style={equipements.includes(e.code) ? tk.pillActive : tk.pillIdle}>
                   {e.label}
                 </button>
               ))}
               <button type="button" onClick={() => setGarage(!garage)} aria-pressed={garage}
-                className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                 style={garage ? tk.pillActive : tk.pillIdle}>
                 Garage
               </button>
@@ -121,7 +121,7 @@ export default function FilterPanel({
             <div role="group" aria-labelledby="filtre-evenement" className="flex flex-wrap gap-1.5">
               {EVENEMENTS_CLES.map(e => (
                 <button key={e.code} type="button" onClick={() => setEvenement(evenement === e.code ? '' : e.code)} aria-pressed={evenement === e.code}
-                  className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                   style={evenement === e.code ? tk.pillActive : tk.pillIdle}>
                   {e.label}
                 </button>
@@ -135,7 +135,7 @@ export default function FilterPanel({
             <div role="group" aria-labelledby="filtre-capacite-salle" className="flex flex-wrap gap-1.5">
               {CAPACITES_SALLE.map(n => (
                 <button key={n} type="button" onClick={() => setCapaciteMin(capaciteMin === String(n) ? '' : String(n))} aria-pressed={capaciteMin === String(n)}
-                  className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                   style={capaciteMin === String(n) ? tk.pillActive : tk.pillIdle}>
                   {n}+
                 </button>
@@ -149,13 +149,13 @@ export default function FilterPanel({
             <div role="group" aria-labelledby="filtre-equipements-salle" className="flex flex-wrap gap-1.5">
               {EQUIPEMENTS_CLES_SALLE.map(e => (
                 <button key={e.code} type="button" onClick={() => basculerEquipement(e.code)} aria-pressed={equipements.includes(e.code)}
-                  className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                   style={equipements.includes(e.code) ? tk.pillActive : tk.pillIdle}>
                   {e.label}
                 </button>
               ))}
               <button type="button" onClick={() => setParking(!parking)} aria-pressed={parking}
-                className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                 style={parking ? tk.pillActive : tk.pillIdle}>
                 Parking
               </button>
@@ -172,7 +172,7 @@ export default function FilterPanel({
         <div role="group" aria-labelledby="filtre-sous-type" className="flex flex-wrap gap-1.5">
           {SOUS_TYPES.map(t => (
             <button key={t.key} onClick={() => setSousType(sousType === t.key ? '' : t.key)} aria-pressed={sousType === t.key}
-              className="flex-shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
               style={sousType === t.key ? tk.pillActive : tk.pillIdle}
             >
               {t.label}
@@ -229,7 +229,7 @@ export default function FilterPanel({
             return (
               <button key={p.max}
                 onClick={() => { setPrixMin(''); setPrixMax(active ? '' : String(p.max)) }}
-                className="flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                className="flex-shrink-0 min-h-[44px] px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={active ? {
                   background: 'rgba(255,107,53,0.14)',
                   border: '1px solid rgba(255,107,53,0.40)',
@@ -284,7 +284,7 @@ function Stepper({ value, onChange, max, tk, moins = 'Une pièce de moins', plus
       style={{ background: tk.fieldBg, border: `1px solid ${tk.fieldBdr}` }}>
       <button type="button" aria-label={moins} disabled={n === 0}
         onClick={() => onChange(n > 1 ? String(n - 1) : '')}
-        className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold disabled:opacity-40"
+        className="w-11 h-11 rounded-md flex items-center justify-center text-base font-bold disabled:opacity-40"
         style={{ background: tk.pillIdle.background as string, color: tk.textClr }}>
         −
       </button>
@@ -293,7 +293,7 @@ function Stepper({ value, onChange, max, tk, moins = 'Une pièce de moins', plus
       </span>
       <button type="button" aria-label={plus} disabled={n >= max}
         onClick={() => onChange(String(n + 1))}
-        className="w-6 h-6 rounded-md flex items-center justify-center text-sm font-bold disabled:opacity-40"
+        className="w-11 h-11 rounded-md flex items-center justify-center text-base font-bold disabled:opacity-40"
         style={{ background: 'rgba(75,107,255,0.14)', color: 'var(--tx-blue)' }}>
         +
       </button>

@@ -37,6 +37,7 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
     isSmallUnit,
     peutEtreMeuble,
     isMeuble,
+    champErreur,
   } = form
   return (
       <div className="space-y-4">
@@ -105,7 +106,7 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
         </Card>
 
         {isMeuble ? (
-          <Card>
+          <Card champ="prix" invalide={champErreur?.champ === 'prix'}>
             <Section title="Tarification (par durée de séjour)" />
             <div className="space-y-3">
               {[
@@ -136,7 +137,7 @@ export function StepTypePrix({ form }: { form: NouveauBienForm }) {
             </div>
           </Card>
         ) : (
-          <Card>
+          <Card champ="prix" invalide={champErreur?.champ === 'prix'}>
             <Section title={typeTransaction === 'location' ? 'Loyer mensuel (FCFA)' : 'Prix de vente (FCFA)'} />
             <MoneyInput value={prix} onChange={setPrix} />
           </Card>

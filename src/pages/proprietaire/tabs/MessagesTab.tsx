@@ -114,7 +114,7 @@ export function MessagesTab({ initialConvId, initialDraft }: { initialConvId?: n
             const name = other?.prenom || other?.pseudonyme || other?.nom || 'Contact'
             const initiale = (name[0] || '?').toUpperCase()
             const lastMsg = conv.dernierMessage
-            const lastContenu = lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : 'Nouvelle conversation')
+            const lastContenu = lastMsg?.contenu || (conv.bien ? "À propos d'un bien" : "Aucun message pour l'instant")
             const unread = conv.nonLus || 0
             const hasUnread = unread > 0
             const timeStr = formatConvTime(lastMsg?.created_at)
