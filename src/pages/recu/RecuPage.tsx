@@ -9,6 +9,8 @@ import type { PartieRecu, Recu } from '../../types/recu'
 import { apiMessage } from '../../utils/apiMessage'
 import { dateVisiteRecu } from '../../utils/dateVisite'
 import { withAlpha } from '../../utils/color'
+import { presenterFraisVisite } from '../../utils/promoVisite'
+import { useTarifFraisVisite } from '../../hooks/useTarifFraisVisite'
 
 // Couleurs d'accent selon le type de reçu (identiques à l'app mobile).
 // `texte` : la même teinte lisible en texte (≥ 4,5:1), en clair comme en sombre (FE-C-004).
@@ -74,6 +76,7 @@ export default function RecuPage() {
   const { type, refId } = useParams<{ type: string; refId: string }>()
   const navigate = useNavigate()
   const [recu, setRecu] = useState<Recu | null>(null)
+  const tarifVisite = useTarifFraisVisite()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
@@ -108,6 +111,10 @@ export default function RecuPage() {
   const isIntegration = type === 'integration'
   const isLoyer = type === 'loyer'
   const isDepot = type === 'depot'
+  // Lot 10 : un reçu de visite payé au tarif promotionnel le dit, avec le prix normal.
+  const promoVisite = presenterFraisVisite(Number(recu?.montant ?? 0), tarifVisite)
+  const mentionPromo = !isDepot && !isLoyer && !isIntegration && promoVisite.barre !== null
+    ? `${promoVisite.offre} · prix normal ${promoVisite.barre.toLocaleString('fr-FR')} FCFA` : null
   const theme = isDepot ? DEPOT : isLoyer ? LOYER : VISITE
   const titre = isDepot ? 'REÇU DE RECHARGEMENT' : isIntegration ? "REÇU D'INTÉGRATION" : isLoyer ? 'REÇU DE LOYER' : 'REÇU DE VISITE'
   const titreCourt = isDepot ? 'Reçu de rechargement' : isIntegration ? "Reçu d'intégration" : isLoyer ? 'Reçu de loyer' : 'Reçu de visite'
@@ -186,6 +193,7 @@ export default function RecuPage() {
         { label: 'Date', value: fmtDate(recu.date_paiement) },
         { label: 'Opérateur', value: operateur },
         ...(recu.telephone_paiement ? [{ label: 'Numéro', value: String(recu.telephone_paiement) }] : []),
+        ...(mentionPromo ? [{ label: 'Tarif', value: mentionPromo }] : []),
       ]
       // Détail intégration (avance, cautions…)
       if (isIntegration && recu.details) {
@@ -249,6 +257,7 @@ export default function RecuPage() {
               <p className="text-white/70 text-xs">{isLoyer ? 'Montant payé' : 'Montant total payé'}</p>
               <p className="text-white font-black text-[28px] leading-tight mt-1.5">{fmt(recu.montant)} FCFA</p>
               <p className="text-white/60 text-caption mt-1">{isLoyer ? '' : 'via '}{operateur} · {fmtDate(recu.date_paiement)}</p>
+              {mentionPromo && <p className="text-white/80 text-caption font-semibold mt-1">{mentionPromo}</p>}
             </div>
             {/* Cachet PAYÉ */}
             <div

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { IcChat } from './shared'
 import { BLUE, bienLabel, fmtPrix, statutVisite, BLUE_TX } from './outils'
-import { isEchouee, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
+import { isEchouee, isExpiree, isDatePassee, minutesAvant, isUrgente } from './VisiteCard'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
 import type { Visite } from '../../../types/api'
 import { withAlpha } from '../../../utils/color'
+import { MOT_CRENEAU_EXPIRE, phraseCreneauExpire } from '../../../utils/creneauExpire'
 
 
 /** Modal de détail — thème clair, sections bien délimitées. */
@@ -29,8 +30,11 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
 }) {
   const [confirmEffectuee, setConfirmEffectuee] = useState(false)
   const echouee = isEchouee(v)
-  const urgente = !echouee && isUrgente(v, now)
-  const { label: sLabel, color: sColor } = echouee ? { label: 'Échouée', color: 'var(--tx-red)' } : statutVisite(v.statut)
+  const expiree = isExpiree(v)
+  const urgente = !echouee && !expiree && isUrgente(v, now)
+  const { label: sLabel, color: sColor } = echouee
+    ? { label: 'Échouée', color: 'var(--tx-red)' }
+    : expiree ? { label: MOT_CRENEAU_EXPIRE, color: 'var(--tx-amber)' } : statutVisite(v.statut)
   const clientNom = `${v.client?.prenom || ''} ${v.client?.nom || ''}`.trim() || 'Client'
   const initiale = clientNom[0]?.toUpperCase() || '?'
   const bType = v.bien ? bienLabel(v.bien) : ''
@@ -121,7 +125,16 @@ export function ReservationDetailModal({ v, onClose, chatLoadingId, onChat, onCo
               Cette visite ne s'est pas tenue.
             </div>
           )}
-          {v.statut === 'contre_proposee' && !echouee && (
+          {expiree && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
+              style={{ background: '#FFFBEB', borderColor: 'var(--c-amber-soft)', color: 'var(--tx-amber)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              {phraseCreneauExpire(v, 'proprietaire')} Le client peut redemander un créneau ; vous pouvez aussi lui écrire.
+            </div>
+          )}
+          {v.statut === 'contre_proposee' && !echouee && !expiree && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold"
               style={{ background: '#FFFBEB', borderColor: 'var(--c-amber-soft)', color: 'var(--tx-amber)' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-shrink-0">

@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { bienTypeLabel } from '../../../utils/bienType'
-import { fraisVisiteAPayer, libelleFraisVisite } from '../../../utils/fraisVisite'
+import { fraisVisiteAPayer } from '../../../utils/fraisVisite'
 import { STATUT_META, SUPPORT_VISITE_PHONE } from './constants'
 import { fmtDate, isDatePasseeVisite, isEchoueeVisite } from './helpers'
 import { dateEffectiveVisite } from '../../../utils/dateVisite'
 import { apiMessage } from '../../../utils/apiMessage'
 import type { Visite } from '../../../types/api'
 import { CouvertureVisite } from './CouvertureVisite'
+import { PrixVisite } from '../../../components/PrixVisite'
+import { estCreneauExpire, phraseCreneauExpire } from '../../../utils/creneauExpire'
 
 type VisiteCardProps = {
   visite: Visite
@@ -19,17 +21,19 @@ type VisiteCardProps = {
   onPay: (v: Visite) => void
   onMessage: (bienId: number) => void
   onContacterEchouee: (v: Visite) => void
+  onNouveauCreneau: (bienId: number) => void
   onFeedback: (v: Visite) => void
   onPayIntegration: (bienId: number) => void
 }
 
-export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onFeedback, onPayIntegration }: VisiteCardProps) {
+export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, onReproposer, onMarquerEffectuee, onIntegration, onPay, onMessage, onContacterEchouee, onNouveauCreneau, onFeedback, onPayIntegration }: VisiteCardProps) {
   const isEchouee = isEchoueeVisite(v)
   const isDatePassee = isDatePasseeVisite(v)
-  const meta = isEchouee ? STATUT_META.echouee : (STATUT_META[v.statut] || { label: v.statut, color: 'var(--c-grey)', bg: '#F4F6FA' })
+  const isExpiree = estCreneauExpire(v)
+  const meta = isEchouee ? STATUT_META.echouee : isExpiree ? STATUT_META.expiree : (STATUT_META[v.statut] || { label: v.statut, color: 'var(--c-grey)', bg: '#F4F6FA' })
   const bien = v.bien
   const typeStr = bien ? bienTypeLabel(bien) : 'Bien'
-  const isCP = v.statut === 'contre_proposee' && !isEchouee
+  const isCP = v.statut === 'contre_proposee' && !isEchouee && !isExpiree
   const [reproposing, setReproposing] = useState(false)
   const [newDate, setNewDate] = useState('')
   const [newTime, setNewTime] = useState('')
@@ -151,17 +155,33 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
         </button>
       )}
 
-      {/* Contre-proposition : créneau dépassé */}
-      {isCP && isDatePassee && (
-        <div className="flex items-start gap-2 p-3 rounded-xl mb-3"
-          style={{ background: 'rgba(230,126,34,0.08)', border: '1px solid rgba(230,126,34,0.35)' }}>
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-          </svg>
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--tx-amber)' }}>
-            Le créneau proposé est dépassé. Attendez que le gestionnaire propose une nouvelle date.
-          </p>
-        </div>
+      {/* Lot 10 : créneau passé sans confirmation (en attente ou contre-proposé) */}
+      {isExpiree && (
+        <>
+          <div className="flex items-start gap-2 p-3 rounded-xl mb-3"
+            style={{ background: 'rgba(230,126,34,0.08)', border: '1px solid rgba(230,126,34,0.35)' }}>
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--tx-amber)' }}>
+              {phraseCreneauExpire(v, 'client')} Aucun paiement n’est dû pour ce créneau.
+            </p>
+          </div>
+          <div className="flex gap-2 flex-wrap mb-3">
+            {bien?.id != null && (
+              <button onClick={() => onNouveauCreneau(bien.id)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white"
+                style={{ background: 'var(--c-primary)' }}>
+                Proposer un nouveau créneau
+              </button>
+            )}
+            <a href={`https://wa.me/${SUPPORT_VISITE_PHONE.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold text-center"
+              style={{ border: '1.5px solid var(--c-line)', color: 'var(--tx-blue)' }}>
+              Contacter le support
+            </a>
+          </div>
+        </>
       )}
 
       {/* Integration decision */}
@@ -241,7 +261,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"
             style={{ background: 'var(--c-orange-dark)' }}
           >
-            Payer les frais de visite ({libelleFraisVisite(fraisVisiteAPayer(v))})
+            Payer les frais de visite (<PrixVisite montant={fraisVisiteAPayer(v)} compact />)
           </button>
         )}
 
@@ -271,7 +291,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
           </button>
         )}
 
-        {!isEchouee && (v.statut === 'en_attente' || v.statut === 'confirmee') && (
+        {!isEchouee && !isExpiree && (v.statut === 'en_attente' || v.statut === 'confirmee') && (
           <button
             onClick={() => onAnnuler(v)}
             className="px-3 py-2 rounded-xl text-xs font-bold"

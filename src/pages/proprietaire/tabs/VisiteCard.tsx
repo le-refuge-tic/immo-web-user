@@ -1,13 +1,18 @@
 import type { VisiteReservation } from '../../../types/proprietaire'
 import { dateEffectiveVisite, minutesAvantVisite } from '../../../utils/dateVisite'
+import { estCreneauExpire, STATUTS_NON_CONFIRMES } from '../../../utils/creneauExpire'
 
 // ─── Tab: Réservations ────────────────────────────────────────────────────────
 export function isEchouee(v: VisiteReservation): boolean {
-  if (v.statut === 'effectuee' || v.statut === 'annulee') return false
+  // Lot 10 : une visite non confirmée au créneau passé est « Créneau expiré », pas échouée.
+  if (v.statut === 'effectuee' || v.statut === 'annulee' || STATUTS_NON_CONFIRMES.includes(v.statut)) return false
   const raw = dateEffectiveVisite(v)
   if (!raw) return false
   return new Date(raw).getTime() < Date.now()
 }
+
+/** Lot 10 : créneau passé sans confirmation (en attente ou contre-proposé). */
+export const isExpiree = (v: VisiteReservation): boolean => estCreneauExpire(v)
 
 /** Date de la visite déjà passée (sans le délai de grâce de isEchouee) — désactive Confirmer. */
 export function isDatePassee(v: VisiteReservation): boolean {

@@ -21,6 +21,7 @@ import { FeedbackModal } from './visites/FeedbackModal'
 import { ConfirmDialog } from './visites/ConfirmDialog'
 import { AnnulationVisiteDialog } from '../../components/AnnulationVisiteDialog'
 import type { ChoixAnnulation } from '../../utils/annulationVisite'
+import { estCreneauExpire } from '../../utils/creneauExpire'
 
 export default function MesVisitesPage() {
   usePageTitle('Mes visites')
@@ -64,11 +65,13 @@ export default function MesVisitesPage() {
 
   const filtered = visites.filter(v => {
     const echouee = isEchoueeVisite(v)
+    const expiree = estCreneauExpire(v)
     if (tab === 0) return true
-    if (tab === 1) return !echouee && ['en_attente', 'contre_proposee', 'confirmee'].includes(v.statut)
+    if (tab === 1) return !echouee && !expiree && ['en_attente', 'contre_proposee', 'confirmee'].includes(v.statut)
     if (tab === 2) return echouee || ['effectuee', 'annulee'].includes(v.statut)
     if (tab === 3) return v.statut === 'annulee'
     if (tab === 4) return echouee
+    if (tab === 5) return expiree
     return true
   })
 
@@ -217,7 +220,7 @@ export default function MesVisitesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 md:pb-8">
-            {filtered.map(v => <div key={v.id} id={`visite-${v.id}`} className={`rounded-2xl scroll-mt-40 ${focusId === v.id ? 'ring-2 ring-brand ring-offset-2 ring-offset-transparent' : ''}`}><VisiteCard visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(bienId) => openChat(bienId)} onContacterEchouee={handleContacterEchouee} onFeedback={avis.openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} /></div>)}
+            {filtered.map(v => <div key={v.id} id={`visite-${v.id}`} className={`rounded-2xl scroll-mt-40 ${focusId === v.id ? 'ring-2 ring-brand ring-offset-2 ring-offset-transparent' : ''}`}><VisiteCard visite={v} onAnnuler={handleAnnuler} onAccepterCP={handleAccepterCP} onRefuserCP={handleRefuserCP} onReproposer={handleReproposer} onMarquerEffectuee={handleMarquerEffectuee} onIntegration={handleIntegration} onPay={setShowPay} onMessage={(bienId) => openChat(bienId)} onContacterEchouee={handleContacterEchouee} onNouveauCreneau={(bienId) => navigate(`/reservation/${bienId}`)} onFeedback={avis.openFeedback} onPayIntegration={(bienId) => navigate(`/paiement-integration/${bienId}`)} /></div>)}
           </div>
         )}
       </div>
