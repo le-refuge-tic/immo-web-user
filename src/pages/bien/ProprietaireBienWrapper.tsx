@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import { useNotifications } from '../../context/useNotifications'
+import { useTheme } from '../../context/useTheme'
 import BienDetailPage from './BienDetailPage'
 import logoUrl from '../../assets/REFUGE-LOGO.webp'
 import { withAlpha } from '../../utils/color'
@@ -35,6 +36,7 @@ export default function ProprietaireBienWrapper() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
+  const isDark = useTheme().theme === 'dark'
   const { unreadMessages, unreadAlertesEspace: unreadAlertes } = useNotifications()
   const fromDashboard = !!(location.state as { fromDashboard?: boolean } | null)?.fromDashboard
   const [isScrolled, setIsScrolled] = useState(fromDashboard)
@@ -56,7 +58,7 @@ export default function ProprietaireBienWrapper() {
   }
 
   return (
-    <div className="proprio-root proprio-light flex flex-col h-dvh overflow-hidden"
+    <div className={`proprio-root${isDark ? '' : ' proprio-light'} flex flex-col h-dvh overflow-hidden`}
       style={{ background: 'var(--p-deep)' }}>
 
       {/* ── Navbar (même comportement que le dashboard) ── */}
