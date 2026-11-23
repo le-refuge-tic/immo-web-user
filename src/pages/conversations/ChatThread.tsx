@@ -19,6 +19,7 @@ import { SlotModal, type SlotColors } from './chat/SlotModal'
 import { ProfilePanel } from './chat/ProfilePanel'
 import { ComplaintModal } from './chat/ComplaintModal'
 import { MessageList } from './chat/MessageList'
+import type { EtatPaiementVisite } from './chat/SlotBubble'
 import { BackIcon, DotsV, SendIcon, CalIcon, XIcon, PinFill, ChevDown } from './chat/icons'
 import { BIEN_TYPE_LABELS, SOUS_TYPE_LABELS, avatarGrad, initial, fmtSlot, statutCreneau, displayName, roleLabel, getChatColors } from './chat/helpers'
 const WS_URL = API_ORIGIN
@@ -46,6 +47,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const [counterFor, setCounterFor] = useState<ChatMessage | null>(null)
   const [proposing, setProposing] = useState(false)
   const [paying, setPaying] = useState(false)
+  const [paiementVisite, setPaiementVisite] = useState<EtatPaiementVisite | undefined>(undefined)
   const [codeCopied, setCodeCopied] = useState(false)
   const [confirmDeleteForAllId, setConfirmDeleteForAllId] = useState<number | null>(null)
   const [complainMsg, setComplainMsg] = useState<ChatMessage | null>(null)
@@ -217,14 +219,27 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     } catch (e) { showError(e) }
   }
   const copyCode = () => { if (!conv?.code_visite) return; navigator.clipboard?.writeText(conv.code_visite); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000) }
+  const trouverVisite = useCallback(async () => {
+    if (!conv?.bien?.id) return undefined
+    const bienId = conv.bien.id
+    const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
+    return l.find(x => conv.visite_id ? x.id === conv.visite_id : x.bien?.id === bienId)
+  }, [conv?.bien?.id, conv?.visite_id])
+  // Le bouton « Payer maintenant » n'apparaît que si les frais restent dus (sinon « payés »).
+  useEffect(() => {
+    if (!isClientRole || !conv?.bien?.id) return
+    let actif = true
+    trouverVisite()
+      .then(v => { if (actif && v) setPaiementVisite(v.paiement_effectue ? 'paye' : Number(v.frais_visite) > 0 ? 'du' : 'gratuit') })
+      .catch(() => { if (actif) setPaiementVisite('du') })
+    return () => { actif = false }
+  }, [isClientRole, conv?.bien?.id, trouverVisite])
   const payer = async () => {
     if (!conv?.bien?.id) return; setPaying(true)
-    const bienId = conv.bien.id
     try {
-      const d = await visitesApi.mesVisites(); const l = Array.isArray(d) ? d : d.data || []
-      const v = l.find(x => conv.visite_id ? x.id === conv.visite_id : x.bien?.id === bienId)
+      const v = await trouverVisite()
       if (!v) { showError({ response: { data: { message: 'Aucune visite trouvée.' } } }); setPaying(false); return }
-      if (v.paiement_effectue) { showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
+      if (v.paiement_effectue) { setPaiementVisite('paye'); showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
       if (!(Number(v.frais_visite) > 0)) { showError({ response: { data: { message: 'Cette visite est gratuite.' } } }); setPaying(false); return }
       navigate('/mes-visites', { state: { openPayForVisiteId: v.id } })
     } catch { showError({ response: { data: { message: 'Une erreur est survenue.' } } }) }
@@ -391,7 +406,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
           loading={loading} loadError={loadError} onRetry={loadThread} visible={visible} userId={user?.id} isDark={isDark} colors={colors}
           menuId={menuId} onToggleMenu={(id, pos) => { setMenuId(id); setMenuPos(pos) }}
           onComplain={setComplainMsg}
-          slot={{ bienId: conv?.bien?.id, isClientRole, paying, onRepondre: repondre, onPayer: payer, onProposerNouveau: () => setShowSlot(true) }} />
+          slot={{ bienId: conv?.bien?.id, isClientRole, paying, paiement: paiementVisite, onRepondre: repondre, onPayer: payer, onProposerNouveau: () => setShowSlot(true) }} />
 
         {/* Bouton scroll bas */}
         {!atBottom && (
