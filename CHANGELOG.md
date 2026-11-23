@@ -11,6 +11,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (lot 12 — favori sur la fiche)
+- Bouton « Ajouter aux favoris » / « Retirer des favoris » sur la fiche d'un bien : sur la photo (téléphone et bureau) et dans la barre d'actions du bas sur téléphone. Il utilise la même liste de favoris que les cartes et la page Favoris (cache React Query) : un clic met tout à jour, sans rechargement.
+- Toasts « Ajouté aux favoris » / « Retiré des favoris » ; en cas d'échec, « Favori non enregistré. Réessayez. » et le bouton garde son état réel.
+- Hors connexion, le bouton mène à la connexion puis ramène sur la fiche. Masqué pour le propriétaire du bien.
+
 ### Ajouté (lot 11 — prix cash des terrains)
 - Terrain en vente : deux prix clairement libellés dans « Nouveau bien » et dans la modification — « Prix normal (paiement échelonné) », obligatoire, et « Prix si paiement cash », facultatif, qui doit être inférieur au prix normal (au moins 100 F). La réduction s'affiche en direct (« soit −12 % / −300 000 F »).
 - Récapitulatif de création (qui n'affichait aucun prix pour un terrain) et fiche du bien : le prix normal et le prix cash s'affichent côte à côte, sans prix barré ni badge « PROMO » (ce n'est pas une offre limitée dans le temps).
