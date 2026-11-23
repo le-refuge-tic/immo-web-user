@@ -53,8 +53,9 @@ export default function CookieBanner() {
     >
       <p id="cookie-title" className="text-sm font-bold text-text-dark">Cookies et mesure d’audience</p>
       <p id="cookie-desc" className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--tx-secondary)' }}>
-        Nous utilisons uniquement les cookies nécessaires au fonctionnement du site. Avec votre accord, nous mesurons aussi
-        la fréquentation de façon anonyme, sans cookie publicitaire.
+        REFUGE ne dépose aucun cookie : seul le stockage local nécessaire au fonctionnement est utilisé. Avec votre accord,
+        nous mesurons aussi la fréquentation, sans cookie ni donnée d’identification.{' '}
+        <a href="/cookies" className="font-semibold underline">En savoir plus</a>.
         {choix && <> Choix actuel : <strong>{choix.analytics ? 'mesure acceptée' : 'mesure refusée'}</strong>.</>}
       </p>
       <div className="grid grid-cols-2 gap-2 mt-3">

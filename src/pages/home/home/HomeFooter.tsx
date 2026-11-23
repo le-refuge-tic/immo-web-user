@@ -41,10 +41,11 @@ export default function HomeFooter({ isDark, tk }: { isDark: boolean; tk: Tokens
               { label: 'Mes favoris', path: '/favoris' },
               { label: 'Mes visites', path: '/mes-visites' },
             ]},
-            // CGU à ajouter quand leur texte sera fourni par l'éditeur.
             { heading: 'Légal', links: [
-              { label: 'Mentions légales', path: '/mentions-legales' },
+              { label: 'Conditions générales d’utilisation', path: '/cgu' },
               { label: 'Politique de confidentialité', path: '/confidentialite' },
+              { label: 'Politique cookies', path: '/cookies' },
+              { label: 'Mentions légales', path: '/mentions-legales' },
               { label: 'Gérer les cookies', path: '#cookies' },
             ]},
           ].map(col => (

@@ -1,118 +1,167 @@
 import { Link } from 'react-router-dom'
-import LegalLayout, { LegalSection, ACompleter } from './LegalLayout'
-import { editeur, cadreLegal, prestataires } from '../../data/legal'
+import LegalLayout, { LegalSection, LegalTable, EmailContact, RecepisseApdp } from './LegalLayout'
+import { editeur, cadreLegal, destinataires, responsableTraitement, MAJ } from '../../data/legal'
 import { openConsentSettings } from '../../lib/analytics'
 
-/**
- * Politique de confidentialité de la plateforme, rédigée d'après les données
- * réellement traitées par le backend et les applications (inventaire du code).
- * Les durées de conservation ne sont pas définies dans le code : à compléter.
- */
+const DONNEES: [string, string][] = [
+  ['Compte et identité', 'Nom, prénom, civilité, numéro de téléphone, adresse email, numéro WhatsApp, rôle choisi (prospect ou propriétaire), mot de passe (conservé sous forme hachée)'],
+  ['Connexion et sécurité', 'Jeton de session, jeton d’appareil de confiance, code de vérification à usage unique (OTP)'],
+  ['Biens immobiliers', 'Adresse, ville, quartier, coordonnées GPS, prix et conditions financières (loyer ou prix de vente, avances, cautions, frais de visite, commission d’agence), caractéristiques du bien'],
+  ['Coordonnées des propriétaires', 'Nom, prénom, téléphone et email du propriétaire saisis par un commercial, y compris lorsque le propriétaire n’est pas inscrit sur la plateforme'],
+  ['Visites', 'Bien concerné, date et heure souhaitées, note de 1 à 5, commentaire, signalement d’un problème météo'],
+  ['Paiements', 'Référence interne, statut et identifiant de transaction, montant, moyen de paiement, numéro de téléphone utilisé pour le paiement. Aucun numéro de carte bancaire n’est conservé par REFUGE.'],
+  ['Contrats de bail et loyers', 'Bien et locataire concernés, dates de début et de fin, loyer mensuel, jour d’échéance, mois prépayés, montant d’intégration, notes ou conditions particulières'],
+  ['Messagerie interne', 'Messages échangés, plaintes et signalements'],
+  ['Préférences de recherche', 'Ville, budget maximum, surface minimum, nombre de chambres, nombre de voisins, calme requis, animaux admis, jardin, accessibilité PMR, contraintes libres'],
+  ['Notifications', 'Identifiant d’abonnement aux notifications du navigateur'],
+  ['Mesure d’audience', 'Statistiques de fréquentation, uniquement si vous y consentez'],
+]
+
+const FINALITES: [string, string][] = [
+  ['Création et gestion du compte utilisateur, sécurisation de l’accès par double authentification', 'Compte et identité ; connexion et sécurité'],
+  ['Publication et gestion des annonces de biens immobiliers', 'Biens immobiliers ; coordonnées des propriétaires'],
+  ['Organisation des visites et recueil des retours de visite', 'Visites'],
+  ['Paiement des visites, des loyers et des frais d’intégration ; rechargement du portefeuille électronique', 'Paiements'],
+  ['Établissement et suivi des contrats de bail et des loyers', 'Contrats de bail et loyers'],
+  ['Échanges entre utilisateurs par la messagerie interne ; traitement des plaintes et signalements', 'Messagerie interne'],
+  ['Enregistrement des préférences de recherche', 'Préférences de recherche'],
+  ['Envoi de notifications', 'Notifications'],
+  ['Mesure d’audience, uniquement avec votre consentement', 'Mesure d’audience'],
+]
+
+const DROITS = [
+  'droit d’accès aux informations collectées', 'droit d’interrogation', 'droit de modification', 'droit de rectification',
+  'droit à la portabilité', 'droit d’opposition au traitement', 'droit de suppression de données', 'droit à l’oubli',
+  'droit à réparation',
+]
+
+/** Politique de confidentialité — texte officiel du 6 novembre 2026 (article 415 du code du numérique). */
 export default function ConfidentialitePage() {
+  const contacts = <><EmailContact /> · {editeur.telephones.join(' / ')}</>
   return (
-    <LegalLayout title="Politique de confidentialité" description="Données personnelles traitées par REFUGE, finalités, destinataires, durée de conservation et vos droits.">
+    <LegalLayout title="Politique de confidentialité" miseAJour={MAJ.confidentialite} description="Données personnelles traitées par REFUGE, finalités, destinataires, durées de conservation et vos droits.">
       <p>
-        {editeur.nom} édite la plateforme immobilière REFUGE (site web et application mobile). Cette politique explique
-        quelles données nous traitons, pourquoi, avec qui elles sont partagées et quels sont vos droits, conformément à
-        la {cadreLegal.loi} et aux règles de l’{cadreLegal.apdp.nom}.
+        La présente politique de confidentialité est fondée sur l’article 415 figurant au livre cinquième du code du numérique
+        relatif à la protection des données à caractère personnel. Elle mentionne la preuve de l’accomplissement des
+        formalités préalables auprès de l’Autorité de Protection des Données Personnelles (APDP) et vous aide à comprendre
+        quelles informations nous collectons et traitons dans notre entreprise {editeur.nom}, éditrice de la plateforme REFUGE,
+        les finalités visées ainsi que la politique de management mise en place pour respecter la législation en vigueur en
+        matière de protection des données personnelles et de la vie privée en République du Bénin.
       </p>
+      <p>Veuillez lire attentivement cette politique de confidentialité qui nous engage.</p>
 
-      <LegalSection title="Responsable du traitement">
+      <LegalSection title="1. Responsable du traitement">
+        <LegalTable lignes={[
+          ['Responsable du traitement', `${editeur.nom} (${editeur.formeJuridique}), éditrice de la plateforme REFUGE`],
+          ['Représentant légal', `${responsableTraitement.nom}, responsable du traitement`],
+          ['RCCM', editeur.rccm],
+          ['Adresse', editeur.adresse],
+          ['Contact téléphonique', responsableTraitement.telephone],
+          ['Adresse email', <a key="e" href={`mailto:${responsableTraitement.email}`}>{responsableTraitement.email}</a>],
+        ]} />
+      </LegalSection>
+
+      <LegalSection title="2. Formalités préalables">
+        <p>Le traitement est poursuivi conformément au récépissé délivré par l’Autorité de Protection des Données Personnelles (APDP).</p>
+        <p><RecepisseApdp /></p>
+        <p>Vous pouvez contacter cette autorité et vérifier les termes de la présente par le biais des coordonnées suivantes :</p>
+        <LegalTable lignes={[
+          ['Autorité', cadreLegal.apdp.nom],
+          ['Siège', cadreLegal.apdp.siege],
+          ['Téléphone', cadreLegal.apdp.telephone],
+          ['Email · Site', <><a key="m" href={`mailto:${cadreLegal.apdp.email}`}>{cadreLegal.apdp.email}</a> · <a key="s" href={cadreLegal.apdp.site} target="_blank" rel="noreferrer">www.apdp.bj</a></>],
+        ]} />
+      </LegalSection>
+
+      <LegalSection title="3. Les données personnelles objet du traitement">
+        <LegalTable entetes={['Catégorie', 'Données collectées']} lignes={DONNEES} />
         <p>
-          {editeur.nom}, {editeur.siege}. Contact :{' '}
-          <span className="select-all text-text-dark font-medium">{editeur.email}</span> · {editeur.telephones[0]}.
+          <strong>Caractère obligatoire des réponses.</strong> Pour créer un compte, le nom, le prénom, le mot de passe, le rôle
+          et le numéro de téléphone sont obligatoires : sans eux, le compte ne peut pas être créé. La civilité, l’adresse email
+          et le numéro WhatsApp sont facultatifs à l’inscription.
         </p>
       </LegalSection>
 
-      <LegalSection title="Données que nous traitons">
+      <LegalSection title="4. Les opérations effectuées">
+        <p>
+          {editeur.nom} ne collecte des informations personnelles relatives à ses utilisateurs (prospects, propriétaires,
+          commerciaux, superviseurs et administrateurs) et aux propriétaires dont les coordonnées sont saisies par un
+          commercial, que pour le besoin exclusif de services proposés par elle-même.
+        </p>
+        <p>
+          Les informations recueillies font l’objet des opérations suivantes : la collecte, l’enregistrement, l’organisation,
+          la conservation, la consultation, l’utilisation, la modification, la communication par transmission et l’effacement.
+          Il s’agit d’un traitement électronique, destiné à l’atteinte des finalités ci-dessous.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="5. Les finalités des traitements">
+        <LegalTable entetes={['Finalité', 'Données concernées']} lignes={FINALITES} />
+        <p>
+          Chaque traitement correspond à une finalité précise et unique. Dans l’hypothèse où un seul et même traitement
+          pourrait servir plusieurs finalités, votre consentement sera recueilli distinctement pour chacune d’elles.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="6. Destinataires, communication et transfert">
+        <p>
+          Ont accès aux données : la direction (responsable du traitement), pour les données nécessaires à l’exercice de ses
+          fonctions, et le service informatique (développeurs de la plateforme), pour les données nécessaires à
+          l’exploitation, à la maintenance et à la sécurité de la plateforme. Les données sont également communiquées aux
+          sous-traitants suivants :
+        </p>
+        <LegalTable entetes={['Destinataire', 'Rôle et données transmises', 'Pays de conservation']} lignes={destinataires.map(d => [d.nom, d.role, d.pays])} />
+      </LegalSection>
+
+      <LegalSection title="7. Durée du traitement, conservation et stockage">
+        <LegalTable entetes={['Données', 'Durée de conservation']} lignes={[
+          ['Données de navigation et de connexion', '1 an après la suppression du compte'],
+          ['Données de profil et transactions financières', '5 ans à compter de la clôture du compte, en raison des obligations de régulation financière applicables dans la zone UEMOA/BCEAO'],
+          ['Compte inactif depuis plus de 3 ans', 'Suppression du compte après un préavis par email ou par SMS ; les données sont ensuite conservées pour les durées ci-dessus'],
+        ]} />
+        <p>
+          Les données sont conservées sous la forme de dossier électronique : en Allemagne (Francfort) pour la base de données
+          et l’API ; aux États-Unis pour l’hébergement de l’application web ; en Europe de l’Ouest pour les sauvegardes et
+          journaux d’activité (Cloudflare R2) ; dans l’Union européenne (Francfort) pour la centralisation des journaux
+          (Axiom) ; dans l’Union européenne (Belgique et Pays-Bas) pour les notifications de l’application Android
+          (Firebase). Après les durées ci-dessus, vos données sont supprimées.
+        </p>
+        <p>Pour plus d’informations sur les durées de conservation : {contacts}.</p>
+      </LegalSection>
+
+      <LegalSection title="8. Les droits des personnes concernées">
+        <p>La loi vous donne sur vos données personnelles les droits suivants :</p>
         <ul>
-          <li><strong>Compte</strong> : civilité, nom, prénom, numéro de téléphone, numéro WhatsApp, email, mot de passe (enregistré uniquement sous forme chiffrée), photo de profil, rôles (client, locataire, propriétaire, démarcheur).</li>
-          <li><strong>Vérification d’identité</strong> : copie de la carte d’identité (CIP) et attestation IFU, lorsque vous les fournissez pour publier ou gérer des biens.</li>
-          <li><strong>Annonces</strong> : description, prix, photos et localisation (ville, quartier, coordonnées) des biens publiés.</li>
-          <li><strong>Visites et échanges</strong> : demandes et créneaux de visite, messages échangés dans la messagerie, avis laissés après une visite.</li>
-          <li><strong>Paiements</strong> : frais de visite, loyers, recharges et retraits du portefeuille, numéro Mobile Money de retrait. Nous ne conservons aucune donnée de carte bancaire : les paiements sont traités par les prestataires listés plus bas.</li>
-          <li><strong>Sécurité</strong> : codes envoyés par SMS (conservés sous forme chiffrée et pour une durée courte), tentatives de connexion, jetons de session.</li>
-          <li><strong>Notifications</strong> : identifiant de l’appareil ou du navigateur pour vous envoyer des notifications, si vous les activez.</li>
-          <li><strong>Mesure d’audience</strong> : statistiques de fréquentation anonymes, sans cookie et sans donnée d’identification, uniquement si vous l’acceptez.</li>
+          {DROITS.map(d => <li key={d}>{d} ;</li>)}
+          <li>
+            droit de retirer votre consentement à tout moment, notamment pour la mesure d’audience, via{' '}
+            <button type="button" onClick={openConsentSettings} className="font-semibold text-primary dark:text-brand-soft hover:underline">
+              « Gérer les cookies »
+            </button>.
+          </li>
         </ul>
+        <p>
+          Vous pouvez consulter la définition de ces droits sur le site de l’APDP :{' '}
+          <a href={cadreLegal.apdp.site} target="_blank" rel="noreferrer">www.apdp.bj</a>. Vous pouvez les exercer en écrivant
+          par e-mail à la personne chargée du suivi des réclamations, {responsableTraitement.nom}, responsable du traitement :{' '}
+          <EmailContact />. Nous garantissons une réponse dans un délai d’un (01) mois à compter de la réception de votre
+          demande.
+        </p>
       </LegalSection>
 
-      <LegalSection title="Pourquoi nous les utilisons">
+      <LegalSection title="9. Plaintes">
+        <p>Vous avez le droit de déposer une plainte auprès de l’Autorité de Protection des Données Personnelles. La plainte est :</p>
         <ul>
-          <li>Créer et sécuriser votre compte, vous connecter avec un code SMS.</li>
-          <li>Publier, vérifier (modération) et afficher les annonces.</li>
-          <li>Organiser les visites et vous mettre en relation avec les propriétaires et les locataires.</li>
-          <li>Encaisser les frais et loyers, gérer le portefeuille et les retraits.</li>
-          <li>Vous prévenir des événements qui vous concernent (visite confirmée, message, loyer…).</li>
-          <li>Lutter contre la fraude et les abus, améliorer la plateforme.</li>
+          <li>déposée au siège de l’institution : Rue 6.076 Aïdjèdo, Cotonou ;</li>
+          <li>adressée (mail uniquement) à l’adresse : <a href={`mailto:${cadreLegal.apdp.email}`}>{cadreLegal.apdp.email}</a>.</li>
         </ul>
-        <p>
-          Ces traitements reposent sur l’exécution du service que vous demandez en créant un compte, sur nos obligations
-          légales (comptabilité des paiements) et, pour la mesure d’audience et les notifications, sur votre consentement.
-        </p>
+        <p>Ceci est sans préjudice d’un recours devant un tribunal compétent.</p>
       </LegalSection>
 
-      <LegalSection title="Qui y a accès">
+      <LegalSection title="10. Pour en savoir plus">
         <p>
-          Les personnes habilitées de {editeur.nom} (administrateurs et commerciaux, selon leur rôle). Les informations
-          utiles à une visite ou à une location (prénom, numéro de contact) sont partagées avec l’autre partie au moment
-          prévu par le service. Nos prestataires techniques traitent les données uniquement pour notre compte :
-        </p>
-        <ul>
-          {prestataires.map(p => (
-            <li key={p.nom}>
-              <strong>{p.nom}</strong> : {p.role}
-              {p.pays ? ` (${p.pays})` : ''}
-            </li>
-          ))}
-        </ul>
-        <p>
-          Certains de ces prestataires sont situés hors du Bénin. Nous ne vendons pas vos données et ne les utilisons pas
-          à des fins publicitaires.
-        </p>
-      </LegalSection>
-
-      <LegalSection title="Durée de conservation">
-        <ul>
-          <li>Compte et annonces : pendant toute la durée d’utilisation du compte, puis <ACompleter label="durée après désactivation" />.</li>
-          <li>Pièces d’identité (CIP, IFU) : <ACompleter label="durée de conservation" />.</li>
-          <li>Paiements et transactions : <ACompleter label="durée légale de conservation comptable" />.</li>
-          <li>Messages : <ACompleter label="durée de conservation" />.</li>
-          <li>Codes SMS : quelques minutes (ils expirent automatiquement).</li>
-        </ul>
-      </LegalSection>
-
-      <LegalSection title="Vos droits">
-        <p>
-          Vous pouvez accéder à vos données, les rectifier, demander leur suppression ou vous opposer à un traitement.
-          Vous pouvez modifier vos informations depuis votre profil. Pour désactiver ou supprimer votre compte, ou pour
-          toute autre demande, écrivez à <span className="select-all text-text-dark font-medium">{editeur.email}</span>. En cas de difficulté,
-          vous pouvez saisir l’{cadreLegal.apdp.nom} ({cadreLegal.apdp.site.replace('https://', '')}).
-        </p>
-      </LegalSection>
-
-      <LegalSection title="Cookies et mesure d’audience">
-        <p>
-          La plateforme utilise uniquement le stockage nécessaire à son fonctionnement (session, préférences comme le
-          thème). La mesure d’audience Umami ne dépose aucun cookie et n’est activée qu’avec votre accord.{' '}
-          <button type="button" onClick={openConsentSettings} className="font-semibold text-primary dark:text-brand-soft hover:underline">
-            Modifier mon choix
-          </button>
-          .
-        </p>
-      </LegalSection>
-
-      <LegalSection title="Sécurité">
-        <p>
-          Les échanges sont chiffrés (HTTPS), les mots de passe et codes SMS sont enregistrés sous forme chiffrée, la
-          connexion est protégée par un code SMS et le nombre de tentatives est limité.
-        </p>
-      </LegalSection>
-
-      <LegalSection title="Modifications">
-        <p>
-          Cette politique peut évoluer, par exemple lors de l’ajout d’un service. La date de mise à jour en haut de page
-          est alors actualisée. Voir aussi les <Link to="/mentions-legales">mentions légales</Link>.
+          Pour toute autre question sur le traitement de vos données personnelles, contactez le responsable du traitement :{' '}
+          {contacts}. L’usage des traceurs est détaillé dans la <Link to="/cookies">politique cookies</Link>.
         </p>
       </LegalSection>
     </LegalLayout>
