@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, type ReactNode } from 'react'
-import { ContexteToast, type TonToast } from './useToast'
+import { ContexteToast, ContexteZoneNotifs, type TonToast } from './useToast'
 
 interface Toast { id: number; message: string; ton: TonToast }
 
@@ -12,11 +12,14 @@ const CLASSES: Record<TonToast, string> = {
 
 /**
  * Toasts de session (règle du projet : toute alerte métier produit une notification).
- * Placés au-dessus de la BottomNav grâce à --bottom-nav-h.
+ * Placés au-dessus de la BottomNav grâce à --bottom-nav-h. Une seule pile en bas de
+ * l'écran : les avis persistants (envoi des photos) en haut via `ContexteZoneNotifs`,
+ * puis les toasts du plus ancien au plus récent.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const suivant = useRef(0)
+  const [zone, setZone] = useState<HTMLElement | null>(null)
 
   const fermer = useCallback((id: number) => setToasts(prev => prev.filter(t => t.id !== id)), [])
   const afficher = useCallback((message: string, ton: TonToast = 'success') => {
@@ -28,12 +31,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   return (
     <ContexteToast.Provider value={afficher}>
+    <ContexteZoneNotifs.Provider value={zone}>
       {children}
       <div
         aria-live="polite"
         className="fixed inset-x-0 z-[1100] flex flex-col items-center gap-2 px-4 pointer-events-none"
         style={{ bottom: 'calc(var(--bottom-nav-h, 0px) + 16px)' }}
       >
+        <div ref={setZone} className="flex w-full max-w-md flex-col gap-2 empty:hidden" />
         {toasts.map(t => (
           <div
             key={t.id}
@@ -45,6 +50,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           </div>
         ))}
       </div>
+    </ContexteZoneNotifs.Provider>
     </ContexteToast.Provider>
   )
 }
