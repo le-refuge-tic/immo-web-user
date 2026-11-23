@@ -11,6 +11,10 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Corrigé (reçu PDF)
+- « Impossible de générer le PDF » : tout reçu contenant un montant supérieur à 999 F (loyers, rechargements, intégration) ou la mention « prix normal 1 000 FCFA » des visites échouait. Le séparateur de milliers (espace fine insécable U+202F) n'est pas écrivable avec la police Helvetica du PDF. Les textes du reçu sont maintenant filtrés (`utils/recuTexte.ts`) : espaces typographiques remplacées, caractère hors police remplacé par « ? » au lieu de faire échouer le document.
+- Une panne de génération n'efface plus le reçu : le message s'affiche sous le bouton « Télécharger le reçu PDF » au lieu de remplacer la page par « Retour ».
+
 ### Corrigé (lot 14 — déconnexion et barres du bas)
 - **Déconnexion confirmée** partout (tableau de bord propriétaire, profil propriétaire et locataire, fiche d'un bien du propriétaire, menu de l'en-tête, page Profil) : boîte « Se déconnecter ? » avec Annuler. Avant, un clic suffisait.
 - **Espace propriétaire sur téléphone** : sa barre du bas publie maintenant sa hauteur (`--bottom-nav-h`, comme la barre du reste du site). Le bas de chaque onglet réserve cet espace — « Déconnexion » de l'onglet Profil n'est plus à moitié sous la barre — et le bouton « Publier un bien », les toasts et l'indicateur d'envoi se posent au-dessus. Vérifié à 360 px et 390 × 844.

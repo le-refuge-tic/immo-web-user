@@ -12,6 +12,7 @@
 import { PDFDocument, StandardFonts, rgb, degrees, type PDFPage, type PDFFont, type RGB } from 'pdf-lib'
 import type { Degrees } from 'pdf-lib'
 import logoUrl from '../assets/REFUGE-ICON-pdf.png'
+import { texteCompatiblePdf } from './recuTexte'
 
 // ── Couleurs (0–1) ─────────────────────────────────────────────────────────
 const hex = (h: number) => rgb(((h >> 16) & 0xff) / 255, ((h >> 8) & 0xff) / 255, (h & 0xff) / 255)
@@ -62,7 +63,24 @@ function drawText(page: PDFPage, text: string, x: number, y: number, size: numbe
   page.drawText(text ?? '', { x, y, size, font, color })
 }
 
-export async function generateRecuPdf(data: RecuPdfData): Promise<void> {
+/** Tous les textes passent par le filtre WinAnsi : un montant « 1 000 » ne fait plus échouer le PDF. */
+function donneesCompatibles(d: RecuPdfData): RecuPdfData {
+  return {
+    ...d,
+    titre: d.titre === undefined ? undefined : texteCompatiblePdf(d.titre),
+    sousTitre: texteCompatiblePdf(d.sousTitre),
+    montantLabel: texteCompatiblePdf(d.montantLabel),
+    montant: texteCompatiblePdf(d.montant),
+    paiementLigne: texteCompatiblePdf(d.paiementLigne),
+    sections: d.sections.map(s => ({
+      titre: texteCompatiblePdf(s.titre),
+      lignes: s.lignes.map(l => ({ label: texteCompatiblePdf(l.label), value: texteCompatiblePdf(l.value) })),
+    })),
+  }
+}
+
+export async function generateRecuPdf(brut: RecuPdfData): Promise<void> {
+  const data = donneesCompatibles(brut)
   const doc = await PDFDocument.create()
   const page = doc.addPage([A4.w, A4.h])
   const font = await doc.embedFont(StandardFonts.Helvetica)
