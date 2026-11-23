@@ -3,6 +3,8 @@ import { apiProdEnPreview } from '../garde-api-preview.mjs'
 
 const PROD = 'https://immo-backend-uxr4.onrender.com/api/v1'
 const STAGING = 'https://immo-backend-stagging.onrender.com/api/v1'
+const PROD_CLOUDFLARE = 'https://api.lerefugetic.com/api/v1'
+const STAGING_CLOUDFLARE = 'https://api-staging.lerefugetic.com/api/v1'
 
 describe('apiProdEnPreview', () => {
   it('preview sur l\'API de production : refusée, avec la marche à suivre', () => {
@@ -10,6 +12,14 @@ describe('apiProdEnPreview', () => {
     expect(msg).toMatch(/refusé/)
     expect(msg).toMatch(/immo-backend-uxr4\.onrender\.com/)
     expect(msg).toMatch(/Environment Variables/)
+  })
+
+  it('preview sur le domaine public de production : refusée', () => {
+    expect(apiProdEnPreview({ apiUrl: PROD_CLOUDFLARE, vercelEnv: 'preview' })).toMatch(/api\.lerefugetic\.com/)
+  })
+
+  it('preview sur le domaine public du staging : acceptée', () => {
+    expect(apiProdEnPreview({ apiUrl: STAGING_CLOUDFLARE, vercelEnv: 'preview' })).toBeNull()
   })
 
   it('preview sur le staging : acceptée', () => {

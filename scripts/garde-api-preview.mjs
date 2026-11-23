@@ -3,7 +3,8 @@
 // vite.config.ts et testée.
 
 /** Hôtes des API de production. Variable PROD_API_HOSTS (séparés par des virgules) pour en ajouter. */
-export const HOTES_API_PRODUCTION = ['immo-backend-uxr4.onrender.com']
+// Domaine public derrière Cloudflare, et l'hôte Render d'origine tant qu'il reste joignable.
+export const HOTES_API_PRODUCTION = ['api.lerefugetic.com', 'immo-backend-uxr4.onrender.com']
 
 /**
  * Retourne un message d'erreur si le build est une preview Vercel (VERCEL_ENV=preview) dont
