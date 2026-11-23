@@ -10,7 +10,7 @@ import ErrorState from '../../components/ErrorState'
 import RefreshFailedNotice from '../../components/RefreshFailedNotice'
 import { apiMessage } from '../../utils/apiMessage'
 import { TABS, NO_VISITES } from './visites/constants'
-import { fmtDate, isEchoueeVisite } from './visites/helpers'
+import { fmtDate, isEchoueeVisite, peutPayerVisite } from './visites/helpers'
 import type { ConfirmDialogState } from './visites/types'
 import type { Visite } from '../../types/api'
 import { VisiteCard } from './visites/VisiteCard'
@@ -56,7 +56,7 @@ export default function MesVisitesPage() {
     const v = visites.find(x => x.id === targetId)
     if (!v) return
     navigate(location.pathname, { replace: true, state: {} })
-    if (navState?.openPayForVisiteId && !v.paiement_effectue) { setShowPay(v); return }
+    if (navState?.openPayForVisiteId && peutPayerVisite(v)) { setShowPay(v); return }
     setTab(0)
     setFocusId(v.id)
     requestAnimationFrame(() => document.getElementById(`visite-${v.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
