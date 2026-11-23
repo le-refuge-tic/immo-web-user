@@ -80,6 +80,8 @@ export default function RecuPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
+  // Une panne de génération ne doit pas remplacer le reçu affiché : message sous le bouton.
+  const [erreurPdf, setErreurPdf] = useState('')
 
   useEffect(() => {
     if (!refId) return
@@ -136,6 +138,7 @@ export default function RecuPage() {
 
   const telecharger = async () => {
     setGenerating(true)
+    setErreurPdf('')
     try {
       const sections: RecuSection[] = []
 
@@ -219,7 +222,7 @@ export default function RecuPage() {
         filename: `refuge_${isDepot ? 'rechargement' : isLoyer ? 'loyer' : isIntegration ? 'integration' : 'recu'}_${ref8}.pdf`,
       })
     } catch {
-      setError('Impossible de générer le PDF. Réessayez.')
+      setErreurPdf('Impossible de générer le PDF. Réessayez.')
     } finally {
       setGenerating(false)
     }
@@ -360,6 +363,7 @@ export default function RecuPage() {
           )}
           {generating ? 'Génération…' : 'Télécharger le reçu PDF'}
         </button>
+        {erreurPdf && <p role="alert" className="text-center text-sm font-semibold mt-3" style={{ color: 'var(--tx-red)' }}>{erreurPdf}</p>}
       </div>
     </div>
   )
