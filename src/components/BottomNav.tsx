@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { VARIABLE_HAUTEUR, clavierOuvert } from '../utils/barreNavigation'
+import { clavierOuvert } from '../utils/barreNavigation'
+import { usePublierHauteurBarre } from '../hooks/usePublierHauteurBarre'
 import { useAuth } from '../context/useAuth'
 import { useNotifications } from '../context/useNotifications'
 import { useTheme } from '../context/useTheme'
@@ -65,32 +66,10 @@ function useClavierOuvert(): boolean {
   return ouvert
 }
 
-/**
- * Lot 9 : hauteur réelle de la barre (zone sûre comprise) publiée dans --bottom-nav-h, lue par le
- * contenu, les barres collantes, les toasts et l'indicateur d'envoi. 0 quand la barre est absente.
- */
-function usePublierHauteur(ref: React.RefObject<HTMLElement | null>, visible: boolean) {
-  useLayoutEffect(() => {
-    const racine = document.documentElement
-    const el = ref.current
-    if (!visible || !el) { racine.style.setProperty(VARIABLE_HAUTEUR, '0px'); return }
-    const publier = () => racine.style.setProperty(VARIABLE_HAUTEUR, `${Math.ceil(el.getBoundingClientRect().height)}px`)
-    publier()
-    const obs = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(publier) : null
-    obs?.observe(el)
-    window.addEventListener('resize', publier)
-    return () => {
-      obs?.disconnect()
-      window.removeEventListener('resize', publier)
-      racine.style.setProperty(VARIABLE_HAUTEUR, '0px')
-    }
-  }, [ref, visible])
-}
-
 export default function BottomNav() {
   const navRef = useRef<HTMLElement>(null)
   const clavier = useClavierOuvert()
-  usePublierHauteur(navRef, !clavier)
+  usePublierHauteurBarre(navRef, !clavier)
   const { isLoggedIn } = useAuth()
   const { unreadAlertes, unreadMessages } = useNotifications()
   const { theme } = useTheme()

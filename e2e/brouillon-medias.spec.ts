@@ -83,6 +83,8 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
     // L'assistant de publication est plein écran : la déconnexion se fait depuis le profil.
     await page.goto('/profil')
     await page.getByRole('button', { name: /^(Se déconnecter|Déconnexion)$/ }).locator('visible=true').first().click()
+    // Lot 14 : la déconnexion demande confirmation.
+    await page.getByRole('alertdialog', { name: 'Se déconnecter ?' }).getByRole('button', { name: 'Se déconnecter' }).click()
     await expect.poll(baseMedias).toBe(false)
   })
 

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
+import { useConfirmerDeconnexion } from '../hooks/useConfirmerDeconnexion'
 import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../config/inscription'
 import { useNotifications } from '../context/useNotifications'
 import { useScrolled } from '../context/useScrolled'
@@ -47,6 +48,7 @@ const LogOutIcon = () => (
 
 export default function TopNav() {
   const { isLoggedIn, user, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
+  const confirmerDeconnexion = useConfirmerDeconnexion()
   const { unreadAlertes, unreadMessages } = useNotifications()
   const { scrolled } = useScrolled()
   const { theme } = useTheme()
@@ -82,8 +84,9 @@ export default function TopNav() {
 
   const initials = user ? `${user.prenom?.[0] || ''}${user.nom?.[0] || ''}`.toUpperCase() : ''
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setMenuOpen(false)
+    if (!(await confirmerDeconnexion())) return
     navigate('/')
     requestAnimationFrame(() => requestAnimationFrame(logout))
   }

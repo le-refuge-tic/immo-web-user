@@ -1,3 +1,4 @@
+import { useConfirmerDeconnexion } from '../../../hooks/useConfirmerDeconnexion'
 import AppearanceSetting from '../../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,6 +18,8 @@ import { withAlpha } from '../../../utils/color'
 export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRoles, onScrolled }: { user: ProprioProfil | null | undefined; biens: Bien[]; visites: Visite[]; onOpenTransactions: () => void; onOpenRoles: () => void; onScrolled?: (v: boolean) => void }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
+  const confirmerDeconnexion = useConfirmerDeconnexion()
+  const deconnecter = async () => { if (await confirmerDeconnexion()) { logout(); navigate('/login') } }
   const [editOpen, setEditOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [cipOpen, setCipOpen] = useState(false)
@@ -182,7 +185,7 @@ export function ProfilTab({ user, biens, visites, onOpenTransactions, onOpenRole
           </div>
 
           {/* Déconnexion */}
-          <button onClick={() => { logout(); navigate('/login') }}
+          <button onClick={() => void deconnecter()}
             className="w-full py-4 rounded-2xl font-bold text-[15px] transition-all"
             style={{ background: hoveredEl === 'logout' ? 'rgba(239,68,68,0.16)' : 'rgba(239,68,68,0.08)', color: 'var(--tx-red)', border: '1px solid rgba(239,68,68,0.2)' }}
             onMouseEnter={() => setHoveredEl('logout')}

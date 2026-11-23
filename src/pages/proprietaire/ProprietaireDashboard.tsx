@@ -1,3 +1,5 @@
+import { useConfirmerDeconnexion } from '../../hooks/useConfirmerDeconnexion'
+import { usePublierHauteurBarre } from '../../hooks/usePublierHauteurBarre'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
@@ -47,6 +49,11 @@ export default function ProprietaireDashboard() {
   const { user: authUser, logout, rolesActifs, activeRole, setActiveRole } = useAuth()
   const { unreadMessages, unreadAlertesEspace: unreadAlertes, refresh: refreshNotifications } = useNotifications()
   const navigate = useNavigate()
+  const confirmerDeconnexion = useConfirmerDeconnexion()
+  // Lot 14 : la barre du bas publie sa hauteur (--bottom-nav-h) ; le contenu, le bouton flottant et les toasts s'y calent.
+  const barreBasRef = useRef<HTMLDivElement>(null)
+  usePublierHauteurBarre(barreBasRef)
+  const deconnecter = async () => { if (await confirmerDeconnexion()) { logout(); navigate('/login') } }
   const location = useLocation()
   // Le thème suit le réglage global (Profil > Paramètres > Apparence).
   const isDark = useTheme().theme === 'dark'
@@ -281,7 +288,7 @@ export default function ProprietaireDashboard() {
                 )}
               </div>
               {/* Déconnexion — desktop */}
-              <button onClick={() => { logout(); navigate('/login') }} title="Déconnexion"
+              <button onClick={() => void deconnecter()} title="Déconnexion"
                 className="hidden xl:flex h-8 rounded-lg items-center justify-center gap-2 px-3 border transition-colors text-xs font-bold"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <IcLogout />
@@ -324,7 +331,7 @@ export default function ProprietaireDashboard() {
                         </button>
                       )
                     })}
-                    <button onClick={() => { logout(); navigate('/login') }}
+                    <button onClick={() => void deconnecter()}
                       className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-[11px] font-medium"
                       style={{ color: 'var(--tx-red)' }}>
                       <IcLogout />
@@ -339,7 +346,7 @@ export default function ProprietaireDashboard() {
       </header>
 
       {/* ── Content area ── */}
-      <div className="flex-1 overflow-hidden flex flex-col" style={{ paddingTop: '4rem' }}>
+      <div className="flex-1 overflow-hidden flex flex-col" style={{ paddingTop: '4rem', paddingBottom: 'var(--bottom-nav-h, 0px)' }}>
         <div className="flex-1 overflow-hidden flex flex-col">
         {tab === 'tableau' && (
           <div className="flex-1 overflow-y-auto overflow-x-hidden" onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 50)}>
@@ -628,7 +635,7 @@ export default function ProprietaireDashboard() {
 
       {/* FAB */}
       {(tab === 'tableau' || tab === 'biens') && (
-        <div className="xl:hidden fixed bottom-20 right-4 md:bottom-24 md:right-8 z-20">
+        <div className="xl:hidden fixed right-4 md:right-8 z-20" style={{ bottom: 'calc(var(--bottom-nav-h, 0px) + 16px)' }}>
           <button onClick={() => navigate('/nouveau-bien')}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full font-bold shadow-lg active:scale-95 md:hover:-translate-y-0.5 transition-transform"
             style={{ background: 'linear-gradient(135deg, var(--c-brand), var(--c-primary))', color: 'rgb(255,255,255)', boxShadow: '0 4px 15px rgba(75,107,255,0.45)' }}>
@@ -638,7 +645,7 @@ export default function ProprietaireDashboard() {
       )}
 
       {/* Bottom Nav — fixed, mobile & tablet */}
-      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div ref={barreBasRef} className="xl:hidden fixed bottom-0 left-0 right-0 z-40" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div style={{ background: 'var(--p-surface)', borderTop: '1px solid var(--p-border)', boxShadow: '0 -4px 24px rgba(0,0,0,0.30)' }}>
           <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
             {/* 4 onglets principaux + « Plus » (barre limitée à 5 entrées, comme l'app mobile) */}

@@ -3,6 +3,7 @@ import { openConsentSettings } from '../../lib/analytics'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
+import { useConfirmerDeconnexion } from '../../hooks/useConfirmerDeconnexion'
 import { userApi } from '../../api/userApi'
 import { visitesApi } from '../../api/visitesApi'
 import { walletApi } from '../../api/walletApi'
@@ -175,6 +176,7 @@ function MenuGroup({ title, children }: { title: string; children: React.ReactNo
 export default function ProfilePage() {
   usePageTitle('Profil')
   const { user, logout, activeRole } = useAuth()
+  const confirmerDeconnexion = useConfirmerDeconnexion()
   const navigate = useNavigate()
   const [apiUser, setApiUser] = useState<User | null>(null)
   const [visites, setVisites] = useState<Visite[]>([])
@@ -226,7 +228,8 @@ export default function ProfilePage() {
   const visiteActive = visites.find(v => v.statut === 'en_attente' || v.statut === 'confirmee')
   const mesAvis = visites.filter(v => v.statut === 'effectuee' && v.feedback_donne && v.note_client != null)
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (!(await confirmerDeconnexion())) return
     // La révocation serveur est faite par logout() (AuthContext).
     // Naviguer vers l'accueil D'ABORD, puis vider le contexte auth seulement
     // après deux frames (donne à React le temps de démonter /profil, qui est
