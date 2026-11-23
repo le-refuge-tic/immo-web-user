@@ -66,6 +66,9 @@ export default function QuartierPicker({ value, onChange, onSelect, onBlur, vill
             <button
               key={`${q.ville}-${q.nom}-${i}`}
               type="button"
+              // Garde le focus dans le champ : sinon le blur ferme la liste (150 ms) avant le
+              // clic quand l'appui dure un peu (souris lente, tactile) et rien n'est choisi.
+              onMouseDown={e => e.preventDefault()}
               onClick={() => pick(q)}
               className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-g border-b border-divider last:border-b-0 flex items-center justify-between gap-2"
             >
