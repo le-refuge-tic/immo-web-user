@@ -1,3 +1,4 @@
+import { useConfirmerDeconnexion } from '../../../hooks/useConfirmerDeconnexion'
 import AppearanceSetting from '../../../components/AppearanceSetting'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -11,6 +12,8 @@ import { withAlpha } from '../../../utils/color'
 export default function ProfilTab() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const confirmerDeconnexion = useConfirmerDeconnexion()
+  const deconnecter = async () => { if (await confirmerDeconnexion()) { logout(); navigate('/login') } }
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const [numeroInfo, setNumeroInfo] = useState<{ masque: string | null } | null>(null)
   const [showNumeroModal, setShowNumeroModal] = useState(false)
@@ -41,7 +44,7 @@ export default function ProfilTab() {
           </button>
         ))}
         <div className="w-full glass-card rounded-xl"><AppearanceSetting /></div>
-        <button onClick={() => { logout(); navigate('/login') }}
+        <button onClick={() => void deconnecter()}
           className="w-full mt-2 py-3.5 rounded-xl font-bold text-sm border flex items-center justify-center gap-2"
           style={{ color: 'var(--tx-red)', borderColor: 'rgba(239,68,68,0.188)', background: 'rgba(239,68,68,0.031)' }}>
           <IcLogout /> Déconnexion

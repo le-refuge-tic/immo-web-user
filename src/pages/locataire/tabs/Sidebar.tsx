@@ -6,6 +6,7 @@ import { TABS } from '../tabsConfig'
 import { IcLogout } from '../icons'
 import type { Tab } from '../shared'
 import { withAlpha } from '../../../utils/color'
+import { useConfirmerDeconnexion } from '../../../hooks/useConfirmerDeconnexion'
 
 interface SidebarProps {
   tab: Tab
@@ -17,6 +18,8 @@ interface SidebarProps {
 
 // ─── Sidebar (desktop) ──────────────────────────────────────────────────────
 export default function Sidebar({ tab, setTab, user, navigate, logout }: SidebarProps) {
+  const confirmerDeconnexion = useConfirmerDeconnexion()
+  const deconnecter = async () => { if (await confirmerDeconnexion()) { logout(); navigate('/login') } }
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
   const [hoveredBtn, setHoveredBtn] = useState<string | null>(null)
   return (
@@ -52,7 +55,7 @@ export default function Sidebar({ tab, setTab, user, navigate, logout }: Sidebar
             <p className="text-micro text-text-grey">Locataire</p>
           </div>
         </button>
-        <button onClick={() => { logout(); navigate('/login') }}
+        <button onClick={() => void deconnecter()}
           className="w-full mt-1 flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
           style={{ color: 'var(--tx-red)', background: hoveredBtn === 'logout' ? 'rgba(239,68,68,0.031)' : 'transparent' }}
           onMouseEnter={() => setHoveredBtn('logout')}

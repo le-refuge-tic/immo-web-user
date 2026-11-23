@@ -1,3 +1,4 @@
+import { useConfirmerDeconnexion } from '../../hooks/useConfirmerDeconnexion'
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
@@ -36,6 +37,8 @@ export default function ProprietaireBienWrapper() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
+  const confirmerDeconnexion = useConfirmerDeconnexion()
+  const deconnecter = async () => { if (await confirmerDeconnexion()) { logout(); navigate('/login') } }
   const isDark = useTheme().theme === 'dark'
   const { unreadMessages, unreadAlertesEspace: unreadAlertes } = useNotifications()
   const fromDashboard = !!(location.state as { fromDashboard?: boolean } | null)?.fromDashboard
@@ -145,7 +148,7 @@ export default function ProprietaireBienWrapper() {
               </button>
 
               {/* Déconnexion — desktop */}
-              <button aria-label="Déconnexion" onClick={() => { logout(); navigate('/login') }}
+              <button aria-label="Déconnexion" onClick={() => void deconnecter()}
                 className="hidden xl:flex h-8 rounded-lg items-center justify-center gap-2 px-3 border transition-colors text-xs font-bold"
                 style={{ borderColor: 'var(--p-border)', background: 'var(--p-card)', color: 'var(--tx-red)' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
@@ -192,7 +195,7 @@ export default function ProprietaireBienWrapper() {
                     </button>
                   )
                 })}
-                <button onClick={() => { logout(); navigate('/login') }}
+                <button onClick={() => void deconnecter()}
                   className="flex flex-col items-center gap-1 py-3 rounded-xl text-caption font-medium"
                   style={{ color: 'var(--tx-red)' }}>
                   <span>Déconnexion</span>

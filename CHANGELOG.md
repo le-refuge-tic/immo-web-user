@@ -11,6 +11,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Corrigé (lot 14 — déconnexion et barres du bas)
+- **Déconnexion confirmée** partout (tableau de bord propriétaire, profil propriétaire et locataire, fiche d'un bien du propriétaire, menu de l'en-tête, page Profil) : boîte « Se déconnecter ? » avec Annuler. Avant, un clic suffisait.
+- **Espace propriétaire sur téléphone** : sa barre du bas publie maintenant sa hauteur (`--bottom-nav-h`, comme la barre du reste du site). Le bas de chaque onglet réserve cet espace — « Déconnexion » de l'onglet Profil n'est plus à moitié sous la barre — et le bouton « Publier un bien », les toasts et l'indicateur d'envoi se posent au-dessus. Vérifié à 360 px et 390 × 844.
+- Le publieur de hauteur est partagé (`usePublierHauteurBarre`) entre cette barre et `BottomNav`.
+
 ### Ajouté (lot 12 — favori sur la fiche)
 - Bouton « Ajouter aux favoris » / « Retirer des favoris » sur la fiche d'un bien : sur la photo (téléphone et bureau) et dans la barre d'actions du bas sur téléphone. Il utilise la même liste de favoris que les cartes et la page Favoris (cache React Query) : un clic met tout à jour, sans rechargement.
 - Toasts « Ajouté aux favoris » / « Retiré des favoris » ; en cas d'échec, « Favori non enregistré. Réessayez. » et le bouton garde son état réel.
