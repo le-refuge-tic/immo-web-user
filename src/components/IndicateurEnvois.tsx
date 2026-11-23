@@ -1,4 +1,6 @@
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
+import { useZoneNotifs } from '../context/useToast'
 import { useGestionEnvois } from '../shared/uploads/useGestionEnvois'
 import { avancement } from '../shared/uploads/fileEnvoi'
 
@@ -12,14 +14,19 @@ const bouton = 'min-h-[40px] rounded-xl px-3 text-xs font-semibold'
 export default function IndicateurEnvois() {
   const { lots, interrompus, reprendre, abandonner } = useGestionEnvois()
   const navigate = useNavigate()
+  const zone = useZoneNotifs()
   if (!lots.length && !interrompus.length) return null
 
-  return (
+  // Dans la pile des toasts quand elle existe (sinon les deux se superposaient au même
+  // endroit) ; position fixe propre en repli, hors de ToastProvider.
+  const contenu = (
     <div
       role="status"
       aria-live="polite"
-      className="fixed right-4 left-4 md:left-auto z-[900] flex flex-col gap-2 md:w-[360px]"
-      style={{ bottom: 'calc(var(--bottom-nav-h, 0px) + 16px)' }}
+      className={zone
+        ? 'pointer-events-auto flex flex-col gap-2'
+        : 'fixed right-4 left-4 md:left-auto z-[900] flex flex-col gap-2 md:w-[360px]'}
+      style={zone ? undefined : { bottom: 'calc(var(--bottom-nav-h, 0px) + 16px)' }}
     >
       {interrompus.map(lot => {
         const { faits, total } = avancement(lot)
@@ -65,4 +72,5 @@ export default function IndicateurEnvois() {
       })}
     </div>
   )
+  return zone ? createPortal(contenu, zone) : contenu
 }
