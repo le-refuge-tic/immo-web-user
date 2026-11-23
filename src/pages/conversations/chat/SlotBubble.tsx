@@ -2,6 +2,8 @@ import { fmtSlot, libelleAnnulation, statutCreneau, timeLabel } from './helpers'
 import type { ChatMessage } from '../../../types/chat-ui'
 import { withAlpha } from '../../../utils/color'
 
+export type EtatPaiementVisite = 'du' | 'paye' | 'gratuit'
+
 interface SlotBubbleProps {
   m: ChatMessage
   userId: number | undefined
@@ -12,6 +14,8 @@ interface SlotBubbleProps {
   bienId: number | undefined
   isClientRole: boolean
   paying: boolean
+  /** Frais de la visite : 'du' (bouton Payer), 'paye' ou 'gratuit' (pas de bouton) ; undefined = pas encore connu. */
+  paiement?: EtatPaiementVisite
   onRepondre: (m: ChatMessage, r: 'accepted' | 'declined' | 'countered') => void
   onPayer: () => void
   /** Ouvre la saisie d'un nouveau créneau (créneau expiré) ; absent si une proposition plus récente existe. */
@@ -19,7 +23,7 @@ interface SlotBubbleProps {
 }
 
 /* ── Bulle slot ── */
-export function SlotBubble({ m, userId, isDark, tp, tm, bienId, isClientRole, paying, onRepondre, onPayer, onProposerNouveau }: SlotBubbleProps) {
+export function SlotBubble({ m, userId, isDark, tp, tm, bienId, isClientRole, paying, paiement, onRepondre, onPayer, onProposerNouveau }: SlotBubbleProps) {
   const isMe = m.sender_id === userId
   const status = statutCreneau(m.metadata)
   const dt = m.metadata?.proposed_at ? new Date(m.metadata.proposed_at) : null
@@ -55,7 +59,12 @@ export function SlotBubble({ m, userId, isDark, tp, tm, bienId, isClientRole, pa
             {onProposerNouveau && <button onClick={onProposerNouveau} className="mt-1.5 w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer" style={{ background: 'rgba(75,107,255,0.10)', color: 'var(--tx-blue)' }}>Proposer un nouvel horaire</button>}
           </div>
         )}
-        {status === 'accepted' && bienId && isClientRole && (
+        {status === 'accepted' && bienId && isClientRole && paiement === 'paye' && (
+          <div className="px-3 pb-2.5 pt-2" style={{ borderTop: `1px solid ${withAlpha(pal.accent, '22')}` }}>
+            <p className="text-[12px] font-semibold text-center" style={{ color: 'var(--tx-green)' }}>Frais de visite payés ✓</p>
+          </div>
+        )}
+        {status === 'accepted' && bienId && isClientRole && paiement === 'du' && (
           <div className="px-3 pb-2.5 pt-2" style={{ borderTop: `1px solid ${withAlpha(pal.accent, '22')}` }}>
             <button onClick={onPayer} disabled={paying} className="w-full py-1.5 rounded-lg text-[12px] font-bold cursor-pointer disabled:opacity-50" style={{ background: 'rgba(34,197,94,0.14)', color: 'var(--tx-green)' }}>
               {paying ? '…' : 'Payer maintenant'}

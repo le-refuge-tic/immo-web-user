@@ -1,7 +1,7 @@
 import type { RefObject } from 'react'
 import { dateSep, sameDay, timeLabel, type ChatColors } from './helpers'
 import { MsgStatus } from './icons'
-import { SlotBubble } from './SlotBubble'
+import { SlotBubble, type EtatPaiementVisite } from './SlotBubble'
 import type { ChatMessage } from '../../../types/chat-ui'
 import ErrorState from '../../../components/ErrorState'
 
@@ -27,6 +27,7 @@ interface MessageListProps {
     bienId: number | undefined
     isClientRole: boolean
     paying: boolean
+    paiement?: EtatPaiementVisite
     onRepondre: (m: ChatMessage, r: 'accepted' | 'declined' | 'countered') => void
     onPayer: () => void
     onProposerNouveau: () => void
@@ -74,7 +75,7 @@ export function MessageList({
               <div key={msg.id} id={`msg-${msg.id}`}>
                 {sep && <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px" style={{ background: sepBg }} /><span className="text-caption px-2 font-medium" style={{ color: tm }}>{dateSep(msg.created_at)}</span><div className="flex-1 h-px" style={{ background: sepBg }} /></div>}
                 <SlotBubble m={msg} userId={userId} isDark={isDark} tp={tp} tm={tm} bienId={slot.bienId} isClientRole={slot.isClientRole}
-                  paying={slot.paying} onRepondre={slot.onRepondre} onPayer={slot.onPayer} onProposerNouveau={msg.id === dernierSlotId ? slot.onProposerNouveau : undefined} />
+                  paying={slot.paying} paiement={slot.paiement} onRepondre={slot.onRepondre} onPayer={slot.onPayer} onProposerNouveau={msg.id === dernierSlotId ? slot.onProposerNouveau : undefined} />
               </div>
             )
           }
