@@ -11,6 +11,7 @@ import { useBienDetail } from './bien-detail/useBienDetail'
 import { DetailContent } from './bien-detail/DetailSections'
 import { BottomCta } from './bien-detail/BottomCta'
 import { GalleryMobile, GalleryDesktop } from './bien-detail/Galleries'
+import { BoutonFavori } from '../../components/BoutonFavori'
 import { SimilairesDesktop, SimilairesMobile } from './bien-detail/Similaires'
 import ErrorState from '../../components/ErrorState'
 import { suffixeUnite } from '../../utils/prix'
@@ -106,7 +107,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
       )}
 
       {/* ── MOBILE header / galerie ── */}
-      {!isDesktop && <GalleryMobile allUrls={allUrls} photoIdx={photoIdx} setPhotoIdx={setPhotoIdx} altText={bienTitle || 'Photo du bien'} showOwnBack={showOwnBack} onBack={() => navigate(-1)} />}
+      {!isDesktop && <GalleryMobile allUrls={allUrls} photoIdx={photoIdx} setPhotoIdx={setPhotoIdx} altText={bienTitle || 'Photo du bien'} showOwnBack={showOwnBack} onBack={() => navigate(-1)} actionFavori={isOwnBien ? undefined : <BoutonFavori bien={bien} variante="rond" />} />}
 
       {/* ── DESKTOP layout ── */}
       {isDesktop && <div className="w-full px-6 md:px-16 py-8">
@@ -119,7 +120,7 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
 
         <div className="grid grid-cols-[1fr_400px] gap-8 items-start">
           <div>
-            <GalleryDesktop allUrls={allUrls} photoIdx={photoIdx} setPhotoIdx={setPhotoIdx} altText={bienTitle || 'Photo du bien'} />
+            <GalleryDesktop allUrls={allUrls} photoIdx={photoIdx} setPhotoIdx={setPhotoIdx} altText={bienTitle || 'Photo du bien'} actionFavori={isOwnBien ? undefined : <BoutonFavori bien={bien} variante="rond" />} />
 
             <div className="mt-8">
               <DetailContent
@@ -281,6 +282,9 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
 
       {/* ── Barre CTA fixe (mobile/tablette) ── */}
       {!isDesktop && <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white border-t border-divider px-5 py-3 safe-bottom">
+        <div className="flex items-stretch gap-2.5">
+        {!isOwnBien && <BoutonFavori bien={bien} variante="barre" />}
+        <div className="flex-1 min-w-0">
         <BottomCta
           isOwnBien={isOwnBien} isOccupeLocal={isOccupeLocal} togglingStatut={togglingStatut}
           onToggleDisponibilite={toggleDisponibilite}
@@ -290,6 +294,8 @@ export default function BienDetailPage({ showOwnBack = true }: { showOwnBack?: b
           onModifier={modifier}
           fraisVisite={bien.frais_visite}
         />
+        </div>
+        </div>
       </div>}
 
       {editing && (

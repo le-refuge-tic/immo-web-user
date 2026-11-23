@@ -1,5 +1,9 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../context/useAuth'
+import { useToast } from '../context/useToast'
+import { track } from '../lib/analytics'
 import { favoritesApi } from '../api/favoritesApi'
 import { queryKeys } from '../api/queryKeys'
 import { unwrapList } from '../utils/unwrapList'
@@ -32,4 +36,42 @@ export function useFavoriIds(isLoggedIn: boolean) {
     void queryClient.invalidateQueries({ queryKey: queryKeys.favoris })
   }, [queryClient])
   return { favIds, onFavToggle }
+}
+
+/**
+ * Lot 12 — favori d'un bien sur sa fiche. L'état vient du même cache React Query que les cœurs des
+ * cartes et la page Favoris : un clic ici met tout à jour, et inversement.
+ * Hors connexion, le clic mène à la connexion puis ramène sur la fiche (`post_login_redirect`).
+ */
+export function useFavoriBien(bien: { id: number; type?: string }) {
+  const { isLoggedIn } = useAuth()
+  const navigate = useNavigate()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const { data } = useFavorisQuery(isLoggedIn)
+  const [enCours, setEnCours] = useState(false)
+  const estFavori = useMemo(() => (data ?? []).some(f => favoriId(f) === bien.id), [data, bien.id])
+
+  const basculer = useCallback(async () => {
+    if (!isLoggedIn) {
+      sessionStorage.setItem('post_login_redirect', window.location.pathname + window.location.search)
+      navigate('/login')
+      return
+    }
+    if (enCours) return
+    setEnCours(true)
+    try {
+      const { isFavori } = await favoritesApi.toggle(bien.id)
+      if (isFavori) track('favori_ajoute', { type: bien.type ?? '' })
+      else queryClient.setQueryData<Favori[]>(queryKeys.favoris, prev => prev?.filter(f => favoriId(f) !== bien.id))
+      await queryClient.invalidateQueries({ queryKey: queryKeys.favoris })
+      toast(isFavori ? 'Ajouté aux favoris' : 'Retiré des favoris', 'success')
+    } catch {
+      toast('Favori non enregistré. Réessayez.', 'error')
+    } finally {
+      setEnCours(false)
+    }
+  }, [isLoggedIn, enCours, bien.id, bien.type, navigate, queryClient, toast])
+
+  return { estFavori, enCours, basculer }
 }
