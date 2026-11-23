@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { fraisVisiteAPayer } from '../../../utils/fraisVisite'
 import { STATUT_META, SUPPORT_VISITE_PHONE } from './constants'
-import { fmtDate, isDatePasseeVisite, isEchoueeVisite } from './helpers'
+import { fmtDate, isDatePasseeVisite, isEchoueeVisite, peutPayerVisite } from './helpers'
 import { dateEffectiveVisite } from '../../../utils/dateVisite'
 import { apiMessage } from '../../../utils/apiMessage'
 import type { Visite } from '../../../types/api'
@@ -255,7 +255,7 @@ export function VisiteCard({ visite: v, onAnnuler, onAccepterCP, onRefuserCP, on
         )}
 
         {/* Confirmée: payer (pas encore payé) + message + annuler */}
-        {!isEchouee && v.statut === 'confirmee' && !v.paiement_effectue && (
+        {peutPayerVisite(v) && (
           <button
             onClick={() => onPay(v)}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-white"

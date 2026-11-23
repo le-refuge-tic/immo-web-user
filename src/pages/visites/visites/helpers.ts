@@ -16,6 +16,14 @@ export function isEchoueeVisite(v: VisiteDatee): boolean {
   return Date.now() > new Date(raw).getTime() + 2 * 60 * 60 * 1000
 }
 
+/**
+ * Les frais ne se paient que pour une visite confirmée, pas encore payée et pas échouée — même
+ * règle que le backend (paiements.service : statut CONFIRMEE) et que le bouton de la carte.
+ */
+export function peutPayerVisite(v: VisiteDatee & Pick<Visite, 'paiement_effectue'>): boolean {
+  return v.statut === 'confirmee' && !v.paiement_effectue && !isEchoueeVisite(v)
+}
+
 export function isDatePasseeVisite(v: VisiteDatable): boolean {
   const raw = dateEffectiveVisite(v)
   if (!raw) return false

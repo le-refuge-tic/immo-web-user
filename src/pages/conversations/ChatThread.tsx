@@ -6,6 +6,9 @@ import { useAuth } from '../../context/useAuth'
 import { useTheme } from '../../context/useTheme'
 import { chatApi } from '../../api/chatApi'
 import { visitesApi } from '../../api/visitesApi'
+import { peutPayerVisite } from '../visites/visites/helpers'
+import { fraisVisiteAPayer } from '../../utils/fraisVisite'
+import type { Visite } from '../../types/api'
 import { io, Socket } from 'socket.io-client'
 import { apiMessage } from '../../utils/apiMessage'
 import { suggestPush } from '../../lib/push'
@@ -23,6 +26,13 @@ import type { EtatPaiementVisite } from './chat/SlotBubble'
 import { BackIcon, DotsV, SendIcon, CalIcon, XIcon, PinFill, ChevDown } from './chat/icons'
 import { BIEN_TYPE_LABELS, SOUS_TYPE_LABELS, avatarGrad, initial, fmtSlot, statutCreneau, displayName, roleLabel, getChatColors } from './chat/helpers'
 const WS_URL = API_ORIGIN
+
+/** État des frais d'une visite pour la bulle du créneau : rien à proposer si elle n'est pas payable. */
+function etatPaiement(v: Visite): EtatPaiementVisite | undefined {
+  if (v.paiement_effectue) return 'paye'
+  if (!peutPayerVisite(v)) return undefined
+  return fraisVisiteAPayer(v) > 0 ? 'du' : 'gratuit'
+}
 
 export default function ChatThread({ convId, onBack, initialDraft }: { convId: number; onBack: () => void; initialDraft?: string }) {
   const { user, token } = useAuth()
@@ -230,7 +240,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     if (!isClientRole || !conv?.bien?.id) return
     let actif = true
     trouverVisite()
-      .then(v => { if (actif && v) setPaiementVisite(v.paiement_effectue ? 'paye' : Number(v.frais_visite) > 0 ? 'du' : 'gratuit') })
+      .then(v => { if (actif && v) setPaiementVisite(etatPaiement(v)) })
       .catch(() => { if (actif) setPaiementVisite('du') })
     return () => { actif = false }
   }, [isClientRole, conv?.bien?.id, trouverVisite])
@@ -239,6 +249,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
     try {
       const v = await trouverVisite()
       if (!v) { showError({ response: { data: { message: 'Aucune visite trouvée.' } } }); setPaying(false); return }
+      if (!v.paiement_effectue && !peutPayerVisite(v)) { setPaiementVisite(undefined); showError({ response: { data: { message: 'Le paiement est possible uniquement pour une visite confirmée.' } } }); setPaying(false); return }
       if (v.paiement_effectue) { setPaiementVisite('paye'); showError({ response: { data: { message: 'Cette visite a déjà été payée.' } } }); setPaying(false); return }
       if (!(Number(v.frais_visite) > 0)) { showError({ response: { data: { message: 'Cette visite est gratuite.' } } }); setPaying(false); return }
       navigate('/mes-visites', { state: { openPayForVisiteId: v.id } })
