@@ -31,6 +31,13 @@ export const authApi = {
       return r.data
     }),
 
+  // Compte en suppression : même code SMS que la connexion (valable 5 min), renvoie une connexion réussie.
+  annulerSuppression: (telephone: string, code: string) =>
+    axios.post<LoginSuccess>(`${BASE}/auth/annuler-suppression`, { telephone, code }).then(r => {
+      deviceTrust.remember(r.data)
+      return r.data
+    }),
+
   // Mot de passe oublié — étape 1 : envoi d'un code par SMS.
   forgotPassword: (telephone: string) =>
     axios.post<MessageResponse>(`${BASE}/auth/forgot-password`, { telephone }).then(r => r.data),

@@ -11,6 +11,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Ajouté (compte en suppression)
+- **Connexion d'un compte en suppression** : après le code SMS, le serveur répond 403 `SUPPRESSION_PROGRAMMEE`. Une boîte « Suppression programmée » indique la date (JJ/MM/AAAA) et propose « Annuler la suppression » (`POST /auth/annuler-suppression` avec le même numéro et le même code, puis connexion normale et toast « Votre compte a été réactivé. ») ou « Non » (numéro et code effacés). Code expiré (401) : retour à la saisie du numéro avec « Le code a expiré. Reconnectez-vous pour recevoir un nouveau code. ». Numéro et code restent en mémoire du composant, jamais stockés.
+- **Inscription** avec le numéro d'un compte en suppression (409 `SUPPRESSION_EN_COURS`) : message du serveur dans une boîte de dialogue, avec un raccourci vers la connexion.
+- **Session d'un compte inactif** (401 `SUPPRESSION_PROGRAMMEE` ou `COMPTE_SUPPRIME` sur une route authentifiée) : pas de rafraîchissement du jeton, session vidée une seule fois, écran de connexion « Compte inactif — Votre compte n'est plus actif. ». Les autres 401 gardent leur comportement.
+
 ### Retiré (vérification d'identité)
 - La vérification d'identité (CIP/IFU) n'existe plus côté serveur : suppression de l'entrée « Vérification CIP / IFU » du profil propriétaire, de sa modale d'envoi, du bandeau de statut, du badge « vérifié » du chat (en-tête et fiche du contact), des styles des notifications `documents_valides` / `documents_rejetes`, des appels `POST /users/me/cip` et `/ifu` et des champs `cip_url`, `ifu_url`, `statut_verification_documents`, `motif_rejet_documents`.
 

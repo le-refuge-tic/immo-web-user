@@ -5,6 +5,7 @@
  */
 export const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
 const SESSION_EXPIRED_KEY = 'session_expired'
+const COMPTE_INACTIF_KEY = 'compte_inactif'
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
@@ -41,4 +42,24 @@ export function isSessionExpired(storage: StorageLike = sessionStorage): boolean
 /** À appeler une fois le message affiché : il n'apparaît qu'à la première arrivée. */
 export function clearSessionExpired(storage: StorageLike = sessionStorage): void {
   storage.removeItem(SESSION_EXPIRED_KEY)
+}
+
+/**
+ * Compte en suppression ou supprimé (401 SUPPRESSION_PROGRAMMEE / COMPTE_SUPPRIME) : l'écran de
+ * connexion affiche « Votre compte n'est plus actif. ». Aucune page n'est mémorisée pour le retour.
+ */
+export function markCompteInactif(storage?: StorageLike): void {
+  try {
+    (storage ?? sessionStorage).setItem(COMPTE_INACTIF_KEY, '1')
+  } catch {
+    // Stockage indisponible : la déconnexion doit quand même aboutir.
+  }
+}
+
+export function isCompteInactif(storage: StorageLike = sessionStorage): boolean {
+  return storage.getItem(COMPTE_INACTIF_KEY) === '1'
+}
+
+export function clearCompteInactif(storage: StorageLike = sessionStorage): void {
+  storage.removeItem(COMPTE_INACTIF_KEY)
 }
