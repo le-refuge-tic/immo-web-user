@@ -2,7 +2,8 @@ import { OPERATEURS } from '../../utils/retrait'
 import type { OperateurRetrait } from '../../types/wallet'
 
 /**
- * Choix de l'opérateur Mobile Money (MTN ou Moov) du numéro de retrait, à faire à chaque demande.
+ * Réseau Mobile Money (MTN ou Moov) qui reçoit le retrait, à choisir à chaque demande : FedaPay en a
+ * besoin pour verser l'argent. Ce n'est pas un moyen de paiement (FedaPay est le seul).
  * Simple choix de formulaire : aucun code SMS, aucune suspension. `variant` suit le thème de l'écran.
  */
 export default function SelecteurOperateur({ variant, valeur, onChange, disabled }: {
@@ -13,8 +14,8 @@ export default function SelecteurOperateur({ variant, valeur, onChange, disabled
 }) {
   const sombre = variant === 'sombre'
   return (
-    <div role="radiogroup" aria-label="Opérateur Mobile Money">
-      <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${sombre ? 'text-p-text' : 'text-text-dark'}`}>Opérateur de ce numéro</p>
+    <div role="radiogroup" aria-label="Réseau de réception (envoi par FedaPay)">
+      <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${sombre ? 'text-p-text' : 'text-text-dark'}`}>Réseau de réception (envoi par FedaPay)</p>
       <div className="flex gap-2">
         {OPERATEURS.map(o => {
           const choisi = valeur === o.value

@@ -28,6 +28,7 @@ const typeLabel = (t: HistoriquePaiement) => {
   }
 }
 
+// Les libellés MTN / Moov / Celtiis ne servent qu'aux paiements antérieurs : FedaPay est le seul moyen de paiement.
 const methodeLabel = (m?: string) => {
   switch (String(m ?? '').toLowerCase()) {
     case 'momo':    return 'MTN MoMo'

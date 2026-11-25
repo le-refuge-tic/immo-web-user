@@ -9,9 +9,5 @@ export const ORANGE_TX = 'var(--tx-amber)'
 
 export type Tab = 'logement' | 'activite' | 'messages' | 'alertes' | 'profil'
 
-export const OPERATEURS: { id: 'momo' | 'flooz' | 'celtiis' | 'fedapay'; label: string; accent: string }[] = [
-  { id: 'momo', label: 'MTN MoMo', accent: '#FFCC00' },
-  { id: 'flooz', label: 'Moov Flooz', accent: '#0066CC' },
-  { id: 'celtiis', label: 'Celtiis', accent: '#D32F2F' },
-  { id: 'fedapay', label: 'FedaPay', accent: '#00B4D8' },
-]
+/** Seul moyen de paiement externe : FedaPay (carte ou Mobile Money sur sa page sécurisée). */
+export const MODE_FEDAPAY: { id: 'fedapay'; label: string; accent: string } = { id: 'fedapay', label: 'FedaPay', accent: '#00B4D8' }

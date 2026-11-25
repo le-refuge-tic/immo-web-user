@@ -5,7 +5,7 @@ import { visitesApi } from '../../api/visitesApi'
 import { paiementApi } from '../../api/paiementApi'
 import { bienTypeLabel } from '../../utils/bienType'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, normaliseBeninPhone, PHONE_PLACEHOLDER } from '../../utils/phone'
+import { openPaymentUrl } from '../../utils/paymentUrl'
 import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
@@ -13,7 +13,6 @@ import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 import { unwrapList } from '../../utils/unwrapList'
 import type { Bien, Visite } from '../../types/api'
 import ErrorState from '../../components/ErrorState'
-import { PhoneInput } from '../../shared/saisie/champs'
 
 const TEAL = 'var(--c-sky)'
 
@@ -25,7 +24,7 @@ export default function PaiementIntegrationPage() {
   const [bien, setBien]         = useState<Bien | null>(null)
   const [visite, setVisite]     = useState<Visite | null>(null)
   const [visiteId, setVisiteId] = useState<number | null>(null)
-  const [tel, setTel]           = useState('')
+  const [payUrl, setPayUrl]     = useState('')
   const [state, setState]       = useState<'idle'|'waiting'|'success'|'error'>('idle')
   const [errMsg, setErrMsg]     = useState('')
   const [refId, setRefId]       = useState('')
@@ -51,12 +50,14 @@ export default function PaiementIntegrationPage() {
   }
   useEffect(charger, [bienId])
 
-  const suivre = (ref: string) => {
+  // FedaPay se paie sur une page hébergée ouverte à part : on laisse le temps de terminer (~8 min).
+  const suivre = (ref: string, urlPaiement?: string) => {
     setRefId(ref)
+    setPayUrl(urlPaiement ?? '')
     setState('waiting')
     polling.start({
-      intervalMs: 3000,
-      maxAttempts: 20,
+      intervalMs: 5000,
+      maxAttempts: urlPaiement ? 100 : 20,
       check: async () => {
         const { statut } = await paiementApi.statutIntegration(ref)
         if (statut === 'reussi' || statut === 'confirme' || statut === 'success') return 'success'
@@ -64,23 +65,24 @@ export default function PaiementIntegrationPage() {
         return 'waiting'
       },
       onSuccess: () => { attempt.reset(); setState('success') },
-      onFailed: () => { attempt.reset(); setState('error'); setErrMsg('Paiement refusé. Vérifiez votre solde MoMo.') },
+      onFailed: () => { attempt.reset(); setState('error'); setErrMsg('Paiement refusé. Vérifiez votre solde Mobile Money.') },
       onTimeout: () => { setState('error'); setErrMsg('Délai de confirmation expiré.') },
     })
   }
 
   const payer = async () => {
-    if (!validateBeninPhone(tel) || !visiteId || payerEnCoursRef.current) return
+    if (!visiteId || payerEnCoursRef.current) return
     payerEnCoursRef.current = true
     setState('waiting')
     try {
-      const res = await paiementApi.initierIntegration({ visite_id: visiteId, phone: normaliseBeninPhone(tel) }, attempt.key())
-      suivre(res.referenceId)
+      const res = await paiementApi.initierIntegration({ visite_id: visiteId }, attempt.key())
+      if (res.url_paiement) openPaymentUrl(res.url_paiement)
+      suivre(res.referenceId, res.url_paiement)
     } catch (e: unknown) {
       const conflit = readPaymentConflict(e)
       if (conflit?.code === 'PAIEMENT_EN_ATTENTE' && conflit.referenceId) {
         // Un paiement est déjà ouvert chez l'opérateur : on reprend son suivi sans débiter à nouveau.
-        suivre(conflit.referenceId)
+        suivre(conflit.referenceId, conflit.urlPaiement)
       } else if (conflit?.code === 'PAIEMENT_DEJA_CONFIRME') {
         attempt.reset()
         if (conflit.referenceId) setRefId(conflit.referenceId)
@@ -206,31 +208,20 @@ export default function PaiementIntegrationPage() {
             </div>
           </div>}
 
-          {/* MTN MoMo input */}
+          {/* Paiement FedaPay */}
           {loadError ? null : state === 'idle' || state === 'error' ? (
             <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/MTN_Logo.svg/200px-MTN_Logo.svg.png" alt="MTN MoMo" className="h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                <p className="font-bold text-text-dark">MTN Mobile Money</p>
-              </div>
+              <p className="font-bold text-text-dark mb-4">Paiement par FedaPay</p>
               {state === 'error' && (
                 <div className="mb-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
                   <p className="text-red-500 text-sm">{errMsg}</p>
                 </div>
               )}
-              <p className="text-sm text-text-grey mb-3">Numéro MTN MoMo</p>
-              <div className="flex items-center gap-3 rounded-xl px-4 py-3.5 border border-divider bg-surface-g mb-4">
-                <span className="font-bold text-text-dark text-sm">+229</span>
-                <div className="w-px h-4 bg-divider" />
-                <PhoneInput value={tel} onChange={e => { setTel(e.target.value); attempt.reset() }}
-                  placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money"
-                  className="flex-1 min-w-0 bg-transparent outline-none text-text-dark font-semibold tracking-wider" />
-              </div>
               <div className="flex items-start gap-2 text-xs text-text-grey mb-4">
                 <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>Une demande de paiement sera envoyée à votre téléphone. Validez-la dans les 3 minutes.</span>
+                <span>Vous serez redirigé vers la page de paiement sécurisée FedaPay (carte ou Mobile Money).</span>
               </div>
-              <button onClick={payer} disabled={!validateBeninPhone(tel) || !visiteId}
+              <button onClick={payer} disabled={!visiteId}
                 className="w-full py-4 rounded-xl font-bold text-white disabled:opacity-40"
                 style={{ background: `linear-gradient(135deg, var(--c-navy-deep), ${TEAL})`, boxShadow: '0 4px 14px rgba(14,165,233,0.35)' }}>
                 Payer {total.toLocaleString('fr-FR')} FCFA
@@ -243,7 +234,17 @@ export default function PaiementIntegrationPage() {
             <div className="rounded-2xl p-8 flex flex-col items-center" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)' }}>
               <div className="w-12 h-12 border-3 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: TEAL, borderTopColor: 'transparent', borderWidth: 3 }} />
               <p className="font-bold text-text-dark mb-1">Confirmation en cours…</p>
-              <p className="text-sm text-text-grey text-center">Validez la demande sur votre téléphone +229 {tel}</p>
+              {payUrl ? (
+                <>
+                  <p className="text-sm text-text-grey text-center mb-4">Terminez le paiement dans l'onglet ouvert, puis revenez ici.</p>
+                  <button onClick={() => openPaymentUrl(payUrl)}
+                    className="w-full py-3 rounded-xl font-bold text-white text-sm" style={{ background: `linear-gradient(135deg, var(--c-navy-deep), ${TEAL})` }}>
+                    Rouvrir la page de paiement
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-text-grey text-center">Nous attendons la confirmation de FedaPay.</p>
+              )}
             </div>
           )}
         </div>

@@ -3,7 +3,6 @@ import { BIEN, mockApp, visite, type ApiCall, type Mocks } from './support/mockA
 
 // P3 — Visite et paiement : réservation, liste des visites, paiement des frais (FE-B-001, B-006, B-012, B-018).
 
-const NUMERO = '0197123456'
 const payer = (page: Page) => page.getByRole('button', { name: /Payer les frais de visite/ }).first()
 const confirmer = (page: Page) => page.getByRole('button', { name: 'Confirmer le paiement' })
 const initiations = (calls: ApiCall[]) => calls.filter(c => c.method === 'POST' && c.path === '/paiements/visite')
@@ -19,7 +18,6 @@ async function ouvrirPaiement(page: Page, mocks: Mocks) {
   })
   await page.goto('/mes-visites')
   await payer(page).click()
-  await page.getByPlaceholder(/\d/).first().fill(NUMERO)
   return calls
 }
 
@@ -99,6 +97,8 @@ test.describe('P3 visite et paiement', () => {
     await expect(page.getByText('Confirmation en cours')).toBeVisible()
     expect(initiations(calls)).toHaveLength(1)
     expect(cle(initiations(calls)[0])).toBeTruthy()
+    // FedaPay, seul moyen de paiement : envoyé explicitement, sans numéro ni choix d'opérateur.
+    expect(JSON.parse(initiations(calls)[0].body ?? '{}')).toEqual({ visite_id: 7, methode_paiement: 'fedapay' })
     await page.mouse.click(5, 5)
     await expect(page.getByRole('dialog', { name: 'Payer la visite' })).toHaveCount(1)
   })

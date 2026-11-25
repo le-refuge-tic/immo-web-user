@@ -7,13 +7,12 @@ import { walletApi } from '../../../api/walletApi'
 import { chatApi } from '../../../api/chatApi'
 import { bienTypeLabel } from '../../../utils/bienType'
 import { formatMois } from '../../../utils/dateFormat'
-import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../../utils/phone'
 import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
 import { useTentativesParCle } from '../../../hooks/usePaymentAttempt'
 import { avecCle } from '../../../utils/paymentAttempt'
-import { GREEN, TEAL, OPERATEURS, GREEN_TX, TEAL_TX } from '../shared'
+import { GREEN, TEAL, MODE_FEDAPAY, GREEN_TX, TEAL_TX } from '../shared'
 import { IcHome, IcCheck, IcPin } from '../icons'
 import OperateurChips from '../OperateurChips'
 import GestionnaireCard from './GestionnaireCard'
@@ -21,7 +20,6 @@ import type { Loyer, ModePaiementLoyer, MonLogement } from '../../../types/locat
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
-import { PhoneInput } from '../../../shared/saisie/champs'
 
 // ─── Mon Logement ─────────────────────────────────────────────────────────────
 export default function MonLogementTab() {
@@ -29,8 +27,7 @@ export default function MonLogementTab() {
   const [data, setData]         = useState<MonLogement | null>(null)
   const [loading, setLoading]   = useState(true)
   const [selected, setSelected] = useState<number[]>([])
-  const [tel, setTel]           = useState('')
-  const [operateur, setOperateur] = useState<ModePaiementLoyer>('momo')
+  const [operateur, setOperateur] = useState<ModePaiementLoyer>('fedapay')
   const [cotisationSolde, setCotisationSolde] = useState(0)
   const [paying, setPaying]     = useState(false)
   const [payState, setPayState] = useState<'idle'|'waiting'|'success'|'error'>('idle')
@@ -117,7 +114,6 @@ export default function MonLogementTab() {
       return
     }
 
-    if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
     if (initiationEnCoursRef.current) return
     initiationEnCoursRef.current = true
     let loyerCourant: number | null = null
@@ -131,8 +127,8 @@ export default function MonLogementTab() {
         setPayProgress(selected.length > 1 ? `Paiement ${i + 1}/${selected.length}…` : '')
         loyerCourant = selected[i]
         const loyerId = loyerCourant
-        const res = await avecCle(tentativeLoyer(loyerId), `${operateur}:${tel}`, cle =>
-          paiementApi.initierLoyer({ loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel }, cle))
+        const res = await avecCle(tentativeLoyer(loyerId), operateur, cle =>
+          paiementApi.initierLoyer({ loyer_id: loyerId }, cle))
         const hasUrl = !!res.url_paiement
         if (res.url_paiement) {
           // Lien refusé par la liste de domaines autorisés : on ne suit rien et on n'annonce pas d'onglet ouvert.
@@ -273,7 +269,7 @@ export default function MonLogementTab() {
                 ))}
               </div>
 
-              {/* Paiement MoMo */}
+              {/* Paiement du loyer */}
               {selected.length > 0 && (
                 <div className="mt-4 rounded-2xl p-4 md:max-w-md" style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.08)' }}>
                   {payState === 'success' ? (
@@ -302,8 +298,8 @@ export default function MonLogementTab() {
                         <p className="text-sm text-text-grey">Débit de votre cotisation…</p>
                       ) : (
                         <>
-                          <p className="text-sm text-text-grey">Confirmation du paiement MoMo…</p>
-                          <p className="text-xs text-text-grey">Validez la demande sur votre téléphone</p>
+                          <p className="text-sm text-text-grey">Confirmation du paiement…</p>
+                          <p className="text-xs text-text-grey">Nous attendons la confirmation de FedaPay.</p>
                         </>
                       )}
                     </div>
@@ -320,20 +316,12 @@ export default function MonLogementTab() {
                             Solde cotisation insuffisant ({cotisationSolde.toLocaleString('fr-FR')} F disponibles).
                           </p>
                         )
-                      ) : operateur !== 'fedapay' && (
-                        <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
-                          <span className="text-text-grey text-sm font-semibold">+229</span>
-                          <div className="w-px h-4 bg-divider" />
-                          <PhoneInput value={tel} onChange={e => setTel(e.target.value)}
-                            placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money"
-                            className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
-                        </div>
-                      )}
+                      ) : null}
                       <button onClick={payer}
-                        disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
+                        disabled={paying || (operateur === 'cotisation' && !cotisationSuffisante)}
                         className="w-full py-3.5 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-opacity hover:opacity-90"
                         style={{ background: `linear-gradient(135deg, var(--c-emerald-dark), ${GREEN})` }}>
-                        {operateur === 'cotisation' ? 'Payer avec ma cotisation' : `Payer via ${OPERATEURS.find(o => o.id === operateur)?.label}`}
+                        {operateur === 'cotisation' ? 'Payer avec ma cotisation' : `Payer via ${MODE_FEDAPAY.label}`}
                       </button>
                     </>
                   )}

@@ -354,6 +354,7 @@ export interface NotificationsCount { count: number }
 
 // ─── Paiements ────────────────────────────────────────────────────────────
 
+/** Méthode enregistrée sur une transaction ; seul 'fedapay' est encore proposé, les autres valeurs viennent de l'historique. */
 export type MethodePaiement = 'momo' | 'flooz' | 'celtiis' | 'fedapay'
 
 export interface Paiement {

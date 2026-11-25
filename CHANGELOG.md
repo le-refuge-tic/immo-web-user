@@ -11,6 +11,12 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Modifié (FedaPay, seul moyen de paiement)
+- Toute initiation de paiement envoie `methode_paiement: 'fedapay'` (frais de visite, intégration, loyer, recharge de wallet) : sans elle, le serveur retombait sur MTN MoMo pour l'intégration et le loyer. La méthode est fixée dans `paiementApi`, les écrans ne la choisissent plus.
+- Supprimés : choix MTN MoMo / Moov Flooz / Celtiis et saisie du numéro Mobile Money (paiement de visite, loyer, recharge), logo et champ MTN de la page d'intégration (qui ouvre maintenant la page FedaPay et propose « Rouvrir la page de paiement »), textes « MoMo » de l'accueil et de « Gestion via l'app ». Le loyer garde le paiement par le solde cotisation.
+- Le reçu sans méthode connue affiche « FedaPay » (au lieu de « MTN Mobile Money »). Les libellés MTN / Moov / Celtiis restent pour l'historique des paiements antérieurs.
+- Retrait : le choix MTN / Moov reste (FedaPay en a besoin pour verser l'argent) et s'intitule « Réseau de réception (envoi par FedaPay) ».
+
 ### Ajouté (compte en suppression)
 - **Connexion d'un compte en suppression** : après le code SMS, le serveur répond 403 `SUPPRESSION_PROGRAMMEE`. Une boîte « Suppression programmée » indique la date (JJ/MM/AAAA) et propose « Annuler la suppression » (`POST /auth/annuler-suppression` avec le même numéro et le même code, puis connexion normale et toast « Votre compte a été réactivé. ») ou « Non » (numéro et code effacés). Code expiré (401) : retour à la saisie du numéro avec « Le code a expiré. Reconnectez-vous pour recevoir un nouveau code. ». Numéro et code restent en mémoire du composant, jamais stockés.
 - **Inscription** avec le numéro d'un compte en suppression (409 `SUPPRESSION_EN_COURS`) : message du serveur dans une boîte de dialogue, avec un raccourci vers la connexion.

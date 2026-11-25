@@ -6,7 +6,6 @@ import { mockApp, type ApiCall, type Mock, type Mocks } from './support/mockApi'
 /** Motif d'un montant formaté en fr-FR (l'espace des milliers peut être insécable ou fine). */
 const fcfa = (n: number) => new RegExp(`${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '[\\s\\u202f\\u00a0]')}\\s*FCFA`)
 
-const NUMERO = '0197123456'
 const posts = (calls: ApiCall[], path: string) => calls.filter(c => c.method === 'POST' && c.path === path)
 const gets = (calls: ApiCall[], path: string) => calls.filter(c => c.method === 'GET' && c.path === path)
 const cle = (call: ApiCall) => call.headers['idempotency-key']
@@ -517,11 +516,10 @@ test.describe('P5 onglet Portefeuille du propriétaire', () => {
 
 const recharger = (page: Page) => page.getByRole('button', { name: /^Recharger via/ })
 
-async function ouvrirRecharge(page: Page, mocks: Mocks, saisie = { montant: '5000', numero: NUMERO }) {
+async function ouvrirRecharge(page: Page, mocks: Mocks, montant = '5000') {
   const calls = await mockApp(page, { role: 'locataire', mocks })
   await page.goto('/portefeuille/recharger/epargne')
-  await page.getByPlaceholder('Ex. 5 000').fill(saisie.montant)
-  await page.getByLabel('Numéro Mobile Money').fill(saisie.numero)
+  await page.getByPlaceholder('Ex. 5 000').fill(montant)
   return calls
 }
 
@@ -539,24 +537,16 @@ test.describe('P5 recharge du wallet', () => {
     await expect(recharger(page)).toBeEnabled()
   })
 
-  test('un numéro de moins de 10 chiffres est refusé avec le format attendu, sans appel réseau', async ({ page }) => {
-    const calls = await ouvrirRecharge(page, {}, { montant: '5000', numero: '019712345' })
-    await recharger(page).click()
-
-    await expect(page.getByRole('alert')).toContainText('saisissez 10 chiffres commençant par 01')
-    expect(posts(calls, '/paiements/depot')).toHaveLength(0)
-  })
-
-  test('la saisie du numéro est limitée à 10 chiffres', async ({ page }) => {
+  test('FedaPay est le seul moyen proposé : aucun choix d’opérateur ni numéro à saisir', async ({ page }) => {
     await mockApp(page, { role: 'locataire' })
     await page.goto('/portefeuille/recharger/epargne')
-    const champ = page.getByLabel('Numéro Mobile Money')
-    await champ.pressSequentially('01971234567890')
 
-    await expect(champ).toHaveValue('0197123456')
+    await expect(recharger(page)).toHaveText('Recharger via FedaPay')
+    await expect(page.getByLabel('Numéro Mobile Money')).toHaveCount(0)
+    await expect(page.getByText(/MTN|Moov|Flooz|Celtiis/)).toHaveCount(0)
   })
 
-  test('la recharge est initiée avec le montant, le numéro international et une clé d’idempotence, puis suivie jusqu’au succès', async ({ page }) => {
+  test('la recharge est initiée par FedaPay avec le montant et une clé d’idempotence, puis suivie jusqu’au succès', async ({ page }) => {
     const calls = await ouvrirRecharge(page, {
       depot: { status: 201, body: { reference: 'dep-1', statut: 'en_attente' } },
       depotStatut: () => ({ status: 200, body: { statut: 'reussi' } }),
@@ -567,7 +557,7 @@ test.describe('P5 recharge du wallet', () => {
     await expect(page.getByText('Wallet épargne rechargé !')).toBeVisible()
     const depots = posts(calls, '/paiements/depot')
     expect(depots).toHaveLength(1)
-    expect(bodyOf(depots[0])).toEqual({ wallet_type: 'epargne', montant: 5000, methode_paiement: 'momo', telephone: '+2290197123456' })
+    expect(bodyOf(depots[0])).toEqual({ wallet_type: 'epargne', montant: 5000, methode_paiement: 'fedapay' })
     expect(cle(depots[0])).toBeTruthy()
     expect(gets(calls, '/paiements/depot/dep-1/statut').length).toBeGreaterThan(0)
   })

@@ -1,19 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 import { openPaymentUrl } from '../../../utils/paymentUrl'
-import { validateBeninPhone, PHONE_PLACEHOLDER } from '../../../utils/phone'
 import { fraisVisiteAPayer } from '../../../utils/fraisVisite'
 import { ModalSheet } from '../../../components/ui/ModalSheet'
-import { OPERATORS } from './constants'
 import type { usePaiementVisite } from './usePaiementVisite'
-import { PhoneInput } from '../../../shared/saisie/champs'
 import { PrixVisite } from '../../../components/PrixVisite'
 
 // Modale de paiement des frais de visite (saisie, attente, en attente, succès).
 export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisite> }) {
   const navigate = useNavigate()
   const {
-    showPay, operator, setOperator, phoneOp, setPhoneOp, paying, payError, notice,
-    payState, payRefId, payUrl, attempt, suivrePaiement, handlePayer, closePayModal,
+    showPay, paying, payError, notice,
+    payState, payRefId, payUrl, suivrePaiement, handlePayer, closePayModal,
   } = pay
 
   return (
@@ -61,7 +58,7 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
                 </button>
               </>
             ) : (
-              <p className="text-sm text-text-grey">Validez la demande sur votre téléphone {phoneOp}</p>
+              <p className="text-sm text-text-grey">Nous attendons la confirmation de FedaPay.</p>
             )}
           </div>
         ) : (
@@ -71,40 +68,10 @@ export function PaiementModal({ pay }: { pay: ReturnType<typeof usePaiementVisit
               Montant : <span className="font-bold text-text-dark"><PrixVisite montant={showPay ? fraisVisiteAPayer(showPay) : 0} /></span>
             </p>
             {payError && <p className="text-danger text-sm mb-3">{payError}</p>}
-            <div className="flex gap-2 mb-4">
-              {OPERATORS.map(op => (
-                <button
-                  key={op.key}
-                  onClick={() => { setOperator(op.key); attempt.reset() }}
-                  className="flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all"
-                  style={{
-                    borderColor: operator === op.key ? 'var(--c-brand)' : 'var(--c-line)',
-                    color: operator === op.key ? 'var(--c-brand)' : 'var(--c-slate)',
-                    background: operator === op.key ? 'rgba(75,107,255,0.06)' : 'transparent',
-                  }}
-                >
-                  {op.label}
-                </button>
-              ))}
-            </div>
-            {operator === 'fedapay' ? (
-              <p className="text-xs text-text-grey mb-4">Vous serez redirigé vers la page de paiement sécurisée FedaPay (carte ou Mobile Money).</p>
-            ) : (
-              <div className="flex items-center gap-3 rounded-2xl px-3.5 border border-divider bg-surface-g mb-4 focus-within:border-primary">
-                <span className="text-lg">🇧🇯</span>
-                <span className="font-bold text-text-dark text-sm">+229</span>
-                <div className="w-px h-5 bg-divider" />
-                <PhoneInput
-                  value={phoneOp}
-                  onChange={e => { setPhoneOp(e.target.value); attempt.reset() }}
-                  placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money"
-                  className="flex-1 min-w-0 bg-transparent outline-none text-sm py-4"
-                />
-              </div>
-            )}
+            <p className="text-xs text-text-grey mb-4">Vous serez redirigé vers la page de paiement sécurisée FedaPay (carte ou Mobile Money).</p>
             <button
               onClick={handlePayer}
-              disabled={(operator !== 'fedapay' && !validateBeninPhone(phoneOp)) || paying}
+              disabled={paying}
               className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40"
               style={{ background: 'var(--c-orange-dark)' }}
             >
