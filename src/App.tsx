@@ -49,6 +49,8 @@ const NotFoundPage           = lazy(() => import('./pages/errors/NotFoundPage'))
 const ManageRolesPage        = lazy(() => import('./pages/profile/ManageRolesPage'))
 const MentionsLegalesPage    = lazy(() => import('./pages/legal/MentionsLegalesPage'))
 const ConfidentialitePage    = lazy(() => import('./pages/legal/ConfidentialitePage'))
+const CguPage                = lazy(() => import('./pages/legal/CguPage'))
+const CookiesPage            = lazy(() => import('./pages/legal/CookiesPage'))
 const RecuPage               = lazy(() => import('./pages/recu/RecuPage'))
 
 function PageLoader() {
@@ -205,6 +207,8 @@ function App() {
           } />
           <Route path="mentions-legales" element={<MentionsLegalesPage />} />
           <Route path="confidentialite" element={<ConfidentialitePage />} />
+          <Route path="cgu" element={<CguPage />} />
+          <Route path="cookies" element={<CookiesPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

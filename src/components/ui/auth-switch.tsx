@@ -726,8 +726,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <input type="checkbox" className="sr-only" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
                 <span className="auth-terms-box">{acceptedTerms && <Check size={12} strokeWidth={3} />}</span>
                 <span className="auth-terms-text">
-                  {/* Lien vers les CGU à ajouter quand leur page existera (texte à fournir). */}
-                  J'accepte les conditions d'utilisation et la{' '}
+                  J'accepte les{' '}
+                  <a href="/cgu" target="_blank" rel="noreferrer" className="auth-link">conditions d'utilisation</a> et la{' '}
                   <a href="/confidentialite" target="_blank" rel="noreferrer" className="auth-link">politique de confidentialité</a> de REFUGE.
                 </span>
               </label>

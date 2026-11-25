@@ -1,16 +1,7 @@
 import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { LEGAL_DRAFT, LEGAL_LAST_UPDATED } from '../../data/legal'
+import { Link, useNavigate } from 'react-router-dom'
+import { editeur, RECEPISSE_APDP } from '../../data/legal'
 import { usePageTitle } from '../../utils/usePageTitle'
-
-/** Valeur légale non fournie : marqueur visible plutôt qu'une valeur inventée. */
-export function ACompleter({ label }: { label: string }) {
-  return (
-    <span className="rounded px-1.5 py-0.5 text-[13px] font-semibold bg-amber-100 text-amber-900 dark:bg-amber-400/15 dark:text-amber-200">
-      [{label} — à compléter]
-    </span>
-  )
-}
 
 export function LegalSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -21,8 +12,45 @@ export function LegalSection({ title, children }: { title: string; children: Rea
   )
 }
 
+/** Tableau à deux colonnes ou plus, défilant horizontalement sur mobile. */
+export function LegalTable({ entetes, lignes }: { entetes?: string[]; lignes: ReactNode[][] }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-divider">
+      <table className="w-full text-sm border-collapse">
+        {entetes && <thead>
+          <tr>{entetes.map(e => <th key={e} scope="col" className="text-left font-semibold text-text-dark bg-surface-g px-3 py-2 border-b border-divider">{e}</th>)}</tr>
+        </thead>}
+        <tbody>
+          {lignes.map((l, i) => (
+            <tr key={i} className="align-top">
+              {l.map((c, j) => <td key={j} className="px-3 py-2 border-t border-divider first:font-medium first:text-text-dark">{c}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+/** Numéro du récépissé APDP, ou mention d'attente tant qu'il n'est pas attribué. */
+export function RecepisseApdp() {
+  return RECEPISSE_APDP
+    ? <strong>Récépissé APDP n° {RECEPISSE_APDP}</strong>
+    : <>Récépissé APDP : <strong>numéro en cours d’attribution</strong> par l’APDP à l’issue des formalités préalables.</>
+}
+
+/** Adresse email de contact, sélectionnable d'un clic. */
+export const EmailContact = () => <a href={`mailto:${editeur.email}`}>{editeur.email}</a>
+
+const AUTRES_DOCUMENTS = [
+  { to: '/cgu', label: 'Conditions générales d’utilisation' },
+  { to: '/confidentialite', label: 'Politique de confidentialité' },
+  { to: '/cookies', label: 'Politique cookies' },
+  { to: '/mentions-legales', label: 'Mentions légales' },
+]
+
 /** Gabarit commun des pages légales : titre, date de mise à jour, texte lisible (≈ 70 caractères par ligne). */
-export default function LegalLayout({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+export default function LegalLayout({ title, description, miseAJour, children }: { title: string; description: string; miseAJour: string; children: ReactNode }) {
   usePageTitle(title, description)
   const navigate = useNavigate()
   return (
@@ -32,15 +60,17 @@ export default function LegalLayout({ title, description, children }: { title: s
           ← Retour
         </button>
         <h1 className="text-2xl md:text-3xl font-bold text-text-dark">{title}</h1>
-        <p className="text-sm text-text-grey mt-2">Dernière mise à jour : {LEGAL_LAST_UPDATED}</p>
-        {LEGAL_DRAFT && (
-          <p role="note" className="mt-4 rounded-xl px-4 py-3 text-sm bg-amber-50 text-amber-900 border border-amber-200 dark:bg-amber-400/10 dark:text-amber-100 dark:border-amber-300/25">
-            Projet en cours de validation par l’éditeur : ce texte peut encore évoluer.
-          </p>
-        )}
-        <div className="mt-8 space-y-8 text-[15px] leading-relaxed text-text-grey [&_strong]:text-text-dark [&_a]:text-primary dark:[&_a]:text-brand-soft [&_a]:font-semibold [&_a:hover]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5">
+        <p className="text-sm text-text-grey mt-2">Plateforme REFUGE, éditée par {editeur.nom} · Dernière mise à jour : {miseAJour}</p>
+        <div className="mt-8 space-y-8 text-[15px] leading-relaxed text-text-grey [&_strong]:text-text-dark [&_a]:text-primary dark:[&_a]:text-brand-soft [&_a]:font-semibold [&_a:hover]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5 [&_h3]:font-semibold [&_h3]:text-text-dark">
           {children}
         </div>
+        <nav aria-label="Autres documents légaux" className="mt-12 pt-6 border-t border-divider">
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {AUTRES_DOCUMENTS.map(d => (
+              <li key={d.to}><Link to={d.to} className="font-semibold text-primary dark:text-brand-soft hover:underline">{d.label}</Link></li>
+            ))}
+          </ul>
+        </nav>
       </article>
     </div>
   )
