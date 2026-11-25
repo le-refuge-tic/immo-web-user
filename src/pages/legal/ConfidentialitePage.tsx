@@ -10,6 +10,7 @@ const DONNEES: [string, string][] = [
   ['Coordonnées des propriétaires', 'Nom, prénom, téléphone et email du propriétaire saisis par un commercial, y compris lorsque le propriétaire n’est pas inscrit sur la plateforme'],
   ['Visites', 'Bien concerné, date et heure souhaitées, note de 1 à 5, commentaire, signalement d’un problème météo'],
   ['Paiements', 'Référence interne, statut et identifiant de transaction, montant, moyen de paiement, numéro de téléphone utilisé pour le paiement. Aucun numéro de carte bancaire n’est conservé par REFUGE.'],
+  ['Retraits du portefeuille', 'Numéro Mobile Money de retrait et son réseau (MTN ou Moov), montant, statut du retrait et, en cas d’échec, son motif'],
   ['Contrats de bail et loyers', 'Bien et locataire concernés, dates de début et de fin, loyer mensuel, jour d’échéance, mois prépayés, montant d’intégration, notes ou conditions particulières'],
   ['Messagerie interne', 'Messages échangés, plaintes et signalements'],
   ['Préférences de recherche', 'Ville, budget maximum, surface minimum, nombre de chambres, nombre de voisins, calme requis, animaux admis, jardin, accessibilité PMR, contraintes libres'],
@@ -22,6 +23,7 @@ const FINALITES: [string, string][] = [
   ['Publication et gestion des annonces de biens immobiliers', 'Biens immobiliers ; coordonnées des propriétaires'],
   ['Organisation des visites et recueil des retours de visite', 'Visites'],
   ['Paiement des visites, des loyers et des frais d’intégration ; rechargement du portefeuille électronique', 'Paiements'],
+  ['Versement des retraits du portefeuille par FedaPay vers le compte Mobile Money indiqué', 'Retraits du portefeuille'],
   ['Établissement et suivi des contrats de bail et des loyers', 'Contrats de bail et loyers'],
   ['Échanges entre utilisateurs par la messagerie interne ; traitement des plaintes et signalements', 'Messagerie interne'],
   ['Enregistrement des préférences de recherche', 'Préférences de recherche'],
@@ -118,6 +120,7 @@ export default function ConfidentialitePage() {
           ['Données de navigation et de connexion', '1 an après la suppression du compte'],
           ['Données de profil et transactions financières', '5 ans à compter de la clôture du compte, en raison des obligations de régulation financière applicables dans la zone UEMOA/BCEAO'],
           ['Compte inactif depuis plus de 3 ans', 'Suppression du compte après un préavis par email ou par SMS ; les données sont ensuite conservées pour les durées ci-dessus'],
+          ['Compte dont vous demandez la suppression', 'Compte désactivé pendant 7 jours, délai pendant lequel vous pouvez annuler la suppression en vous reconnectant ; le compte est ensuite supprimé et les données restantes sont conservées pour les durées ci-dessus'],
         ]} />
         <p>
           Les données sont conservées sous la forme de dossier électronique : en Allemagne (Francfort) pour la base de données
@@ -146,6 +149,12 @@ export default function ConfidentialitePage() {
           par e-mail à la personne chargée du suivi des réclamations, {responsableTraitement.nom}, responsable du traitement :{' '}
           <EmailContact />. Nous garantissons une réponse dans un délai d’un (01) mois à compter de la réception de votre
           demande.
+        </p>
+        <p>
+          Vous pouvez aussi demander vous-même la suppression de votre compte depuis l’application. La suppression devient
+          effective 7 jours après la demande : pendant ce délai, le compte ne peut plus être utilisé, son numéro de téléphone
+          ne peut pas servir à créer un nouveau compte, et vous pouvez annuler la suppression en vous reconnectant avec votre
+          numéro et le code reçu par SMS.
         </p>
       </LegalSection>
 

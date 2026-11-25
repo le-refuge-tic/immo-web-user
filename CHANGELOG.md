@@ -11,6 +11,10 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Modifié (pages légales alignées sur l'API)
+- Politique de confidentialité (mise à jour du 25 novembre 2026) : données et finalité « Retraits du portefeuille » (numéro Mobile Money, réseau MTN ou Moov, statut, motif d'échec), FedaPay destinataire des retraits, suppression du compte à la demande avec délai de 7 jours annulable en se reconnectant.
+- CGU (même date) : paiements exclusivement par FedaPay ; retraits vers MTN ou Moov (plus Celtiis), envoi retardé relancé automatiquement au lieu d'une « validation préalable » de 24 à 72 h, recrédit automatique en cas d'échec ; suppression du compte effective 7 jours après la demande.
+
 ### Modifié (retraits : statuts et motif d'échec)
 - Libellés du suivi des retraits (client et propriétaire) : « En cours d'envoi » (en_attente, approuve, en_cours), « Envoyé », « Échec » (echoue), « Annulé » (rejete), « Envoi retardé » (en_attente_fonds) ; un statut inconnu s'affiche tel quel.
 - Échec ou annulation : `motif_echec` du serveur s'il existe, puis « Le montant a été recrédité sur votre portefeuille. ». Envoi retardé : « Votre retrait n'est pas encore parti. Le montant reste réservé et sera envoyé dès que possible. ».

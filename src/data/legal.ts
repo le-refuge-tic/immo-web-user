@@ -8,8 +8,8 @@
 /** Dates de dernière mise à jour, telles qu'elles figurent sur chaque document officiel. */
 export const MAJ = {
   mentions: '4 novembre 2026',
-  cgu: '6 novembre 2026',
-  confidentialite: '6 novembre 2026',
+  cgu: '25 novembre 2026',
+  confidentialite: '25 novembre 2026',
   cookies: '13 octobre 2026',
 } as const
 
@@ -58,7 +58,7 @@ export const hebergeurs: { nom: string; service: string; pays: string }[] = [
 /** Destinataires et transferts (politique de confidentialité, § 6). */
 export const destinataires: { nom: string; role: string; pays: string }[] = [
   { nom: 'Wirepick (WIREPICK SARL)', role: "Envoi des codes de vérification (OTP) par SMS ; seuls vos numéros de téléphone lui sont transmis, uniquement à cette fin", pays: 'Bénin (entité locale) ; Canada (siège)' },
-  { nom: 'FedaPay (FEDAPAY SA)', role: 'Gestion des paiements (données de paiement)', pays: 'Bénin' },
+  { nom: 'FedaPay (FEDAPAY SA)', role: 'Gestion des paiements (données de paiement) et versement des retraits (numéro Mobile Money de retrait, réseau et montant)', pays: 'Bénin' },
   { nom: 'Umami Cloud (Umami Software, Inc.)', role: 'Statistiques de fréquentation, uniquement si vous y consentez', pays: 'Union européenne' },
   { nom: 'Vercel Inc.', role: "Hébergement de l'application web", pays: 'États-Unis' },
   { nom: 'Render', role: 'Hébergement des API', pays: 'Allemagne (Francfort)' },

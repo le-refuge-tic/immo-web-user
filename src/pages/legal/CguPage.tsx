@@ -179,9 +179,9 @@ export default function CguPage() {
 
       <LegalSection title="11. Paiements">
         <p>
-          Les paiements (frais de visite, intégration, loyers, commissions) sont traités par FedaPay, par Mobile Money ou par
-          carte bancaire. Pour un paiement par Mobile Money, une demande est envoyée sur le téléphone de l’utilisateur, qui doit
-          la valider dans les 3 minutes.
+          Les paiements (frais de visite, intégration, loyers, commissions, rechargement du portefeuille) sont traités
+          exclusivement par FedaPay, sur sa page de paiement sécurisée, par Mobile Money ou par carte bancaire. Aucun autre
+          moyen de paiement n’est proposé.
         </p>
         <p>
           Aucun numéro de carte bancaire n’est conservé par REFUGE. Un reçu est disponible pour chaque paiement validé, et
@@ -193,7 +193,7 @@ export default function CguPage() {
       <LegalSection title="12. Portefeuille et retraits">
         <p>
           Les sommes revenant aux propriétaires et aux vendeurs sont créditées sur leur portefeuille. Les retraits sont réservés
-          aux propriétaires et aux vendeurs, et effectués par FedaPay vers un compte Mobile Money (MTN, Moov, Celtiis) ou par
+          aux propriétaires et aux vendeurs, et effectués par FedaPay vers un compte Mobile Money (MTN ou Moov) ou par
           virement bancaire.
         </p>
         <ul>
@@ -201,9 +201,10 @@ export default function CguPage() {
           <li>Plafond : 2 000 000 FCFA par transaction vers un compte Mobile Money.</li>
           <li>Frais de retrait : pris en charge par REFUGE.</li>
           <li>
-            Délai : de quelques secondes à quelques minutes pour un retrait automatique ; de 24 à 72 heures ouvrées lorsqu’une
-            validation préalable est nécessaire.
+            Délai : le retrait part automatiquement et arrive en quelques secondes à quelques minutes. Lorsqu’il ne peut pas
+            partir immédiatement, le montant reste réservé et l’envoi est relancé automatiquement jusqu’à son départ.
           </li>
+          <li>Échec : un retrait qui échoue ou qui est annulé est recrédité automatiquement sur le portefeuille, avec le motif de l’échec.</li>
         </ul>
       </LegalSection>
 
@@ -229,8 +230,11 @@ export default function CguPage() {
       <LegalSection title="15. Suspension et suppression du compte">
         <h3>15.1 Suppression à la demande de l’utilisateur</h3>
         <p>
-          L’utilisateur peut supprimer son compte et ses données à tout moment depuis l’application, ou en écrivant à{' '}
-          <EmailContact />. Les données sont alors conservées pour les durées prévues par la{' '}
+          L’utilisateur peut demander la suppression de son compte et de ses données à tout moment depuis l’application, ou en
+          écrivant à <EmailContact />. La suppression devient effective 7 jours après la demande. Pendant ce délai, le compte
+          ne peut plus être utilisé, son numéro de téléphone ne peut pas servir à créer un nouveau compte, et l’utilisateur peut
+          annuler la suppression en se reconnectant avec son numéro et le code reçu par SMS. Une fois la suppression effective,
+          les données sont conservées pour les durées prévues par la{' '}
           <Link to="/confidentialite">politique de confidentialité</Link>.
         </p>
         <h3>15.2 Suspension ou suppression immédiate</h3>
