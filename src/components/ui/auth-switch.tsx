@@ -347,7 +347,12 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status
       if (status === 401) retourConnexion(MSG_CODE_EXPIRE, false)
-      else setOtpError(isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "La suppression n'a pas pu être annulée. Réessayez.")
+      else {
+        // Le code reste valable 5 min : le ressaisir rouvre la boîte de dialogue.
+        annulationRef.current = null
+        setOtpDigits(Array(OTP_LENGTH).fill(''))
+        setOtpError(isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "La suppression n'a pas pu être annulée. Réessayez.")
+      }
     }
     setOtpLoading(false)
   }

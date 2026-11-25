@@ -72,7 +72,9 @@ function forceLogout(motif: 'session_expiree' | 'compte_inactif' = 'session_expi
   // FE-B-002 : retour à la page en cours après reconnexion, avec un message
   // « session expirée » plutôt qu'un écran de connexion muet.
   // Un refresh refusé pour compte inactif a déjà posé le marqueur : il prime sur « session expirée ».
-  if (motif === 'compte_inactif' || isCompteInactif()) markCompteInactif()
+  // Déjà sur la connexion : aucun marqueur, il resterait affiché à tort au prochain passage.
+  if (location.pathname === '/login') { /* rien à signaler */ }
+  else if (motif === 'compte_inactif' || isCompteInactif()) markCompteInactif()
   else markSessionExpired(location.pathname + location.search)
   if (location.pathname !== '/login') location.href = '/login'
 }

@@ -76,7 +76,12 @@ export default function PaiementIntegrationPage() {
     setState('waiting')
     try {
       const res = await paiementApi.initierIntegration({ visite_id: visiteId }, attempt.key())
-      if (res.url_paiement) openPaymentUrl(res.url_paiement)
+      // Lien refusé par la liste de domaines autorisés : rien n'est ouvert, donc rien à suivre.
+      if (res.url_paiement && !openPaymentUrl(res.url_paiement)) {
+        attempt.reset()
+        setState('error'); setErrMsg('Le lien de paiement reçu est invalide. Vérifiez votre historique avant de réessayer.')
+        return
+      }
       suivre(res.referenceId, res.url_paiement)
     } catch (e: unknown) {
       const conflit = readPaymentConflict(e)
