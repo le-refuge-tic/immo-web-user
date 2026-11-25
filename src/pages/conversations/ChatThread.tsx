@@ -152,7 +152,6 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   const peutVoirContact = estCompteStaff(user)
   const bienTypeLabel = conv?.bien ? (conv.bien.sousType ? SOUS_TYPE_LABELS[conv.bien.sousType] : BIEN_TYPE_LABELS[conv.bien.type]) || conv.bien.type : null
   const bienLoc = conv?.bien?.localisation ? (conv.bien.localisation.quartier || conv.bien.localisation.ville) : null
-  const isVerified = !!(other?.verifie ?? other?.is_verified ?? other?.identite_verifiee)
   const isOnline = !!(other?.isOnline ?? conv?.isOnline)
   const convBienId = conv?.bien?.id
 
@@ -247,7 +246,7 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
   /* ── Panneau profil (desktop droit / mobile drawer) ── */
   // Fonction de rendu (et non composant) : le panneau n'est pas remonté à chaque message reçu
   const renderProfilePanel = ({ onClose }: { onClose: () => void }) => (
-    <ProfilePanel onClose={onClose} colors={colors} other={other} otherName={otherName} role={role} isVerified={isVerified}
+    <ProfilePanel onClose={onClose} colors={colors} other={other} otherName={otherName} role={role}
       isOnline={isOnline} conv={conv} bienTypeLabel={bienTypeLabel} bienLoc={bienLoc}
       hoveredSettingsIdx={hoveredSettingsIdx} onHoverSettings={setHoveredSettingsIdx} onOpenBien={id => navigate(`/biens/${id}`)} />
   )
@@ -280,12 +279,6 @@ export default function ChatThread({ convId, onBack, initialDraft }: { convId: n
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
                   <p className="text-[14.5px] font-bold truncate leading-tight" style={{ color: tp }}>{otherName}</p>
-                  {isVerified && (
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="var(--c-brand)" aria-label="Vérifié">
-                      <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
-                      <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="rgb(255,255,255)"/>
-                    </svg>
-                  )}
                 </div>
                 {role ? <p className="text-[12px] font-medium mt-0.5" style={{ color: 'var(--tx-blue)' }}>{role}</p>
                   : isOnline ? <p className="text-[12px] font-medium mt-0.5" style={{ color: 'var(--tx-green)' }}>En ligne</p> : null}

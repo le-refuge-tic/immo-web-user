@@ -11,6 +11,9 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Retiré (vérification d'identité)
+- La vérification d'identité (CIP/IFU) n'existe plus côté serveur : suppression de l'entrée « Vérification CIP / IFU » du profil propriétaire, de sa modale d'envoi, du bandeau de statut, du badge « vérifié » du chat (en-tête et fiche du contact), des styles des notifications `documents_valides` / `documents_rejetes`, des appels `POST /users/me/cip` et `/ifu` et des champs `cip_url`, `ifu_url`, `statut_verification_documents`, `motif_rejet_documents`.
+
 ### Corrigé (reçu PDF)
 - « Impossible de générer le PDF » : tout reçu contenant un montant supérieur à 999 F (loyers, rechargements, intégration) ou la mention « prix normal 1 000 FCFA » des visites échouait. Le séparateur de milliers (espace fine insécable U+202F) n'est pas écrivable avec la police Helvetica du PDF. Les textes du reçu sont maintenant filtrés (`utils/recuTexte.ts`) : espaces typographiques remplacées, caractère hors police remplacé par « ? » au lieu de faire échouer le document.
 - Une panne de génération n'efface plus le reçu : le message s'affiche sous le bouton « Télécharger le reçu PDF » au lieu de remplacer la page par « Retour ».

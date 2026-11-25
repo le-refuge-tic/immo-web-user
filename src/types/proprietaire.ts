@@ -14,17 +14,12 @@ import type { Bien, ChatSearchHit, IsoDate, MethodePaiement, User, Visite } from
  * l'utilisateur du contexte d'authentification (champs nullables).
  */
 export interface ProprioProfil {
-  /** Vérification des pièces d'identité (CIP/IFU) par l'équipe REFUGE. */
-  statut_verification_documents?: import('../utils/verificationDocuments').StatutVerificationDocuments | null
-  motif_rejet_documents?: string | null
   id?: number
   nom?: string | null
   prenom?: string | null
   email?: string | null
   telephone?: string | null
   photo_profil?: string | null
-  cip_url?: string | null
-  ifu_url?: string | null
   score_credibilite?: number
   nb_etoiles?: number
   created_at?: IsoDate
