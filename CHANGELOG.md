@@ -11,6 +11,11 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Modifié (retraits : statuts et motif d'échec)
+- Libellés du suivi des retraits (client et propriétaire) : « En cours d'envoi » (en_attente, approuve, en_cours), « Envoyé », « Échec » (echoue), « Annulé » (rejete), « Envoi retardé » (en_attente_fonds) ; un statut inconnu s'affiche tel quel.
+- Échec ou annulation : `motif_echec` du serveur s'il existe, puis « Le montant a été recrédité sur votre portefeuille. ». Envoi retardé : « Votre retrait n'est pas encore parti. Le montant reste réservé et sera envoyé dès que possible. ».
+- Après une demande : « Votre retrait est en cours d'envoi vers votre compte Mobile Money. » au lieu de « Virement lancé… » ; l'envoi retardé n'annonce plus « elle sera traitée par notre équipe ».
+
 ### Modifié (FedaPay, seul moyen de paiement)
 - Toute initiation de paiement envoie `methode_paiement: 'fedapay'` (frais de visite, intégration, loyer, recharge de wallet) : sans elle, le serveur retombait sur MTN MoMo pour l'intégration et le loyer. La méthode est fixée dans `paiementApi`, les écrans ne la choisissent plus.
 - Supprimés : choix MTN MoMo / Moov Flooz / Celtiis et saisie du numéro Mobile Money (paiement de visite, loyer, recharge), logo et champ MTN de la page d'intégration (qui ouvre maintenant la page FedaPay et propose « Rouvrir la page de paiement »), textes « MoMo » de l'accueil et de « Gestion via l'app ». Le loyer garde le paiement par le solde cotisation.
