@@ -56,7 +56,7 @@ test.describe('erreurs de chargement : portefeuille', () => {
     })
     await page.goto('/portefeuille')
     await page.getByRole('button', { name: 'Demander un retrait' }).click()
-    await page.getByPlaceholder('Ex: 50000').fill('1000')
+    await page.getByPlaceholder('Ex: 50000').fill('10000')
     await page.getByRole('button', { name: 'Continuer' }).click()
     await page.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
