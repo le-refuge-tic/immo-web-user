@@ -86,8 +86,6 @@ const TYPE_CONFIG: Record<string, TypeCfg> = {
   bien_rejete:   { icon: <BienRejeteIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
   proposition:   { icon: <SwapIcon />,         color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.10)' },
   paiement:      { icon: <PaiementIcon />,     color: '#7C3AED', bg: 'rgba(124,58,237,0.08)' },
-  documents_valides: { icon: <BienApprouveIcon />, color: 'var(--tx-green)', bg: 'rgba(34,197,94,0.08)' },
-  documents_rejetes: { icon: <BienRejeteIcon />,   color: 'var(--tx-red)', bg: 'rgba(239,68,68,0.08)' },
 }
 
 // Types réellement émis par l'API → style, aligné sur _styleForType du mobile.

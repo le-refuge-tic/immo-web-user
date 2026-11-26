@@ -2,24 +2,19 @@ import { useState, useRef } from 'react'
 import { openPaymentUrl } from '../../utils/paymentUrl'
 import { useNavigate, useParams } from 'react-router-dom'
 import { paiementApi } from '../../api/paiementApi'
-import type { MethodePaiement } from '../../api/paiementApi'
 import { usePageTitle } from '../../utils/usePageTitle'
-import { validateBeninPhone, normaliseBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../utils/phone'
 import { apiMessage } from '../../utils/apiMessage'
 import { readPaymentConflict } from '../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../hooks/usePaymentAttempt'
 import { avecCle } from '../../utils/paymentAttempt'
 import { usePaymentPolling } from '../../hooks/usePaymentPolling'
 import { withAlpha } from '../../utils/color'
-import { MoneyInput, PhoneInput } from '../../shared/saisie/champs'
+import { MoneyInput } from '../../shared/saisie/champs'
 
 type WalletType = 'cotisation' | 'epargne'
 
-const OPS: { id: string; label: string; tagline: string; color: string; methode: MethodePaiement; needsPhone: boolean }[] = [
-  { id: 'mtn',     label: 'MTN MoMo',   tagline: 'Mobile Money direct',      color: '#FFB300', methode: 'momo',    needsPhone: true },
-  { id: 'moov',    label: 'Moov Flooz', tagline: 'Flooz direct',             color: '#1565C0', methode: 'flooz',   needsPhone: true },
-  { id: 'fedapay', label: 'FedaPay',    tagline: 'MTN · Moov · Celtiis · …', color: '#00897B', methode: 'fedapay', needsPhone: false },
-]
+/** Seul moyen de paiement : la page sécurisée FedaPay (carte ou Mobile Money). */
+const op = { label: 'FedaPay', tagline: 'Carte ou Mobile Money, sur la page sécurisée FedaPay', color: '#00897B' }
 
 const LABELS: Record<WalletType, string> = { cotisation: 'cotisation', epargne: 'épargne' }
 const COLORS: Record<WalletType, string> = { cotisation: 'var(--c-brand)', epargne: 'var(--c-violet)' }
@@ -31,9 +26,7 @@ export default function RechargementWalletPage() {
   const accent = COLORS[type]
   usePageTitle(`Recharger — ${LABELS[type]}`)
 
-  const [opId, setOpId] = useState('mtn')
   const [montant, setMontant] = useState('')
-  const [tel, setTel] = useState('')
   const [state, setState] = useState<'idle' | 'loading' | 'waiting' | 'success' | 'error'>('idle')
   const [error, setError] = useState('')
   const [payUrl, setPayUrl] = useState('')
@@ -41,12 +34,11 @@ export default function RechargementWalletPage() {
   const rechargeEnCoursRef = useRef(false)
   const attempt = usePaymentAttempt()
 
-  const op = OPS.find(o => o.id === opId)!
-
+  // FedaPay se paie sur une page hébergée ouverte à part : on laisse le temps de terminer (~8 min).
   const startPolling = (refId: string) => {
     polling.start({
-      intervalMs: 3000,
-      maxAttempts: 40,
+      intervalMs: 5000,
+      maxAttempts: 100,
       check: async () => {
         const { statut } = await paiementApi.statutRechargement(refId)
         if (statut === 'reussi' || statut === 'confirme') return 'success'
@@ -62,18 +54,12 @@ export default function RechargementWalletPage() {
   const recharger = async () => {
     const m = Number(montant.replace(/\D/g, ''))
     if (!m || m < 100) { setState('error'); setError('Montant minimum : 100 FCFA'); return }
-    if (op.needsPhone) {
-      if (!validateBeninPhone(tel)) { setState('error'); setError(PHONE_FORMAT_HINT); return }
-    }
     if (rechargeEnCoursRef.current) return
     rechargeEnCoursRef.current = true
     setState('loading'); setError('')
     try {
-      // Signature : un autre montant, opérateur ou numéro est une autre demande, donc une autre clé.
-      const res = await avecCle(attempt, `${type}:${m}:${op.methode}:${tel}`, cle => paiementApi.initierRechargementWallet({
-        wallet_type: type, montant: m, methode_paiement: op.methode,
-        ...(op.needsPhone ? { telephone: normaliseBeninPhone(tel) } : {}),
-      }, cle))
+      // Signature : un autre wallet ou un autre montant est une autre demande, donc une autre clé.
+      const res = await avecCle(attempt, `${type}:${m}`, cle => paiementApi.initierRechargementWallet({ wallet_type: type, montant: m }, cle))
       if (res.statut === 'confirme') { attempt.reset(); setState('success'); return }
       const refId = res.reference || res.referenceId || res.reference_id
       if (res.url_paiement) {
@@ -120,7 +106,7 @@ export default function RechargementWalletPage() {
               <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p className="font-bold text-text-dark text-lg mb-2">En attente de confirmation…</p>
-            <p className="text-text-grey text-sm mb-6">Validez la demande sur votre téléphone {op.label}.</p>
+            <p className="text-text-grey text-sm mb-6">{payUrl ? "Terminez le paiement dans l'onglet ouvert, puis revenez ici." : 'Nous attendons la confirmation de FedaPay.'}</p>
             {payUrl && (
               <button onClick={() => openPaymentUrl(payUrl)} className="text-xs font-bold mb-4" style={{ color: op.color }}>
                 Rouvrir la page de paiement
@@ -142,28 +128,15 @@ export default function RechargementWalletPage() {
         ) : (
           <>
             <p className="font-bold text-text-dark text-sm mb-3">Moyen de paiement</p>
-            <div className="space-y-2.5 mb-6">
-              {OPS.map(o => {
-                const sel = opId === o.id
-                return (
-                  <button key={o.id} onClick={() => { setOpId(o.id); setState('idle'); setError(''); attempt.reset() }}
-                    className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-left transition-all"
-                    style={{ background: sel ? withAlpha(o.color, '14') : 'var(--c-card)', border: `1.5px solid ${sel ? o.color : 'rgba(0,0,0,0.08)'}` }}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(o.color, '20') }}>
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={o.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20M6 15h2m4 0h2M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm" style={{ color: 'var(--c-ink-navy)' }}>{o.label}</p>
-                      <p className="text-xs text-text-grey">{o.tagline}</p>
-                    </div>
-                    {sel && (
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: o.color }}>
-                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
+            <div className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl mb-6"
+              style={{ background: withAlpha(op.color, '14'), border: `1.5px solid ${op.color}` }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: withAlpha(op.color, '20') }}>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20M6 15h2m4 0h2M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm" style={{ color: 'var(--c-ink-navy)' }}>{op.label}</p>
+                <p className="text-xs text-text-grey">{op.tagline}</p>
+              </div>
             </div>
 
             <label htmlFor="recharge-montant" className="block font-bold text-text-dark text-sm mb-2">Montant à recharger</label>
@@ -178,17 +151,6 @@ export default function RechargementWalletPage() {
                 </button>
               ))}
             </div>
-
-            {op.needsPhone && (
-              <>
-                <p className="font-bold text-text-dark text-sm mb-2">Numéro {op.label}</p>
-                <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-3.5 mb-4 border border-divider">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={op.color} strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                  <PhoneInput value={tel} onChange={e => { setTel(e.target.value); attempt.reset() }}
-                    placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money" className="flex-1 min-w-0 bg-transparent text-base outline-none text-text-dark" />
-                </div>
-              </>
-            )}
 
             <div role="alert" aria-live="assertive" aria-atomic="true">
               {state === 'error' && error && (

@@ -6,7 +6,6 @@ import { mockApp, type ApiCall, type Mock, type Mocks } from './support/mockApi'
 /** Motif d'un montant formaté en fr-FR (l'espace des milliers peut être insécable ou fine). */
 const fcfa = (n: number) => new RegExp(`${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '[\\s\\u202f\\u00a0]')}\\s*FCFA`)
 
-const NUMERO = '0197123456'
 const posts = (calls: ApiCall[], path: string) => calls.filter(c => c.method === 'POST' && c.path === path)
 const gets = (calls: ApiCall[], path: string) => calls.filter(c => c.method === 'GET' && c.path === path)
 const cle = (call: ApiCall) => call.headers['idempotency-key']
@@ -134,7 +133,7 @@ test.describe('P5 portefeuille du client', () => {
     await expect(confirmation).toContainText('MTN')
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
-    await expect(page.getByText(/Virement lancé/)).toBeVisible()
+    await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
     await expect(dialog).toHaveCount(0)
     expect(posts(calls, '/retraits/me')).toHaveLength(1)
     expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 3000, wallet_type: 'epargne', operateur: 'mtn' })
@@ -157,7 +156,7 @@ test.describe('P5 portefeuille du client', () => {
     await expect(confirmation.getByRole('alert')).toBeVisible()
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
-    await expect(page.getByText(/Virement lancé/)).toBeVisible()
+    await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
     const [premier, second] = posts(calls, '/retraits/me').map(c => c.headers['idempotency-key'])
     expect(premier).toMatch(/.{8,}/)
     expect(second).toBe(premier)
@@ -173,7 +172,7 @@ test.describe('P5 portefeuille du client', () => {
     const confirmation = await ouvrirConfirmation(page, dialog)
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).dblclick()
 
-    await expect(page.getByText(/Virement lancé/)).toBeVisible()
+    await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
     expect(posts(calls, '/retraits/me')).toHaveLength(1)
   })
 
@@ -195,7 +194,7 @@ test.describe('P5 portefeuille du client', () => {
     await mockApp(page, {
       role: 'locataire',
       mocks: clientMocks({
-        demandeRetrait: { status: 201, body: { id: 5, statut: 'echoue', message: 'Le virement a échoué. Le montant a été remis sur votre portefeuille.' } },
+        demandeRetrait: { status: 201, body: { id: 5, statut: 'echoue', motif_echec: 'Le numéro de réception est invalide.' } },
       }),
     })
     const dialog = await ouvrirRetraitEpargne(page)
@@ -203,8 +202,8 @@ test.describe('P5 portefeuille du client', () => {
     const confirmation = await ouvrirConfirmation(page, dialog)
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
-    await expect(page.getByText(/remis sur votre portefeuille/)).toBeVisible()
-    await expect(page.getByText(/Virement lancé/)).toHaveCount(0)
+    await expect(page.getByText('Le numéro de réception est invalide. Le montant a été recrédité sur votre portefeuille.')).toBeVisible()
+    await expect(page.getByText(/en cours d'envoi/)).toHaveCount(0)
   })
 
   test('sans dernier opérateur, « Continuer » attend le choix MTN / Moov dans le formulaire, sans aucun OTP', async ({ page }) => {
@@ -228,7 +227,7 @@ test.describe('P5 portefeuille du client', () => {
     await expect(confirmation).toContainText('Moov')
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
-    await expect(page.getByText(/Virement lancé/)).toBeVisible()
+    await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
     expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 3000, wallet_type: 'epargne', operateur: 'moov' })
     expect(posts(calls, '/wallets/me/numero-retrait/initier')).toHaveLength(0)
     expect(posts(calls, '/wallets/me/numero-retrait/confirmer')).toHaveLength(0)
@@ -247,7 +246,7 @@ test.describe('P5 portefeuille du client', () => {
 
     const confirmation = await ouvrirConfirmation(page, dialog)
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
-    await expect(page.getByText(/Virement lancé/)).toBeVisible()
+    await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
 
     expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 2000, wallet_type: 'epargne', operateur: 'moov' })
     expect(posts(calls, '/wallets/me/numero-retrait/initier')).toHaveLength(0)
@@ -279,7 +278,7 @@ test.describe('P5 portefeuille du client', () => {
     await expect(dialog.getByRole('button', { name: 'Continuer' })).toBeEnabled()
   })
 
-  test('le suivi affiche chaque retrait avec son statut et rassure sur un échec', async ({ page }) => {
+  test('le suivi affiche chaque retrait avec son statut, le motif d’un échec et l’envoi retardé', async ({ page }) => {
     await mockApp(page, {
       role: 'locataire',
       mocks: clientMocks({
@@ -287,7 +286,10 @@ test.describe('P5 portefeuille du client', () => {
           status: 200,
           body: [
             { id: 1, montant: 3000, statut: 'envoye', operateur: 'mtn', numero_masque: '••••••3456', wallet_id: 3, created_at: '2026-10-05T10:00:00Z' },
-            { id: 2, montant: 1000, statut: 'echoue', operateur: 'mtn', numero_masque: '••••••3456', wallet_id: 3, created_at: '2026-10-04T10:00:00Z', message: 'Le virement a échoué. Le montant a été remis sur votre portefeuille.' },
+            { id: 2, montant: 1000, statut: 'echoue', operateur: 'mtn', numero_masque: '••••••3456', wallet_id: 3, created_at: '2026-10-04T10:00:00Z', motif_echec: 'Le numéro de réception est invalide.' },
+            { id: 3, montant: 2000, statut: 'rejete', operateur: 'moov', numero_masque: '••••••3456', wallet_id: 3, created_at: '2026-10-03T10:00:00Z', motif_echec: null },
+            { id: 4, montant: 1500, statut: 'en_attente_fonds', operateur: 'mtn', numero_masque: '••••••3456', wallet_id: 3, created_at: '2026-10-02T10:00:00Z' },
+            { id: 5, montant: 500, statut: 'approuve', operateur: 'mtn', numero_masque: '••••••3456', wallet_id: 3, created_at: '2026-10-01T10:00:00Z' },
           ],
         },
       }),
@@ -297,8 +299,14 @@ test.describe('P5 portefeuille du client', () => {
 
     const suivi = page.getByRole('region', { name: /Mes retraits/ })
     await expect(suivi.getByText('Envoyé', { exact: true })).toBeVisible()
-    await expect(suivi.getByText('Échoué, remboursé')).toBeVisible()
-    await expect(suivi.getByText('Le virement a échoué. Le montant a été remis sur votre portefeuille.')).toBeVisible()
+    await expect(suivi.getByText('Échec', { exact: true })).toBeVisible()
+    await expect(suivi.getByText('Le numéro de réception est invalide. Le montant a été recrédité sur votre portefeuille.')).toBeVisible()
+    await expect(suivi.getByText('Annulé', { exact: true })).toBeVisible()
+    await expect(suivi.getByText('Le montant a été recrédité sur votre portefeuille.', { exact: true })).toBeVisible()
+    await expect(suivi.getByText('Envoi retardé', { exact: true })).toBeVisible()
+    await expect(suivi.getByText("Votre retrait n'est pas encore parti. Le montant reste réservé et sera envoyé dès que possible.")).toBeVisible()
+    await expect(suivi.getByText("En cours d'envoi", { exact: true })).toBeVisible()
+    await expect(suivi).not.toContainText(/validation|administrateur/i)
     await expect(suivi).not.toContainText(/fedapay|payout/i)
   })
 
@@ -517,11 +525,10 @@ test.describe('P5 onglet Portefeuille du propriétaire', () => {
 
 const recharger = (page: Page) => page.getByRole('button', { name: /^Recharger via/ })
 
-async function ouvrirRecharge(page: Page, mocks: Mocks, saisie = { montant: '5000', numero: NUMERO }) {
+async function ouvrirRecharge(page: Page, mocks: Mocks, montant = '5000') {
   const calls = await mockApp(page, { role: 'locataire', mocks })
   await page.goto('/portefeuille/recharger/epargne')
-  await page.getByPlaceholder('Ex. 5 000').fill(saisie.montant)
-  await page.getByLabel('Numéro Mobile Money').fill(saisie.numero)
+  await page.getByPlaceholder('Ex. 5 000').fill(montant)
   return calls
 }
 
@@ -539,24 +546,16 @@ test.describe('P5 recharge du wallet', () => {
     await expect(recharger(page)).toBeEnabled()
   })
 
-  test('un numéro de moins de 10 chiffres est refusé avec le format attendu, sans appel réseau', async ({ page }) => {
-    const calls = await ouvrirRecharge(page, {}, { montant: '5000', numero: '019712345' })
-    await recharger(page).click()
-
-    await expect(page.getByRole('alert')).toContainText('saisissez 10 chiffres commençant par 01')
-    expect(posts(calls, '/paiements/depot')).toHaveLength(0)
-  })
-
-  test('la saisie du numéro est limitée à 10 chiffres', async ({ page }) => {
+  test('FedaPay est le seul moyen proposé : aucun choix d’opérateur ni numéro à saisir', async ({ page }) => {
     await mockApp(page, { role: 'locataire' })
     await page.goto('/portefeuille/recharger/epargne')
-    const champ = page.getByLabel('Numéro Mobile Money')
-    await champ.pressSequentially('01971234567890')
 
-    await expect(champ).toHaveValue('0197123456')
+    await expect(recharger(page)).toHaveText('Recharger via FedaPay')
+    await expect(page.getByLabel('Numéro Mobile Money')).toHaveCount(0)
+    await expect(page.getByText(/MTN|Moov|Flooz|Celtiis/)).toHaveCount(0)
   })
 
-  test('la recharge est initiée avec le montant, le numéro international et une clé d’idempotence, puis suivie jusqu’au succès', async ({ page }) => {
+  test('la recharge est initiée par FedaPay avec le montant et une clé d’idempotence, puis suivie jusqu’au succès', async ({ page }) => {
     const calls = await ouvrirRecharge(page, {
       depot: { status: 201, body: { reference: 'dep-1', statut: 'en_attente' } },
       depotStatut: () => ({ status: 200, body: { statut: 'reussi' } }),
@@ -567,7 +566,7 @@ test.describe('P5 recharge du wallet', () => {
     await expect(page.getByText('Wallet épargne rechargé !')).toBeVisible()
     const depots = posts(calls, '/paiements/depot')
     expect(depots).toHaveLength(1)
-    expect(bodyOf(depots[0])).toEqual({ wallet_type: 'epargne', montant: 5000, methode_paiement: 'momo', telephone: '+2290197123456' })
+    expect(bodyOf(depots[0])).toEqual({ wallet_type: 'epargne', montant: 5000, methode_paiement: 'fedapay' })
     expect(cle(depots[0])).toBeTruthy()
     expect(gets(calls, '/paiements/depot/dep-1/statut').length).toBeGreaterThan(0)
   })

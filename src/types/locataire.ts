@@ -5,8 +5,8 @@
  */
 import type { Bien, IsoDate, User } from './api'
 
-/** Mode de paiement proposé pour un loyer (cotisation = solde du wallet). */
-export type ModePaiementLoyer = 'momo' | 'flooz' | 'celtiis' | 'fedapay' | 'cotisation'
+/** Mode de paiement proposé pour un loyer : FedaPay, ou le solde du wallet cotisation (déjà alimenté par FedaPay). */
+export type ModePaiementLoyer = 'fedapay' | 'cotisation'
 
 export interface Loyer {
   id: number

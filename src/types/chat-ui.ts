@@ -20,11 +20,8 @@ export interface CreneauMetadata {
   [cle: string]: unknown
 }
 
-/** Participant d'une conversation : drapeaux de vérification et de présence optionnels. */
+/** Participant d'une conversation : drapeau de présence optionnel. */
 export type ChatUser = User & {
-  verifie?: boolean
-  is_verified?: boolean
-  identite_verifiee?: boolean
   isOnline?: boolean
 }
 

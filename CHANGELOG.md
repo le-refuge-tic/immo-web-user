@@ -11,6 +11,29 @@ Les versions 0.1.0 à 0.5.0 ont été reconstituées le 27/10/2026 à partir de 
 
 ## [Non publié]
 
+### Modifié (pages légales alignées sur l'API)
+- Politique de confidentialité (mise à jour du 25 novembre 2026) : données et finalité « Retraits du portefeuille » (numéro Mobile Money, réseau MTN ou Moov, statut, motif d'échec), FedaPay destinataire des retraits, suppression du compte à la demande avec délai de 7 jours annulable en se reconnectant.
+- CGU (même date) : paiements exclusivement par FedaPay ; retraits vers MTN ou Moov (plus Celtiis), envoi retardé relancé automatiquement au lieu d'une « validation préalable » de 24 à 72 h, recrédit automatique en cas d'échec ; suppression du compte effective 7 jours après la demande.
+
+### Modifié (retraits : statuts et motif d'échec)
+- Libellés du suivi des retraits (client et propriétaire) : « En cours d'envoi » (en_attente, approuve, en_cours), « Envoyé », « Échec » (echoue), « Annulé » (rejete), « Envoi retardé » (en_attente_fonds) ; un statut inconnu s'affiche tel quel.
+- Échec ou annulation : `motif_echec` du serveur s'il existe, puis « Le montant a été recrédité sur votre portefeuille. ». Envoi retardé : « Votre retrait n'est pas encore parti. Le montant reste réservé et sera envoyé dès que possible. ».
+- Après une demande : « Votre retrait est en cours d'envoi vers votre compte Mobile Money. » au lieu de « Virement lancé… » ; l'envoi retardé n'annonce plus « elle sera traitée par notre équipe ».
+
+### Modifié (FedaPay, seul moyen de paiement)
+- Toute initiation de paiement envoie `methode_paiement: 'fedapay'` (frais de visite, intégration, loyer, recharge de wallet) : sans elle, le serveur retombait sur MTN MoMo pour l'intégration et le loyer. La méthode est fixée dans `paiementApi`, les écrans ne la choisissent plus.
+- Supprimés : choix MTN MoMo / Moov Flooz / Celtiis et saisie du numéro Mobile Money (paiement de visite, loyer, recharge), logo et champ MTN de la page d'intégration (qui ouvre maintenant la page FedaPay et propose « Rouvrir la page de paiement »), textes « MoMo » de l'accueil et de « Gestion via l'app ». Le loyer garde le paiement par le solde cotisation.
+- Le reçu sans méthode connue affiche « FedaPay » (au lieu de « MTN Mobile Money »). Les libellés MTN / Moov / Celtiis restent pour l'historique des paiements antérieurs.
+- Retrait : le choix MTN / Moov reste (FedaPay en a besoin pour verser l'argent) et s'intitule « Réseau de réception (envoi par FedaPay) ».
+
+### Ajouté (compte en suppression)
+- **Connexion d'un compte en suppression** : après le code SMS, le serveur répond 403 `SUPPRESSION_PROGRAMMEE`. Une boîte « Suppression programmée » indique la date (JJ/MM/AAAA) et propose « Annuler la suppression » (`POST /auth/annuler-suppression` avec le même numéro et le même code, puis connexion normale et toast « Votre compte a été réactivé. ») ou « Non » (numéro et code effacés). Code expiré (401) : retour à la saisie du numéro avec « Le code a expiré. Reconnectez-vous pour recevoir un nouveau code. ». Numéro et code restent en mémoire du composant, jamais stockés.
+- **Inscription** avec le numéro d'un compte en suppression (409 `SUPPRESSION_EN_COURS`) : message du serveur dans une boîte de dialogue, avec un raccourci vers la connexion.
+- **Session d'un compte inactif** (401 `SUPPRESSION_PROGRAMMEE` ou `COMPTE_SUPPRIME` sur une route authentifiée) : pas de rafraîchissement du jeton, session vidée une seule fois, écran de connexion « Compte inactif — Votre compte n'est plus actif. ». Les autres 401 gardent leur comportement.
+
+### Retiré (vérification d'identité)
+- La vérification d'identité (CIP/IFU) n'existe plus côté serveur : suppression de l'entrée « Vérification CIP / IFU » du profil propriétaire, de sa modale d'envoi, du bandeau de statut, du badge « vérifié » du chat (en-tête et fiche du contact), des styles des notifications `documents_valides` / `documents_rejetes`, des appels `POST /users/me/cip` et `/ifu` et des champs `cip_url`, `ifu_url`, `statut_verification_documents`, `motif_rejet_documents`.
+
 ### Corrigé (reçu PDF)
 - « Impossible de générer le PDF » : tout reçu contenant un montant supérieur à 999 F (loyers, rechargements, intégration) ou la mention « prix normal 1 000 FCFA » des visites échouait. Le séparateur de milliers (espace fine insécable U+202F) n'est pas écrivable avec la police Helvetica du PDF. Les textes du reçu sont maintenant filtrés (`utils/recuTexte.ts`) : espaces typographiques remplacées, caractère hors police remplacé par « ? » au lieu de faire échouer le document.
 - Une panne de génération n'efface plus le reçu : le message s'affiche sous le bouton « Télécharger le reçu PDF » au lieu de remplacer la page par « Retour ».

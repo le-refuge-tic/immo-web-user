@@ -5,7 +5,7 @@ import { BASE, auth } from './apiBase'
 import { compressImage } from '../utils/compressImage'
 import type {
   ChangePasswordResponse, PasswordOtpResponse, PhoneOtpResponse, ProfilUpdateBody, ProfilUpdateResponse, UploadAvatarResponse,
-  UploadDocResponse, UserMe, VerifyPhoneResponse,
+  UserMe, VerifyPhoneResponse,
 } from '../types/auth'
 
 export const userApi = {
@@ -60,28 +60,6 @@ export const userApi = {
     const form = new FormData()
     form.append('photo', await compressImage(file, 800))
     return axios.post<UploadAvatarResponse>(`${BASE}/users/me/photo`, form, {
-      headers: {
-        Authorization: `Bearer ${tokenStore.getToken()}`,
-        'Content-Type': 'multipart/form-data',
-      },
-    }).then(r => r.data)
-  },
-
-  uploadCip: (file: File) => {
-    const form = new FormData()
-    form.append('cip', file)
-    return axios.post<UploadDocResponse>(`${BASE}/users/me/cip`, form, {
-      headers: {
-        Authorization: `Bearer ${tokenStore.getToken()}`,
-        'Content-Type': 'multipart/form-data',
-      },
-    }).then(r => r.data)
-  },
-
-  uploadIfu: (file: File) => {
-    const form = new FormData()
-    form.append('ifu', file)
-    return axios.post<UploadDocResponse>(`${BASE}/users/me/ifu`, form, {
       headers: {
         Authorization: `Bearer ${tokenStore.getToken()}`,
         'Content-Type': 'multipart/form-data',

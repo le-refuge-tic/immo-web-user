@@ -38,7 +38,7 @@ export const biensApi = {
       signal,
     }).then(r => r.data),
 
-  /** NB (FE-E-005) : le client ne doit dépendre d'aucun champ `user.*` (telephone, numero_retrait, cip_url...) de cette réponse publique ; seul `user_id` est utilisé. */
+  /** NB (FE-E-005) : le client ne doit dépendre d'aucun champ `user.*` (telephone, numero_retrait...) de cette réponse publique ; seul `user_id` est utilisé. */
   byId: (id: number, signal?: AbortSignal) =>
     axios.get<BienResponse>(`${BASE}/biens/${id}`, { ...auth(), signal }).then(r => r.data),
 

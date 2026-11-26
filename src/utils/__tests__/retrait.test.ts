@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { estRetraitEnCours, infoStatutRetrait, libelleOperateur, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait, RETRAIT_MINIMUM } from '../retrait'
+import { detailRetrait, estRetraitEnCours, infoStatutRetrait, libelleOperateur, messageApresDemande, messageMontantRetrait, raisonBlocageRetrait, RETRAIT_MINIMUM } from '../retrait'
 
 describe('messageMontantRetrait', () => {
   it('reste silencieux tant que le champ est vide', () => {
@@ -64,6 +64,13 @@ describe('statuts de retrait', () => {
     expect(infoStatutRetrait(statut).ton).toBe(ton)
   })
 
+  it.each([
+    ['en_attente', "En cours d'envoi"], ['approuve', "En cours d'envoi"], ['en_cours', "En cours d'envoi"],
+    ['envoye', 'Envoyé'], ['echoue', 'Échec'], ['rejete', 'Annulé'], ['en_attente_fonds', 'Envoi retardé'],
+  ])('%s s\'affiche « %s »', (statut, label) => {
+    expect(infoStatutRetrait(statut).label).toBe(label)
+  })
+
   it('un statut inconnu s\'affiche tel quel, comme « en cours » (aucune fausse alerte)', () => {
     expect(infoStatutRetrait('nouveau')).toEqual({ label: 'nouveau', ton: 'attente' })
   })
@@ -82,21 +89,48 @@ describe('statuts de retrait', () => {
   })
 })
 
+describe('detailRetrait', () => {
+  it('échec ou annulation : motif du serveur puis recrédit', () => {
+    expect(detailRetrait({ statut: 'echoue', motif_echec: 'Numéro Mobile Money invalide.' }))
+      .toBe('Numéro Mobile Money invalide. Le montant a été recrédité sur votre portefeuille.')
+    expect(detailRetrait({ statut: 'rejete', motif_echec: 'Retrait annulé par sécurité.' })).toMatch(/^Retrait annulé par sécurité\. Le montant a été recrédité/)
+  })
+
+  it('échec sans motif : seulement le recrédit', () => {
+    expect(detailRetrait({ statut: 'echoue', motif_echec: null })).toBe('Le montant a été recrédité sur votre portefeuille.')
+    expect(detailRetrait({ statut: 'rejete' })).toBe('Le montant a été recrédité sur votre portefeuille.')
+  })
+
+  it('envoi retardé : le montant reste réservé', () => {
+    expect(detailRetrait({ statut: 'en_attente_fonds' })).toBe("Votre retrait n'est pas encore parti. Le montant reste réservé et sera envoyé dès que possible.")
+  })
+
+  it('aucun détail pour un retrait en cours ou envoyé', () => {
+    for (const statut of ['en_attente', 'approuve', 'en_cours', 'envoye', 'inconnu']) {
+      expect(detailRetrait({ statut, motif_echec: 'ignoré' })).toBeNull()
+    }
+  })
+})
+
 describe('messageApresDemande', () => {
-  it('virement lancé : on annonce l\'envoi, pas encore l\'arrivée', () => {
-    const m = messageApresDemande({ statut: 'en_cours', message: null })
-    expect(m.ok).toBe(true)
-    expect(m.texte).toMatch(/lancé/)
+  it('retrait parti : en cours d\'envoi, sans validation humaine', () => {
+    for (const statut of ['en_attente', 'approuve', 'en_cours']) {
+      const m = messageApresDemande({ statut, motif_echec: null })
+      expect(m).toEqual({ ok: true, texte: "Votre retrait est en cours d'envoi vers votre compte Mobile Money." })
+    }
   })
 
-  it('échec immédiat : message du serveur (remboursement), présenté comme un échec', () => {
-    const m = messageApresDemande({ statut: 'echoue', message: 'Le virement a échoué. Le montant a été remis sur votre portefeuille.' })
+  it('échec immédiat : motif et recrédit, présenté comme un échec', () => {
+    const m = messageApresDemande({ statut: 'echoue', motif_echec: 'Solde du prestataire insuffisant.' })
     expect(m.ok).toBe(false)
-    expect(m.texte).toMatch(/remis sur votre portefeuille/)
+    expect(m.texte).toBe('Solde du prestataire insuffisant. Le montant a été recrédité sur votre portefeuille.')
   })
 
-  it('en attente de fonds : demande enregistrée, jamais présentée comme un échec', () => {
-    expect(messageApresDemande({ statut: 'en_attente_fonds', message: null }).ok).toBe(true)
+  it('envoi retardé : jamais présenté comme un échec ni comme une validation par l\'équipe', () => {
+    const m = messageApresDemande({ statut: 'en_attente_fonds', motif_echec: null })
+    expect(m.ok).toBe(true)
+    expect(m.texte).toMatch(/pas encore parti/)
+    expect(m.texte).not.toMatch(/équipe|valid/i)
   })
 })
 

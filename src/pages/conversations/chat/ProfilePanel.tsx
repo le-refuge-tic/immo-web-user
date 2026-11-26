@@ -8,7 +8,6 @@ interface ProfilePanelProps {
   other: ChatUser | null
   otherName: string
   role: string
-  isVerified: boolean
   isOnline: boolean
   conv: ChatConversation | null
   bienTypeLabel: string | null
@@ -20,7 +19,7 @@ interface ProfilePanelProps {
 
 /* ── Panneau profil (desktop droit / mobile drawer) ── */
 export function ProfilePanel({
-  onClose, colors, other, otherName, role, isVerified, isOnline, conv, bienTypeLabel, bienLoc,
+  onClose, colors, other, otherName, role, isOnline, conv, bienTypeLabel, bienLoc,
   hoveredSettingsIdx, onHoverSettings, onOpenBien,
 }: ProfilePanelProps) {
   const { tp, ts, tm, profileBg, profileBdr, divider, iconBtn, menuHov } = colors
@@ -43,12 +42,6 @@ export function ProfilePanel({
           <div className="text-center">
             <div className="flex items-center justify-center gap-1.5">
               <p className="text-[16px] font-bold" style={{ color: tp }}>{otherName}</p>
-              {isVerified && (
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="var(--c-brand)" aria-label="Vérifié">
-                  <path d="M12 2l2.2 1.6 2.7-.3 1 2.5 2.3 1.4-.6 2.7 1.4 2.3-1.9 2 .1 2.7-2.6.8-1.4 2.3-2.6-.7L12 22l-2-1.4-2.6.7-1.4-2.3-2.6-.8.1-2.7-1.9-2 1.4-2.3-.6-2.7 2.3-1.4 1-2.5 2.7.3z"/>
-                  <path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.3-3.3 1.1 1.1z" fill="rgb(255,255,255)"/>
-                </svg>
-              )}
             </div>
             {role && (
               <span className="inline-block mt-1 px-2.5 py-1 rounded-full text-caption font-bold" style={{ background: 'rgba(75,107,255,0.12)', color: 'var(--tx-blue)' }}>

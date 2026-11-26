@@ -20,6 +20,7 @@ function txStatutMeta(statut: string | null | undefined): { label: string; color
   if (statut === 'rembourse')  return { label: 'Remboursé',  color: 'var(--c-grey)' }
   return { label: 'Complété', color: 'var(--tx-green)' }
 }
+// Les libellés MTN / Moov / Celtiis ne servent qu'aux paiements antérieurs : FedaPay est le seul moyen de paiement.
 const METHODE_LABELS: Record<string, string> = { momo: 'MTN MoMo', flooz: 'Moov Flooz', celtiis: 'Celtiis Cash', fedapay: 'FedaPay' }
 
 export function TransactionDetailModal({ t, onClose }: { t: MouvementWallet; onClose: () => void }) {

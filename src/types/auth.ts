@@ -78,13 +78,10 @@ export interface RefreshResponse {
 /** Réponse de `POST /users/me/photo`. */
 export interface UploadAvatarResponse { url: string; photo_profil: string }
 
-/** Réponse de `POST /users/me/cip` et `/ifu`. */
-export interface UploadDocResponse { url: string }
-
 /** Réponse de `PATCH /users/me` : l'entité mise à jour (`user` est lu par EditProfileModal mais absent du backend). */
 export type ProfilUpdateResponse = User & { user?: User }
 
-/** Réponse de `GET /users/me` : profil du compte + compteurs (le serveur n'expose pas cip_url, ifu_url ni numero_retrait). */
+/** Réponse de `GET /users/me` : profil du compte + compteurs (le serveur n'expose pas numero_retrait). */
 export type UserMe = User & {
   /** Lu par certains écrans (`me.user || me`) mais jamais renvoyé par le backend (défaut de lecture). */
   user?: User

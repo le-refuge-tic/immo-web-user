@@ -38,12 +38,14 @@ function moisLabel(raw: string | undefined | null) {
   return `${mois[d.getMonth()]} ${d.getFullYear()}`
 }
 
+// FedaPay est le seul moyen de paiement ; les autres libellés servent aux reçus des paiements antérieurs.
 function operateurLabel(methode: string | undefined | null) {
   switch (methode) {
+    case 'momo':
+    case 'mtn': return 'MTN Mobile Money'
     case 'flooz': return 'Moov Flooz'
     case 'celtiis': return 'Celtiis Cash'
-    case 'fedapay': return 'FedaPay'
-    default: return 'MTN Mobile Money'
+    default: return 'FedaPay'
   }
 }
 

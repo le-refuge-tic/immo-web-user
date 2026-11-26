@@ -1,21 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { openPaymentUrl } from '../../../utils/paymentUrl'
 import { paiementApi } from '../../../api/paiementApi'
-import { validateBeninPhone, normaliseBeninPhone } from '../../../utils/phone'
 import { track } from '../../../lib/analytics'
 import { apiMessage } from '../../../utils/apiMessage'
 import { readPaymentConflict } from '../../../utils/paymentAttempt'
 import { usePaymentAttempt } from '../../../hooks/usePaymentAttempt'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
-import type { MethodePaiement, Visite } from '../../../types/api'
+import type { Visite } from '../../../types/api'
 
 // Paiement des frais de visite : état de la modale, suivi de la transaction
 // (polling), idempotence (clé de tentative) et reprise d'un paiement en cours.
 // Un seul appel par page : les refs et verrous ne sont jamais recréés.
 export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) {
   const [showPay, setShowPay] = useState<Visite | null>(null)
-  const [operator, setOperator] = useState<MethodePaiement>('momo')
-  const [phoneOp, setPhoneOp] = useState('')
   const [paying, setPaying] = useState(false)
   const [payError, setPayError] = useState('')
   const [notice, setNotice] = useState('')
@@ -69,8 +66,7 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
     })
   }
 
-  // FedaPay se paie sur une page hébergée ouverte à part — l'utilisateur a
-  // besoin de bien plus de temps que pour valider un push USSD MoMo.
+  // FedaPay se paie sur une page hébergée ouverte à part : l'utilisateur a besoin de temps.
   const maxTentatives = (urlPaiement?: string) => (urlPaiement ? 100 : 20)
 
   useEffect(() => {
@@ -84,7 +80,6 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
   const handlePayer = async () => {
     if (!showPay) return
     if (paying || payState === 'pending' || payState === 'waiting') return
-    if (operator !== 'fedapay' && !validateBeninPhone(phoneOp)) return
     setPaying(true)
     setPayError('')
     const generation = payGenerationRef.current
@@ -92,11 +87,7 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
     // elle ne peut pas créer un second prélèvement.
     const idempotencyKey = attempt.key()
     try {
-      const res = await paiementApi.initierVisite({
-        visite_id: showPay.id,
-        phone: normaliseBeninPhone(phoneOp),
-        methode_paiement: operator,
-      }, idempotencyKey)
+      const res = await paiementApi.initierVisite({ visite_id: showPay.id }, idempotencyKey)
       if (generation !== payGenerationRef.current) return
       const ref = res.referenceId
       // FedaPay : la transaction est créée côté serveur mais le paiement ne
@@ -141,14 +132,13 @@ export function usePaiementVisite({ loadVisites }: { loadVisites: () => void }) 
     setNotice('')
     setShowPay(null)
     setPayState('idle')
-    setPhoneOp('')
     setPayError('')
     setPayUrl('')
     attempt.reset()
   }
 
   return {
-    showPay, setShowPay, operator, setOperator, phoneOp, setPhoneOp, paying, payError, notice,
+    showPay, setShowPay, paying, payError, notice,
     payState, payRefId, payUrl, attempt, suivrePaiement, handlePayer, closePayModal,
   }
 }

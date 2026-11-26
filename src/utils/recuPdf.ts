@@ -47,7 +47,7 @@ export interface RecuPdfData {
   sousTitre: string
   montantLabel: string
   montant: string
-  /** Ligne sous le montant (« via MTN Mobile Money · 30/07/2026 à 22h56 »). */
+  /** Ligne sous le montant (« via FedaPay · 30/07/2026 à 22h56 »). */
   paiementLigne: string
   sections: RecuSection[]
   filename: string

@@ -9,7 +9,7 @@ const GREEN = 'var(--c-success)'
 
 const AVANTAGES = [
   { icon: '🔔', title: 'Rappels automatiques', desc: 'Alerte 3 jours avant l\'échéance de votre loyer' },
-  { icon: '💳', title: 'Paiement sécurisé MoMo', desc: 'Payez directement via MTN Mobile Money' },
+  { icon: '💳', title: 'Paiement sécurisé FedaPay', desc: 'Payez par carte ou Mobile Money sur la page sécurisée FedaPay' },
   { icon: '📊', title: 'Historique traçable', desc: 'Tous vos paiements archivés et accessibles' },
   { icon: '🎧', title: 'Support dédié', desc: 'Une équipe disponible 6j/7 pour vous aider' },
   { icon: '📄', title: 'Reçus PDF instantanés', desc: 'Téléchargez vos justificatifs à tout moment' },

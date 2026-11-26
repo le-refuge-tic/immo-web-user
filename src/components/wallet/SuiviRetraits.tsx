@@ -1,4 +1,4 @@
-import { COULEUR_TON, infoStatutRetrait, libelleOperateur } from '../../utils/retrait'
+import { COULEUR_TON, detailRetrait, infoStatutRetrait, libelleOperateur } from '../../utils/retrait'
 import { withAlpha } from '../../utils/color'
 import type { RetraitProprio } from '../../types/proprietaire'
 
@@ -9,8 +9,8 @@ const jour = (iso: string) => {
 }
 
 /**
- * Suivi des demandes de retrait : montant, statut, destination et, en cas d'échec, la phrase
- * rassurante du serveur (montant remboursé). `variant` suit le thème de l'écran (sombre : espace
+ * Suivi des demandes de retrait : montant, statut, destination et, sous le statut, le motif d'un
+ * échec suivi du recrédit, ou l'envoi retardé. `variant` suit le thème de l'écran (sombre : espace
  * propriétaire ; clair : espace client).
  */
 export default function SuiviRetraits({ retraits, variant, titre = 'Mes retraits', max = 5 }: {
@@ -34,6 +34,7 @@ export default function SuiviRetraits({ retraits, variant, titre = 'Mes retraits
           const { label, ton } = infoStatutRetrait(r.statut)
           const couleur = COULEUR_TON[ton]
           const operateur = libelleOperateur(r.operateur)
+          const detail = detailRetrait(r)
           return (
             <li key={r.id} className={`${classCarte} rounded-xl p-3.5 mb-2`}>
               <div className="flex items-center gap-3">
@@ -49,8 +50,8 @@ export default function SuiviRetraits({ retraits, variant, titre = 'Mes retraits
                   <p className={`text-[11px] ${classMuet} mt-1`}>{jour(r.created_at)}</p>
                 </div>
               </div>
-              {ton === 'echec' && r.message && (
-                <p className="text-xs mt-2" style={{ color: couleur }}>{r.message}</p>
+              {detail && (
+                <p className={`text-xs mt-2 ${ton === 'echec' ? '' : classMuet}`} style={ton === 'echec' ? { color: couleur } : undefined}>{detail}</p>
               )}
             </li>
           )

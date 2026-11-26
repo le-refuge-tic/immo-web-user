@@ -5,7 +5,6 @@ import { loyersApi } from '../../../api/loyersApi'
 import { paiementApi } from '../../../api/paiementApi'
 import { walletApi } from '../../../api/walletApi'
 import { formatMois } from '../../../utils/dateFormat'
-import { validateBeninPhone, PHONE_FORMAT_HINT, PHONE_PLACEHOLDER } from '../../../utils/phone'
 import { apiMessage } from '../../../utils/apiMessage'
 import { issueStatutLoyer, loyerRepare, referenceLoyer } from '../../../utils/loyerPaiement'
 import { usePaymentPolling } from '../../../hooks/usePaymentPolling'
@@ -18,15 +17,13 @@ import type { ModePaiementLoyer, MonLogement } from '../../../types/locataire'
 import { withAlpha } from '../../../utils/color'
 import ErrorState from '../../../components/ErrorState'
 import RefreshFailedNotice from '../../../components/RefreshFailedNotice'
-import { PhoneInput } from '../../../shared/saisie/champs'
 
 export default function ActiviteTab() {
   const navigate = useNavigate()
   const [data, setData]         = useState<MonLogement | null>(null)
   const [loading, setLoading]   = useState(true)
   const [loadError, setLoadError] = useState(false)
-  const [tel, setTel]           = useState('')
-  const [operateur, setOperateur] = useState<ModePaiementLoyer>('momo')
+  const [operateur, setOperateur] = useState<ModePaiementLoyer>('fedapay')
   const [cotisationSolde, setCotisationSolde] = useState(0)
   const [showPay, setShowPay]   = useState(false)
   const [paying, setPaying]     = useState(false)
@@ -94,14 +91,13 @@ export default function ActiviteTab() {
       setPaying(false)
       return
     }
-    if (operateur !== 'fedapay' && !validateBeninPhone(tel)) { setPayState('error'); setPayMsg(PHONE_FORMAT_HINT); return }
     if (initiationEnCoursRef.current) return
     initiationEnCoursRef.current = true
     const loyerId = prochainLoyer.id
     setPaying(true); setPayState('waiting')
     try {
-      const res = await avecCle(tentativeLoyer(loyerId), `${operateur}:${tel}`, cle =>
-        paiementApi.initierLoyer({ loyer_id: loyerId, methode_paiement: operateur, telephone_paiement: tel }, cle))
+      const res = await avecCle(tentativeLoyer(loyerId), operateur, cle =>
+        paiementApi.initierLoyer({ loyer_id: loyerId }, cle))
       if (res.url_paiement) {
         // Lien refusé par la liste de domaines autorisés : on n'annonce pas « terminez dans l'onglet ouvert » et on ne suit rien.
         if (!openPaymentUrl(res.url_paiement)) {
@@ -195,7 +191,7 @@ export default function ActiviteTab() {
                   </button>
                 </>
               ) : (
-                <p className="text-sm text-text-grey">Validez sur votre téléphone…</p>
+                <p className="text-sm text-text-grey">Confirmation du paiement…</p>
               )}
             </div>
           ) : payState === 'success' ? (
@@ -216,19 +212,11 @@ export default function ActiviteTab() {
                 !cotisationSuffisante && (
                   <p className="text-xs text-red-500 mb-3">Solde cotisation insuffisant ({cotisationSolde.toLocaleString('fr-FR')} F disponible).</p>
                 )
-              ) : operateur !== 'fedapay' && (
-                <div className="flex items-center gap-2 bg-surface-g rounded-xl px-4 py-3 mb-3 border border-divider">
-                  <span className="text-text-grey text-sm font-semibold">+229</span>
-                  <div className="w-px h-4 bg-divider" />
-                  <PhoneInput value={tel} onChange={e => setTel(e.target.value)}
-                    placeholder={PHONE_PLACEHOLDER} autoComplete="tel-national" aria-label="Numéro Mobile Money"
-                    className="flex-1 min-w-0 bg-transparent text-sm outline-none text-text-dark" />
-                </div>
-              )}
+              ) : null}
               <div className="flex gap-2">
                 <button onClick={() => setShowPay(false)} className="flex-1 py-3 rounded-xl border border-divider text-sm font-semibold text-text-grey">Annuler</button>
                 <button onClick={payer}
-                  disabled={paying || (operateur === 'cotisation' ? !cotisationSuffisante : (operateur !== 'fedapay' && !validateBeninPhone(tel)))}
+                  disabled={paying || (operateur === 'cotisation' && !cotisationSuffisante)}
                   className="flex-1 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: GREEN }}>{operateur === 'cotisation' ? 'Payer avec ma cotisation' : 'Payer'}</button>
               </div>

@@ -1,4 +1,4 @@
-import type { MethodePaiement, Visite } from '../../../types/api'
+import type { Visite } from '../../../types/api'
 
 export const STATUT_META: Record<string, { label: string; color: string; bg: string }> = {
   en_attente:      { label: 'En attente',      color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.1)' },
@@ -11,11 +11,6 @@ export const STATUT_META: Record<string, { label: string; color: string; bg: str
   // Lot 10 : état dérivé (créneau passé sans confirmation), pas un statut du backend.
   expiree:         { label: 'Créneau expiré',   color: 'var(--tx-amber)', bg: 'rgba(245,158,11,0.12)' },
 }
-
-export const OPERATORS: { key: MethodePaiement; label: string }[] = [
-  { key: 'momo',    label: 'MTN MoMo' },
-  { key: 'fedapay', label: 'FedaPay'  },
-]
 
 export const TABS = ['Toutes', 'À venir', 'Terminées', 'Annulées', 'Échouées', 'Expirées']
 

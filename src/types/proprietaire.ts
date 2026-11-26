@@ -14,17 +14,12 @@ import type { Bien, ChatSearchHit, IsoDate, MethodePaiement, User, Visite } from
  * l'utilisateur du contexte d'authentification (champs nullables).
  */
 export interface ProprioProfil {
-  /** Vérification des pièces d'identité (CIP/IFU) par l'équipe REFUGE. */
-  statut_verification_documents?: import('../utils/verificationDocuments').StatutVerificationDocuments | null
-  motif_rejet_documents?: string | null
   id?: number
   nom?: string | null
   prenom?: string | null
   email?: string | null
   telephone?: string | null
   photo_profil?: string | null
-  cip_url?: string | null
-  ifu_url?: string | null
   score_credibilite?: number
   nb_etoiles?: number
   created_at?: IsoDate
@@ -147,7 +142,7 @@ export interface MouvementWallet {
 export interface RetraitProprio {
   id: number
   montant: number | string
-  /** en_attente, en_cours, en_attente_fonds, envoye, echoue, rejete (ou approuve : anciennes demandes). */
+  /** en_attente, approuve, en_cours, en_attente_fonds, envoye, echoue, rejete. */
   statut: string
   created_at: IsoDate
   updated_at?: IsoDate
@@ -157,4 +152,6 @@ export interface RetraitProprio {
   numero_masque?: string
   /** Phrase prête à afficher (échec remboursé, attente…), sans détail technique. */
   message?: string | null
+  /** Raison de l'échec (texte en français) pour les statuts echoue et rejete ; le montant est alors recrédité. */
+  motif_echec?: string | null
 }

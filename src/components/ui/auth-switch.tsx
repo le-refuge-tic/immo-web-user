@@ -23,7 +23,10 @@ import { valider } from '../../shared/saisie/validation'
 import { schemaConnexion, schemaInscription } from '../../validation/schemas'
 import { applyOtpInput } from '../../utils/otpInput'
 import { apiMessage } from '../../utils/apiMessage'
-import { POST_LOGIN_REDIRECT_KEY, isSessionExpired, clearSessionExpired, estDestinationInterne } from '../../utils/sessionExpiry'
+import { POST_LOGIN_REDIRECT_KEY, isSessionExpired, clearSessionExpired, estDestinationInterne, isCompteInactif, clearCompteInactif } from '../../utils/sessionExpiry'
+import { suppressionEnCours, suppressionProgrammee, type InfosSuppression } from '../../utils/suppressionCompte'
+import { useConfirm } from '../../shared/dialogues/useConfirm'
+import { useToast } from '../../context/useToast'
 import { INSCRIPTION_PROPRIETAIRES_UNIQUEMENT as PROPRIO_SEUL } from '../../config/inscription'
 import { PhoneInput as ChampTelephone } from '../../shared/saisie/champs'
 
@@ -40,6 +43,13 @@ const COUNTRY_CODES = [
 
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
+const MSG_CODE_EXPIRE = 'Le code a expiré. Reconnectez-vous pour recevoir un nouveau code.'
+
+function messageSuppressionProgrammee({ date, message }: InfosSuppression): string {
+  const question = "Voulez-vous l'annuler et retrouver votre compte ?"
+  if (date) return `La suppression de votre compte est prévue le ${date}. ${question}`
+  return `${message ?? 'La suppression de votre compte est programmée.'} ${question}`
+}
 
 type RoleOption = { key: string; label: string; desc: string; icon: React.ReactNode }
 const ROLES: RoleOption[] = [
@@ -221,9 +231,15 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const [otpLoading, setOtpLoading] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+  const { choisir } = useConfirm()
+  const toast = useToast()
+  // Compte en suppression : téléphone et code gardés en mémoire le temps de proposer l'annulation (jamais stockés).
+  const annulationRef = useRef<{ telephone: string; code: string } | null>(null)
   // FE-B-002 : arrivée ici après expiration de la session (voir httpInterceptor)
   const [sessionExpired] = useState(() => isSessionExpired())
-  useEffect(() => { clearSessionExpired() }, [])
+  // Session fermée par le serveur : compte en suppression ou supprimé (voir httpInterceptor)
+  const [compteInactif] = useState(() => isCompteInactif())
+  useEffect(() => { clearSessionExpired(); clearCompteInactif() }, [])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -288,9 +304,55 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       const data = await withColdStartRetry(() => authApi.verifyOtp(tokenOverride ?? sessionToken, code))
       completeLogin(data)
     } catch (err: unknown) {
+      const suppression = suppressionProgrammee(err)
+      if (suppression) {
+        setOtpLoading(false)
+        await proposerAnnulationSuppression(code, suppression)
+        return
+      }
       setOtpError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || 'Code incorrect'))
       setOtpDigits(Array(OTP_LENGTH).fill(''))
       setTimeout(() => otpRefs.current[0]?.focus(), 50)
+    }
+    setOtpLoading(false)
+  }
+
+  /** Retour à la saisie du numéro ; `effacerNumero` vide aussi téléphone et mot de passe (réponse « Non »). */
+  const retourConnexion = (message: string, effacerNumero: boolean) => {
+    annulationRef.current = null
+    setSessionToken(''); setOtpDigits(Array(OTP_LENGTH).fill('')); setOtpError('')
+    if (effacerNumero) { setPhone(''); setPassword('') }
+    setStepDir(-1); setFormStep('credentials'); setError(message)
+  }
+
+  // 403 SUPPRESSION_PROGRAMMEE : le code est bon mais le compte est en suppression ; on propose de l'annuler.
+  const proposerAnnulationSuppression = async (code: string, infos: InfosSuppression) => {
+    annulationRef.current = { telephone: toInternationalPhone(countryCode, phone), code }
+    const choix = await choisir({
+      titre: 'Suppression programmée',
+      message: messageSuppressionProgrammee(infos),
+      actions: [
+        { valeur: 'annuler', libelle: 'Annuler la suppression', ton: 'primaire' },
+        { valeur: 'non', libelle: 'Non', ton: 'neutre' },
+      ],
+    })
+    const demande = annulationRef.current
+    if (choix !== 'annuler' || !demande) { retourConnexion('', true); return }
+    setOtpLoading(true)
+    try {
+      const data = await withColdStartRetry(() => authApi.annulerSuppression(demande.telephone, demande.code))
+      annulationRef.current = null
+      completeLogin(data)
+      toast('Votre compte a été réactivé.', 'success')
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } }).response?.status
+      if (status === 401) retourConnexion(MSG_CODE_EXPIRE, false)
+      else {
+        // Le code reste valable 5 min : le ressaisir rouvre la boîte de dialogue.
+        annulationRef.current = null
+        setOtpDigits(Array(OTP_LENGTH).fill(''))
+        setOtpError(isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez.' : apiMessage(err) || "La suppression n'a pas pu être annulée. Réessayez.")
+      }
     }
     setOtpLoading(false)
   }
@@ -318,7 +380,12 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     <AnimatePresence mode="wait" custom={stepDir}>
       {formStep === 'credentials' ? (
         <motion.div key="creds" custom={stepDir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={transition}>
-          {sessionExpired ? (
+          {compteInactif ? (
+            <>
+              <h1 className="auth-title">Compte inactif</h1>
+              <p className="auth-sub" role="status">Votre compte n'est plus actif.</p>
+            </>
+          ) : sessionExpired ? (
             <>
               <h1 className="auth-title">Session expirée</h1>
               <p className="auth-sub" role="status">Reconnectez-vous pour reprendre là où vous en étiez.</p>
@@ -439,6 +506,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resending, setResending] = useState(false)
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+  const { choisir } = useConfirm()
   const telephone = toInternationalPhone(countryCode, phone)
 
   useEffect(() => {
@@ -489,9 +557,28 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         setResendCooldown(RESEND_COOLDOWN); setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else { completeLogin(data) }
     } catch (err: unknown) {
+      const enCours = suppressionEnCours(err)
+      if (enCours) {
+        setLoading(false)
+        await signalerSuppressionEnCours(enCours)
+        return
+      }
       setError((isColdStartError(err) ? 'Le serveur met du temps à répondre. Réessayez dans quelques secondes.' : apiMessage(err) || "Erreur lors de l'inscription"))
     }
     setLoading(false)
+  }
+
+  // 409 SUPPRESSION_EN_COURS : le numéro appartient à un compte en suppression, réactivable en se connectant.
+  const signalerSuppressionEnCours = async ({ message }: InfosSuppression) => {
+    const choix = await choisir({
+      titre: 'Compte en cours de suppression',
+      message: message ?? 'Ce numéro appartient à un compte en cours de suppression.',
+      actions: [
+        { valeur: 'connexion', libelle: 'Se connecter', ton: 'primaire' },
+        { valeur: 'fermer', libelle: 'Fermer', ton: 'neutre' },
+      ],
+    })
+    if (choix === 'connexion') onSwitch()
   }
 
   const resendOtp = async () => {
@@ -639,8 +726,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
                 <input type="checkbox" className="sr-only" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
                 <span className="auth-terms-box">{acceptedTerms && <Check size={12} strokeWidth={3} />}</span>
                 <span className="auth-terms-text">
-                  {/* Lien vers les CGU à ajouter quand leur page existera (texte à fournir). */}
-                  J'accepte les conditions d'utilisation et la{' '}
+                  J'accepte les{' '}
+                  <a href="/cgu" target="_blank" rel="noreferrer" className="auth-link">conditions d'utilisation</a> et la{' '}
                   <a href="/confidentialite" target="_blank" rel="noreferrer" className="auth-link">politique de confidentialité</a> de REFUGE.
                 </span>
               </label>

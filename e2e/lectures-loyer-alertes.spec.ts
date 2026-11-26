@@ -16,7 +16,6 @@ const logement = (extra: Record<string, unknown> = {}) => ({
   historique_loyers: [],
   ...extra,
 })
-const TEL = '0196123456'
 const FEDAPAY = 'https://checkout.fedapay.com/abc123'
 
 const statutAppels = (calls: ApiCall[]) =>
@@ -39,14 +38,12 @@ const ouvrirActivite = async (page: Page) => {
 }
 const payerDepuisActivite = async (page: Page) => {
   await page.getByRole('button', { name: 'Payer ce loyer' }).click()
-  await page.getByLabel('Numéro Mobile Money').fill(TEL)
   await page.getByRole('button', { name: 'Payer', exact: true }).click()
 }
 const payerDepuisLogement = async (page: Page) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/locataire')
   await page.getByRole('button', { name: /50\s?000 F/ }).click()
-  await page.getByLabel('Numéro Mobile Money').fill(TEL)
   await page.getByRole('button', { name: /^Payer via/ }).click()
 }
 
@@ -72,6 +69,8 @@ test.describe('Paiement du loyer : onglet Activité', () => {
     expect(calls.some(c => c.path.includes('undefined'))).toBe(false)
     // Clé d'idempotence : une demande rejouée retrouve la transaction et son url_paiement (FE-B-006, backend ed22ff6).
     expect(initiations(calls)[0].headers['idempotency-key']).toMatch(/.{8,}/)
+    // FedaPay, seul moyen de paiement, est envoyé explicitement et aucun numéro n'est demandé.
+    expect(JSON.parse(initiations(calls)[0].body ?? '{}')).toEqual({ loyer_id: expect.any(Number), methode_paiement: 'fedapay' })
   })
 
   test('paiement FedaPay : ouvre la page de paiement, puis affiche l’échec annoncé par le suivi', async ({ page }) => {
@@ -109,10 +108,9 @@ test.describe('Paiement du loyer : onglet Activité', () => {
     })
     await ouvrirActivite(page)
     await page.getByRole('button', { name: 'Payer ce loyer' }).click()
-    await page.getByLabel('Numéro Mobile Money').fill(TEL)
-    await page.getByRole('button', { name: 'Payer', exact: true }).dblclick()
+      await page.getByRole('button', { name: 'Payer', exact: true }).dblclick()
 
-    await expect(page.getByText('Validez sur votre téléphone…')).toBeVisible()
+    await expect(page.getByText('Confirmation du paiement…')).toBeVisible()
     expect(initiations(calls)).toHaveLength(1)
   })
 

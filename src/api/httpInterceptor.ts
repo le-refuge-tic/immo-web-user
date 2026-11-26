@@ -4,7 +4,8 @@ import { BASE } from './apiBase'
 import type { RefreshResponse } from '../types/auth'
 import { revokeSession } from './authApi'
 import { notifyStoredUserChanged, readStoredUser, writeStoredUser } from '../utils/storedUser'
-import { markSessionExpired } from '../utils/sessionExpiry'
+import { isCompteInactif, markCompteInactif, markSessionExpired } from '../utils/sessionExpiry'
+import { estCompteInactif } from '../utils/suppressionCompte'
 
 /**
  * Sans timeout, une requête lente (ex: réveil à froid du serveur) laisse
@@ -63,14 +64,18 @@ export async function refreshAccessToken(): Promise<string | null> {
   }
 }
 
-function forceLogout() {
+function forceLogout(motif: 'session_expiree' | 'compte_inactif' = 'session_expiree') {
   revokeSession()
   localStorage.removeItem('rg_user')
   localStorage.removeItem('rg_active_role')
   tokenStore.clearTokens()
   // FE-B-002 : retour à la page en cours après reconnexion, avec un message
   // « session expirée » plutôt qu'un écran de connexion muet.
-  markSessionExpired(location.pathname + location.search)
+  // Un refresh refusé pour compte inactif a déjà posé le marqueur : il prime sur « session expirée ».
+  // Déjà sur la connexion : aucun marqueur, il resterait affiché à tort au prochain passage.
+  if (location.pathname === '/login') { /* rien à signaler */ }
+  else if (motif === 'compte_inactif' || isCompteInactif()) markCompteInactif()
+  else markSessionExpired(location.pathname + location.search)
   if (location.pathname !== '/login') location.href = '/login'
 }
 
@@ -89,6 +94,13 @@ axios.interceptors.response.use(
     // que le garde JWT signale par le message générique « Unauthorized ».
     const isAuthRoute = typeof original?.url === 'string' && original.url.includes('/auth/')
     const jetonExpire = error.response?.data?.message === 'Unauthorized'
+    // Compte en suppression ou supprimé : un nouveau jeton n'y changerait rien. On ferme la
+    // session une seule fois (les jetons effacés, les 401 suivants ne font que rejeter).
+    const annulationSuppression = isAuthRoute && original.url.includes('/auth/annuler-suppression')
+    if (estCompteInactif(error) && !annulationSuppression) {
+      if (tokenStore.getToken() || tokenStore.getRefresh()) forceLogout('compte_inactif')
+      return Promise.reject(error)
+    }
     if (error.response?.status === 401 && original && !original._retry && (!isAuthRoute || jetonExpire)) {
       original._retry = true
       if (!refreshing) refreshing = refreshAccessToken().finally(() => { refreshing = null })

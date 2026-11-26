@@ -16,12 +16,16 @@ const authIdempotent = (idempotencyKey: string) => {
   return { ...base, headers: { ...base.headers, ...idempotencyHeader(idempotencyKey) } }
 }
 
-export type MethodePaiement = 'momo' | 'flooz' | 'celtiis' | 'fedapay'
+/**
+ * FedaPay est le seul moyen de paiement. Il est envoyé explicitement : sans `methode_paiement`,
+ * le serveur retombe sur MTN MoMo pour certains paiements (intégration, loyer).
+ */
+export const METHODE_PAIEMENT = 'fedapay' as const
 
 export const paiementApi = {
   // Paiement visite (frais)
-  initierVisite: (body: { visite_id: number; phone: string; methode_paiement?: MethodePaiement }, idempotencyKey: string) =>
-    axios.post<InitierPaiementResponse>(`${BASE}/paiements/visite`, body, authIdempotent(idempotencyKey)).then(r => r.data),
+  initierVisite: (body: { visite_id: number }, idempotencyKey: string) =>
+    axios.post<InitierPaiementResponse>(`${BASE}/paiements/visite`, { ...body, methode_paiement: METHODE_PAIEMENT }, authIdempotent(idempotencyKey)).then(r => r.data),
 
   statutVisite: (refId: string) =>
     axios.get<StatutPaiementVisite>(`${BASE}/paiements/visite/${refId}/statut`, auth()).then(r => r.data),
@@ -30,8 +34,8 @@ export const paiementApi = {
     axios.get<Recu>(`${BASE}/paiements/visite/${refId}/recu`, auth()).then(r => r.data),
 
   // Paiement intégration (avance + caution)
-  initierIntegration: (body: { visite_id: number; phone: string; methode_paiement?: MethodePaiement }, idempotencyKey: string) =>
-    axios.post<InitierPaiementResponse>(`${BASE}/paiements/integration`, body, authIdempotent(idempotencyKey)).then(r => r.data),
+  initierIntegration: (body: { visite_id: number }, idempotencyKey: string) =>
+    axios.post<InitierPaiementResponse>(`${BASE}/paiements/integration`, { ...body, methode_paiement: METHODE_PAIEMENT }, authIdempotent(idempotencyKey)).then(r => r.data),
 
   statutIntegration: (refId: string) =>
     axios.get<StatutPaiementIntegration>(`${BASE}/paiements/integration/${refId}/statut`, auth()).then(r => r.data),
@@ -41,8 +45,8 @@ export const paiementApi = {
 
   // Paiement loyer
   /** Rejouer la même clé renvoie la transaction existante avec son URL de paiement (FE-B-006). */
-  initierLoyer: (body: { loyer_id: number; methode_paiement: MethodePaiement; telephone_paiement: string }, idempotencyKey: string) =>
-    axios.post<InitiationLoyerReponse>(`${BASE}/paiements/loyer`, body, authIdempotent(idempotencyKey)).then(r => r.data),
+  initierLoyer: (body: { loyer_id: number }, idempotencyKey: string) =>
+    axios.post<InitiationLoyerReponse>(`${BASE}/paiements/loyer`, { ...body, methode_paiement: METHODE_PAIEMENT }, authIdempotent(idempotencyKey)).then(r => r.data),
 
   statutLoyer: (refId: string) =>
     axios.get<StatutPaiementLoyer>(`${BASE}/paiements/loyer/${refId}/statut`, auth()).then(r => r.data),
@@ -58,9 +62,9 @@ export const paiementApi = {
   payerLoyersAvecCotisation: (loyerIds: number[]) =>
     axios.post<PayerCotisationResponse>(`${BASE}/paiements/loyer/cotisation`, { loyer_ids: loyerIds }, auth()).then(r => r.data),
 
-  /** Recharge un wallet (cotisation/épargne) via Mobile Money ou FedaPay. */
-  initierRechargementWallet: (body: { wallet_type: 'cotisation' | 'epargne'; montant: number; methode_paiement: MethodePaiement; telephone?: string }, idempotencyKey: string) =>
-    axios.post<RechargementWalletResponse>(`${BASE}/paiements/depot`, body, authIdempotent(idempotencyKey)).then(r => r.data),
+  /** Recharge un wallet (cotisation/épargne) par FedaPay. */
+  initierRechargementWallet: (body: { wallet_type: 'cotisation' | 'epargne'; montant: number }, idempotencyKey: string) =>
+    axios.post<RechargementWalletResponse>(`${BASE}/paiements/depot`, { ...body, methode_paiement: METHODE_PAIEMENT }, authIdempotent(idempotencyKey)).then(r => r.data),
 
   statutRechargement: (refId: string) =>
     axios.get<StatutRechargement>(`${BASE}/paiements/depot/${refId}/statut`, auth()).then(r => r.data),

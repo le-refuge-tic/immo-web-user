@@ -49,11 +49,6 @@ export interface User {
   profil_complet?: boolean
   actif?: boolean
   photo_profil?: string | null
-  cip_url?: string | null
-  ifu_url?: string | null
-  /** Vérification des pièces d'identité (CIP/IFU) par l'équipe REFUGE. */
-  statut_verification_documents?: import('../utils/verificationDocuments').StatutVerificationDocuments | null
-  motif_rejet_documents?: string | null
   score_credibilite?: number
   nb_etoiles?: number
   penalite_pourcentage?: number
@@ -359,6 +354,7 @@ export interface NotificationsCount { count: number }
 
 // ─── Paiements ────────────────────────────────────────────────────────────
 
+/** Méthode enregistrée sur une transaction ; seul 'fedapay' est encore proposé, les autres valeurs viennent de l'historique. */
 export type MethodePaiement = 'momo' | 'flooz' | 'celtiis' | 'fedapay'
 
 export interface Paiement {

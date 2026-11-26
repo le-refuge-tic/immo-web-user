@@ -1,4 +1,4 @@
-import { GREEN, OPERATEURS } from './shared'
+import { GREEN, MODE_FEDAPAY } from './shared'
 import type { ModePaiementLoyer } from '../../types/locataire'
 import { withAlpha } from '../../utils/color'
 
@@ -14,15 +14,13 @@ export default function OperateurChips({ value, onChange, cotisationSolde }: { v
           Cotisation ({cotisationSolde.toLocaleString('fr-FR')} F)
         </button>
       )}
-      {OPERATEURS.map(o => (
-        <button key={o.id} onClick={() => onChange(o.id)}
-          className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all"
-          style={value === o.id
-            ? { borderColor: o.accent, background: `${withAlpha(o.accent, '20')}`, color: 'var(--c-ink-navy)' }
-            : { borderColor: 'var(--c-line)', color: 'var(--c-grey)', background: 'rgb(255,255,255)' }}>
-          {o.label}
-        </button>
-      ))}
+      <button onClick={() => onChange(MODE_FEDAPAY.id)}
+        className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all"
+        style={value === MODE_FEDAPAY.id
+          ? { borderColor: MODE_FEDAPAY.accent, background: `${withAlpha(MODE_FEDAPAY.accent, '20')}`, color: 'var(--c-ink-navy)' }
+          : { borderColor: 'var(--c-line)', color: 'var(--c-grey)', background: 'rgb(255,255,255)' }}>
+        {MODE_FEDAPAY.label}
+      </button>
     </div>
   )
 }

@@ -13,6 +13,7 @@ import { CompteStaffRefuse, estCompteStaff } from '../utils/compteStaff'
 import { viderLots } from '../shared/uploads/stockageEnvoi'
 import { AuthContext, type AuthUser } from './useAuth'
 import { roleDeRepli, rolesUtilisables } from '../utils/roles'
+import { clearCompteInactif } from '../utils/sessionExpiry'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (estCompteStaff(data.user)) throw new CompteStaffRefuse()
     // Nouveau compte : aucune donnée en cache d'une session précédente (favoris, visites…).
     queryClient.clear()
+    clearCompteInactif()
     const u: AuthUser = data.user
     const t: string = data.access_token
     const rt: string = data.refresh_token

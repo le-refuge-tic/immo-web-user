@@ -39,18 +39,34 @@ export function libelleOperateur(operateur: string | null | undefined): string {
 
 export type TonRetrait = 'attente' | 'succes' | 'echec'
 
+// Les retraits partent automatiquement par FedaPay : aucun libellé ne suggère une validation humaine.
 const STATUTS: Record<string, { label: string; ton: TonRetrait }> = {
-  en_attente: { label: 'En cours de traitement', ton: 'attente' },
-  en_cours: { label: 'Virement en cours', ton: 'attente' },
-  en_attente_fonds: { label: 'En attente de traitement', ton: 'attente' },
-  approuve: { label: 'En cours de traitement', ton: 'attente' },
+  en_attente: { label: "En cours d'envoi", ton: 'attente' },
+  approuve: { label: "En cours d'envoi", ton: 'attente' },
+  en_cours: { label: "En cours d'envoi", ton: 'attente' },
+  en_attente_fonds: { label: 'Envoi retardé', ton: 'attente' },
   envoye: { label: 'Envoyé', ton: 'succes' },
-  echoue: { label: 'Échoué, remboursé', ton: 'echec' },
-  rejete: { label: 'Refusé, remboursé', ton: 'echec' },
+  echoue: { label: 'Échec', ton: 'echec' },
+  rejete: { label: 'Annulé', ton: 'echec' },
 }
 
 export function infoStatutRetrait(statut: string): { label: string; ton: TonRetrait } {
   return STATUTS[statut] ?? { label: statut, ton: 'attente' }
+}
+
+export const MSG_RETRAIT_EN_COURS = "Votre retrait est en cours d'envoi vers votre compte Mobile Money."
+export const MSG_RETRAIT_RECREDITE = 'Le montant a été recrédité sur votre portefeuille.'
+export const MSG_RETRAIT_RETARDE = "Votre retrait n'est pas encore parti. Le montant reste réservé et sera envoyé dès que possible."
+
+/**
+ * Explication sous le statut : motif de l'échec puis recrédit (echoue, rejete), ou envoi retardé
+ * (en_attente_fonds, relancé automatiquement toutes les heures). `null` pour les autres statuts.
+ */
+export function detailRetrait(retrait: Pick<RetraitProprio, 'statut' | 'motif_echec'>): string | null {
+  if (retrait.statut === 'en_attente_fonds') return MSG_RETRAIT_RETARDE
+  if (infoStatutRetrait(retrait.statut).ton !== 'echec') return null
+  const motif = retrait.motif_echec?.trim()
+  return motif ? `${motif} ${MSG_RETRAIT_RECREDITE}` : MSG_RETRAIT_RECREDITE
 }
 
 /** Tant que le virement n'a pas abouti ni échoué : l'écran se rafraîchit seul. */
@@ -66,17 +82,14 @@ export const COULEUR_TON: Record<TonRetrait, string> = {
 }
 
 /**
- * Ce qu'il faut dire à la personne juste après sa demande : le virement part tout de suite,
- * mais son issue arrive de l'opérateur quelques instants plus tard.
+ * Ce qu'il faut dire à la personne juste après sa demande : le virement part tout de suite par
+ * FedaPay, mais son issue arrive de l'opérateur quelques instants plus tard.
  */
-export function messageApresDemande(retrait: Pick<RetraitProprio, 'statut' | 'message'> | undefined): { ok: boolean; texte: string } {
-  const statut = retrait?.statut
-  if (statut === 'echoue' || statut === 'rejete') {
-    return { ok: false, texte: retrait?.message || 'Le virement a échoué. Le montant a été remis sur votre portefeuille.' }
-  }
-  if (statut === 'envoye') return { ok: true, texte: 'Virement envoyé.' }
-  if (statut === 'en_attente_fonds') return { ok: true, texte: 'Demande enregistrée : elle sera traitée par notre équipe. Suivez son statut ci-dessous.' }
-  return { ok: true, texte: 'Virement lancé. Vous serez notifié dès que l\'argent arrive sur votre numéro.' }
+export function messageApresDemande(retrait: Pick<RetraitProprio, 'statut' | 'motif_echec'> | undefined): { ok: boolean; texte: string } {
+  if (!retrait) return { ok: true, texte: MSG_RETRAIT_EN_COURS }
+  if (retrait.statut === 'envoye') return { ok: true, texte: 'Retrait envoyé.' }
+  const ton = infoStatutRetrait(retrait.statut).ton
+  return { ok: ton !== 'echec', texte: detailRetrait(retrait) ?? MSG_RETRAIT_EN_COURS }
 }
 
 /** « le 12/11 à 14:30 » — fin de la suspension de 48 h après un changement de numéro ou d'opérateur. */
