@@ -50,6 +50,9 @@ test.describe("Brouillon d'annonce : photos et vidéo", () => {
     await expect(page.getByText('visite.mp4')).toBeVisible()
 
     await page.getByRole('button', { name: 'Tout effacer' }).click()
+    // Lot 1 : l'effacement passe par une boîte de confirmation, puis la page se recharge.
+    const confirmation = page.getByRole('alertdialog', { name: 'Tout effacer ?' })
+    await confirmation.getByRole('button', { name: 'Tout effacer' }).click()
     await page.waitForLoadState('load')
     await expect(page.getByText('Votre saisie précédente a été retrouvée')).toHaveCount(0)
     await allerAuxPhotos(page)

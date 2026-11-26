@@ -342,7 +342,8 @@ test.describe('Propriétaire : actions sur les réservations', () => {
   test('« Marquer effectuée » en panne affiche un message de repli français', async ({ page }) => {
     await mockApp(page, {
       role: 'proprietaire',
-      mocks: { visites: { status: 200, body: { data: [visite({ id: 7, statut: 'confirmee' })] } }, routes: { 'PATCH /visites/7/effectuee': PANNE } },
+      // « Marquer effectuée » n'apparaît qu'une fois les frais de visite payés.
+      mocks: { visites: { status: 200, body: { data: [visite({ id: 7, statut: 'confirmee', paiement_effectue: true })] } }, routes: { 'PATCH /visites/7/effectuee': PANNE } },
     })
     await ouvrirReservations(page)
     await ouvrirDetail(page)
