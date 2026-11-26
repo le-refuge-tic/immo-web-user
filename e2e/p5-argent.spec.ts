@@ -102,19 +102,19 @@ test.describe('P5 portefeuille du client', () => {
     await expect(champ).toHaveAccessibleDescription(/dépasse votre solde/)
   })
 
-  // Le minimum de 500 FCFA (identique au backend) est appliqué avant l'envoi.
-  test('un retrait sous le minimum de 500 FCFA est refusé avant l’envoi', async ({ page }) => {
+  // Le minimum de 5 000 FCFA (identique au backend) est appliqué avant l'envoi.
+  test('un retrait sous le minimum de 5 000 FCFA est refusé avant l’envoi', async ({ page }) => {
     const calls = await mockApp(page, { role: 'locataire', mocks: clientMocks() })
     const dialog = await ouvrirRetraitEpargne(page)
 
     await dialog.getByLabel('Montant à retirer (FCFA)').fill('300')
 
-    await expect(dialog.getByText('Le minimum de retrait est de 500 FCFA.')).toBeVisible()
+    await expect(dialog.getByText(/^Le minimum de retrait est de 5[\s  ]000 FCFA\.$/)).toBeVisible()
     await expect(dialog.getByRole('button', { name: 'Continuer' })).toBeDisabled()
     expect(posts(calls, '/retraits/me')).toHaveLength(0)
 
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('500')
-    await expect(dialog.getByText('Le minimum de retrait est de 500 FCFA.')).toHaveCount(0)
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('5000')
+    await expect(dialog.getByText(/^Le minimum de retrait est de/)).toHaveCount(0)
     await expect(dialog.getByRole('button', { name: 'Continuer' })).toBeEnabled()
   })
 
@@ -124,11 +124,11 @@ test.describe('P5 portefeuille du client', () => {
       mocks: clientMocks({ demandeRetrait: { status: 201, body: { id: 5, statut: 'en_attente' } } }),
     })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('6000')
     const confirmation = await ouvrirConfirmation(page, dialog)
     // Rien n'est envoyé tant que la personne n'a pas confirmé : montant, numéro masqué, opérateur.
     expect(posts(calls, '/retraits/me')).toHaveLength(0)
-    await expect(confirmation.getByText(fcfa(3000)).first()).toBeVisible()
+    await expect(confirmation.getByText(fcfa(6000)).first()).toBeVisible()
     await expect(confirmation).toContainText('••••••3456')
     await expect(confirmation).toContainText('MTN')
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
@@ -136,7 +136,7 @@ test.describe('P5 portefeuille du client', () => {
     await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
     await expect(dialog).toHaveCount(0)
     expect(posts(calls, '/retraits/me')).toHaveLength(1)
-    expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 3000, wallet_type: 'epargne', operateur: 'mtn' })
+    expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 6000, wallet_type: 'epargne', operateur: 'mtn' })
   })
 
   test('un retrait renvoyé après une panne de passerelle garde sa clé d’idempotence (FE-B-006)', async ({ page }) => {
@@ -150,7 +150,7 @@ test.describe('P5 portefeuille du client', () => {
       }),
     })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('6000')
     const confirmation = await ouvrirConfirmation(page, dialog)
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
     await expect(confirmation.getByRole('alert')).toBeVisible()
@@ -168,7 +168,7 @@ test.describe('P5 portefeuille du client', () => {
       mocks: clientMocks({ demandeRetrait: { status: 201, body: { id: 5 }, delayMs: 600 } }),
     })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('6000')
     const confirmation = await ouvrirConfirmation(page, dialog)
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).dblclick()
 
@@ -182,7 +182,7 @@ test.describe('P5 portefeuille du client', () => {
       mocks: clientMocks({ demandeRetrait: { status: 400, body: { message: 'Maximum 3 retraits par 24 heures.' } } }),
     })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('6000')
     const confirmation = await ouvrirConfirmation(page, dialog)
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
@@ -198,7 +198,7 @@ test.describe('P5 portefeuille du client', () => {
       }),
     })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('6000')
     const confirmation = await ouvrirConfirmation(page, dialog)
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
@@ -215,7 +215,7 @@ test.describe('P5 portefeuille du client', () => {
       }),
     })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('6000')
 
     await expect(dialog.getByRole('radio', { name: 'MTN' })).not.toBeChecked()
     await expect(dialog.getByRole('radio', { name: 'Moov' })).not.toBeChecked()
@@ -228,7 +228,7 @@ test.describe('P5 portefeuille du client', () => {
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
 
     await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
-    expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 3000, wallet_type: 'epargne', operateur: 'moov' })
+    expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 6000, wallet_type: 'epargne', operateur: 'moov' })
     expect(posts(calls, '/wallets/me/numero-retrait/initier')).toHaveLength(0)
     expect(posts(calls, '/wallets/me/numero-retrait/confirmer')).toHaveLength(0)
   })
@@ -236,7 +236,7 @@ test.describe('P5 portefeuille du client', () => {
   test('l’opérateur du dernier retrait est prérempli et se change librement, sans OTP ni suspension', async ({ page }) => {
     const calls = await mockApp(page, { role: 'locataire', mocks: clientMocks({ demandeRetrait: { status: 201, body: { id: 6, statut: 'en_cours' } } }) })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('2000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('7000')
 
     await expect(dialog.getByRole('radio', { name: 'MTN' })).toBeChecked()
     await expect(dialog.getByRole('button', { name: 'Continuer' })).toBeEnabled()
@@ -248,7 +248,7 @@ test.describe('P5 portefeuille du client', () => {
     await confirmation.getByRole('button', { name: 'Envoyer maintenant' }).click()
     await expect(page.getByText("Votre retrait est en cours d'envoi vers votre compte Mobile Money.")).toBeVisible()
 
-    expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 2000, wallet_type: 'epargne', operateur: 'moov' })
+    expect(bodyOf(posts(calls, '/retraits/me')[0])).toEqual({ montant: 7000, wallet_type: 'epargne', operateur: 'moov' })
     expect(posts(calls, '/wallets/me/numero-retrait/initier')).toHaveLength(0)
     expect(posts(calls, '/wallets/me/numero-retrait/confirmer')).toHaveLength(0)
   })
@@ -257,7 +257,7 @@ test.describe('P5 portefeuille du client', () => {
     const fin = new Date(Date.now() + 5 * 3600_000).toISOString()
     const calls = await mockApp(page, { role: 'locataire', mocks: clientMocks({ numeroRetrait: destination({ retraits_suspendus_jusqu_a: fin }) }) })
     const dialog = await ouvrirRetraitEpargne(page)
-    await dialog.getByLabel('Montant à retirer (FCFA)').fill('3000')
+    await dialog.getByLabel('Montant à retirer (FCFA)').fill('6000')
 
     await expect(dialog.getByRole('alert')).toContainText(/suspendus jusqu'au/)
     await expect(dialog.getByRole('button', { name: 'Continuer' })).toBeDisabled()
@@ -376,7 +376,7 @@ test.describe('P5 portefeuille des commissions', () => {
     const champ = dialog.getByLabel('Montant à retirer (FCFA)')
 
     await champ.fill('300')
-    await expect(dialog.getByText('Le minimum de retrait est de 500 FCFA.')).toBeVisible()
+    await expect(dialog.getByText(/^Le minimum de retrait est de 5[\s  ]000 FCFA\.$/)).toBeVisible()
     await expect(champ).toHaveAttribute('aria-invalid', 'true')
     await expect(dialog.getByRole('button', { name: 'Continuer' })).toBeDisabled()
 
@@ -413,7 +413,7 @@ test.describe('P5 onglet Portefeuille du propriétaire', () => {
     await expect(dialog.getByLabel('Montant à retirer')).toHaveAttribute('aria-invalid', 'true')
 
     await dialog.getByLabel('Montant à retirer').fill('300')
-    await expect(dialog.getByText(/minimum de retrait est de 500/)).toBeVisible()
+    await expect(dialog.getByText(/minimum de retrait est de 5[\s  ]000/)).toBeVisible()
 
     // Montant invalide : on ne peut même pas passer à la confirmation.
     await expect(dialog.getByRole('button', { name: 'Continuer' })).toBeDisabled()

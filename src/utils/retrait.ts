@@ -1,8 +1,9 @@
 import type { LimitesRetrait, OperateurRetrait } from '../types/wallet'
 import type { RetraitProprio } from '../types/proprietaire'
 
-/** Montant minimum d'une demande de retrait (FCFA) tant que le serveur n'a pas répondu (`GET /retraits/limites`). */
-export const RETRAIT_MINIMUM = 500
+/** Montant minimum d'une demande de retrait (FCFA) tant que le serveur n'a pas répondu (`GET /retraits/limites`) :
+ * 5 000 FCFA pour les propriétaires et les vendeurs. */
+export const RETRAIT_MINIMUM = 5000
 
 const fcfa = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`
 
