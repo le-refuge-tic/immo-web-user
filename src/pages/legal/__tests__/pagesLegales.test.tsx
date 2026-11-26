@@ -11,7 +11,7 @@ const rendre = (Page: ComponentType) => renderToStaticMarkup(<MemoryRouter><Page
 
 describe('pages légales (textes officiels)', () => {
   it.each([
-    ['CGU', CguPage, ['Conditions générales d’utilisation', '25 novembre 2026', 'Tribunal de commerce de Cotonou', '5 000 FCFA', 'exclusivement par FedaPay', '7 jours après la demande']],
+    ['CGU', CguPage, ['Conditions générales d’utilisation', '25 novembre 2026', 'Tribunal de commerce de Cotonou', 'Montant minimum de retrait : 500 FCFA', 'exclusivement par FedaPay', '7 jours après la demande']],
     ['confidentialité', ConfidentialitePage, ['Politique de confidentialité', '25 novembre 2026', 'quenumconfort@gmail.com', 'UEMOA/BCEAO', 'Wirepick', 'Retraits du portefeuille', '7 jours après la demande']],
     ['cookies', CookiesPage, ['13 octobre 2026', 'rg_device_token', 'Umami Cloud']],
     ['mentions légales', MentionsLegalesPage, ['Mentions légales', 'RB/ABC/22 A 48057', '0202271165781', 'Directeur de la publication']],
