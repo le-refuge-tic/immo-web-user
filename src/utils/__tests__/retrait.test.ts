@@ -8,8 +8,8 @@ describe('messageMontantRetrait', () => {
   })
 
   it('accepte un montant entre le minimum et le solde, bornes comprises', () => {
-    expect(messageMontantRetrait('500', 8000)).toBe('')
-    expect(messageMontantRetrait('3000', 8000)).toBe('')
+    expect(messageMontantRetrait('5000', 8000)).toBe('')
+    expect(messageMontantRetrait('6500', 8000)).toBe('')
     expect(messageMontantRetrait('8000', 8000)).toBe('')
   })
 
@@ -17,10 +17,11 @@ describe('messageMontantRetrait', () => {
     expect(messageMontantRetrait('9000', 8000)).toMatch(/dépasse votre solde disponible \(8[\s  ]000 FCFA\)/)
   })
 
-  it('refuse un montant sous le minimum de 500 FCFA', () => {
-    expect(RETRAIT_MINIMUM).toBe(500)
-    expect(messageMontantRetrait('300', 8000)).toMatch(/minimum de retrait est de 500 FCFA/)
-    expect(messageMontantRetrait('499', 8000)).not.toBe('')
+  it('refuse un montant sous le minimum de 5 000 FCFA', () => {
+    expect(RETRAIT_MINIMUM).toBe(5000)
+    expect(messageMontantRetrait('300', 8000)).toMatch(/minimum de retrait est de 5[\s  ]000 FCFA/)
+    expect(messageMontantRetrait('4999', 8000)).not.toBe('')
+    expect(messageMontantRetrait('5000', 8000)).toBe('')
   })
 
   it('refuse un montant nul, négatif ou non numérique', () => {

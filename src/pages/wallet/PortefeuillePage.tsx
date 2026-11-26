@@ -117,7 +117,7 @@ function ClientWalletView() {
   const color = W_COLOR[tab]
   const transactions = txs[tab]
 
-  // Le minimum (500 FCFA) et le plafond (solde) sont vérifiés dès la saisie, comme côté serveur (FE-B-015).
+  // Le minimum (5 000 FCFA) et le plafond (solde) sont vérifiés dès la saisie, comme côté serveur (FE-B-015).
   const soldeEpargne = Number(wallets.epargne?.balance || 0)
   const montantMessage = messageMontantRetrait(montant, soldeEpargne, limites)
   const blocage = raisonBlocageRetrait(numeroInfo)

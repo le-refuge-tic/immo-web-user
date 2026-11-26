@@ -197,7 +197,7 @@ export default function CguPage() {
           virement bancaire.
         </p>
         <ul>
-          <li>Montant minimum de retrait : 500 FCFA.</li>
+          <li>Montant minimum de retrait : 5 000 FCFA.</li>
           <li>Plafond : 2 000 000 FCFA par transaction vers un compte Mobile Money.</li>
           <li>Frais de retrait : pris en charge par REFUGE.</li>
           <li>
