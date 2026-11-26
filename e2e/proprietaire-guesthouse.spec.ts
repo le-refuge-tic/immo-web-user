@@ -8,7 +8,7 @@ const photos = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `p${i
 
 async function ouvrirGuesthouse(page: Page) {
   await page.goto('/nouveau-bien')
-  await page.getByRole('radio', { name: 'Court séjour' }).click()
+  await page.getByRole('radio', { name: 'Guesthouse' }).click()
   const dialogue = page.getByRole('alertdialog')
   await expect(dialogue).toContainText('Publier une guesthouse ?')
   await dialogue.getByRole('button', { name: 'Ouvrir le formulaire' }).click()
@@ -83,11 +83,11 @@ test('guesthouse publiée : payload complet, propriétaire = compte, retour à �
   expect(JSON.stringify(corps)).not.toMatch(/prime|commission_agence/)
 })
 
-test('salle de fêtes : ouverte depuis « Événementiel », totaux en direct à l’étape Tarif', async ({ page }) => {
+test('salle de fêtes : ouverte depuis « Salle de fêtes », totaux en direct à l’étape Tarif', async ({ page }) => {
   await mockApp(page, { role: 'proprietaire' })
   await page.addInitScript(u => localStorage.setItem('rg_user', JSON.stringify(u)), { ...userOf('proprietaire'), telephone: '+2290197000000' })
   await page.goto('/nouveau-bien')
-  await page.getByRole('radio', { name: 'Événementiel' }).click()
+  await page.getByRole('radio', { name: 'Salle de fêtes' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Ouvrir le formulaire' }).click()
   await expect(page).toHaveURL(/\/nouveau-bien\/salle-fete$/)
   const suivant = page.getByRole('button', { name: 'Suivant' })
