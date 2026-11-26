@@ -15,6 +15,9 @@ test.describe("P4 publication d'annonce", () => {
     expect((await page.locator('input[inputmode="numeric"]').first().inputValue()).replace(/\D/g, '')).toBe('75000')
 
     await page.getByRole('button', { name: 'Tout effacer' }).click()
+    // Lot 1 : l'effacement passe par une boîte de confirmation, puis la page se recharge.
+    const confirmation = page.getByRole('alertdialog', { name: 'Tout effacer ?' })
+    await confirmation.getByRole('button', { name: 'Tout effacer' }).click()
     await page.waitForLoadState('load')
     await expect(page.getByText('Votre saisie précédente a été retrouvée')).toHaveCount(0)
     await expect(page.locator('input[inputmode="numeric"]').first()).toHaveValue('')
